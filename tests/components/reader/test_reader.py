@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 import requests
 
-from gradion.components.reader.api import Document, create_readwise_reader
+from gradion_incubator.components.reader.api import Document, create_readwise_reader
 
 
 @pytest.fixture

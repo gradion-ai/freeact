@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 
 from pyzotero import zotero
 
-from gradion.components.zotero.api import (
+from gradion_incubator.components.zotero.api import (
     Attachment,
     Collection,
     Document,
