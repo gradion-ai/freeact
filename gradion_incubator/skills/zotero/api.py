@@ -230,7 +230,7 @@ def load_group_library(
     Returns:
         A GroupLibrary object.
     """
-    from gradion_incubator.components.zotero.impl import GroupLibraryImpl
+    from gradion_incubator.skills.zotero.impl import GroupLibraryImpl
 
     return GroupLibraryImpl(
         group_id=group_id or int(os.environ["ZOTERO_GROUP_ID"]),

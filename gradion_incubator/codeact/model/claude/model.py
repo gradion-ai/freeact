@@ -54,18 +54,10 @@ class ClaudeCodeActModel(CodeActModel):
         logger: Logger,
         model_name: ClaudeModelName,
         prompt_caching: bool = False,
-        python_files: List[Path] | None = None,
     ):
         self.logger = logger
         self.model_name = model_name
-        self.python_files = [] if python_files is None else python_files
-
         self.prompt_caching = prompt_caching
-
-        # --------------------------------------
-        #  TODO: render python files on request
-        # --------------------------------------
-        self.system_prompt = self._format_system_prompt()
 
         self.history = []  # type: ignore
         self.client = AsyncAnthropic(
@@ -79,6 +71,7 @@ class ClaudeCodeActModel(CodeActModel):
     async def stream_request(
         self,
         user_query: str,
+        skills: List[Path] | None = None,
         **kwargs,
     ) -> AsyncIterator[str | AssistantMessage]:
         content = USER_QUERY_TEMPLATE.format(user_query=user_query)
@@ -87,7 +80,7 @@ class ClaudeCodeActModel(CodeActModel):
         async with self.logger.context("request"):
             await self.logger.log(content)
 
-        async for elem in self._stream(message, **kwargs):
+        async for elem in self._stream(message, skills=skills, **kwargs):
             yield elem
 
     async def stream_feedback(
@@ -128,13 +121,14 @@ class ClaudeCodeActModel(CodeActModel):
     async def _stream(
         self,
         user_message,
-        max_tokens: int = 4096,
+        skills: List[Path] | None = None,
         temperature: float = 0.0,
+        max_tokens: int = 4096,
     ):
         system_blocks: list[dict[str, Any]] = [
             {
                 "type": "text",
-                "text": self.system_prompt,
+                "text": self._render_skills(skills or []),
             }
         ]
 
@@ -201,10 +195,11 @@ class ClaudeCodeActModel(CodeActModel):
 
         yield assistant_message
 
-    def _format_system_prompt(self) -> str:
+    @staticmethod
+    def _render_skills(skills: List[Path]) -> str:
         content = []
 
-        for file in self.python_files if self.python_files else []:
+        for file in skills:
             code = file.read_text()
             content.append(f"```python\n# file: {file}\n\n{code}\n```")
 

@@ -3,8 +3,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from gradion_incubator.components.zotero.api import Document, Link
-from gradion_incubator.components.zotero.impl import GroupLibraryImpl
+from gradion_incubator.skills.zotero.api import Document, Link
+from gradion_incubator.skills.zotero.impl import GroupLibraryImpl
 
 
 @pytest.fixture

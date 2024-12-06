@@ -1,6 +1,7 @@
 import asyncio
 from enum import Enum
 from pathlib import Path
+from typing import List
 from uuid import uuid4
 
 import aiofiles
@@ -21,9 +22,9 @@ class CodeActAgent:
         self.model = model
         self.executor = executor
 
-    async def run(self, user_request: str, temperature: float = 0.0):
+    async def run(self, user_request: str, skills: List[Path] | None = None, temperature: float = 0.0, **kwargs):
         yield Stage.GENERATING
-        async for elem in self.model.stream_request(user_request, temperature=temperature):
+        async for elem in self.model.stream_request(user_request, skills=skills, temperature=temperature, **kwargs):
             match elem:
                 case str():
                     yield elem
@@ -34,8 +35,10 @@ class CodeActAgent:
                         code=msg.code,  # type: ignore
                         tool_use_id=msg.tool_use_id,
                         tool_use_name=msg.tool_use_name,
+                        skills=skills,
                         temperature=temperature,
                         level=0,
+                        **kwargs,
                     ):
                         yield elem
 

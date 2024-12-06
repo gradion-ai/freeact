@@ -1,5 +1,6 @@
 import asyncio
 from pathlib import Path
+from typing import List
 
 from aioconsole import ainput
 from dotenv import dotenv_values, load_dotenv
@@ -24,14 +25,14 @@ if generated_dir.exists():
 """
 
 
-async def conversation(agent: CodeActAgent):
+async def conversation(agent: CodeActAgent, skills: List[Path]):
     while True:
         user_message = await ainput("User: ('q' to quit) ")
 
         if user_message.lower() == "q":
             break
 
-        async for chunk in agent.run(user_message):
+        async for chunk in agent.run(user_message, skills=skills):
             match chunk:
                 case Stage() as stage:
                     print("\n")
@@ -48,39 +49,33 @@ async def main(model_name: ClaudeModelName, log_file: Path, prompt_caching: bool
 
     # bind mounts for the container
     binds = {
-        "gradion_incubator": "gradion_incubator",
-        "generated": "generated",
+        "gradion_incubator/skills": "skills/builtin/gradion_incubator/skills",
+        "workspace/123/skills": "skills/private",
+        "workspace/123/data": "data",
     }
 
     async with ExecutionContainer(tag="gradion/executor-successor", binds=binds, env=env) as container:
         async with ExecutionClient(host="localhost", port=container.port) as executor:
             await executor.execute("%load_ext autoreload")
             await executor.execute("%autoreload 2")
-            await executor.execute("from gradion_incubator.components.editor import file_editor")
-            await executor.execute("import sys; sys.path.append('generated')")
+            await executor.execute("import sys; sys.path.append('skills/builtin')")
+            await executor.execute("from gradion_incubator.skills.editor import file_editor")
             # await executor.execute(CLEANUP_CODE)
 
             async with Logger(file=log_file) as logger:
-                files_root = Path("gradion_incubator", "components")
-                files = [
-                    # files_root / "search" / "internet.py",
-                    files_root / "zotero" / "api.py",
-                    files_root / "reader" / "api.py",
+                skills_root = Path("gradion_incubator", "skills")
+                skills = [
+                    skills_root / "zotero" / "api.py",
+                    skills_root / "reader" / "api.py",
                 ]
-
-                generated_interface_path = Path("generated", "foo", "interface.py")
-
-                if generated_interface_path.exists():
-                    files.append(generated_interface_path)
 
                 model = ClaudeCodeActModel(
                     model_name=model_name,
                     prompt_caching=prompt_caching,
-                    python_files=files,
                     logger=logger,
                 )
                 agent = CodeActAgent(model=model, executor=executor)
-                await conversation(agent)
+                await conversation(agent, skills=skills)
 
 
 if __name__ == "__main__":

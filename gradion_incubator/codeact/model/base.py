@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import AsyncIterator
+from pathlib import Path
+from typing import AsyncIterator, List
 
 
 @dataclass
@@ -25,6 +26,7 @@ class CodeActModel(ABC):
     def stream_request(
         self,
         user_query: str,
+        skills: List[Path] | None = None,
         **kwargs,
     ) -> AsyncIterator[str | AssistantMessage]: ...
 
