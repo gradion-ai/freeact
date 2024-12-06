@@ -75,7 +75,7 @@ class Collection(Node):
         return z
 
     def sub_collections(self) -> List["Collection"]:
-        """The sub-collections in this collection (recursively)."""
+        """The sub-collections in this collection (recursively). Also includes this collection."""
         return self.filter(lambda node: isinstance(node, Collection))  # type: ignore
 
     def sub_documents(self) -> List["Document"]:
