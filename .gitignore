@@ -1,0 +1,11 @@
+__pycache__
+.mypy_cache
+.ruff_cache
+.pytest_cache
+.cursorignore
+.env
+.vscode
+.zotero
+logs
+output
+sandbox*
