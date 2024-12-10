@@ -596,27 +596,6 @@ files = [
 ]
 
 [[package]]
-name = "gradion-executor"
-version = "0.1.2"
-description = "Gradion AI Code Execution Container"
-optional = false
-python-versions = "^3.10,<3.13"
-files = []
-develop = true
-
-[package.dependencies]
-aiodocker = "^0.23.0"
-aiofiles = "^24.1"
-aiohttp = "^3.10"
-pillow = "^11.0"
-tornado = "^6.4"
-typer = "^0.12.5"
-
-[package.source]
-type = "directory"
-url = "../executor"
-
-[[package]]
 name = "h11"
 version = "0.14.0"
 description = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
@@ -722,6 +701,27 @@ files = [
     {file = "invoke-2.2.0-py3-none-any.whl", hash = "sha256:6ea924cc53d4f78e3d98bc436b08069a03077e6f85ad1ddaa8a116d7dad15820"},
     {file = "invoke-2.2.0.tar.gz", hash = "sha256:ee6cbb101af1a859c7fe84f2a264c059020b0cb7fe3535f9424300ab568f6bd5"},
 ]
+
+[[package]]
+name = "ipybox"
+version = "0.2.0"
+description = "Python code execution sandbox based on IPython and Docker"
+optional = false
+python-versions = "^3.10,<3.13"
+files = []
+develop = true
+
+[package.dependencies]
+aiodocker = "^0.23.0"
+aiofiles = "^24.1"
+aiohttp = "^3.10"
+pillow = "^11.0"
+tornado = "^6.4"
+typer = "^0.12.5"
+
+[package.source]
+type = "directory"
+url = "../ipybox"
 
 [[package]]
 name = "jiter"
@@ -1874,4 +1874,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10,<3.13"
-content-hash = "8d336aaa7e28131f189bb01cf463bb5c6042d3bb29a96dff1ac0f3c5f3cab6b1"
+content-hash = "489a1f578535eead3217f95b1dd7cebf01bba38d5645e50d0be586d3d0e6e45f"

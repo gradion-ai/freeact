@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from gradion.executor import ExecutionClient, ExecutionContainer, arun
+from ipybox import ExecutionClient, ExecutionContainer, arun
 
 
 @dataclass

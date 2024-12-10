@@ -39,7 +39,7 @@ async def main(model_name: ClaudeModelName, log_file: Path, prompt_caching: bool
     # environment variables for the container
     env = {k: v for k, v in dotenv_values().items() if v is not None}
 
-    async with CodeActContainer(tag="gradion/executor-incubator", env=env) as container:
+    async with CodeActContainer(tag="gradion/ipybox-incubator", env=env) as container:
         async with CodeActExecutor(
             key="123", host="localhost", port=container.port, workspace=container.workspace
         ) as executor:

@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import aiofiles
 import aiofiles.os
-from gradion.executor import ExecutionError
+from ipybox import ExecutionError
 
 from gradion_incubator.codeact.executor import CodeActExecutor
 from gradion_incubator.codeact.model import AssistantMessage, CodeActModel
