@@ -29,7 +29,7 @@ Code generation guidelines:
   - ...
 
 Code editing guidelines:
-- Python files created with the code editor are located in the `generated` directory or sub-directories thereof. Their content must be imported with `from generated.... import ...`
+- Python files created with the code editor are located in the current working directory or sub-directories thereof. Their content must be imported with `from ... import ...`
 """
 
 

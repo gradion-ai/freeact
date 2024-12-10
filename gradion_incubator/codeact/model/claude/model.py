@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any, AsyncIterator, List, Literal
 
 from anthropic import AsyncAnthropic, ContentBlockStopEvent, InputJsonEvent, TextEvent
@@ -14,6 +13,7 @@ from gradion_incubator.codeact.model.claude.prompt import (
 )
 from gradion_incubator.codeact.model.claude.tools import CODE_EDITOR_TOOL, CODE_EXECUTOR_TOOL, TOOLS
 from gradion_incubator.logger import Logger
+from gradion_incubator.skills import SkillInfo
 
 
 @dataclass
@@ -71,7 +71,7 @@ class ClaudeCodeActModel(CodeActModel):
     async def stream_request(
         self,
         user_query: str,
-        skills: List[Path] | None = None,
+        skill_infos: List[SkillInfo],
         **kwargs,
     ) -> AsyncIterator[str | AssistantMessage]:
         content = USER_QUERY_TEMPLATE.format(user_query=user_query)
@@ -80,7 +80,7 @@ class ClaudeCodeActModel(CodeActModel):
         async with self.logger.context("request"):
             await self.logger.log(content)
 
-        async for elem in self._stream(message, skills=skills, **kwargs):
+        async for elem in self._stream(message, skill_infos=skill_infos, **kwargs):
             yield elem
 
     async def stream_feedback(
@@ -121,14 +121,14 @@ class ClaudeCodeActModel(CodeActModel):
     async def _stream(
         self,
         user_message,
-        skills: List[Path] | None = None,
+        skill_infos: List[SkillInfo],
         temperature: float = 0.0,
         max_tokens: int = 4096,
     ):
         system_blocks: list[dict[str, Any]] = [
             {
                 "type": "text",
-                "text": self._render_skills(skills or []),
+                "text": self._render_skills(skill_infos or []),
             }
         ]
 
@@ -139,8 +139,6 @@ class ClaudeCodeActModel(CodeActModel):
         assistant_message = ClaudeMessage(content="")
 
         messages = self.history + [user_message]
-
-        self.client.messages.create
 
         async with self.client.messages.stream(
             model=self.model_name,
@@ -196,11 +194,10 @@ class ClaudeCodeActModel(CodeActModel):
         yield assistant_message
 
     @staticmethod
-    def _render_skills(skills: List[Path]) -> str:
+    def _render_skills(skill_infos: List[SkillInfo]) -> str:
         content = []
 
-        for file in skills:
-            code = file.read_text()
-            content.append(f"```python\n# file: {file}\n\n{code}\n```")
+        for info in skill_infos:
+            content.append(f"```python\n# file: {info.relative_path}\n\n{info.source}\n```")
 
         return SYSTEM_TEMPLATE.format(python_files="\n\n".join(content))

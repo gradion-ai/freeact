@@ -6,9 +6,12 @@ from uuid import uuid4
 
 import aiofiles
 import aiofiles.os
-from gradion.executor import ExecutionClient, ExecutionError
+from gradion.executor import ExecutionError
 
+from gradion_incubator.codeact.executor import CodeActExecutor
 from gradion_incubator.codeact.model import AssistantMessage, CodeActModel
+from gradion_incubator.codeact.utils import extended_sys_path
+from gradion_incubator.skills import SkillInfo, get_skill_info
 
 
 class Stage(Enum):
@@ -18,13 +21,21 @@ class Stage(Enum):
 
 
 class CodeActAgent:
-    def __init__(self, model: CodeActModel, executor: ExecutionClient):
+    def __init__(self, model: CodeActModel, executor: CodeActExecutor):
         self.model = model
         self.executor = executor
 
-    async def run(self, user_request: str, skills: List[Path] | None = None, temperature: float = 0.0, **kwargs):
+    async def run(self, user_request: str, skill_modules: List[str] | None = None, temperature: float = 0.0, **kwargs):
         yield Stage.GENERATING
-        async for elem in self.model.stream_request(user_request, skills=skills, temperature=temperature, **kwargs):
+
+        skill_infos = self._get_skill_infos(skill_modules or [])
+
+        async for elem in self.model.stream_request(
+            user_request,
+            skill_infos=skill_infos,
+            temperature=temperature,
+            **kwargs,
+        ):
             match elem:
                 case str():
                     yield elem
@@ -35,7 +46,7 @@ class CodeActAgent:
                         code=msg.code,  # type: ignore
                         tool_use_id=msg.tool_use_id,
                         tool_use_name=msg.tool_use_name,
-                        skills=skills,
+                        skill_infos=skill_infos,
                         temperature=temperature,
                         level=0,
                         **kwargs,
@@ -121,3 +132,12 @@ class CodeActAgent:
         image.save(str(image_path))
 
         return image_path
+
+    def _get_skill_infos(self, skill_modules: List[str]) -> List[SkillInfo]:
+        extension_paths = [
+            self.executor.workspace.shared_skills_path,
+            self.executor.workdir,
+        ]
+
+        with extended_sys_path(extension_paths):
+            return [get_skill_info(skill_module) for skill_module in skill_modules]

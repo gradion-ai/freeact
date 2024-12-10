@@ -119,16 +119,11 @@ class EditTool:
         """
         Check that the path/command combination is valid.
         """
-        # Check if its an absolute path  # FIXME: this is a temp hack ...
+        # Check if its an absolute path
         if path.is_absolute():
             raise ToolError(
                 f"The path {path} is an absolute path, it should be a relative path to the current working directory"
             )
-
-        # Check if path starts with incubator/generated  # FIXME: this is a temp hack ...
-        if not str(path).startswith("generated"):
-            raise ToolError(f"The path {path} must start with `generated`")
-
         # Check if path exists
         if not path.exists() and command != "create":
             raise ToolError(f"The path {path} does not exist. Please provide a valid path.")

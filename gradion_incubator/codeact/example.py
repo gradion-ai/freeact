@@ -4,35 +4,27 @@ from typing import List
 
 from aioconsole import ainput
 from dotenv import dotenv_values, load_dotenv
-from gradion.executor import ExecutionClient, ExecutionContainer
 
-from gradion_incubator.codeact import AssistantMessage, ClaudeCodeActModel, ClaudeModelName, CodeActAgent, Stage
+from gradion_incubator.codeact import (
+    AssistantMessage,
+    ClaudeCodeActModel,
+    ClaudeModelName,
+    CodeActAgent,
+    CodeActContainer,
+    CodeActExecutor,
+    Stage,
+)
 from gradion_incubator.logger import Logger
 
-CLEANUP_CODE = """
-import os
-import shutil
 
-from pathlib import Path
-
-generated_dir = Path('generated')
-if generated_dir.exists():
-    for item in generated_dir.iterdir():
-        if item.is_file() and item.name != "__init__.py":
-            item.unlink()
-        elif item.is_dir():
-            shutil.rmtree(item)
-"""
-
-
-async def conversation(agent: CodeActAgent, skills: List[Path]):
+async def conversation(agent: CodeActAgent, skill_modules: List[str]):
     while True:
         user_message = await ainput("User: ('q' to quit) ")
 
         if user_message.lower() == "q":
             break
 
-        async for chunk in agent.run(user_message, skills=skills):
+        async for chunk in agent.run(user_message, skill_modules=skill_modules):
             match chunk:
                 case Stage() as stage:
                     print("\n")
@@ -47,26 +39,14 @@ async def main(model_name: ClaudeModelName, log_file: Path, prompt_caching: bool
     # environment variables for the container
     env = {k: v for k, v in dotenv_values().items() if v is not None}
 
-    # bind mounts for the container
-    binds = {
-        "gradion_incubator/skills": "skills/builtin/gradion_incubator/skills",
-        "workspace/123/skills": "skills/private",
-        "workspace/123/data": "data",
-    }
-
-    async with ExecutionContainer(tag="gradion/executor-successor", binds=binds, env=env) as container:
-        async with ExecutionClient(host="localhost", port=container.port) as executor:
-            await executor.execute("%load_ext autoreload")
-            await executor.execute("%autoreload 2")
-            await executor.execute("import sys; sys.path.append('skills/builtin')")
-            await executor.execute("from gradion_incubator.skills.editor import file_editor")
-            # await executor.execute(CLEANUP_CODE)
-
+    async with CodeActContainer(tag="gradion/executor-incubator", env=env) as container:
+        async with CodeActExecutor(
+            key="123", host="localhost", port=container.port, workspace=container.workspace
+        ) as executor:
             async with Logger(file=log_file) as logger:
-                skills_root = Path("gradion_incubator", "skills")
-                skills = [
-                    skills_root / "zotero" / "api.py",
-                    skills_root / "reader" / "api.py",
+                skill_modules = [
+                    "gradion_incubator.skills.zotero.api",
+                    "gradion_incubator.skills.reader.api",
                 ]
 
                 model = ClaudeCodeActModel(
@@ -75,7 +55,7 @@ async def main(model_name: ClaudeModelName, log_file: Path, prompt_caching: bool
                     logger=logger,
                 )
                 agent = CodeActAgent(model=model, executor=executor)
-                await conversation(agent, skills=skills)
+                await conversation(agent, skill_modules=skill_modules)
 
 
 if __name__ == "__main__":

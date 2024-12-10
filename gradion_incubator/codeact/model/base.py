@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from pathlib import Path
 from typing import AsyncIterator, List
+
+from gradion_incubator.skills import SkillInfo
 
 
 @dataclass
@@ -26,7 +27,7 @@ class CodeActModel(ABC):
     def stream_request(
         self,
         user_query: str,
-        skills: List[Path] | None = None,
+        skill_infos: List[SkillInfo],
         **kwargs,
     ) -> AsyncIterator[str | AssistantMessage]: ...
 

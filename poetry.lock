@@ -600,19 +600,21 @@ name = "gradion-executor"
 version = "0.1.2"
 description = "Gradion AI Code Execution Container"
 optional = false
-python-versions = "<3.13,>=3.10"
-files = [
-    {file = "gradion_executor-0.1.2-py3-none-any.whl", hash = "sha256:b7d7c655d5996b158bbf56d4a18b7bdd6729651e13f9b68e13c12367b82334bf"},
-    {file = "gradion_executor-0.1.2.tar.gz", hash = "sha256:913fd859ffa6c5183f8ab01a3f15439a52caa0b92e8917e199dcfad556b84d7c"},
-]
+python-versions = "^3.10,<3.13"
+files = []
+develop = true
 
 [package.dependencies]
-aiodocker = ">=0.23.0,<0.24.0"
-aiofiles = ">=24.1,<25.0"
-aiohttp = ">=3.10,<4.0"
-pillow = ">=11.0,<12.0"
-tornado = ">=6.4,<7.0"
-typer = ">=0.12.5,<0.13.0"
+aiodocker = "^0.23.0"
+aiofiles = "^24.1"
+aiohttp = "^3.10"
+pillow = "^11.0"
+tornado = "^6.4"
+typer = "^0.12.5"
+
+[package.source]
+type = "directory"
+url = "../executor"
 
 [[package]]
 name = "h11"
@@ -1872,4 +1874,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10,<3.13"
-content-hash = "c953422c2304f464dd569357d9c56b8cbc3df517c8b904fb1f9f2490ebe0b6d8"
+content-hash = "8d336aaa7e28131f189bb01cf463bb5c6042d3bb29a96dff1ac0f3c5f3cab6b1"

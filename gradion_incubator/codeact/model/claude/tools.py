@@ -16,7 +16,7 @@ CODE_EXECUTOR_TOOL = {
 
 CODE_EDITOR_DESCRIPTION = """Custom editing tool for viewing, creating and editing files
 * State is persistent across command calls and discussions with the user
-* Interpret `path` as a sub-directory of the `generated` directory
+* Interpret `path` as a relative path to the current working directory
 * If `path` is a file, `view` displays the result of applying `cat -n`. If `path` is a directory, `view` lists non-hidden files and directories up to 2 levels deep
 * The `create` command cannot be used if the specified `path` already exists as a file
 * If a `command` generates a long output, it will be truncated and marked with `<response clipped>`
@@ -41,7 +41,7 @@ CODE_EDITOR_TOOL = {
                 "type": "string",
             },
             "path": {
-                "description": "Relative path to file or directory, e.g. `generated/my_dir/my_file.py` or `generated/my_dir`.",
+                "description": "Relative path to file or directory, e.g. `my_dir/my_file.py` or `my_dir`.",
                 "type": "string",
             },
             "file_text": {
