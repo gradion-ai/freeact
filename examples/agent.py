@@ -5,7 +5,7 @@ from typing import List
 from aioconsole import ainput
 from dotenv import dotenv_values, load_dotenv
 
-from gradion_incubator.codeact import (
+from freeact import (
     AssistantMessage,
     ClaudeCodeActModel,
     ClaudeModelName,
@@ -14,7 +14,7 @@ from gradion_incubator.codeact import (
     CodeActExecutor,
     Stage,
 )
-from gradion_incubator.logger import Logger
+from freeact.logger import Logger
 
 
 async def conversation(agent: CodeActAgent, skill_modules: List[str]):
@@ -45,8 +45,8 @@ async def main(model_name: ClaudeModelName, log_file: Path, prompt_caching: bool
         ) as executor:
             async with Logger(file=log_file) as logger:
                 skill_modules = [
-                    "gradion_incubator.skills.zotero.api",
-                    "gradion_incubator.skills.reader.api",
+                    "freeact.skills.zotero.api",
+                    "freeact.skills.reader.api",
                 ]
 
                 model = ClaudeCodeActModel(

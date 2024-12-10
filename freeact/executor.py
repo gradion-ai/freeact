@@ -32,10 +32,10 @@ class CodeActContainer(ExecutionContainer):
         }
 
         # assumed to only exist in development mode i.e. if cwd() is project root
-        _builtin_skills_host_path = Path.cwd() / "gradion_incubator" / "skills"
+        _builtin_skills_host_path = Path.cwd() / "freeact" / "skills"
 
         if _builtin_skills_host_path.exists():
-            binds[_builtin_skills_host_path] = "skills/builtin/gradion_incubator/skills"
+            binds[_builtin_skills_host_path] = "skills/builtin/freeact/skills"
 
         super().__init__(tag=tag, binds=binds, env=env)
 
@@ -72,6 +72,6 @@ class CodeActExecutor(ExecutionClient):
             os.makedirs(workdir, exist_ok=True)
             os.chdir(workdir)
 
-            from gradion_incubator.skills.editor import file_editor
+            from freeact.skills.editor import file_editor
             """)
         return self

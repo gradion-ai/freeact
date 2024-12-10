@@ -7,7 +7,7 @@ from uuid import uuid4
 import requests
 from dateutil.parser import parse
 
-from gradion_incubator.skills.reader.api import Document, ReadwiseReader
+from freeact.skills.reader.api import Document, ReadwiseReader
 
 
 @dataclass

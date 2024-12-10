@@ -8,10 +8,10 @@ import aiofiles
 import aiofiles.os
 from ipybox import ExecutionError
 
-from gradion_incubator.codeact.executor import CodeActExecutor
-from gradion_incubator.codeact.model import AssistantMessage, CodeActModel
-from gradion_incubator.codeact.utils import extended_sys_path
-from gradion_incubator.skills import SkillInfo, get_skill_info
+from freeact.agent.model import AssistantMessage, CodeActModel
+from freeact.executor import CodeActExecutor
+from freeact.skills import SkillInfo, get_skill_info
+from freeact.utils import extended_sys_path
 
 
 class Stage(Enum):

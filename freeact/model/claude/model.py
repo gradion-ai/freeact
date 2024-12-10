@@ -4,16 +4,16 @@ from typing import Any, AsyncIterator, List, Literal
 from anthropic import AsyncAnthropic, ContentBlockStopEvent, InputJsonEvent, TextEvent
 from anthropic.types import TextBlock, ToolUseBlock
 
-from gradion_incubator.codeact.model.base import AssistantMessage, CodeActModel
-from gradion_incubator.codeact.model.claude.prompt import (
+from freeact.logger import Logger
+from freeact.model.base import AssistantMessage, CodeActModel
+from freeact.model.claude.prompt import (
     EXECUTION_ERROR_TEMPLATE,
     EXECUTION_OUTPUT_TEMPLATE,
     SYSTEM_TEMPLATE,
     USER_QUERY_TEMPLATE,
 )
-from gradion_incubator.codeact.model.claude.tools import CODE_EDITOR_TOOL, CODE_EXECUTOR_TOOL, TOOLS
-from gradion_incubator.logger import Logger
-from gradion_incubator.skills import SkillInfo
+from freeact.model.claude.tools import CODE_EDITOR_TOOL, CODE_EXECUTOR_TOOL, TOOLS
+from freeact.skills import SkillInfo
 
 
 @dataclass

@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 import requests
 
-from gradion_incubator.skills.reader.api import Document, create_readwise_reader
+from freeact.skills.reader.api import Document, create_readwise_reader
 
 
 @pytest.fixture

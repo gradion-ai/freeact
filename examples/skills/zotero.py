@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 
-from gradion_incubator.skills.zotero.api import load_group_library
+from freeact.skills.zotero.api import load_group_library
 
 
 def main():

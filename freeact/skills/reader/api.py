@@ -111,6 +111,6 @@ def create_readwise_reader(api_key: str | None = None) -> ReadwiseReader:
     Returns:
         A ReadwiseReader instance.
     """
-    from gradion_incubator.skills.reader.impl import ReadwiseReaderImpl
+    from freeact.skills.reader.impl import ReadwiseReaderImpl
 
     return ReadwiseReaderImpl(api_key)

@@ -3,10 +3,10 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "gradion-incubator"
+name = "freeact"
 version = "0.0.1"
-description = "Gradion AI Agent Incubator"
-homepage = "https://github.com/gradion-ai/incubator"
+description = "A general-purpose CodeAct Agent"
+homepage = "https://github.com/gradion-ai/freeact"
 readme = "README.md"
 license = "Apache-2.0"
 authors = [
@@ -14,7 +14,7 @@ authors = [
     "Christoph Stumpf <chris@gradion.ai>",
 ]
 packages = [
-    { include = "gradion_incubator" },
+    { include = "freeact" },
 ]
 
 [tool.poetry.dependencies]

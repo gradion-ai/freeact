@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import AsyncIterator, List
 
-from gradion_incubator.skills import SkillInfo
+from freeact.skills import SkillInfo
 
 
 @dataclass

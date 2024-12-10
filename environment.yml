@@ -1,4 +1,4 @@
-name: gradion-incubator
+name: freeact
 channels:
   - defaults
 dependencies:

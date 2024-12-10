@@ -1,4 +1,4 @@
-from gradion_incubator.skills.reader.api import create_readwise_reader
+from freeact.skills.reader.api import create_readwise_reader
 
 HTML_CONTENT = """
 <!DOCTYPE html>
