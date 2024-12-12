@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 from ipybox import Execution, ExecutionError
 
-from freeact.agent import CodeAct, CodeActAgent, MaxIterationsReached
+from freeact.agent import CodeAct, CodeActAgent, MaxStepsReached
 from tests.unit.test_model import MockModel, MockModelCall, MockModelResponse
 
 
@@ -39,7 +39,7 @@ async def test_code_execution_success(mock_executor):
         ]
     )
 
-    async def mock_stream():
+    async def mock_stream(timeout):
         yield "hello\n"
 
     mock_execution = AsyncMock(spec=Execution)
@@ -76,7 +76,7 @@ async def test_max_iterations_reached(mock_executor):
 
     model = MockModel(responses)
 
-    async def mock_stream():
+    async def mock_stream(timeout):
         yield "output\n"
 
     mock_execution = AsyncMock(spec=Execution)
@@ -86,9 +86,9 @@ async def test_max_iterations_reached(mock_executor):
     mock_executor.submit = AsyncMock(return_value=mock_execution)
 
     agent = CodeActAgent(model, mock_executor)
-    call = agent.run("Run code", max_iterations=3)
+    call = agent.run("Run code", max_steps=3)
 
-    with pytest.raises(MaxIterationsReached):
+    with pytest.raises(MaxStepsReached):
         async for _ in call.stream():
             pass
 

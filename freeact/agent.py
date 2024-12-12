@@ -11,8 +11,8 @@ from freeact.model import CodeActModel, CodeActModelCall, CodeActModelResponse
 from freeact.skills import SkillInfo, get_skill_infos
 
 
-class MaxIterationsReached(Exception):
-    """Raised when the maximum number of iterations per user query is reached."""
+class MaxStepsReached(Exception):
+    """Raised when the maximum number of steps per user query is reached."""
 
     pass
 
@@ -33,15 +33,15 @@ class CodeAct:
         self.images_dir = images_dir
         self._result: CodeActResult | None = None
 
-    async def result(self) -> CodeActResult:
+    async def result(self, timeout: float = 120) -> CodeActResult:
         if self._result is None:
-            async for _ in self.stream():
+            async for _ in self.stream(timeout=timeout):
                 pass
         return self._result  # type: ignore
 
-    async def stream(self) -> AsyncIterator[str]:
+    async def stream(self, timeout: float = 120) -> AsyncIterator[str]:
         try:
-            async for chunk in self.execution.stream():
+            async for chunk in self.execution.stream(timeout=timeout):
                 yield chunk
         except ExecutionError as e:
             is_error = True
@@ -106,7 +106,8 @@ class CodeActAgent:
         self,
         user_query: str,
         skill_modules: List[str] | None = None,
-        max_iterations: int = 30,
+        max_steps: int = 30,
+        step_timeout: float = 120,
         **kwargs,
     ) -> CodeActAgentCall:
         extension_paths = [
@@ -114,13 +115,21 @@ class CodeActAgent:
             self.executor.working_dir,
         ]
         skill_infos = get_skill_infos(skill_modules or [], extension_paths)
-        return CodeActAgentCall(self._stream(user_query, skill_infos, max_iterations, **kwargs))
+        stream_coro = self._stream(
+            user_query=user_query,
+            skill_infos=skill_infos,
+            max_steps=max_steps,
+            step_timeout=step_timeout,
+            **kwargs,
+        )
+        return CodeActAgentCall(stream_coro)
 
     async def _stream(
         self,
         user_query: str,
         skill_infos: List[SkillInfo],
-        max_iterations: int = 30,
+        max_steps: int = 30,
+        step_timeout: float = 120,
         **kwargs,
     ) -> AsyncIterator[CodeActModelCall | CodeAct | CodeActModelResponse]:
         # initial model call with user query
@@ -130,7 +139,7 @@ class CodeActAgent:
             **kwargs,
         )
 
-        for _ in range(max_iterations):
+        for _ in range(max_steps):
             yield model_call
 
             match await model_call.response():
@@ -142,7 +151,7 @@ class CodeActAgent:
                     code_exec = await self.executor.submit(response.code)
                     code_act = CodeAct(code_exec, self.executor.images_dir)
                     yield code_act
-                    code_act_result = await code_act.result()
+                    code_act_result = await code_act.result(timeout=step_timeout)
 
                     # follow up model call with execution feedback
                     model_call = self.model.feedback(
@@ -154,4 +163,4 @@ class CodeActAgent:
                         **kwargs,
                     )
         else:
-            raise MaxIterationsReached(f"max_iter ({max_iterations}) reached")
+            raise MaxStepsReached(f"max_steps ({max_steps}) reached")
