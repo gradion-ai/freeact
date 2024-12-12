@@ -5,7 +5,7 @@ import pytest
 from ipybox import Execution, ExecutionError
 
 from freeact.agent import CodeAct, CodeActAgent, MaxIterationsReached
-from tests.test_model import MockModel, MockModelCall, MockModelResponse
+from tests.unit.test_model import MockModel, MockModelCall, MockModelResponse
 
 
 @pytest.fixture
