@@ -6,8 +6,8 @@ from freeact.skills import SkillInfo
 
 
 @dataclass
-class AssistantMessage(ABC):
-    content: str
+class CodeActModelResponse(ABC):
+    text: str
 
     @property
     @abstractmethod
@@ -22,21 +22,29 @@ class AssistantMessage(ABC):
     def code(self) -> str | None: ...
 
 
+class CodeActModelCall(ABC):
+    @abstractmethod
+    async def response(self) -> CodeActModelResponse: ...
+
+    @abstractmethod
+    def stream(self) -> AsyncIterator[str]: ...
+
+
 class CodeActModel(ABC):
     @abstractmethod
-    def stream_request(
+    def request(
         self,
         user_query: str,
         skill_infos: List[SkillInfo],
         **kwargs,
-    ) -> AsyncIterator[str | AssistantMessage]: ...
+    ) -> CodeActModelCall: ...
 
     @abstractmethod
-    def stream_feedback(
+    def feedback(
         self,
         feedback: str,
         is_error: bool,
         tool_use_id: str | None,
         tool_use_name: str | None,
         **kwargs,
-    ) -> AsyncIterator[str | AssistantMessage]: ...
+    ) -> CodeActModelCall: ...

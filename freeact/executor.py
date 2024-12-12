@@ -48,18 +48,25 @@ class CodeActExecutor(ExecutionClient):
         self.workspace = workspace
 
         # Host mapping for working directory inside container
-        self.workdir = workspace.private_skills_path / key
+        self.working_dir = workspace.private_skills_path / key
+
+        # images are stored on host only (for now)
+        self.images_dir = workspace.path / "images" / key
 
     async def __aenter__(self):
         await super().__aenter__()
-        await arun(self.workdir.mkdir, parents=True, exist_ok=True)
+
+        await arun(self.working_dir.mkdir, parents=True, exist_ok=True)
+        await arun(self.images_dir.mkdir, parents=True, exist_ok=True)
+
         await self.execute(f"""
             %load_ext autoreload
             %autoreload 2
 
-            workdir = "/home/appuser/skills/private/{self.key}"
-
+            import os
             import sys
+
+            workdir = "/home/appuser/skills/private/{self.key}"
             sys.path.extend(
                 [
                     "/home/appuser/skills/builtin",
@@ -67,9 +74,6 @@ class CodeActExecutor(ExecutionClient):
                     workdir,
                 ]
             )
-
-            import os
-            os.makedirs(workdir, exist_ok=True)
             os.chdir(workdir)
 
             from freeact.skills.editor import file_editor

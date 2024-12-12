@@ -5,7 +5,7 @@ from anthropic import AsyncAnthropic, ContentBlockStopEvent, InputJsonEvent, Tex
 from anthropic.types import TextBlock, ToolUseBlock
 
 from freeact.logger import Logger
-from freeact.model.base import AssistantMessage, CodeActModel
+from freeact.model.base import CodeActModel, CodeActModelCall, CodeActModelResponse
 from freeact.model.claude.prompt import (
     EXECUTION_ERROR_TEMPLATE,
     EXECUTION_OUTPUT_TEMPLATE,
@@ -14,6 +14,11 @@ from freeact.model.claude.prompt import (
 )
 from freeact.model.claude.tools import CODE_EDITOR_TOOL, CODE_EXECUTOR_TOOL, TOOLS
 from freeact.skills import SkillInfo
+
+ClaudeModelName = Literal[
+    "claude-3-5-haiku-20241022",
+    "claude-3-5-sonnet-20241022",
+]
 
 
 @dataclass
@@ -24,7 +29,7 @@ class ToolUse:
 
 
 @dataclass
-class ClaudeMessage(AssistantMessage):
+class ClaudeResponse(CodeActModelResponse):
     tool_use: ToolUse | None = None
 
     @property
@@ -45,10 +50,27 @@ class ClaudeMessage(AssistantMessage):
             return None
 
 
-ClaudeModelName = Literal["claude-3-5-haiku-20241022", "claude-3-5-sonnet-20241022"]
+class ClaudeCall(CodeActModelCall):
+    def __init__(self, iter: AsyncIterator[str | ClaudeResponse]):
+        self._iter = iter
+        self._response: ClaudeResponse | None = None
+
+    async def response(self) -> ClaudeResponse:
+        if self._response is None:
+            async for _ in self.stream():
+                pass
+        return self._response  # type: ignore
+
+    async def stream(self):
+        async for elem in self._iter:
+            match elem:
+                case str():
+                    yield elem
+                case ClaudeResponse() as msg:
+                    self._response = msg
 
 
-class ClaudeCodeActModel(CodeActModel):
+class Claude(CodeActModel):
     def __init__(
         self,
         logger: Logger,
@@ -68,29 +90,25 @@ class ClaudeCodeActModel(CodeActModel):
             else None,
         )
 
-    async def stream_request(
+    def request(
         self,
         user_query: str,
         skill_infos: List[SkillInfo],
         **kwargs,
-    ) -> AsyncIterator[str | AssistantMessage]:
+    ) -> ClaudeCall:
         content = USER_QUERY_TEMPLATE.format(user_query=user_query)
         message = {"role": "user", "content": content}
 
-        async with self.logger.context("request"):
-            await self.logger.log(content)
+        return ClaudeCall(self._stream(message, content, skill_infos=skill_infos, **kwargs))
 
-        async for elem in self._stream(message, skill_infos=skill_infos, **kwargs):
-            yield elem
-
-    async def stream_feedback(
+    def feedback(
         self,
         feedback: str,
         is_error: bool,
         tool_use_id: str | None,
         tool_use_name: str | None,
         **kwargs,
-    ) -> AsyncIterator[str | AssistantMessage]:
+    ) -> ClaudeCall:
         template = EXECUTION_ERROR_TEMPLATE if is_error else EXECUTION_OUTPUT_TEMPLATE
 
         if tool_use_name == CODE_EXECUTOR_TOOL["name"]:
@@ -112,23 +130,23 @@ class ClaudeCodeActModel(CodeActModel):
             ],
         }
 
-        async with self.logger.context("request"):
-            await self.logger.log(content)
-
-        async for elem in self._stream(message, **kwargs):
-            yield elem
+        return ClaudeCall(self._stream(message, content, **kwargs))
 
     async def _stream(
         self,
         user_message,
+        user_message_content,
         skill_infos: List[SkillInfo],
         temperature: float = 0.0,
         max_tokens: int = 4096,
-    ):
+    ) -> AsyncIterator[str | ClaudeResponse]:
+        async with self.logger.context("request"):
+            await self.logger.log(user_message_content)
+
         system_blocks: list[dict[str, Any]] = [
             {
                 "type": "text",
-                "text": self._render_skills(skill_infos or []),
+                "text": self._format_system_message(skill_infos),
             }
         ]
 
@@ -136,7 +154,7 @@ class ClaudeCodeActModel(CodeActModel):
             system_blocks[0]["cache_control"] = {"type": "ephemeral"}
 
         assistant_blocks = []
-        assistant_message = ClaudeMessage(content="")
+        assistant_message = ClaudeResponse(text="")
 
         messages = self.history + [user_message]
 
@@ -160,15 +178,12 @@ class ClaudeCodeActModel(CodeActModel):
                         pass  # `yield chunk` delays until message is complete
                     case ContentBlockStopEvent(content_block=TextBlock(text=text)) if text.strip():
                         assistant_blocks.append({"type": "text", "text": text})
-                        assistant_message.content = text
+                        assistant_message.text = text
                     case ContentBlockStopEvent(content_block=ToolUseBlock(id=_id, input=_input, name=_name)):
                         assistant_blocks.append({"type": "tool_use", "id": _id, "input": _input, "name": _name})
                         assistant_message.tool_use = ToolUse(id=_id, input=_input, name=_name)
 
-            message = await stream.get_final_message()
-
-        if assistant_message.code is not None:
-            yield "\n\n" + assistant_message.code
+        message = await stream.get_final_message()
 
         self.history.append(user_message)
         self.history.append({"role": "assistant", "content": assistant_blocks})
@@ -184,7 +199,7 @@ class ClaudeCodeActModel(CodeActModel):
             response_metadata["cache_read_input_tokens"] = message.usage.cache_read_input_tokens
 
         async with self.logger.context("response"):
-            log_message = assistant_message.content
+            log_message = assistant_message.text
 
             if assistant_message.code:
                 log_message += f"\n\n```python\n{assistant_message.code}\n```\n"
@@ -194,7 +209,7 @@ class ClaudeCodeActModel(CodeActModel):
         yield assistant_message
 
     @staticmethod
-    def _render_skills(skill_infos: List[SkillInfo]) -> str:
+    def _format_system_message(skill_infos: List[SkillInfo]) -> str:
         content = []
 
         for info in skill_infos:

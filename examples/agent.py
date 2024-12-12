@@ -6,13 +6,13 @@ from aioconsole import ainput
 from dotenv import dotenv_values, load_dotenv
 
 from freeact import (
-    AssistantMessage,
-    ClaudeCodeActModel,
+    Claude,
     ClaudeModelName,
+    CodeAct,
     CodeActAgent,
     CodeActContainer,
     CodeActExecutor,
-    Stage,
+    CodeActModelCall,
 )
 from freeact.logger import Logger
 
@@ -24,15 +24,24 @@ async def conversation(agent: CodeActAgent, skill_modules: List[str]):
         if user_message.lower() == "q":
             break
 
-        async for chunk in agent.run(user_message, skill_modules=skill_modules):
-            match chunk:
-                case Stage() as stage:
-                    print("\n")
-                    print(f"Stage = {stage.value}:")
-                case AssistantMessage():
-                    print("\n")
-                case str():
-                    print(chunk, end="", flush=True)
+        agent_call = agent.run(user_message, skill_modules=skill_modules, temperature=0.0, max_tokens=4096)
+        async for activity in agent_call.stream():
+            match activity:
+                case CodeActModelCall() as call:
+                    async for s in call.stream():
+                        print(s, end="", flush=True)
+                    print()
+
+                    resp = await call.response()
+                    if resp.code is not None:
+                        print("\n```python")
+                        print(resp.code)
+                        print("```\n")
+
+                case CodeAct() as e:
+                    print("Execution result:")
+                    async for s in e.stream():
+                        print(s, end="", flush=True)
 
 
 async def main(model_name: ClaudeModelName, log_file: Path, prompt_caching: bool = True):
@@ -48,8 +57,7 @@ async def main(model_name: ClaudeModelName, log_file: Path, prompt_caching: bool
                     "freeact.skills.zotero.api",
                     "freeact.skills.reader.api",
                 ]
-
-                model = ClaudeCodeActModel(
+                model = Claude(
                     model_name=model_name,
                     prompt_caching=prompt_caching,
                     logger=logger,
