@@ -18,22 +18,18 @@ class MaxStepsReached(Exception):
 
 
 @dataclass
-class CodeActResult:
-    """A coding action result."""
-
+class CodeActionResult:
     text: str
     is_error: bool
 
 
-class CodeAct:
-    """A coding action."""
-
+class CodeAction:
     def __init__(self, execution: Execution, images_dir: Path):
         self.execution = execution
         self.images_dir = images_dir
-        self._result: CodeActResult | None = None
+        self._result: CodeActionResult | None = None
 
-    async def result(self, timeout: float = 120) -> CodeActResult:
+    async def result(self, timeout: float = 120) -> CodeActionResult:
         if self._result is None:
             async for _ in self.stream(timeout=timeout):
                 pass
@@ -63,7 +59,7 @@ class CodeAct:
                 path = await self._save_image(image)
                 text += f"\n![image_{i}]({path})"
 
-        self._result = CodeActResult(text=text, is_error=is_error)
+        self._result = CodeActionResult(text=text, is_error=is_error)
 
     async def _save_image(self, image):
         image_id = uuid4().hex[:8]
@@ -78,7 +74,7 @@ class CodeActAgentResponse:
 
 
 class CodeActAgentCall:
-    def __init__(self, iter: AsyncIterator[CodeActModelCall | CodeAct | CodeActModelResponse]):
+    def __init__(self, iter: AsyncIterator[CodeActModelCall | CodeAction | CodeActModelResponse]):
         self._iter = iter
         self._response: CodeActAgentResponse | None = None
 
@@ -88,7 +84,7 @@ class CodeActAgentCall:
                 pass
         return self._response  # type: ignore
 
-    async def stream(self) -> AsyncIterator[CodeActModelCall | CodeAct]:
+    async def stream(self) -> AsyncIterator[CodeActModelCall | CodeAction]:
         async for elem in self._iter:
             match elem:
                 case CodeActModelResponse() as msg:
@@ -131,7 +127,7 @@ class CodeActAgent:
         max_steps: int = 30,
         step_timeout: float = 120,
         **kwargs,
-    ) -> AsyncIterator[CodeActModelCall | CodeAct | CodeActModelResponse]:
+    ) -> AsyncIterator[CodeActModelCall | CodeAction | CodeActModelResponse]:
         # initial model call with user query
         model_call = self.model.request(
             user_query=user_query,
@@ -149,14 +145,14 @@ class CodeActAgent:
                 case CodeActModelResponse() as response:
                     # model response contains code to execute
                     code_exec = await self.executor.submit(response.code)
-                    code_act = CodeAct(code_exec, self.executor.images_dir)
-                    yield code_act
-                    code_act_result = await code_act.result(timeout=step_timeout)
+                    code_action = CodeAction(code_exec, self.executor.images_dir)
+                    yield code_action
+                    code_action_result = await code_action.result(timeout=step_timeout)
 
                     # follow up model call with execution feedback
                     model_call = self.model.feedback(
-                        feedback=code_act_result.text,
-                        is_error=code_act_result.is_error,
+                        feedback=code_action_result.text,
+                        is_error=code_action_result.is_error,
                         tool_use_id=response.tool_use_id,
                         tool_use_name=response.tool_use_name,
                         skill_infos=skill_infos,

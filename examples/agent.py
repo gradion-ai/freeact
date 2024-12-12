@@ -8,10 +8,10 @@ from dotenv import dotenv_values, load_dotenv
 from freeact import (
     Claude,
     ClaudeModelName,
-    CodeAct,
     CodeActAgent,
     CodeActContainer,
     CodeActExecutor,
+    CodeAction,
     CodeActModelCall,
 )
 from freeact.logger import Logger
@@ -38,10 +38,13 @@ async def conversation(agent: CodeActAgent, skill_modules: List[str]):
                         print(resp.code)
                         print("```\n")
 
-                case CodeAct() as e:
+                case CodeAction() as act:
                     print("Execution result:")
-                    async for s in e.stream():
+                    async for s in act.stream():
                         print(s, end="", flush=True)
+
+        # response = await agent_call.response()
+        # print(response.text)
 
 
 async def main(model_name: ClaudeModelName, log_file: Path, prompt_caching: bool = True):

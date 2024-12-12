@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 from ipybox import Execution, ExecutionError
 
-from freeact.agent import CodeAct, CodeActAgent, MaxStepsReached
+from freeact.agent import CodeActAgent, CodeAction, MaxStepsReached
 from tests.unit.test_model import MockModel, MockModelCall, MockModelResponse
 
 
@@ -57,7 +57,7 @@ async def test_code_execution_success(mock_executor):
 
     assert len(responses) == 3  # Initial ModelCall, CodeAct, and final ModelCall
     assert isinstance(responses[0], MockModelCall)  # Initial response
-    assert isinstance(responses[1], CodeAct)  # Code execution
+    assert isinstance(responses[1], CodeAction)  # Code execution
     assert isinstance(responses[2], MockModelCall)  # Final "All done!" response
 
     response = await call.response()
@@ -117,7 +117,7 @@ async def test_code_execution_error(mock_executor):
 
     assert len(responses) == 3
     assert isinstance(responses[0], MockModelCall)  # Initial response
-    assert isinstance(responses[1], CodeAct)  # Failed code execution
+    assert isinstance(responses[1], CodeAction)  # Failed code execution
     assert isinstance(responses[2], MockModelCall)  # Error feedback response
 
     last_model_response = await responses[2].response()
