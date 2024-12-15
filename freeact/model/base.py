@@ -8,6 +8,7 @@ from freeact.skills import SkillInfo
 @dataclass
 class CodeActModelResponse(ABC):
     text: str
+    is_error: bool
 
     @property
     @abstractmethod

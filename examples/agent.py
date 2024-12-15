@@ -43,9 +43,6 @@ async def conversation(agent: CodeActAgent, skill_modules: List[str]):
                     async for s in act.stream():
                         print(s, end="", flush=True)
 
-        # response = await agent_call.response()
-        # print(response.text)
-
 
 async def main(model_name: ClaudeModelName, log_file: Path, prompt_caching: bool = True):
     # environment variables for the container
@@ -57,9 +54,11 @@ async def main(model_name: ClaudeModelName, log_file: Path, prompt_caching: bool
         ) as executor:
             async with Logger(file=log_file) as logger:
                 skill_modules = [
+                    "freeact.skills.search.web.api",
                     "freeact.skills.zotero.api",
                     "freeact.skills.reader.api",
                 ]
+
                 model = Claude(
                     model_name=model_name,
                     prompt_caching=prompt_caching,

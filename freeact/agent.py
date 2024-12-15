@@ -106,19 +106,19 @@ class CodeActAgent:
         step_timeout: float = 120,
         **kwargs,
     ) -> CodeActAgentCall:
-        extension_paths = [
+        skill_paths = [
             self.executor.workspace.shared_skills_path,
             self.executor.working_dir,
         ]
-        skill_infos = get_skill_infos(skill_modules or [], extension_paths)
-        stream_coro = self._stream(
+        skill_infos = get_skill_infos(skill_modules or [], skill_paths)
+        iter = self._stream(
             user_query=user_query,
             skill_infos=skill_infos,
             max_steps=max_steps,
             step_timeout=step_timeout,
             **kwargs,
         )
-        return CodeActAgentCall(stream_coro)
+        return CodeActAgentCall(iter)
 
     async def _stream(
         self,
@@ -139,23 +139,32 @@ class CodeActAgent:
             yield model_call
 
             match await model_call.response():
-                case CodeActModelResponse(code=None) as response:
+                case CodeActModelResponse(is_error=False, code=None) as response:
                     yield response
                     break
-                case CodeActModelResponse() as response:
+                case CodeActModelResponse(is_error=False) as response:
                     # model response contains code to execute
                     code_exec = await self.executor.submit(response.code)
                     code_action = CodeAction(code_exec, self.executor.images_dir)
                     yield code_action
                     code_action_result = await code_action.result(timeout=step_timeout)
-
+                    feedback = code_action_result.text
+                    is_error = code_action_result.is_error
                     # follow up model call with execution feedback
                     model_call = self.model.feedback(
-                        feedback=code_action_result.text,
-                        is_error=code_action_result.is_error,
+                        feedback=feedback,
+                        is_error=is_error,
                         tool_use_id=response.tool_use_id,
                         tool_use_name=response.tool_use_name,
-                        skill_infos=skill_infos,
+                        **kwargs,
+                    )
+                case CodeActModelResponse(is_error=True) as response:
+                    yield response
+                    model_call = self.model.feedback(
+                        feedback=response.text,
+                        is_error=True,
+                        tool_use_id=response.tool_use_id,
+                        tool_use_name=response.tool_use_name,
                         **kwargs,
                     )
         else:

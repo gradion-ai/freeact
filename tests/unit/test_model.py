@@ -8,7 +8,7 @@ class MockModelResponse(CodeActModelResponse):
     def __init__(
         self, text: str, code: str | None = None, tool_use_id: str | None = None, tool_use_name: str | None = None
     ):
-        super().__init__(text=text)
+        super().__init__(text=text, is_error=False)
         self._code = code
         self._tool_use_id = tool_use_id
         self._tool_use_name = tool_use_name
