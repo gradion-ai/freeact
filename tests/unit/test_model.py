@@ -1,7 +1,6 @@
 from typing import AsyncIterator, List
 
-from freeact.agent import CodeActModel, CodeActModelCall, CodeActModelResponse
-from freeact.skills import SkillInfo
+from freeact.agent import CodeActModel, CodeActModelResponse, CodeActModelTurn
 
 
 class MockModelResponse(CodeActModelResponse):
@@ -26,7 +25,7 @@ class MockModelResponse(CodeActModelResponse):
         return self._code
 
 
-class MockModelCall(CodeActModelCall):
+class MockModelTurn(CodeActModelTurn):
     def __init__(self, response: CodeActModelResponse):
         self.response_obj = response
         self.stream_chunks = ["chunk1", "chunk2"]
@@ -44,17 +43,17 @@ class MockModel(CodeActModel):
         self.responses = responses
         self.current_response = 0
 
-    def request(self, user_query: str, skill_infos: List[SkillInfo], **kwargs) -> MockModelCall:
+    def request(self, user_query: str, **kwargs) -> MockModelTurn:
         response = self.responses[self.current_response]
         self.current_response += 1
-        return MockModelCall(response)
+        return MockModelTurn(response)
 
     def feedback(
         self, feedback: str, is_error: bool, tool_use_id: str | None, tool_use_name: str | None, **kwargs
-    ) -> MockModelCall:
+    ) -> MockModelTurn:
         response = self.responses[self.current_response]
         self.current_response += 1
-        return MockModelCall(response)
+        return MockModelTurn(response)
 
 
 # Only mock model definition at the moment (used by agent tests) ...

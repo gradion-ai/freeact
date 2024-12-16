@@ -12,9 +12,10 @@ from freeact import (
     CodeActContainer,
     CodeActExecutor,
     CodeAction,
-    CodeActModelCall,
+    CodeActModelTurn,
 )
 from freeact.logger import Logger
+from freeact.skills import SkillInfo, get_skill_infos
 
 RUNBOOK = """Your overall workflow instructions (= runbook):
 - Start answering an initial user query
@@ -29,22 +30,22 @@ RUNBOOK = """Your overall workflow instructions (= runbook):
 """
 
 
-async def conversation(agent: CodeActAgent, skill_modules: List[str]):
+async def conversation(agent: CodeActAgent, skill_infos: List[SkillInfo]):
     while True:
         user_message = await ainput("User: ('q' to quit) ")
 
         if user_message.lower() == "q":
             break
 
-        agent_call = agent.run(user_message, skill_modules=skill_modules, temperature=0.0, max_tokens=4096)
+        agent_call = agent.run(user_message, skill_infos=skill_infos, temperature=0.0, max_tokens=4096)
         async for activity in agent_call.stream():
             match activity:
-                case CodeActModelCall() as call:
-                    async for s in call.stream():
+                case CodeActModelTurn() as turn:
+                    async for s in turn.stream():
                         print(s, end="", flush=True)
                     print()
 
-                    resp = await call.response()
+                    resp = await turn.response()
                     if resp.code is not None:
                         print("\n```python")
                         print(resp.code)
@@ -75,6 +76,7 @@ async def main(
                     "freeact.skills.zotero.api",
                     "freeact.skills.reader.api",
                 ]
+                skill_infos = get_skill_infos(skill_modules, executor.skill_paths)
 
                 model = Claude(
                     model_name=model_name,
@@ -83,7 +85,7 @@ async def main(
                     logger=logger,
                 )
                 agent = CodeActAgent(model=model, executor=executor)
-                await conversation(agent, skill_modules=skill_modules)
+                await conversation(agent, skill_infos=skill_infos)
 
 
 if __name__ == "__main__":

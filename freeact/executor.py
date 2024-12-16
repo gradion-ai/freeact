@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
+from typing import List
 
 from ipybox import ExecutionClient, ExecutionContainer, arun
 
@@ -52,6 +53,10 @@ class CodeActExecutor(ExecutionClient):
 
         # images are stored on host only (for now)
         self.images_dir = workspace.path / "images" / key
+
+    @property
+    def skill_paths(self) -> List[Path]:
+        return [self.workspace.shared_skills_path, self.working_dir]
 
     async def __aenter__(self):
         await super().__aenter__()

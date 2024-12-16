@@ -6,7 +6,7 @@ from anthropic import AsyncAnthropic, ContentBlockStopEvent, InputJsonEvent, Tex
 from anthropic.types import TextBlock, ToolUseBlock
 
 from freeact.logger import Logger
-from freeact.model.base import CodeActModel, CodeActModelCall, CodeActModelResponse
+from freeact.model.base import CodeActModel, CodeActModelResponse, CodeActModelTurn
 from freeact.model.claude.prompt import (
     EXECUTION_ERROR_TEMPLATE,
     EXECUTION_OUTPUT_TEMPLATE,
@@ -53,7 +53,7 @@ class ClaudeResponse(CodeActModelResponse):
             return None
 
 
-class ClaudeCall(CodeActModelCall):
+class ClaudeTurn(CodeActModelTurn):
     def __init__(self, iter: AsyncIterator[str | ClaudeResponse]):
         self._iter = iter
         self._response: ClaudeResponse | None = None
@@ -64,7 +64,7 @@ class ClaudeCall(CodeActModelCall):
                 pass
         return self._response  # type: ignore
 
-    async def stream(self):
+    async def stream(self, emit_retry: bool = False):
         async for elem in self._iter:
             match elem:
                 case str():
@@ -110,13 +110,13 @@ class Claude(CodeActModel):
     def request(
         self,
         user_query: str,
-        skill_infos: List[SkillInfo],
+        skill_infos: List[SkillInfo] | None = None,
         **kwargs,
-    ) -> ClaudeCall:
+    ) -> ClaudeTurn:
         modules_info_block = [
             {
                 "type": "text",
-                "text": MODULES_INFO_TEMPLATE.format(python_modules=self._format_skills(skill_infos)),
+                "text": MODULES_INFO_TEMPLATE.format(python_modules=self._format_skills(skill_infos or [])),
             },
         ]
         modules_info_message = {"role": "user", "content": modules_info_block}
@@ -135,7 +135,7 @@ class Claude(CodeActModel):
         content = USER_QUERY_TEMPLATE.format(user_query=user_query)
         message = {"role": "user", "content": content}
 
-        return ClaudeCall(self._stream(message, content, **kwargs))
+        return ClaudeTurn(self._stream(message, content, **kwargs))
 
     def feedback(
         self,
@@ -143,8 +143,9 @@ class Claude(CodeActModel):
         is_error: bool,
         tool_use_id: str | None,
         tool_use_name: str | None,
+        skill_infos: List[SkillInfo] | None = None,
         **kwargs,
-    ) -> ClaudeCall:
+    ) -> ClaudeTurn:
         if tool_use_name == CODE_EXECUTOR_TOOL["name"]:
             template = EXECUTION_ERROR_TEMPLATE if is_error else EXECUTION_OUTPUT_TEMPLATE
             content = template.format(execution_feedback=feedback)
@@ -166,7 +167,9 @@ class Claude(CodeActModel):
             "content": content,
         }
 
-        return ClaudeCall(self._stream(message, content, **kwargs))
+        kwargs.pop("temperature", None)
+
+        return ClaudeTurn(self._stream(message, content, **kwargs))
 
     async def _stream(
         self,

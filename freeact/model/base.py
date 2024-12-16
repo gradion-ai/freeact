@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import AsyncIterator, List
-
-from freeact.skills import SkillInfo
+from typing import AsyncIterator
 
 
 @dataclass
@@ -23,7 +21,7 @@ class CodeActModelResponse(ABC):
     def code(self) -> str | None: ...
 
 
-class CodeActModelCall(ABC):
+class CodeActModelTurn(ABC):
     @abstractmethod
     async def response(self) -> CodeActModelResponse: ...
 
@@ -36,9 +34,8 @@ class CodeActModel(ABC):
     def request(
         self,
         user_query: str,
-        skill_infos: List[SkillInfo],
         **kwargs,
-    ) -> CodeActModelCall: ...
+    ) -> CodeActModelTurn: ...
 
     @abstractmethod
     def feedback(
@@ -48,4 +45,4 @@ class CodeActModel(ABC):
         tool_use_id: str | None,
         tool_use_name: str | None,
         **kwargs,
-    ) -> CodeActModelCall: ...
+    ) -> CodeActModelTurn: ...

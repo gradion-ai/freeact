@@ -1,14 +1,13 @@
 import asyncio
 from dataclasses import dataclass
 from pathlib import Path
-from typing import AsyncIterator, List
+from typing import AsyncIterator
 from uuid import uuid4
 
 from ipybox import Execution, ExecutionError, arun
 
 from freeact.executor import CodeActExecutor
-from freeact.model import CodeActModel, CodeActModelCall, CodeActModelResponse
-from freeact.skills import SkillInfo, get_skill_infos
+from freeact.model import CodeActModel, CodeActModelResponse, CodeActModelTurn
 
 
 class MaxStepsReached(Exception):
@@ -73,8 +72,8 @@ class CodeActAgentResponse:
     text: str
 
 
-class CodeActAgentCall:
-    def __init__(self, iter: AsyncIterator[CodeActModelCall | CodeAction | CodeActModelResponse]):
+class CodeActAgentTurn:
+    def __init__(self, iter: AsyncIterator[CodeActModelTurn | CodeAction | CodeActModelResponse]):
         self._iter = iter
         self._response: CodeActAgentResponse | None = None
 
@@ -84,7 +83,7 @@ class CodeActAgentCall:
                 pass
         return self._response  # type: ignore
 
-    async def stream(self) -> AsyncIterator[CodeActModelCall | CodeAction]:
+    async def stream(self) -> AsyncIterator[CodeActModelTurn | CodeAction]:
         async for elem in self._iter:
             match elem:
                 case CodeActModelResponse() as msg:
@@ -101,44 +100,32 @@ class CodeActAgent:
     def run(
         self,
         user_query: str,
-        skill_modules: List[str] | None = None,
         max_steps: int = 30,
         step_timeout: float = 120,
         **kwargs,
-    ) -> CodeActAgentCall:
-        skill_paths = [
-            self.executor.workspace.shared_skills_path,
-            self.executor.working_dir,
-        ]
-        skill_infos = get_skill_infos(skill_modules or [], skill_paths)
+    ) -> CodeActAgentTurn:
         iter = self._stream(
             user_query=user_query,
-            skill_infos=skill_infos,
             max_steps=max_steps,
             step_timeout=step_timeout,
             **kwargs,
         )
-        return CodeActAgentCall(iter)
+        return CodeActAgentTurn(iter)
 
     async def _stream(
         self,
         user_query: str,
-        skill_infos: List[SkillInfo],
         max_steps: int = 30,
         step_timeout: float = 120,
         **kwargs,
-    ) -> AsyncIterator[CodeActModelCall | CodeAction | CodeActModelResponse]:
-        # initial model call with user query
-        model_call = self.model.request(
-            user_query=user_query,
-            skill_infos=skill_infos,
-            **kwargs,
-        )
+    ) -> AsyncIterator[CodeActModelTurn | CodeAction | CodeActModelResponse]:
+        # initial model turn with user query
+        model_turn = self.model.request(user_query=user_query, **kwargs)
 
         for _ in range(max_steps):
-            yield model_call
+            yield model_turn
 
-            match await model_call.response():
+            match await model_turn.response():
                 case CodeActModelResponse(is_error=False, code=None) as response:
                     yield response
                     break
@@ -150,8 +137,8 @@ class CodeActAgent:
                     code_action_result = await code_action.result(timeout=step_timeout)
                     feedback = code_action_result.text
                     is_error = code_action_result.is_error
-                    # follow up model call with execution feedback
-                    model_call = self.model.feedback(
+                    # follow up model turn with execution feedback
+                    model_turn = self.model.feedback(
                         feedback=feedback,
                         is_error=is_error,
                         tool_use_id=response.tool_use_id,
@@ -160,7 +147,7 @@ class CodeActAgent:
                     )
                 case CodeActModelResponse(is_error=True) as response:
                     yield response
-                    model_call = self.model.feedback(
+                    model_turn = self.model.feedback(
                         feedback=response.text,
                         is_error=True,
                         tool_use_id=response.tool_use_id,

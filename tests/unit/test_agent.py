@@ -5,7 +5,7 @@ import pytest
 from ipybox import Execution, ExecutionError
 
 from freeact.agent import CodeActAgent, CodeAction, MaxStepsReached
-from tests.unit.test_model import MockModel, MockModelCall, MockModelResponse
+from tests.unit.test_model import MockModel, MockModelResponse, MockModelTurn
 
 
 @pytest.fixture
@@ -24,8 +24,8 @@ async def test_simple_conversation_no_code(mock_executor):
     model = MockModel([MockModelResponse(text="Hello! I can help you.", code=None)])
     agent = CodeActAgent(model, mock_executor)
 
-    call = agent.run("Hi there!")
-    response = await call.response()
+    turn = agent.run("Hi there!")
+    response = await turn.response()
     assert response.text == "Hello! I can help you."
 
 
@@ -49,18 +49,18 @@ async def test_code_execution_success(mock_executor):
     mock_executor.submit = AsyncMock(return_value=mock_execution)
 
     agent = CodeActAgent(model, mock_executor)
-    call = agent.run("Run some code")
+    turn = agent.run("Run some code")
 
     responses = []
-    async for item in call.stream():
+    async for item in turn.stream():
         responses.append(item)
 
-    assert len(responses) == 3  # Initial ModelCall, CodeAct, and final ModelCall
-    assert isinstance(responses[0], MockModelCall)  # Initial response
+    assert len(responses) == 3  # Initial ModelTurn, CodeAct, and final ModelTurn
+    assert isinstance(responses[0], MockModelTurn)  # Initial response
     assert isinstance(responses[1], CodeAction)  # Code execution
-    assert isinstance(responses[2], MockModelCall)  # Final "All done!" response
+    assert isinstance(responses[2], MockModelTurn)  # Final "All done!" response
 
-    response = await call.response()
+    response = await turn.response()
     assert response.text == "All done!"
 
 
@@ -86,10 +86,10 @@ async def test_max_iterations_reached(mock_executor):
     mock_executor.submit = AsyncMock(return_value=mock_execution)
 
     agent = CodeActAgent(model, mock_executor)
-    call = agent.run("Run code", max_steps=3)
+    turn = agent.run("Run code", max_steps=3)
 
     with pytest.raises(MaxStepsReached):
-        async for _ in call.stream():
+        async for _ in turn.stream():
             pass
 
 
@@ -109,20 +109,20 @@ async def test_code_execution_error(mock_executor):
     mock_executor.submit = AsyncMock(return_value=mock_execution)
 
     agent = CodeActAgent(model, mock_executor)
-    call = agent.run("Run some code")
+    turn = agent.run("Run some code")
 
     responses = []
-    async for item in call.stream():
+    async for item in turn.stream():
         responses.append(item)
 
     assert len(responses) == 3
-    assert isinstance(responses[0], MockModelCall)  # Initial response
+    assert isinstance(responses[0], MockModelTurn)  # Initial response
     assert isinstance(responses[1], CodeAction)  # Failed code execution
-    assert isinstance(responses[2], MockModelCall)  # Error feedback response
+    assert isinstance(responses[2], MockModelTurn)  # Error feedback response
 
     last_model_response = await responses[2].response()
     assert last_model_response.text == "Sorry, that failed"
     assert last_model_response.code is None
 
-    agent_response = await call.response()
+    agent_response = await turn.response()
     assert agent_response.text == "Sorry, that failed"
