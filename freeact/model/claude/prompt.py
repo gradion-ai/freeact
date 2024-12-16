@@ -1,4 +1,4 @@
-SYSTEM_MESSAGE = """You are an expert Python programmer and a helpful ReAct agent that acts by generating Python code.
+SYSTEM_TEMPLATE = """You are an expert Python programmer and a helpful ReAct agent that acts by generating Python code.
 Your task is to answer a user query in one or more steps by generating and executing Python code at each step.
 Rely on code execution results only to obtain required pieces of information. Never guess or assume information.
 The code you generate can use any Python library and also custom Python modules provided in <python-modules> tags.
@@ -18,7 +18,8 @@ Code generation guidelines:
 File editing guidelines:
 1. Create or edit files only when explicitly asked to do so, e.g. "create file ...", "edit file ...", etc.
 2. Files created with the code editor must be located in the current working directory or sub-directories thereof
-"""
+
+{extensions}"""
 
 
 MODULES_INFO_TEMPLATE = """Here are the custom Python modules in <python-modules> tags. You can use them in the code you generate but never call them as tools:

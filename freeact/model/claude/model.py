@@ -12,7 +12,7 @@ from freeact.model.claude.prompt import (
     EXECUTION_OUTPUT_TEMPLATE,
     MODULES_ACK_MESSAGE,
     MODULES_INFO_TEMPLATE,
-    SYSTEM_MESSAGE,
+    SYSTEM_TEMPLATE,
     USER_QUERY_TEMPLATE,
 )
 from freeact.model.claude.tools import CODE_EDITOR_TOOL, CODE_EXECUTOR_TOOL, TOOLS
@@ -79,7 +79,19 @@ class Claude(CodeActModel):
         logger: Logger,
         model_name: ClaudeModelName,
         prompt_caching: bool = False,
+        system_extension: str | None = None,
+        system_message: str | None = None,
     ):
+        if system_message and system_extension:
+            raise ValueError("If system_message is provided, system_extension must be None")
+
+        if system_message:
+            self.system_message = system_message
+        elif system_extension:
+            self.system_message = SYSTEM_TEMPLATE.format(extensions=system_extension)
+        else:
+            self.system_message = SYSTEM_TEMPLATE.format(extensions="")
+
         self.logger = logger
         self.model_name = model_name
         self.prompt_caching = prompt_caching
@@ -169,7 +181,7 @@ class Claude(CodeActModel):
         system_blocks: list[dict[str, Any]] = [
             {
                 "type": "text",
-                "text": SYSTEM_MESSAGE,
+                "text": self.system_message,
             }
         ]
 

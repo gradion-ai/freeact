@@ -16,6 +16,18 @@ from freeact import (
 )
 from freeact.logger import Logger
 
+RUNBOOK = """Your overall workflow instructions (= runbook):
+- Start answering an initial user query
+- In your final answer to the user query, additionally suggest 3 follow up actions the user can take
+- Let the user choose one of the follow up actions or choose another action if none of the follow up actions are relevant
+- If the initial query or a follow-up action is related to the weather in a given city, output the current temperature in the city multiplied by 3.17.
+- After sharing your reasoning in <thinking> tags, you MUST ask the user for feedback.
+  - do not generate and execute code yet at this point.
+  - the user may either confirm your reasoning and let you proceed with generating code
+  - or ask you to modify your reasoning and reasoning steps based on their feedback
+- Repeat the overall workflow with the chosen follow up action
+"""
+
 
 async def conversation(agent: CodeActAgent, skill_modules: List[str]):
     while True:
@@ -44,7 +56,12 @@ async def conversation(agent: CodeActAgent, skill_modules: List[str]):
                         print(s, end="", flush=True)
 
 
-async def main(model_name: ClaudeModelName, log_file: Path, prompt_caching: bool = True):
+async def main(
+    model_name: ClaudeModelName,
+    log_file: Path,
+    prompt_caching: bool = True,
+    use_runbook: bool = False,
+):
     # environment variables for the container
     env = {k: v for k, v in dotenv_values().items() if v is not None}
 
@@ -61,6 +78,7 @@ async def main(model_name: ClaudeModelName, log_file: Path, prompt_caching: bool
 
                 model = Claude(
                     model_name=model_name,
+                    system_extension=RUNBOOK if use_runbook else None,
                     prompt_caching=prompt_caching,
                     logger=logger,
                 )
@@ -70,4 +88,11 @@ async def main(model_name: ClaudeModelName, log_file: Path, prompt_caching: bool
 
 if __name__ == "__main__":
     load_dotenv()
-    asyncio.run(main(model_name="claude-3-5-haiku-20241022", log_file=Path("logs", "agent.log")))
+    asyncio.run(
+        main(
+            model_name="claude-3-5-sonnet-20241022",
+            log_file=Path("logs", "agent.log"),
+            prompt_caching=False,
+            use_runbook=False,
+        )
+    )
