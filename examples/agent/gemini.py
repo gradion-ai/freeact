@@ -27,13 +27,13 @@ async def conversation(agent: CodeActAgent):
                 case CodeActModelTurn() as call:
                     async for s in call.stream():
                         print(s, end="", flush=True)
-                    print()
+                    print("\n")
 
                 case CodeAction() as act:
                     print("Execution result:")
                     async for s in act.stream():
                         print(s, end="", flush=True)
-                    print()
+                    print("\n")
 
 
 async def main():
@@ -45,7 +45,7 @@ async def main():
             key="123", host="localhost", port=container.port, workspace=container.workspace
         ) as executor:
             skill_modules = [
-                "freeact.skills.search.web.api",
+                "freeact.skills.search.google.api",
                 "freeact.skills.zotero.api",
                 "freeact.skills.reader.api",
             ]

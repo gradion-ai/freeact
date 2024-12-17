@@ -3,7 +3,7 @@ from typing import Iterator
 
 from openai import OpenAI
 
-from freeact.skills.search.web.api import InternetSearch
+from freeact.skills.search.perplexity.api import InternetSearch
 
 
 class PerplexityResponse:

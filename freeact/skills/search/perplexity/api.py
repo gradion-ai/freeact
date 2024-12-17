@@ -12,7 +12,7 @@ class InternetSearch(ABC):
         Citations are printed at the end of the search result in the citation listing. The index (e.g. [1]) of a citation in the citation listing corresponds to the index of the citation in the search result.
 
         Args:
-            query (str): A query string that matches a specific topic, concept, or fact.
+            natural_language_query (str): A query string that matches a specific topic, concept, or fact.
               It should be formulated in natural language and be as specific as possible.
         """
 
@@ -27,6 +27,6 @@ def create_internet_search(api_key: str | None = None) -> InternetSearch:
     Returns:
         An InternetSearch instance.
     """
-    from freeact.skills.search.web.impl import InternetSearchImpl
+    from freeact.skills.search.perplexity.impl import InternetSearchImpl
 
     return InternetSearchImpl(api_key)

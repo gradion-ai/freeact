@@ -72,7 +72,7 @@ async def main(
         ) as executor:
             async with Logger(file=log_file) as logger:
                 skill_modules = [
-                    "freeact.skills.search.web.api",
+                    "freeact.skills.search.perplexity.api",
                     "freeact.skills.zotero.api",
                     "freeact.skills.reader.api",
                 ]
