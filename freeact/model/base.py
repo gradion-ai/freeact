@@ -21,12 +21,18 @@ class CodeActModelResponse(ABC):
     def code(self) -> str | None: ...
 
 
+@dataclass
+class StreamRetry:
+    cause: str
+    retry_wait_time: float
+
+
 class CodeActModelTurn(ABC):
     @abstractmethod
     async def response(self) -> CodeActModelResponse: ...
 
     @abstractmethod
-    def stream(self) -> AsyncIterator[str]: ...
+    def stream(self, emit_retry: bool = False) -> AsyncIterator[str | StreamRetry]: ...
 
 
 class CodeActModel(ABC):

@@ -6,7 +6,7 @@ from anthropic import AsyncAnthropic, ContentBlockStopEvent, InputJsonEvent, Tex
 from anthropic.types import TextBlock, ToolUseBlock
 
 from freeact.logger import Logger
-from freeact.model.base import CodeActModel, CodeActModelResponse, CodeActModelTurn
+from freeact.model.base import CodeActModel, CodeActModelResponse, CodeActModelTurn, StreamRetry
 from freeact.model.claude.prompt import (
     EXECUTION_ERROR_TEMPLATE,
     EXECUTION_OUTPUT_TEMPLATE,
@@ -15,6 +15,7 @@ from freeact.model.claude.prompt import (
     SYSTEM_TEMPLATE,
     USER_QUERY_TEMPLATE,
 )
+from freeact.model.claude.retry import WaitExponential, WaitStrategy, retry
 from freeact.model.claude.tools import CODE_EDITOR_TOOL, CODE_EXECUTOR_TOOL, TOOLS
 from freeact.skills import SkillInfo
 
@@ -54,7 +55,7 @@ class ClaudeResponse(CodeActModelResponse):
 
 
 class ClaudeTurn(CodeActModelTurn):
-    def __init__(self, iter: AsyncIterator[str | ClaudeResponse]):
+    def __init__(self, iter: AsyncIterator[str | ClaudeResponse | StreamRetry]):
         self._iter = iter
         self._response: ClaudeResponse | None = None
 
@@ -64,11 +65,14 @@ class ClaudeTurn(CodeActModelTurn):
                 pass
         return self._response  # type: ignore
 
-    async def stream(self, emit_retry: bool = False):
+    async def stream(self, emit_retry: bool = False) -> AsyncIterator[str | StreamRetry]:
         async for elem in self._iter:
             match elem:
                 case str():
                     yield elem
+                case StreamRetry() as stream_retry:
+                    if emit_retry:
+                        yield stream_retry
                 case ClaudeResponse() as msg:
                     self._response = msg
 
@@ -81,6 +85,8 @@ class Claude(CodeActModel):
         prompt_caching: bool = False,
         system_extension: str | None = None,
         system_message: str | None = None,
+        retry_max_attempts: int = 10,
+        retry_wait_strategy: WaitStrategy = WaitExponential(multiplier=1, max=10, exp_base=2),
     ):
         if system_message and system_extension:
             raise ValueError("If system_message is provided, system_extension must be None")
@@ -106,6 +112,8 @@ class Claude(CodeActModel):
             if prompt_caching
             else None,
         )
+        self._retry_max_attempts = retry_max_attempts
+        self._retry_wait_strategy = retry_wait_strategy
 
     def request(
         self,
@@ -135,7 +143,14 @@ class Claude(CodeActModel):
         content = USER_QUERY_TEMPLATE.format(user_query=user_query)
         message = {"role": "user", "content": content}
 
-        return ClaudeTurn(self._stream(message, content, **kwargs))
+        return ClaudeTurn(
+            retry(
+                lambda: self._stream(message, content, **kwargs),
+                self.logger,
+                self._retry_max_attempts,
+                self._retry_wait_strategy,
+            )
+        )
 
     def feedback(
         self,
@@ -167,9 +182,14 @@ class Claude(CodeActModel):
             "content": content,
         }
 
-        kwargs.pop("temperature", None)
-
-        return ClaudeTurn(self._stream(message, content, **kwargs))
+        return ClaudeTurn(
+            retry(
+                lambda: self._stream(message, content, **kwargs),
+                self.logger,
+                self._retry_max_attempts,
+                self._retry_wait_strategy,
+            )
+        )
 
     async def _stream(
         self,
@@ -236,9 +256,6 @@ class Claude(CodeActModel):
 
         message = await stream.get_final_message()
 
-        self._history.append(user_message)
-        self._history.append({"role": "assistant", "content": assistant_blocks})
-
         response_metadata = {
             "input_tokens": message.usage.input_tokens,
             "output_tokens": message.usage.output_tokens,
@@ -256,6 +273,9 @@ class Claude(CodeActModel):
                 log_message += f"\n\n```python\n{assistant_message.code}\n```\n"
 
             await self.logger.log(log_message, metadata=response_metadata)
+
+        self._history.append(user_message)
+        self._history.append({"role": "assistant", "content": assistant_blocks})
 
         yield assistant_message
 
