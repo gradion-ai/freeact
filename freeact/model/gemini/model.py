@@ -6,7 +6,7 @@ from typing import AsyncIterator, List
 from google import genai
 from google.genai.live import AsyncSession
 
-from freeact.model.base import CodeActModel, CodeActModelResponse, CodeActModelTurn
+from freeact.model.base import CodeActModel, CodeActModelResponse, CodeActModelTurn, StreamRetry
 from freeact.model.gemini.prompt import EXECUTION_ERROR_TEMPLATE, EXECUTION_OUTPUT_TEMPLATE, SYSTEM_TEMPLATE
 from freeact.skills import SkillInfo
 
@@ -45,7 +45,7 @@ class GeminiTurn(CodeActModelTurn):
             pass
         return self._response  # type: ignore
 
-    async def stream(self) -> AsyncIterator[str]:
+    async def stream(self, emit_retry: bool = False) -> AsyncIterator[str | StreamRetry]:
         async for elem in self._iter:
             match elem:
                 case str():
