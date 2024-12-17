@@ -11,7 +11,7 @@ def search(query: str, api_key: str | None = None) -> str:
         api_key=api_key or os.getenv("GOOGLE_API_KEY"),
         http_options={"api_version": "v1alpha"},
     )
-    response = client.models.generate_content_stream(
+    response = client.models.generate_content(
         contents=query,
         model="gemini-2.0-flash-exp",
         config=GenerateContentConfig(
