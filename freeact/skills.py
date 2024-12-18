@@ -15,7 +15,7 @@ class SkillInfo:
 
 
 def get_skill_infos(skill_modules: List[str], extension_paths: List[Path]) -> List[SkillInfo]:
-    with extended_sys_path(extension_paths):
+    with _extended_sys_path(extension_paths):
         return [get_skill_info(skill_module) for skill_module in skill_modules]
 
 
@@ -39,7 +39,7 @@ def get_skill_info(skill_module: str) -> SkillInfo:
 
 
 @contextmanager
-def extended_sys_path(paths: Path | List[Path]):
+def _extended_sys_path(paths: Path | List[Path]):
     """
     Context manager to temporarily extend `sys.path` with given `paths`.
 

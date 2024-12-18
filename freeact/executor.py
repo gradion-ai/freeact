@@ -32,12 +32,6 @@ class CodeActContainer(ExecutionContainer):
             self.workspace.shared_skills_path: "skills/shared",
         }
 
-        # assumed to only exist in development mode i.e. if cwd() is project root
-        _builtin_skills_host_path = Path.cwd() / "freeact" / "skills"
-
-        if _builtin_skills_host_path.exists():
-            binds[_builtin_skills_host_path] = "skills/builtin/freeact/skills"
-
         super().__init__(tag=tag, binds=binds, env=env)
 
 
@@ -72,15 +66,9 @@ class CodeActExecutor(ExecutionClient):
             import sys
 
             workdir = "/home/appuser/skills/private/{self.key}"
-            sys.path.extend(
-                [
-                    "/home/appuser/skills/builtin",
-                    "/home/appuser/skills/shared",
-                    workdir,
-                ]
-            )
+            sys.path.extend(["/home/appuser/skills/shared", workdir])
             os.chdir(workdir)
 
-            from freeact.skills.editor import file_editor
+            from freeact_skills.editor import file_editor
             """)
         return self

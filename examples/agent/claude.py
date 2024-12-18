@@ -66,15 +66,15 @@ async def main(
     # environment variables for the container
     env = {k: v for k, v in dotenv_values().items() if v is not None}
 
-    async with CodeActContainer(tag="gradion/ipybox-incubator", env=env) as container:
+    async with CodeActContainer(tag="gradion-ai/ipybox-all", env=env) as container:
         async with CodeActExecutor(
             key="123", host="localhost", port=container.port, workspace=container.workspace
         ) as executor:
             async with Logger(file=log_file) as logger:
                 skill_modules = [
-                    "freeact.skills.search.perplexity.api",
-                    "freeact.skills.zotero.api",
-                    "freeact.skills.reader.api",
+                    "freeact_skills.search.perplexity.api",
+                    "freeact_skills.zotero.api",
+                    "freeact_skills.reader.api",
                 ]
                 skill_infos = get_skill_infos(skill_modules, executor.skill_paths)
 
