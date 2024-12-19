@@ -52,8 +52,8 @@ class CodeActExecutor(ExecutionClient):
     def skill_paths(self) -> List[Path]:
         return [self.workspace.shared_skills_path, self.working_dir]
 
-    async def __aenter__(self):
-        await super().__aenter__()
+    async def _init_kernel(self):
+        await super()._init_kernel()
 
         await arun(self.working_dir.mkdir, parents=True, exist_ok=True)
         await arun(self.images_dir.mkdir, parents=True, exist_ok=True)
