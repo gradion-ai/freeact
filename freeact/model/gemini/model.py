@@ -30,7 +30,7 @@ class GeminiResponse(CodeActModelResponse):
         return None
 
     def _extract_code_blocks(self):
-        pattern = r"```(?:python|tool_code)\s*(.*?)\s*```"
+        pattern = r"```(?:python|tool_code)\s*(.*?)(?:\s*```|\s*$)"
         return re.findall(pattern, self.text, re.DOTALL)
 
 
