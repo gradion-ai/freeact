@@ -605,13 +605,13 @@ requests = ["requests (>=2.20.0,<3.0.0.dev0)"]
 
 [[package]]
 name = "google-genai"
-version = "0.2.2"
+version = "0.3.0"
 description = "GenAI Python SDK"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "google_genai-0.2.2-py3-none-any.whl", hash = "sha256:83eafad7ba564b212b8a3ac1b863e7d75ebf4bc3b228c7d4cc70209d51e4d949"},
-    {file = "google_genai-0.2.2.tar.gz", hash = "sha256:dc92deb544d6fa3a658509e194ef7cea4dae88a056164016b0a594c731d674b2"},
+    {file = "google_genai-0.3.0-py3-none-any.whl", hash = "sha256:e45eb1732cf5b1f7c5a4103fe64cc4b577981d7e592e3edfba6d34ec734f56be"},
+    {file = "google_genai-0.3.0.tar.gz", hash = "sha256:1e080ca381268912dacc8e0cb15eb203eb4e38f51f6ae35cc5768e5af323c8cc"},
 ]
 
 [package.dependencies]
@@ -730,24 +730,22 @@ files = [
 
 [[package]]
 name = "ipybox"
-version = "0.2.3"
+version = "0.2.4"
 description = "Python code execution sandbox based on IPython and Docker"
 optional = false
-python-versions = "^3.10,<3.13"
-files = []
-develop = true
+python-versions = "<3.13,>=3.10"
+files = [
+    {file = "ipybox-0.2.4-py3-none-any.whl", hash = "sha256:2c205243b5d2066780d765a0de79de6d137319c934deadba55d3f5c77d6f730b"},
+    {file = "ipybox-0.2.4.tar.gz", hash = "sha256:626a0d6ceaad37d3496df08b8fd0f524adf162e2935ab8c5de783ec785bafe9d"},
+]
 
 [package.dependencies]
-aiodocker = "^0.23.0"
-aiofiles = "^24.1"
-aiohttp = "^3.10"
-pillow = "^11.0"
-tornado = "^6.4"
-typer = "^0.12.5"
-
-[package.source]
-type = "directory"
-url = "../ipybox"
+aiodocker = ">=0.23.0,<0.24.0"
+aiofiles = ">=24.1,<25.0"
+aiohttp = ">=3.10,<4.0"
+pillow = ">=11.0,<12.0"
+tornado = ">=6.4,<7.0"
+typer = ">=0.12.5,<0.13.0"
 
 [[package]]
 name = "jiter"
@@ -1893,4 +1891,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10,<3.13"
-content-hash = "2439ac7dd3683b083818e90306239ecd0e27b1db5b2b7ff1f3b6b790ab01f149"
+content-hash = "8b4a9e17c935161b098c973c8f40ef7d3188aa84c1f5136ef2f7ad50a64eb24d"

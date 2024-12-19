@@ -21,9 +21,9 @@ packages = [
 aioconsole = "^0.8.1"
 aiofiles = "^24.1"
 anthropic = "^0.39.0"
-google-genai = "^0.2.2"
+google-genai = "^0.3.0"
 httpx = "^0.27.2"
-ipybox = "^0.2.3"
+ipybox = "^0.2.4"
 python = "^3.10,<3.13"
 python-dotenv = "^1.0"
 

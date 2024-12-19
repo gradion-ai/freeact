@@ -6,61 +6,49 @@ from dotenv import load_dotenv
 
 from examples.agent.utils import dotenv_variables, execution_environment
 from freeact import (
-    Claude,
-    ClaudeModelName,
     CodeActAgent,
     CodeAction,
     CodeActModelTurn,
+    GeminiLive,
+    GeminiModelName,
 )
 
 
-async def conversation(agent: CodeActAgent, skill_sources: str):
+async def conversation(agent: CodeActAgent):
     while True:
         user_message = await ainput("User: ('q' to quit) ")
 
         if user_message.lower() == "q":
             break
 
-        agent_turn = agent.run(
-            user_message,
-            skill_sources=skill_sources,
-            temperature=0.0,
-            max_tokens=4096,
-        )
-
+        agent_turn = agent.run(user_message)
         async for activity in agent_turn.stream():
             match activity:
                 case CodeActModelTurn() as turn:
-                    print("Agent response:")
+                    print("Agent message:")
                     async for s in turn.stream():
                         print(s, end="", flush=True)
-                    print()
-
-                    resp = await turn.response()
-                    if resp.code is not None and resp.tool_use_name == "execute_ipython_cell":
-                        print("\n```python")
-                        print(resp.code)
-                        print("```\n")
+                    print("\n")
 
                 case CodeAction() as act:
                     print("Execution result:")
                     async for s in act.stream():
                         print(s, end="", flush=True)
-                    print()
+                    print("\n")
 
 
 async def main(
-    model_name: ClaudeModelName,
+    model_name: GeminiModelName,
     workspace_key: str,
     workspace_path: Path = Path("workspace"),
     ipybox_tag: str = "gradion-ai/ipybox-all",
     env_vars: dict[str, str] = dotenv_variables(),
     log_file: Path | str = Path("logs", "agent.log"),
-    system_extension: str | None = None,
     skill_modules: list[str] = [
-        "freeact_skills.search.perplexity.api",
+        "freeact_skills.search.google.api",
         "freeact_skills.zotero.api",
         "freeact_skills.reader.api",
+        "freeact_skills.resume.resume",
     ],
 ):
     async with execution_environment(
@@ -72,16 +60,14 @@ async def main(
     ) as (executor, logger):
         skill_sources = await executor.get_module_sources(skill_modules)
 
-        model = Claude(
+        async with GeminiLive(
             model_name=model_name,
-            system_extension=system_extension,
-            prompt_caching=True,
-            logger=logger,
-        )
-        agent = CodeActAgent(model=model, executor=executor)
-        await conversation(agent, skill_sources=skill_sources)
+            skill_sources=skill_sources,
+        ) as model:
+            agent = CodeActAgent(model=model, executor=executor)
+            await conversation(agent)
 
 
 if __name__ == "__main__":
     load_dotenv()
-    asyncio.run(main(model_name="claude-3-5-sonnet-20241022", workspace_key="example"))
+    asyncio.run(main(model_name="gemini-2.0-flash-exp", workspace_key="example"))
