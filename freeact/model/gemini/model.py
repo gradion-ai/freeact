@@ -1,14 +1,13 @@
 import re
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from typing import AsyncIterator, List
+from typing import AsyncIterator
 
 from google import genai
 from google.genai.live import AsyncSession
 
 from freeact.model.base import CodeActModel, CodeActModelResponse, CodeActModelTurn, StreamRetry
 from freeact.model.gemini.prompt import EXECUTION_ERROR_TEMPLATE, EXECUTION_OUTPUT_TEMPLATE, SYSTEM_TEMPLATE
-from freeact.skills import SkillInfo
 
 
 @dataclass
@@ -55,9 +54,7 @@ class GeminiTurn(CodeActModelTurn):
 
 
 @asynccontextmanager
-async def Gemini(
-    model_name: str = "gemini-2.0-flash-exp", temperature: float = 0.0, skill_infos: List[SkillInfo] | None = None
-):
+async def Gemini(model_name: str = "gemini-2.0-flash-exp", temperature: float = 0.0, skill_sources: str | None = None):
     client = genai.Client(http_options={"api_version": "v1alpha"})
 
     config = {
@@ -65,7 +62,7 @@ async def Gemini(
         "generation_config": {
             "temperature": temperature,
             "response_modalities": ["TEXT"],
-            "system_instruction": SYSTEM_TEMPLATE.format(python_modules=_format_skills(skill_infos or [])),
+            "system_instruction": SYSTEM_TEMPLATE.format(python_modules=skill_sources or ""),
         },
     }
 
@@ -105,10 +102,3 @@ class _Gemini(CodeActModel):
                     if text is not None:
                         accumulated_text += text
                         yield text
-
-
-def _format_skills(skill_infos: List[SkillInfo]) -> str:
-    content = []
-    for info in skill_infos:
-        content.append(f"```python\n# Module: {info.module_name}\n\n{info.source}\n```")
-    return "\n\n".join(content)

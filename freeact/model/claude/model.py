@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, List, Literal
+from typing import Any, AsyncIterator, Literal
 
 from anthropic import AsyncAnthropic, ContentBlockStopEvent, InputJsonEvent, TextEvent
 from anthropic.types import TextBlock, ToolUseBlock
@@ -17,7 +17,6 @@ from freeact.model.claude.prompt import (
 )
 from freeact.model.claude.retry import WaitExponential, WaitStrategy, retry
 from freeact.model.claude.tools import CODE_EDITOR_TOOL, CODE_EXECUTOR_TOOL, TOOLS
-from freeact.skills import SkillInfo
 
 ClaudeModelName = Literal[
     "claude-3-5-haiku-20241022",
@@ -118,13 +117,13 @@ class Claude(CodeActModel):
     def request(
         self,
         user_query: str,
-        skill_infos: List[SkillInfo] | None = None,
+        skill_sources: str | None = None,
         **kwargs,
     ) -> ClaudeTurn:
         modules_info_block = [
             {
                 "type": "text",
-                "text": MODULES_INFO_TEMPLATE.format(python_modules=self._format_skills(skill_infos or [])),
+                "text": MODULES_INFO_TEMPLATE.format(python_modules=skill_sources or ""),
             },
         ]
         modules_info_message = {"role": "user", "content": modules_info_block}
@@ -158,7 +157,7 @@ class Claude(CodeActModel):
         is_error: bool,
         tool_use_id: str | None,
         tool_use_name: str | None,
-        skill_infos: List[SkillInfo] | None = None,
+        skill_sources: str | None = None,
         **kwargs,
     ) -> ClaudeTurn:
         if tool_use_name == CODE_EXECUTOR_TOOL["name"]:
@@ -278,10 +277,3 @@ class Claude(CodeActModel):
         self._history.append({"role": "assistant", "content": assistant_blocks})
 
         yield assistant_message
-
-    @staticmethod
-    def _format_skills(skill_infos: List[SkillInfo]) -> str:
-        content = []
-        for info in skill_infos:
-            content.append(f"```python\n# Module: {info.module_name}\n\n{info.source}\n```")
-        return "\n\n".join(content)

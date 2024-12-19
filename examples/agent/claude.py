@@ -1,6 +1,5 @@
 import asyncio
 from pathlib import Path
-from typing import List
 
 from aioconsole import ainput
 from dotenv import dotenv_values, load_dotenv
@@ -15,7 +14,6 @@ from freeact import (
     CodeActModelTurn,
 )
 from freeact.logger import Logger
-from freeact.skills import SkillInfo, get_skill_infos
 
 RUNBOOK = """Your overall workflow instructions (= runbook):
 - Start answering an initial user query
@@ -30,14 +28,14 @@ RUNBOOK = """Your overall workflow instructions (= runbook):
 """
 
 
-async def conversation(agent: CodeActAgent, skill_infos: List[SkillInfo]):
+async def conversation(agent: CodeActAgent, skill_sources: str):
     while True:
         user_message = await ainput("User: ('q' to quit) ")
 
         if user_message.lower() == "q":
             break
 
-        agent_call = agent.run(user_message, skill_infos=skill_infos, temperature=0.0, max_tokens=4096)
+        agent_call = agent.run(user_message, skill_sources=skill_sources, temperature=0.0, max_tokens=4096)
         async for activity in agent_call.stream():
             match activity:
                 case CodeActModelTurn() as turn:
@@ -76,7 +74,7 @@ async def main(
                     "freeact_skills.zotero.api",
                     "freeact_skills.reader.api",
                 ]
-                skill_infos = get_skill_infos(skill_modules, executor.skill_paths)
+                skill_sources = await executor.get_module_sources(skill_modules)
 
                 model = Claude(
                     model_name=model_name,
@@ -85,7 +83,7 @@ async def main(
                     logger=logger,
                 )
                 agent = CodeActAgent(model=model, executor=executor)
-                await conversation(agent, skill_infos=skill_infos)
+                await conversation(agent, skill_sources=skill_sources)
 
 
 if __name__ == "__main__":

@@ -11,7 +11,6 @@ from freeact import (
     CodeActModelTurn,
     Gemini,
 )
-from freeact.skills import get_skill_infos
 
 
 async def conversation(agent: CodeActAgent):
@@ -49,9 +48,9 @@ async def main():
                 "freeact_skills.zotero.api",
                 "freeact_skills.reader.api",
             ]
-            skill_infos = get_skill_infos(skill_modules, executor.skill_paths)
+            skill_sources = await executor.get_module_sources(skill_modules)
 
-            async with Gemini(model_name="gemini-2.0-flash-exp", skill_infos=skill_infos) as model:
+            async with Gemini(model_name="gemini-2.0-flash-exp", skill_sources=skill_sources) as model:
                 agent = CodeActAgent(model=model, executor=executor)
                 await conversation(agent)
 

@@ -255,19 +255,6 @@ tests = ["cloudpickle", "hypothesis", "mypy (>=1.11.1)", "pympler", "pytest (>=4
 tests-mypy = ["mypy (>=1.11.1)", "pytest-mypy-plugins"]
 
 [[package]]
-name = "bibtexparser"
-version = "1.4.2"
-description = "Bibtex parser for python 3"
-optional = false
-python-versions = "*"
-files = [
-    {file = "bibtexparser-1.4.2.tar.gz", hash = "sha256:dd5d54a1ec6d27b6485ce2f6b9aa514b183fb2b8d4bf5f19333a906eedaf8eaa"},
-]
-
-[package.dependencies]
-pyparsing = ">=2.0.3"
-
-[[package]]
 name = "cachetools"
 version = "5.5.0"
 description = "Extensible memoizing collections and decorators"
@@ -476,20 +463,6 @@ files = [
 test = ["pytest (>=6)"]
 
 [[package]]
-name = "feedparser"
-version = "6.0.11"
-description = "Universal feed parser, handles RSS 0.9x, RSS 1.0, RSS 2.0, CDF, Atom 0.3, and Atom 1.0 feeds"
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "feedparser-6.0.11-py3-none-any.whl", hash = "sha256:0be7ee7b395572b19ebeb1d6aafb0028dee11169f1c934e0ed67d54992f4ad45"},
-    {file = "feedparser-6.0.11.tar.gz", hash = "sha256:c9d0407b64c6f2a065d0ebb292c2b35c01050cc0dc33757461aaabdc4c4184d5"},
-]
-
-[package.dependencies]
-sgmllib3k = "*"
-
-[[package]]
 name = "filelock"
 version = "3.16.1"
 description = "A platform independent file lock."
@@ -504,33 +477,6 @@ files = [
 docs = ["furo (>=2024.8.6)", "sphinx (>=8.0.2)", "sphinx-autodoc-typehints (>=2.4.1)"]
 testing = ["covdefaults (>=2.3)", "coverage (>=7.6.1)", "diff-cover (>=9.2)", "pytest (>=8.3.3)", "pytest-asyncio (>=0.24)", "pytest-cov (>=5)", "pytest-mock (>=3.14)", "pytest-timeout (>=2.3.1)", "virtualenv (>=20.26.4)"]
 typing = ["typing-extensions (>=4.12.2)"]
-
-[[package]]
-name = "freeact-skills"
-version = "0.0.1"
-description = "Library of predefined freeact agent skills"
-optional = false
-python-versions = "<3.13,>=3.10"
-files = [
-    {file = "freeact_skills-0.0.1-py3-none-any.whl", hash = "sha256:40db76aaadd9d545f9db6ebeb6efcceae0ebabbeac46517ba10b10601fdc4dc9"},
-    {file = "freeact_skills-0.0.1.tar.gz", hash = "sha256:5fd2699d52ad35c68704c1b7b9d30b37e28751cb9709951552ceded5c68126db"},
-]
-
-[package.dependencies]
-google-genai = {version = ">=0.2.2,<0.3.0", optional = true, markers = "extra == \"search-google\" or extra == \"all\""}
-httpx = {version = ">=0.27.2,<0.28.0", optional = true, markers = "extra == \"search-perplexity\" or extra == \"all\""}
-openai = {version = ">=1.56.0,<2.0.0", optional = true, markers = "extra == \"search-perplexity\" or extra == \"all\""}
-python-dateutil = {version = ">=2.9,<3.0", optional = true, markers = "extra == \"reader\" or extra == \"zotero\" or extra == \"all\""}
-pyzotero = {version = ">=1.5,<2.0", optional = true, markers = "extra == \"zotero\" or extra == \"all\""}
-requests = {version = ">=2.32,<3.0", optional = true, markers = "extra == \"reader\" or extra == \"resume\" or extra == \"all\""}
-
-[package.extras]
-all = ["beautifulsoup4 (>=4.12,<5.0)", "google-genai (>=0.2.2,<0.3.0)", "httpx (>=0.27.2,<0.28.0)", "openai (>=1.56.0,<2.0.0)", "pydantic (>=2.9,<3.0)", "python-dateutil (>=2.9,<3.0)", "pyyaml (>=6.0,<7.0)", "pyzotero (>=1.5,<2.0)", "requests (>=2.32,<3.0)"]
-reader = ["python-dateutil (>=2.9,<3.0)", "requests (>=2.32,<3.0)"]
-resume = ["beautifulsoup4 (>=4.12,<5.0)", "pydantic (>=2.9,<3.0)", "pyyaml (>=6.0,<7.0)", "requests (>=2.32,<3.0)"]
-search-google = ["google-genai (>=0.2.2,<0.3.0)"]
-search-perplexity = ["httpx (>=0.27.2,<0.28.0)", "openai (>=1.56.0,<2.0.0)"]
-zotero = ["python-dateutil (>=2.9,<3.0)", "pyzotero (>=1.5,<2.0)"]
 
 [[package]]
 name = "frozenlist"
@@ -784,22 +730,24 @@ files = [
 
 [[package]]
 name = "ipybox"
-version = "0.2.2"
+version = "0.2.3"
 description = "Python code execution sandbox based on IPython and Docker"
 optional = false
-python-versions = "<3.13,>=3.10"
-files = [
-    {file = "ipybox-0.2.2-py3-none-any.whl", hash = "sha256:fe9de6c01e4d49310567999457411e28c331f6eb4b3393aa55953a2902314220"},
-    {file = "ipybox-0.2.2.tar.gz", hash = "sha256:a227b4ad6c3bf93507f9ad07c4c30a01bffe0323e36623c2f1df9bd59d985b46"},
-]
+python-versions = "^3.10,<3.13"
+files = []
+develop = true
 
 [package.dependencies]
-aiodocker = ">=0.23.0,<0.24.0"
-aiofiles = ">=24.1,<25.0"
-aiohttp = ">=3.10,<4.0"
-pillow = ">=11.0,<12.0"
-tornado = ">=6.4,<7.0"
-typer = ">=0.12.5,<0.13.0"
+aiodocker = "^0.23.0"
+aiofiles = "^24.1"
+aiohttp = "^3.10"
+pillow = "^11.0"
+tornado = "^6.4"
+typer = "^0.12.5"
+
+[package.source]
+type = "directory"
+url = "../ipybox"
 
 [[package]]
 name = "jiter"
@@ -1035,31 +983,6 @@ files = [
     {file = "nodeenv-1.9.1-py2.py3-none-any.whl", hash = "sha256:ba11c9782d29c27c70ffbdda2d7415098754709be8a7056d79a737cd901155c9"},
     {file = "nodeenv-1.9.1.tar.gz", hash = "sha256:6ec12890a2dab7946721edbfbcd91f3319c6ccc9aec47be7c7e6b7011ee6645f"},
 ]
-
-[[package]]
-name = "openai"
-version = "1.58.1"
-description = "The official Python library for the openai API"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "openai-1.58.1-py3-none-any.whl", hash = "sha256:e2910b1170a6b7f88ef491ac3a42c387f08bd3db533411f7ee391d166571d63c"},
-    {file = "openai-1.58.1.tar.gz", hash = "sha256:f5a035fd01e141fc743f4b0e02c41ca49be8fab0866d3b67f5f29b4f4d3c0973"},
-]
-
-[package.dependencies]
-anyio = ">=3.5.0,<5"
-distro = ">=1.7.0,<2"
-httpx = ">=0.23.0,<1"
-jiter = ">=0.4.0,<1"
-pydantic = ">=1.9.0,<3"
-sniffio = "*"
-tqdm = ">4"
-typing-extensions = ">=4.11,<5"
-
-[package.extras]
-datalib = ["numpy (>=1)", "pandas (>=1.2.3)", "pandas-stubs (>=1.1.0.11)"]
-realtime = ["websockets (>=13,<15)"]
 
 [[package]]
 name = "packaging"
@@ -1476,20 +1399,6 @@ files = [
 windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
-name = "pyparsing"
-version = "3.2.0"
-description = "pyparsing module - Classes and methods to define and execute parsing grammars"
-optional = false
-python-versions = ">=3.9"
-files = [
-    {file = "pyparsing-3.2.0-py3-none-any.whl", hash = "sha256:93d9577b88da0bbea8cc8334ee8b918ed014968fd2ec383e868fb8afb1ccef84"},
-    {file = "pyparsing-3.2.0.tar.gz", hash = "sha256:cbf74e27246d595d9a74b186b810f6fbb86726dbf3b9532efb343f6d7294fe9c"},
-]
-
-[package.extras]
-diagrams = ["jinja2", "railroad-diagrams"]
-
-[[package]]
 name = "pytest"
 version = "8.3.4"
 description = "pytest: simple powerful testing with Python"
@@ -1530,20 +1439,6 @@ docs = ["sphinx (>=5.3)", "sphinx-rtd-theme (>=1.0)"]
 testing = ["coverage (>=6.2)", "hypothesis (>=5.7.1)"]
 
 [[package]]
-name = "python-dateutil"
-version = "2.9.0.post0"
-description = "Extensions to the standard Python datetime module"
-optional = false
-python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
-files = [
-    {file = "python-dateutil-2.9.0.post0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3"},
-    {file = "python_dateutil-2.9.0.post0-py2.py3-none-any.whl", hash = "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427"},
-]
-
-[package.dependencies]
-six = ">=1.5"
-
-[[package]]
 name = "python-dotenv"
 version = "1.0.1"
 description = "Read key-value pairs from a .env file and set them as environment variables"
@@ -1556,17 +1451,6 @@ files = [
 
 [package.extras]
 cli = ["click (>=5.0)"]
-
-[[package]]
-name = "pytz"
-version = "2024.2"
-description = "World timezone definitions, modern and historical"
-optional = false
-python-versions = "*"
-files = [
-    {file = "pytz-2024.2-py2.py3-none-any.whl", hash = "sha256:31c7c1817eb7fae7ca4b8c7ee50c72f93aa2dd863de768e1ef4245d426aa0725"},
-    {file = "pytz-2024.2.tar.gz", hash = "sha256:2aa355083c50a0f93fa581709deac0c9ad65cca8a9e9beac660adcbd493c798a"},
-]
 
 [[package]]
 name = "pyyaml"
@@ -1631,26 +1515,6 @@ files = [
 ]
 
 [[package]]
-name = "pyzotero"
-version = "1.5.28"
-description = "Python wrapper for the Zotero API"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "pyzotero-1.5.28-py3-none-any.whl", hash = "sha256:f76fa2083d65baae614718bacaf1210f0faad3daa223df5a342d5b3acece7d29"},
-    {file = "pyzotero-1.5.28.tar.gz", hash = "sha256:05e3cf71ca679b99f5c3012b8a371d712efeb2488e102b52900190c860b28554"},
-]
-
-[package.dependencies]
-bibtexparser = "*"
-feedparser = ">=6.0.11"
-pytz = "*"
-requests = ">=2.21.0"
-
-[package.extras]
-test = ["httpretty", "pytest (>=7.4.2)", "python-dateutil"]
-
-[[package]]
 name = "requests"
 version = "2.32.3"
 description = "Python HTTP for Humans."
@@ -1705,16 +1569,6 @@ files = [
 pyasn1 = ">=0.1.3"
 
 [[package]]
-name = "sgmllib3k"
-version = "1.0.0"
-description = "Py3k port of sgmllib."
-optional = false
-python-versions = "*"
-files = [
-    {file = "sgmllib3k-1.0.0.tar.gz", hash = "sha256:7868fb1c8bfa764c1ac563d3cf369c381d1325d36124933a726f29fcdaa812e9"},
-]
-
-[[package]]
 name = "shellingham"
 version = "1.5.4"
 description = "Tool to Detect Surrounding Shell"
@@ -1723,17 +1577,6 @@ python-versions = ">=3.7"
 files = [
     {file = "shellingham-1.5.4-py2.py3-none-any.whl", hash = "sha256:7ecfff8f2fd72616f7481040475a65b2bf8af90a56c89140852d1120324e8686"},
     {file = "shellingham-1.5.4.tar.gz", hash = "sha256:8dbca0739d487e5bd35ab3ca4b36e11c4078f3a234bfce294b0a0291363404de"},
-]
-
-[[package]]
-name = "six"
-version = "1.17.0"
-description = "Python 2 and 3 compatibility utilities"
-optional = false
-python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
-files = [
-    {file = "six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274"},
-    {file = "six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81"},
 ]
 
 [[package]]
@@ -1807,27 +1650,6 @@ files = [
     {file = "tornado-6.4.2-cp38-abi3-win_amd64.whl", hash = "sha256:908b71bf3ff37d81073356a5fadcc660eb10c1476ee6e2725588626ce7e5ca38"},
     {file = "tornado-6.4.2.tar.gz", hash = "sha256:92bad5b4746e9879fd7bf1eb21dce4e3fc5128d71601f80005afa39237ad620b"},
 ]
-
-[[package]]
-name = "tqdm"
-version = "4.67.1"
-description = "Fast, Extensible Progress Meter"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "tqdm-4.67.1-py3-none-any.whl", hash = "sha256:26445eca388f82e72884e0d580d5464cd801a3ea01e63e5601bdff9ba6a48de2"},
-    {file = "tqdm-4.67.1.tar.gz", hash = "sha256:f8aef9c52c08c13a65f30ea34f4e5aac3fd1a34959879d7e59e63027286627f2"},
-]
-
-[package.dependencies]
-colorama = {version = "*", markers = "platform_system == \"Windows\""}
-
-[package.extras]
-dev = ["nbval", "pytest (>=6)", "pytest-asyncio (>=0.24)", "pytest-cov", "pytest-timeout"]
-discord = ["requests"]
-notebook = ["ipywidgets (>=6)"]
-slack = ["slack-sdk"]
-telegram = ["requests"]
 
 [[package]]
 name = "typer"
@@ -2071,4 +1893,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10,<3.13"
-content-hash = "f076d55f779f807e48dae1f22339f42c83576a283f5a7f21007a895032c70e62"
+content-hash = "2439ac7dd3683b083818e90306239ecd0e27b1db5b2b7ff1f3b6b790ab01f149"
