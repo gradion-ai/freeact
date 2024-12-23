@@ -3,7 +3,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from examples.agent.utils import conversation, dotenv_variables, execution_environment
+from examples.agent.utils import dotenv_variables, execution_environment, stream_conversation
 from freeact import CodeActAgent, Gemini, GeminiModelName
 
 
@@ -15,7 +15,7 @@ async def main(
     env_vars: dict[str, str] = dotenv_variables(),
     log_file: Path | str = Path("logs", "agent.log"),
     skill_modules: list[str] = [
-        "freeact_skills.search.google.api",
+        "freeact_skills.search.google.stream.api",
         "freeact_skills.zotero.api",
         "freeact_skills.reader.api",
     ],
@@ -31,9 +31,9 @@ async def main(
 
         model = Gemini(model_name=model_name, skill_sources=skill_sources)
         agent = CodeActAgent(model=model, executor=executor)
-        await conversation(agent)
+        await stream_conversation(agent)
 
 
 if __name__ == "__main__":
     load_dotenv()
-    asyncio.run(main(model_name="gemini-2.0-flash-thinking-exp-1219", workspace_key="example"))
+    asyncio.run(main(model_name="gemini-2.0-flash-exp", workspace_key="example"))

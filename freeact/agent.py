@@ -37,6 +37,8 @@ class CodeAction:
         return self._result  # type: ignore
 
     async def stream(self, timeout: float = 120) -> AsyncIterator[str]:
+        images = {}
+
         try:
             async for chunk in self.execution.stream(timeout=timeout):
                 yield chunk
@@ -51,7 +53,6 @@ class CodeAction:
         else:
             result = await self.execution.result()
             text = result.text
-            images = {}
             is_error = False
 
             if result.images:

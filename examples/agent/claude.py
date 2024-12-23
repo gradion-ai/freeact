@@ -3,7 +3,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from examples.agent.utils import conversation, dotenv_variables, execution_environment
+from examples.agent.utils import dotenv_variables, execution_environment, stream_conversation
 from freeact import Claude, ClaudeModelName, CodeActAgent
 
 
@@ -16,7 +16,7 @@ async def main(
     log_file: Path | str = Path("logs", "agent.log"),
     system_extension: str | None = None,
     skill_modules: list[str] = [
-        "freeact_skills.search.perplexity.api",
+        "freeact_skills.search.google.stream.api",
         "freeact_skills.zotero.api",
         "freeact_skills.reader.api",
     ],
@@ -37,7 +37,7 @@ async def main(
             logger=logger,
         )
         agent = CodeActAgent(model=model, executor=executor)
-        await conversation(agent, skill_sources=skill_sources)
+        await stream_conversation(agent, skill_sources=skill_sources)
 
 
 if __name__ == "__main__":
