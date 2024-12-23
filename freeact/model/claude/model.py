@@ -253,23 +253,28 @@ class Claude(CodeActModel):
                             )
                             assistant_message.is_error = True
 
-        message = await stream.get_final_message()
+        provider_message = await stream.get_final_message()
 
         response_metadata = {
-            "input_tokens": message.usage.input_tokens,
-            "output_tokens": message.usage.output_tokens,
+            "input_tokens": provider_message.usage.input_tokens,
+            "output_tokens": provider_message.usage.output_tokens,
         }
 
-        if hasattr(message.usage, "cache_creation_input_tokens"):
-            response_metadata["cache_creation_input_tokens"] = message.usage.cache_creation_input_tokens
-        if hasattr(message.usage, "cache_read_input_tokens"):
-            response_metadata["cache_read_input_tokens"] = message.usage.cache_read_input_tokens
+        if hasattr(provider_message.usage, "cache_creation_input_tokens"):
+            response_metadata["cache_creation_input_tokens"] = provider_message.usage.cache_creation_input_tokens
+        if hasattr(provider_message.usage, "cache_read_input_tokens"):
+            response_metadata["cache_read_input_tokens"] = provider_message.usage.cache_read_input_tokens
 
         async with self.logger.context("response"):
             log_message = assistant_message.text
 
             if assistant_message.code:
-                log_message += f"\n\n```python\n{assistant_message.code}\n```\n"
+                formatted_code = f"\n\n```python\n{assistant_message.code}\n```\n"
+                log_message += formatted_code
+
+                # Emit formmatted code when the client streams the model response.
+                # In the accumulated response, `text` and `code` are separate fields.
+                yield formatted_code
 
             await self.logger.log(log_message, metadata=response_metadata)
 

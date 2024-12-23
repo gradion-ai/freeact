@@ -30,7 +30,10 @@ class GeminiLiveTurn(CodeActModelTurn):
 
 @asynccontextmanager
 async def GeminiLive(
-    model_name: GeminiModelName = "gemini-2.0-flash-exp", skill_sources: str | None = None, temperature: float = 0.0
+    model_name: GeminiModelName = "gemini-2.0-flash-exp",
+    skill_sources: str | None = None,
+    temperature: float = 0.0,
+    max_tokens: int = 4096,
 ):
     if model_name != "gemini-2.0-flash-exp":
         raise ValueError(f"Model {model_name} is not supported for GeminiLive")
@@ -40,6 +43,7 @@ async def GeminiLive(
         "tools": [],
         "generation_config": {
             "temperature": temperature,
+            "max_output_tokens": max_tokens,
             "response_modalities": ["TEXT"],
             "system_instruction": SYSTEM_TEMPLATE.format(
                 preamble=PREAMBLE,

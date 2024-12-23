@@ -1,40 +1,10 @@
 import asyncio
 from pathlib import Path
 
-from aioconsole import ainput
 from dotenv import load_dotenv
 
-from examples.agent.utils import dotenv_variables, execution_environment
-from freeact import (
-    CodeActAgent,
-    CodeAction,
-    CodeActModelTurn,
-    GeminiLive,
-    GeminiModelName,
-)
-
-
-async def conversation(agent: CodeActAgent):
-    while True:
-        user_message = await ainput("User: ('q' to quit) ")
-
-        if user_message.lower() == "q":
-            break
-
-        agent_turn = agent.run(user_message)
-        async for activity in agent_turn.stream():
-            match activity:
-                case CodeActModelTurn() as turn:
-                    print("Agent message:")
-                    async for s in turn.stream():
-                        print(s, end="", flush=True)
-                    print("\n")
-
-                case CodeAction() as act:
-                    print("Execution result:")
-                    async for s in act.stream():
-                        print(s, end="", flush=True)
-                    print("\n")
+from examples.agent.utils import conversation, dotenv_variables, execution_environment
+from freeact import CodeActAgent, GeminiLive, GeminiModelName
 
 
 async def main(
@@ -48,7 +18,6 @@ async def main(
         "freeact_skills.search.google.api",
         "freeact_skills.zotero.api",
         "freeact_skills.reader.api",
-        "freeact_skills.resume.resume",
     ],
 ):
     async with execution_environment(

@@ -116,7 +116,6 @@ class Gemini(CodeActModel):
             config=GenerateContentConfig(
                 temperature=temperature,
                 max_output_tokens=max_tokens,
-                candidate_count=1,
                 response_modalities=["TEXT"],
                 system_instruction=self._system_instruction(skill_sources),
             ),

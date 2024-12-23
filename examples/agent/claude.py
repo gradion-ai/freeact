@@ -1,52 +1,10 @@
 import asyncio
 from pathlib import Path
 
-from aioconsole import ainput
 from dotenv import load_dotenv
 
-from examples.agent.utils import dotenv_variables, execution_environment
-from freeact import (
-    Claude,
-    ClaudeModelName,
-    CodeActAgent,
-    CodeAction,
-    CodeActModelTurn,
-)
-
-
-async def conversation(agent: CodeActAgent, skill_sources: str):
-    while True:
-        user_message = await ainput("User: ('q' to quit) ")
-
-        if user_message.lower() == "q":
-            break
-
-        agent_turn = agent.run(
-            user_message,
-            skill_sources=skill_sources,
-            temperature=0.0,
-            max_tokens=4096,
-        )
-
-        async for activity in agent_turn.stream():
-            match activity:
-                case CodeActModelTurn() as turn:
-                    print("Agent response:")
-                    async for s in turn.stream():
-                        print(s, end="", flush=True)
-                    print()
-
-                    resp = await turn.response()
-                    if resp.code is not None:
-                        print("\n```python")
-                        print(resp.code)
-                        print("```\n")
-
-                case CodeAction() as act:
-                    print("Execution result:")
-                    async for s in act.stream():
-                        print(s, end="", flush=True)
-                    print()
+from examples.agent.utils import conversation, dotenv_variables, execution_environment
+from freeact import Claude, ClaudeModelName, CodeActAgent
 
 
 async def main(

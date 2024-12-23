@@ -1,11 +1,15 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from aioconsole import ainput
 from dotenv import dotenv_values
 
 from freeact import (
+    CodeActAgent,
     CodeActContainer,
     CodeActExecutor,
+    CodeAction,
+    CodeActModelTurn,
 )
 from freeact.logger import Logger
 
@@ -34,3 +38,27 @@ async def execution_environment(
         ) as executor:
             async with Logger(file=log_file) as logger:
                 yield executor, logger
+
+
+async def conversation(agent: CodeActAgent, **kwargs):
+    while True:
+        user_message = await ainput("User: ('q' to quit) ")
+
+        if user_message.lower() == "q":
+            break
+
+        agent_turn = agent.run(user_message, **kwargs)
+
+        async for activity in agent_turn.stream():
+            match activity:
+                case CodeActModelTurn() as turn:
+                    print("Agent response:")
+                    async for s in turn.stream():
+                        print(s, end="", flush=True)
+                    print()
+
+                case CodeAction() as act:
+                    print("Execution result:")
+                    async for s in act.stream():
+                        print(s, end="", flush=True)
+                    print()
