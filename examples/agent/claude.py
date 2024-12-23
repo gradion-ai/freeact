@@ -37,7 +37,7 @@ async def conversation(agent: CodeActAgent, skill_sources: str):
                     print()
 
                     resp = await turn.response()
-                    if resp.code is not None and resp.tool_use_name == "execute_ipython_cell":
+                    if resp.code is not None:
                         print("\n```python")
                         print(resp.code)
                         print("```\n")
@@ -84,4 +84,4 @@ async def main(
 
 if __name__ == "__main__":
     load_dotenv()
-    asyncio.run(main(model_name="claude-3-5-sonnet-20241022", workspace_key="example"))
+    asyncio.run(main(model_name="claude-3-5-haiku-20241022", workspace_key="example"))

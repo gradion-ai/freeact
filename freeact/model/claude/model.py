@@ -48,7 +48,7 @@ class ClaudeResponse(CodeActModelResponse):
         if self.tool_use_name == CODE_EXECUTOR_TOOL["name"]:
             return self.tool_use.input["code"]  # type: ignore
         elif self.tool_use_name == CODE_EDITOR_TOOL["name"]:
-            return f"file_editor(**{self.tool_use.input})"  # type: ignore
+            return f"print(file_editor(**{self.tool_use.input}))"  # type: ignore
         else:
             return None
 
