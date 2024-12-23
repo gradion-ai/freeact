@@ -1,10 +1,11 @@
 import asyncio
 from dataclasses import dataclass
 from pathlib import Path
-from typing import AsyncIterator
+from typing import AsyncIterator, Dict
 from uuid import uuid4
 
 from ipybox import Execution, ExecutionError, arun
+from PIL import Image
 
 from freeact.executor import CodeActExecutor
 from freeact.model import CodeActModel, CodeActModelResponse, CodeActModelTurn
@@ -19,6 +20,7 @@ class MaxStepsReached(Exception):
 @dataclass
 class CodeActionResult:
     text: str
+    images: Dict[Path, Image.Image]
     is_error: bool
 
 
@@ -47,18 +49,24 @@ class CodeAction:
             text = "Execution timed out"
             yield text
         else:
-            is_error = False
             result = await self.execution.result()
             text = result.text
+            images = {}
+            is_error = False
 
             if result.images:
-                text += "\n\nGenerated images:"
+                chunk = "\n\nProduced images:"
+                yield chunk
+                text += chunk
 
             for i, image in enumerate(result.images):
                 path = await self._save_image(image)
-                text += f"\n![image_{i}]({path})"
+                chunk = f"\n![image_{i}]({path})"
+                yield chunk
+                text += chunk
+                images[path] = image
 
-        self._result = CodeActionResult(text=text, is_error=is_error)
+        self._result = CodeActionResult(text=text, images=images, is_error=is_error)
 
     async def _save_image(self, image):
         image_id = uuid4().hex[:8]
