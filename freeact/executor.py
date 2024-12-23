@@ -23,6 +23,7 @@ class CodeActContainer(ExecutionContainer):
         self,
         tag: str,
         env: dict[str, str] | None = None,
+        port: int | None = None,
         workspace_path: Path | None = None,
     ):
         self.workspace = Workspace(workspace_path or Path("workspace"))
@@ -32,7 +33,7 @@ class CodeActContainer(ExecutionContainer):
             self.workspace.shared_skills_path: "skills/shared",
         }
 
-        super().__init__(tag=tag, binds=binds, env=env)
+        super().__init__(tag=tag, binds=binds, env=env, port=port)
 
 
 class CodeActExecutor(ExecutionClient):
