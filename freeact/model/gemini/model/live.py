@@ -6,7 +6,7 @@ from google.genai.live import AsyncSession
 
 from freeact.model.base import CodeActModel, CodeActModelTurn, StreamRetry
 from freeact.model.gemini.model.chat import GeminiModelName, GeminiResponse
-from freeact.model.gemini.prompt import EXECUTION_ERROR_TEMPLATE, EXECUTION_OUTPUT_TEMPLATE, PREAMBLE, SYSTEM_TEMPLATE
+from freeact.model.gemini.prompt import EXECUTION_ERROR_TEMPLATE, EXECUTION_OUTPUT_TEMPLATE, SYSTEM_TEMPLATE
 
 
 class GeminiLiveTurn(CodeActModelTurn):
@@ -35,9 +35,6 @@ async def GeminiLive(
     temperature: float = 0.0,
     max_tokens: int = 4096,
 ):
-    if model_name != "gemini-2.0-flash-exp":
-        raise ValueError(f"Model {model_name} is not supported for GeminiLive")
-
     client = genai.Client(http_options={"api_version": "v1alpha"})
     config = {
         "tools": [],
@@ -46,7 +43,6 @@ async def GeminiLive(
             "max_output_tokens": max_tokens,
             "response_modalities": ["TEXT"],
             "system_instruction": SYSTEM_TEMPLATE.format(
-                preamble=PREAMBLE,
                 python_modules=skill_sources or "",
             ),
         },
@@ -78,7 +74,7 @@ class _GeminiLive(CodeActModel):
             server_content = response.server_content
 
             if server_content.turn_complete:
-                yield GeminiResponse(text=accumulated_text, thoughts="", is_error=False)
+                yield GeminiResponse(text=accumulated_text, is_error=False)
 
             model_turn = server_content.model_turn
 
