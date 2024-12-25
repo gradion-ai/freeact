@@ -1,5 +1,5 @@
-from freeact.agent import CodeActAgent, CodeActAgentResponse, CodeActAgentTurn, CodeAction, CodeActionResult
-from freeact.executor import CodeActContainer, CodeActExecutor
+from freeact.agent import CodeActAgent, CodeActAgentResponse, CodeActAgentTurn, CodeExecution, CodeExecutionResult
+from freeact.executor import CodeExecutionContainer, CodeExecutor
 from freeact.model import (
     Claude,
     ClaudeModelName,

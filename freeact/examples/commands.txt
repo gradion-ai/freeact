@@ -1,0 +1,48 @@
+# --8<-- [start:cli-basics-claude]
+python -m freeact.cli \
+  --model-name=claude-3-5-sonnet-20241022 \
+  --ipybox-tag=gradion-ai/ipybox-example \
+  --executor-key=example \
+  --skill-modules=freeact_skills.search.google.stream.api
+# --8<-- [end:cli-basics-claude]
+
+# --8<-- [start:cli-basics-gemini]
+python -m freeact.cli \
+  --model-name=gemini-2.0-flash-exp \
+  --ipybox-tag=gradion-ai/ipybox-example \
+  --executor-key=example \
+  --skill-modules=freeact_skills.search.google.stream.api
+# --8<-- [end:cli-basics-gemini]
+
+# --8<-- [start:cli-skills]
+python -m freeact.cli \
+  --model-name=claude-3-5-sonnet-20241022 \
+  --ipybox-tag=gradion-ai/ipybox-example \
+  --executor-key=example \
+  --skill-modules=freeact_skills.search.google.stream.api \
+  --skill-modules=freeact_skills.zotero.api \
+  --skill-modules=freeact_skills.reader.api
+# --8<-- [end:cli-skills]
+
+# --8<-- [start:cli-skills-weather]
+python -m freeact.cli \
+  --model-name=claude-3-5-sonnet-20241022 \
+  --ipybox-tag=gradion-ai/ipybox-example \
+  --executor-key=example \
+  --skill-modules=freeact_skills.search.google.stream.api \
+  --skill-modules=freeact_skills.zotero.api \
+  --skill-modules=freeact_skills.reader.api \
+  --skill-modules=weather.weather_report
+# --8<-- [end:cli-skills-weather]
+
+# --8<-- [start:cli-extension]
+python -m freeact.cli \
+  --model-name=claude-3-5-sonnet-20241022 \
+  --ipybox-tag=gradion-ai/ipybox-example \
+  --executor-key=example \
+  --skill-modules=freeact_skills.search.google.stream.api \
+  --skill-modules=freeact_skills.zotero.api \
+  --skill-modules=freeact_skills.reader.api \
+  --skill-modules=weather.weather_report \
+  --system-extension=extension.txt
+# --8<-- [end:cli-extension]

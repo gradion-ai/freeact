@@ -66,6 +66,15 @@ class GeminiTurn(CodeActModelTurn):
 
 
 class Gemini(CodeActModel):
+    """A `CodeActModel` implementation based on Google's Gemini 2 chat API.
+
+    Args:
+        model_name: The specific Gemini 2 model to use
+        skill_sources: Skill module sources to include in the system instruction
+        temperature: Controls randomness in the model's output (0.0 = deterministic)
+        max_tokens: Maximum number of tokens in the model's response
+    """
+
     def __init__(
         self,
         model_name: GeminiModelName = "gemini-2.0-flash-exp",

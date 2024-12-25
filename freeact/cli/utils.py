@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Dict
 
+import aiofiles
 from aioconsole import ainput
 from dotenv import dotenv_values
 from PIL import Image
@@ -9,10 +10,10 @@ from PIL import Image
 from freeact import (
     CodeActAgent,
     CodeActAgentTurn,
-    CodeActContainer,
-    CodeActExecutor,
-    CodeAction,
     CodeActModelTurn,
+    CodeExecution,
+    CodeExecutionContainer,
+    CodeExecutor,
 )
 from freeact.logger import Logger
 
@@ -23,19 +24,19 @@ def dotenv_variables() -> dict[str, str]:
 
 @asynccontextmanager
 async def execution_environment(
-    workspace_key: str,
-    workspace_path: Path,
-    ipybox_tag: str,
-    env_vars: dict[str, str],
-    log_file: Path | str,
+    executor_key: str,
+    ipybox_tag: str = "gradion-ai/ipybox-example",
+    env_vars: dict[str, str] = dotenv_variables(),
+    workspace_path: Path | str = Path("workspace"),
+    log_file: Path | str = Path("logs", "agent.log"),
 ):
-    async with CodeActContainer(
+    async with CodeExecutionContainer(
         tag=ipybox_tag,
         env=env_vars,
         workspace_path=workspace_path,
     ) as container:
-        async with CodeActExecutor(
-            key=workspace_key,
+        async with CodeExecutor(
+            key=executor_key,
             port=container.port,
             workspace=container.workspace,
         ) as executor:
@@ -43,6 +44,7 @@ async def execution_environment(
                 yield executor, logger
 
 
+# --8<-- [start:stream_conversation]
 async def stream_conversation(agent: CodeActAgent, **kwargs):
     while True:
         user_message = await ainput("User message: ('q' to quit) ")
@@ -54,6 +56,10 @@ async def stream_conversation(agent: CodeActAgent, **kwargs):
         await stream_turn(agent_turn)
 
 
+# --8<-- [end:stream_conversation]
+
+
+# --8<-- [start:stream_turn]
 async def stream_turn(agent_turn: CodeActAgentTurn):
     produced_images: Dict[Path, Image.Image] = {}
 
@@ -65,11 +71,11 @@ async def stream_turn(agent_turn: CodeActAgentTurn):
                     print(s, end="", flush=True)
                 print()
 
-            case CodeAction() as action:
+            case CodeExecution() as execution:
                 print("Execution result:")
-                async for s in action.stream():
+                async for s in execution.stream():
                     print(s, end="", flush=True)
-                result = await action.result()
+                result = await execution.result()
                 produced_images.update(result.images)
                 print()
 
@@ -77,3 +83,11 @@ async def stream_turn(agent_turn: CodeActAgentTurn):
         print("\n\nProduced images:")
     for path in produced_images.keys():
         print(str(path))
+
+
+# --8<-- [end:stream_turn]
+
+
+async def read_file(path: Path | str) -> str:
+    async with aiofiles.open(Path(path), "r") as file:
+        return await file.read()

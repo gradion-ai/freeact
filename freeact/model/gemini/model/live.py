@@ -35,6 +35,23 @@ async def GeminiLive(
     temperature: float = 0.0,
     max_tokens: int = 4096,
 ):
+    """
+    Context manager for a `CodeActModel` implementation based on Google's Gemini 2 live API.
+
+    Args:
+        model_name: The specific Gemini 2 model to use
+        skill_sources: Skill module sources to include in the system instruction.
+        temperature: Controls randomness in the model's output (0.0 = deterministic)
+        max_tokens: Maximum number of tokens in the model's response
+
+    Example:
+        ```python
+        async with GeminiLive(model_name="gemini-2.0-flash-exp", skill_sources=skill_sources) as model:
+            # use model with active session to Gemini 2 live API
+            agent = CodeActAgent(model=model, ...)
+        ```
+    """
+
     client = genai.Client(http_options={"api_version": "v1alpha"})
     config = {
         "tools": [],

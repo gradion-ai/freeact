@@ -77,6 +77,17 @@ class ClaudeTurn(CodeActModelTurn):
 
 
 class Claude(CodeActModel):
+    """A `CodeActModel` implementation based on Anthropic's Claude API.
+
+    Args:
+        logger: Logger instance for logging requests and responses.
+        model_name: Name of the Claude model to use (e.g., "claude-3-5-sonnet-20241022").
+        prompt_caching: Whether to enable prompt caching. Defaults to False.
+        system_extension: Additional system prompt text. Defaults to None.
+        system_message: Complete system message to override default. Defaults to None.
+        retry_max_attempts: Maximum number of retry attempts. Defaults to 10.
+    """
+
     def __init__(
         self,
         logger: Logger,
@@ -92,10 +103,8 @@ class Claude(CodeActModel):
 
         if system_message:
             self.system_message = system_message
-        elif system_extension:
-            self.system_message = SYSTEM_TEMPLATE.format(extensions=system_extension)
         else:
-            self.system_message = SYSTEM_TEMPLATE.format(extensions="")
+            self.system_message = SYSTEM_TEMPLATE.format(extensions=system_extension or "")
 
         self.logger = logger
         self.model_name = model_name
