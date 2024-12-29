@@ -1,0 +1,1866 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="AI agents that use code actions to dynamically interact with and adapt to their environment">
+      
+      
+      
+      
+        <link rel="prev" href="../agent/">
+      
+      
+        <link rel="next" href="../claude/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.49">
+    
+    
+      
+        <title>Model - freeact</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6f8fc17f.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Fira:300,300i,400,400i,700,700i%7CFira+Code:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Fira";--md-code-font:"Fira Code"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#freeact.model.base" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="freeact" class="md-header__button md-logo" aria-label="freeact" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            freeact
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Model
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1M8 13h8v-2H8zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4a5 5 0 0 0 5-5 5 5 0 0 0-5-5"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5M7 15a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/gradion-ai/freeact" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    gradion-ai/freeact
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../.." class="md-tabs__link">
+          
+  
+  User guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../agent/" class="md-tabs__link">
+          
+  
+  API Documentation
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="freeact" class="md-nav__button md-logo" aria-label="freeact" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    freeact
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/gradion-ai/freeact" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    gradion-ai/freeact
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    User guide
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            User guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Installation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_1_3" id="__nav_1_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Tutorials
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/setup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/basics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Basic usage
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/skills/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Custom skills
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/extend/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    System extensions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    API Documentation
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            API Documentation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agent/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Agent
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Model
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Model
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#freeact.model.base" class="md-nav__link">
+    <span class="md-ellipsis">
+      base
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#freeact.model.base.CodeActModel" class="md-nav__link">
+    <span class="md-ellipsis">
+      CodeActModel
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CodeActModel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#freeact.model.base.CodeActModel.feedback" class="md-nav__link">
+    <span class="md-ellipsis">
+      feedback
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freeact.model.base.CodeActModel.request" class="md-nav__link">
+    <span class="md-ellipsis">
+      request
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#freeact.model.base.CodeActModelResponse" class="md-nav__link">
+    <span class="md-ellipsis">
+      CodeActModelResponse
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CodeActModelResponse">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#freeact.model.base.CodeActModelResponse.code" class="md-nav__link">
+    <span class="md-ellipsis">
+      code
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#freeact.model.base.CodeActModelTurn" class="md-nav__link">
+    <span class="md-ellipsis">
+      CodeActModelTurn
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CodeActModelTurn">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#freeact.model.base.CodeActModelTurn.response" class="md-nav__link">
+    <span class="md-ellipsis">
+      response
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freeact.model.base.CodeActModelTurn.stream" class="md-nav__link">
+    <span class="md-ellipsis">
+      stream
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#freeact.model.base.StreamRetry" class="md-nav__link">
+    <span class="md-ellipsis">
+      StreamRetry
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../claude/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Claude
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gemini/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Gemini
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../executor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Executor
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logger/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Logger
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#freeact.model.base" class="md-nav__link">
+    <span class="md-ellipsis">
+      base
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#freeact.model.base.CodeActModel" class="md-nav__link">
+    <span class="md-ellipsis">
+      CodeActModel
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CodeActModel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#freeact.model.base.CodeActModel.feedback" class="md-nav__link">
+    <span class="md-ellipsis">
+      feedback
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freeact.model.base.CodeActModel.request" class="md-nav__link">
+    <span class="md-ellipsis">
+      request
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#freeact.model.base.CodeActModelResponse" class="md-nav__link">
+    <span class="md-ellipsis">
+      CodeActModelResponse
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CodeActModelResponse">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#freeact.model.base.CodeActModelResponse.code" class="md-nav__link">
+    <span class="md-ellipsis">
+      code
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#freeact.model.base.CodeActModelTurn" class="md-nav__link">
+    <span class="md-ellipsis">
+      CodeActModelTurn
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CodeActModelTurn">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#freeact.model.base.CodeActModelTurn.response" class="md-nav__link">
+    <span class="md-ellipsis">
+      response
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freeact.model.base.CodeActModelTurn.stream" class="md-nav__link">
+    <span class="md-ellipsis">
+      stream
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#freeact.model.base.StreamRetry" class="md-nav__link">
+    <span class="md-ellipsis">
+      StreamRetry
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+  <h1>Model</h1>
+
+<div class="doc doc-object doc-module">
+
+
+
+<a id="freeact.model.base"></a>
+    <div class="doc doc-contents first">
+
+        <p>This module defines the interfaces of code action models. A code action
+model is a model that responds with code if it decides to perform an action
+in the environment.</p>
+<p>This module defines the core interfaces that code action models must implement
+to work with the <code>freeact</code> agent system. It defines abstract base classes for:</p>
+<ul>
+<li>The main model interface (<code>CodeActModel</code>)</li>
+<li>Model interaction turns (<code>CodeActModelTurn</code>)</li>
+<li>Model responses (<code>CodeActModelResponse</code>)</li>
+</ul>
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="freeact.model.base.CodeActModel" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">CodeActModel</span>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
+
+
+        <p>Interface for models that can generate code actions.</p>
+<p>A code action model handles both initial user queries and feedback from code
+execution results. It decides when to generate code for execution and when to
+provide final responses to the user.</p>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="freeact.model.base.CodeActModel.feedback" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">feedback</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+  </span>
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">feedback</span><span class="p">(</span><span class="n">feedback</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n">is_error</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span><span class="p">,</span> <span class="n">tool_use_id</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">tool_use_name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="freeact.model.base.CodeActModelTurn" href="#freeact.model.base.CodeActModelTurn">CodeActModelTurn</a></span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Create a new interaction turn from execution feedback.</p>
+<p>Initiates a new interaction based on feedback from previous code execution,
+allowing the model to refine or correct its responses. A feedback turn must
+follow a previous request turn or feedback turn.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>feedback</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The feedback text from code execution.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>is_error</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Whether the feedback represents an error condition.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>tool_use_id</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Identifier for the specific tool use instance.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>tool_use_name</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Name of the tool that was used.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>**kwargs</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Additional model-specific parameters for the feedback.</p>
+              </div>
+            </td>
+            <td>
+                  <code>{}</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>CodeActModelTurn</code></td>            <td>
+                  <code><a class="autorefs autorefs-internal" title="freeact.model.base.CodeActModelTurn" href="#freeact.model.base.CodeActModelTurn">CodeActModelTurn</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A new turn object representing this interaction.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+            <details class="quote">
+              <summary>Source code in <code>freeact/model/base.py</code></summary>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-114">114</a></span>
+<span class="normal"><a href="#__codelineno-0-115">115</a></span>
+<span class="normal"><a href="#__codelineno-0-116">116</a></span>
+<span class="normal"><a href="#__codelineno-0-117">117</a></span>
+<span class="normal"><a href="#__codelineno-0-118">118</a></span>
+<span class="normal"><a href="#__codelineno-0-119">119</a></span>
+<span class="normal"><a href="#__codelineno-0-120">120</a></span>
+<span class="normal"><a href="#__codelineno-0-121">121</a></span>
+<span class="normal"><a href="#__codelineno-0-122">122</a></span>
+<span class="normal"><a href="#__codelineno-0-123">123</a></span>
+<span class="normal"><a href="#__codelineno-0-124">124</a></span>
+<span class="normal"><a href="#__codelineno-0-125">125</a></span>
+<span class="normal"><a href="#__codelineno-0-126">126</a></span>
+<span class="normal"><a href="#__codelineno-0-127">127</a></span>
+<span class="normal"><a href="#__codelineno-0-128">128</a></span>
+<span class="normal"><a href="#__codelineno-0-129">129</a></span>
+<span class="normal"><a href="#__codelineno-0-130">130</a></span>
+<span class="normal"><a href="#__codelineno-0-131">131</a></span>
+<span class="normal"><a href="#__codelineno-0-132">132</a></span>
+<span class="normal"><a href="#__codelineno-0-133">133</a></span>
+<span class="normal"><a href="#__codelineno-0-134">134</a></span>
+<span class="normal"><a href="#__codelineno-0-135">135</a></span>
+<span class="normal"><a href="#__codelineno-0-136">136</a></span>
+<span class="normal"><a href="#__codelineno-0-137">137</a></span>
+<span class="normal"><a href="#__codelineno-0-138">138</a></span>
+<span class="normal"><a href="#__codelineno-0-139">139</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-114"><a id="__codelineno-0-114" name="__codelineno-0-114"></a><span class="nd">@abstractmethod</span>
+</span><span id="__span-0-115"><a id="__codelineno-0-115" name="__codelineno-0-115"></a><span class="k">def</span> <span class="nf">feedback</span><span class="p">(</span>
+</span><span id="__span-0-116"><a id="__codelineno-0-116" name="__codelineno-0-116"></a>    <span class="bp">self</span><span class="p">,</span>
+</span><span id="__span-0-117"><a id="__codelineno-0-117" name="__codelineno-0-117"></a>    <span class="n">feedback</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-0-118"><a id="__codelineno-0-118" name="__codelineno-0-118"></a>    <span class="n">is_error</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+</span><span id="__span-0-119"><a id="__codelineno-0-119" name="__codelineno-0-119"></a>    <span class="n">tool_use_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-120"><a id="__codelineno-0-120" name="__codelineno-0-120"></a>    <span class="n">tool_use_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-121"><a id="__codelineno-0-121" name="__codelineno-0-121"></a>    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+</span><span id="__span-0-122"><a id="__codelineno-0-122" name="__codelineno-0-122"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CodeActModelTurn</span><span class="p">:</span>
+</span><span id="__span-0-123"><a id="__codelineno-0-123" name="__codelineno-0-123"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a new interaction turn from execution feedback.</span>
+</span><span id="__span-0-124"><a id="__codelineno-0-124" name="__codelineno-0-124"></a>
+</span><span id="__span-0-125"><a id="__codelineno-0-125" name="__codelineno-0-125"></a><span class="sd">    Initiates a new interaction based on feedback from previous code execution,</span>
+</span><span id="__span-0-126"><a id="__codelineno-0-126" name="__codelineno-0-126"></a><span class="sd">    allowing the model to refine or correct its responses. A feedback turn must</span>
+</span><span id="__span-0-127"><a id="__codelineno-0-127" name="__codelineno-0-127"></a><span class="sd">    follow a previous request turn or feedback turn.</span>
+</span><span id="__span-0-128"><a id="__codelineno-0-128" name="__codelineno-0-128"></a>
+</span><span id="__span-0-129"><a id="__codelineno-0-129" name="__codelineno-0-129"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-130"><a id="__codelineno-0-130" name="__codelineno-0-130"></a><span class="sd">        feedback (str): The feedback text from code execution.</span>
+</span><span id="__span-0-131"><a id="__codelineno-0-131" name="__codelineno-0-131"></a><span class="sd">        is_error (bool): Whether the feedback represents an error condition.</span>
+</span><span id="__span-0-132"><a id="__codelineno-0-132" name="__codelineno-0-132"></a><span class="sd">        tool_use_id (str | None): Identifier for the specific tool use instance.</span>
+</span><span id="__span-0-133"><a id="__codelineno-0-133" name="__codelineno-0-133"></a><span class="sd">        tool_use_name (str | None): Name of the tool that was used.</span>
+</span><span id="__span-0-134"><a id="__codelineno-0-134" name="__codelineno-0-134"></a><span class="sd">        **kwargs: Additional model-specific parameters for the feedback.</span>
+</span><span id="__span-0-135"><a id="__codelineno-0-135" name="__codelineno-0-135"></a>
+</span><span id="__span-0-136"><a id="__codelineno-0-136" name="__codelineno-0-136"></a><span class="sd">    Returns:</span>
+</span><span id="__span-0-137"><a id="__codelineno-0-137" name="__codelineno-0-137"></a><span class="sd">        CodeActModelTurn: A new turn object representing this interaction.</span>
+</span><span id="__span-0-138"><a id="__codelineno-0-138" name="__codelineno-0-138"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-139"><a id="__codelineno-0-139" name="__codelineno-0-139"></a>    <span class="o">...</span>
+</span></code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="freeact.model.base.CodeActModel.request" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">request</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">request</span><span class="p">(</span><span class="n">user_query</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Creates a new interaction turn from a user query.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>user_query</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The user's input query or request</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>**kwargs</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Additional model-specific parameters</p>
+              </div>
+            </td>
+            <td>
+                  <code>{}</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A new turn object representing this interaction</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+            <details class="quote">
+              <summary>Source code in <code>freeact/model/base.py</code></summary>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-103">103</a></span>
+<span class="normal"><a href="#__codelineno-0-104">104</a></span>
+<span class="normal"><a href="#__codelineno-0-105">105</a></span>
+<span class="normal"><a href="#__codelineno-0-106">106</a></span>
+<span class="normal"><a href="#__codelineno-0-107">107</a></span>
+<span class="normal"><a href="#__codelineno-0-108">108</a></span>
+<span class="normal"><a href="#__codelineno-0-109">109</a></span>
+<span class="normal"><a href="#__codelineno-0-110">110</a></span>
+<span class="normal"><a href="#__codelineno-0-111">111</a></span>
+<span class="normal"><a href="#__codelineno-0-112">112</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-103"><a id="__codelineno-0-103" name="__codelineno-0-103"></a><span class="k">def</span> <span class="nf">request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span id="__span-0-104"><a id="__codelineno-0-104" name="__codelineno-0-104"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates a new interaction turn from a user query.</span>
+</span><span id="__span-0-105"><a id="__codelineno-0-105" name="__codelineno-0-105"></a>
+</span><span id="__span-0-106"><a id="__codelineno-0-106" name="__codelineno-0-106"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-107"><a id="__codelineno-0-107" name="__codelineno-0-107"></a><span class="sd">        user_query: The user&#39;s input query or request</span>
+</span><span id="__span-0-108"><a id="__codelineno-0-108" name="__codelineno-0-108"></a><span class="sd">        **kwargs: Additional model-specific parameters</span>
+</span><span id="__span-0-109"><a id="__codelineno-0-109" name="__codelineno-0-109"></a>
+</span><span id="__span-0-110"><a id="__codelineno-0-110" name="__codelineno-0-110"></a><span class="sd">    Returns:</span>
+</span><span id="__span-0-111"><a id="__codelineno-0-111" name="__codelineno-0-111"></a><span class="sd">        A new turn object representing this interaction</span>
+</span><span id="__span-0-112"><a id="__codelineno-0-112" name="__codelineno-0-112"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span></code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="freeact.model.base.CodeActModelResponse" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">CodeActModelResponse</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h2>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">CodeActModelResponse</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n">is_error</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
+
+
+        <p>A response from a code action model.</p>
+<p>Represents a single response from the model, which may contain executable code,
+error information, and tool usage metadata.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="freeact.model.base.CodeActModelResponse.text">text</span></code></td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The raw text response from the model.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="freeact.model.base.CodeActModelResponse.is_error">is_error</span></code></td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Whether this response represents an error condition.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="freeact.model.base.CodeActModelResponse.code" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">code</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">code</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="kc">None</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Executable code from the model response if present.</p>
+    </div>
+
+</div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="freeact.model.base.CodeActModelTurn" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">CodeActModelTurn</span>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
+
+
+        <p>A single turn of interaction with a code action model.</p>
+<p>Supports both bulk response retrieval and incremental streaming of the model's
+output. Each turn represents one complete model interaction, whether from a
+user query or execution feedback.</p>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="freeact.model.base.CodeActModelTurn.response" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">response</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">response</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="freeact.model.base.CodeActModelResponse" href="#freeact.model.base.CodeActModelResponse">CodeActModelResponse</a></span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get the complete response for this model interaction turn.</p>
+<p>Waits for and returns the full model response, including any code blocks
+and metadata about tool usage.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>freeact/model/base.py</code></summary>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-70">70</a></span>
+<span class="normal"><a href="#__codelineno-0-71">71</a></span>
+<span class="normal"><a href="#__codelineno-0-72">72</a></span>
+<span class="normal"><a href="#__codelineno-0-73">73</a></span>
+<span class="normal"><a href="#__codelineno-0-74">74</a></span>
+<span class="normal"><a href="#__codelineno-0-75">75</a></span>
+<span class="normal"><a href="#__codelineno-0-76">76</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70"></a><span class="nd">@abstractmethod</span>
+</span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">response</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CodeActModelResponse</span><span class="p">:</span>
+</span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the complete response for this model interaction turn.</span>
+</span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73"></a>
+</span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74"></a><span class="sd">    Waits for and returns the full model response, including any code blocks</span>
+</span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75"></a><span class="sd">    and metadata about tool usage.</span>
+</span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span></code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="freeact.model.base.CodeActModelTurn.stream" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">stream</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+  </span>
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">stream</span><span class="p">(</span><span class="n">emit_retry</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="typing.AsyncIterator" href="https://docs.python.org/3/library/typing.html#typing.AsyncIterator">AsyncIterator</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="freeact.model.base.StreamRetry" href="#freeact.model.base.StreamRetry">StreamRetry</a></span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Stream the model's response as it is generated.</p>
+<p>Yields chunks of the response as they become available, allowing for
+real-time processing of model output.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>emit_retry</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If <code>True</code>, emit <code>StreamRetry</code> objects when retries occur.
+             If <code>False</code>, handle retries silently. Defaults to <code>False</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Yields:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-external" title="typing.AsyncIterator" href="https://docs.python.org/3/library/typing.html#typing.AsyncIterator">AsyncIterator</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a> | <a class="autorefs autorefs-internal" title="freeact.model.base.StreamRetry" href="#freeact.model.base.StreamRetry">StreamRetry</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>str | StreamRetry: Either a chunk of the response text, or a <code>StreamRetry</code>
+             object if a retry event occurs and <code>emit_retry</code> is <code>True</code>.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+            <details class="quote">
+              <summary>Source code in <code>freeact/model/base.py</code></summary>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-78">78</a></span>
+<span class="normal"><a href="#__codelineno-0-79">79</a></span>
+<span class="normal"><a href="#__codelineno-0-80">80</a></span>
+<span class="normal"><a href="#__codelineno-0-81">81</a></span>
+<span class="normal"><a href="#__codelineno-0-82">82</a></span>
+<span class="normal"><a href="#__codelineno-0-83">83</a></span>
+<span class="normal"><a href="#__codelineno-0-84">84</a></span>
+<span class="normal"><a href="#__codelineno-0-85">85</a></span>
+<span class="normal"><a href="#__codelineno-0-86">86</a></span>
+<span class="normal"><a href="#__codelineno-0-87">87</a></span>
+<span class="normal"><a href="#__codelineno-0-88">88</a></span>
+<span class="normal"><a href="#__codelineno-0-89">89</a></span>
+<span class="normal"><a href="#__codelineno-0-90">90</a></span>
+<span class="normal"><a href="#__codelineno-0-91">91</a></span>
+<span class="normal"><a href="#__codelineno-0-92">92</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78"></a><span class="nd">@abstractmethod</span>
+</span><span id="__span-0-79"><a id="__codelineno-0-79" name="__codelineno-0-79"></a><span class="k">def</span> <span class="nf">stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">emit_retry</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AsyncIterator</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">StreamRetry</span><span class="p">]:</span>
+</span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Stream the model&#39;s response as it is generated.</span>
+</span><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81"></a>
+</span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82"></a><span class="sd">    Yields chunks of the response as they become available, allowing for</span>
+</span><span id="__span-0-83"><a id="__codelineno-0-83" name="__codelineno-0-83"></a><span class="sd">    real-time processing of model output.</span>
+</span><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84"></a>
+</span><span id="__span-0-85"><a id="__codelineno-0-85" name="__codelineno-0-85"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-86"><a id="__codelineno-0-86" name="__codelineno-0-86"></a><span class="sd">        emit_retry (bool): If `True`, emit `StreamRetry` objects when retries occur.</span>
+</span><span id="__span-0-87"><a id="__codelineno-0-87" name="__codelineno-0-87"></a><span class="sd">                         If `False`, handle retries silently. Defaults to `False`.</span>
+</span><span id="__span-0-88"><a id="__codelineno-0-88" name="__codelineno-0-88"></a>
+</span><span id="__span-0-89"><a id="__codelineno-0-89" name="__codelineno-0-89"></a><span class="sd">    Yields:</span>
+</span><span id="__span-0-90"><a id="__codelineno-0-90" name="__codelineno-0-90"></a><span class="sd">        str | StreamRetry: Either a chunk of the response text, or a `StreamRetry`</span>
+</span><span id="__span-0-91"><a id="__codelineno-0-91" name="__codelineno-0-91"></a><span class="sd">                         object if a retry event occurs and `emit_retry` is `True`.</span>
+</span><span id="__span-0-92"><a id="__codelineno-0-92" name="__codelineno-0-92"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span></code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="freeact.model.base.StreamRetry" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">StreamRetry</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h2>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">StreamRetry</span><span class="p">(</span><span class="n">cause</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n">retry_wait_time</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+
+        <p>Emitted in a response stream to inform about a retry event.</p>
+<p>Used when streaming responses encounter temporary failures and need to retry.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="freeact.model.base.StreamRetry.cause">cause</span></code></td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The reason for the retry attempt.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="freeact.model.base.StreamRetry.retry_wait_time">retry_wait_time</span></code></td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Time in seconds to wait before retrying.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2024 Gradion AI
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.preview", "navigation.instant.progress", "navigation.top", "navigation.tracking", "search.suggest", "toc.follow", "content.code.copy", "content.code.select", "content.code.annotate", "content.footnote.tooltips"], "search": "../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.88dd0f4e.min.js"></script>
+      
+    
+  </body>
+</html>
