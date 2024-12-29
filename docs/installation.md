@@ -8,7 +8,7 @@ pip install freeact
 
 ## Execution environment
 
-`freeact` agents execute code actions in [ipybox](https://gradion-ai.github.io/ipybox/), a secure code execution environment. To build an `ipybox` Docker image with [freeact-skills](https://github.com/gradion-ai/freeact-skills) pre-installed:
+`freeact` agents execute code actions in [`ipybox`](https://gradion-ai.github.io/ipybox/), a secure code execution environment. To build an `ipybox` Docker image with [`freeact-skills`](https://gradion-ai.github.io/freeact-skills/) pre-installed:
 
 1. Create a `dependencies.txt` file:
 

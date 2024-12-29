@@ -18,9 +18,9 @@
 - Custom skills provide optimized interfaces for the agent to interact with specific environments
 - System extensions provide natural language configurations for custom domain knowledge and agent behavior
 
-`freeact` connects coding LLMs (capable of multi-turn reasoning) to [ipybox](https://gradion-ai.github.io/ipybox/)—a secure code execution sandbox—and enables communication with users and other agents through an end-to-end streaming protocol.
+`freeact` connects coding LLMs (capable of multi-turn reasoning) to [`ipybox`](https://gradion-ai.github.io/ipybox/)—a secure code execution sandbox—and enables communication with users and other agents through an end-to-end streaming protocol.
 
-`freeact` also includes a range of predefined skills to expand agent capabilities. For instance, Google Search and Perplexity Search provide access to up-to-date information, while the Zotero skill enables efficient reference management. Explore all of them in the [freeact-skills](https://gradion-ai/github.com/freeact-skills/) project.
+`freeact` also includes a range of predefined skills to expand agent capabilities. For instance, Google Search and Perplexity Search provide access to up-to-date information, while the Zotero skill enables efficient reference management. Explore all of them in the [`freeact-skills`](https://gradion-ai.github.io/freeact-skills/) project.
 
 ## Tutorials
 
@@ -50,7 +50,7 @@ The following models are currently supported:
 - `claude-3-5-haiku-20241022`
 - `gemini-2.0-flash-exp`
 
-For most use cases, we recommend `claude-3-5-sonnet-20241022` due to its robust performance. The `gemini-2.0-flash-exp` integration allows developers to replace Gemini’s native code execution with [ipybox](https://gradion-ai.github.io/ipybox/)—a secure, locally deployable sandbox that supports extended execution timeouts, on-the-fly package installations, automatic plot generation, and additional features. Note that `gemini-2.0-flash-exp` support is still experimental.
+For most use cases, we recommend `claude-3-5-sonnet-20241022` due to its robust performance. The `gemini-2.0-flash-exp` integration allows developers to replace Gemini’s native code execution with [`ipybox`](https://gradion-ai.github.io/ipybox/)—a secure, locally deployable sandbox that supports extended execution timeouts, on-the-fly package installations, automatic plot generation, and additional features. Note that `gemini-2.0-flash-exp` support is still experimental.
 
 ## Status
 

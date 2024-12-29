@@ -40,7 +40,7 @@ A `CodeActAgent` can engage in multi-turn conversations with a user. Each turn i
 --8<-- "freeact/cli/utils.py:stream_turn"
 ```
 
-This tutorial uses the `freeact_skills.search.google.stream.api` skill module from the [freeact-skills](https://gradion-ai.github.io/freeact-skills/) project to process queries that require internet searches. This module provides generative Google search capabilities powered by the Gemini 2 API.
+This tutorial uses the `freeact_skills.search.google.stream.api` skill module from the [`freeact-skills`](https://gradion-ai.github.io/freeact-skills/) project to process queries that require internet searches. This module provides generative Google search capabilities powered by the Gemini 2 API.
 
 The skill module's source code is obtained from the `executor` and passed to the model through the agent's `run` method. Other model implementations may require skill module sources to be passed through their constructor instead.
 
