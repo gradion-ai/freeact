@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../architecture/">
+        <link rel="prev" href="..">
       
       
-        <link rel="next" href="../tutorials/setup/">
+        <link rel="next" href="../installation/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>Installation - freeact</title>
+        <title>Architecture - freeact</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#installation" class="md-skip">
+        <a href="#architecture" class="md-skip">
           Skip to content
         </a>
       
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Installation
+              Architecture
             
           </span>
         </div>
@@ -377,27 +377,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../architecture/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Architecture
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -414,7 +393,7 @@
           
   
   <span class="md-ellipsis">
-    Installation
+    Architecture
   </span>
   
 
@@ -425,7 +404,7 @@
         
   
   <span class="md-ellipsis">
-    Installation
+    Architecture
   </span>
   
 
@@ -447,18 +426,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#python-package" class="md-nav__link">
+  <a href="#agent-system" class="md-nav__link">
     <span class="md-ellipsis">
-      Python package
+      Agent system
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#execution-environment" class="md-nav__link">
+  <a href="#streaming-protocol" class="md-nav__link">
     <span class="md-ellipsis">
-      Execution environment
+      Streaming protocol
     </span>
   </a>
   
@@ -468,6 +447,27 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Installation
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -815,18 +815,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#python-package" class="md-nav__link">
+  <a href="#agent-system" class="md-nav__link">
     <span class="md-ellipsis">
-      Python package
+      Agent system
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#execution-environment" class="md-nav__link">
+  <a href="#streaming-protocol" class="md-nav__link">
     <span class="md-ellipsis">
-      Execution environment
+      Streaming protocol
     </span>
   </a>
   
@@ -850,30 +850,32 @@
   
 
 
-<h1 id="installation">Installation</h1>
-<h2 id="python-package">Python package</h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>freeact
-</span></code></pre></div>
-<h2 id="execution-environment">Execution environment</h2>
-<p><code>freeact</code> agents execute code actions in <a href="https://gradion-ai.github.io/ipybox/"><code>ipybox</code></a>, a secure code execution environment. To build an <code>ipybox</code> Docker image with <a href="https://gradion-ai.github.io/freeact-skills/"><code>freeact-skills</code></a> pre-installed:</p>
+<h1 id="architecture">Architecture</h1>
+<h2 id="agent-system">Agent system</h2>
+<p>A <code>freeact</code> agent system consists of three core components:</p>
 <ol>
-<li>
-<p>Create a <code>dependencies.txt</code> file:</p>
-<div class="language-toml highlight"><span class="filename">dependencies.txt</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">freeact-skills</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">version</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;0.0.6&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">extras</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;all&quot;</span><span class="p">]}</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1"># Add additional dependencies here if needed</span>
-</span></code></pre></div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p><code>dependencies.txt</code> must follow the <a href="https://python-poetry.org/docs/dependency-specification/">Poetry dependency specification format</a>.</p>
-</div>
-</li>
-<li>
-<p>Build the <code>ipybox</code> Docker image:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python<span class="w"> </span>-m<span class="w"> </span>ipybox<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>gradion-ai/ipybox-default<span class="w"> </span>-d<span class="w"> </span>dependencies.txt
-</span></code></pre></div>
-<p>To use the image, reference it in <a class="autorefs autorefs-internal" href="../api/executor/#freeact.executor.CodeExecutionContainer"><code>CodeExecutionContainer</code></a> when creating an <code>ipybox</code> Docker container. Use the <code>env</code> argument to set any API keys required by the pre-installed skills. </p>
-</li>
+<li>An <a href="https://gradion-ai.github.io/ipybox/"><code>ipybox</code></a> execution sandbox for secure code execution. <a class="autorefs autorefs-internal" href="../api/executor/#freeact.executor.CodeExecutionContainer">CodeExecutionContainer</a> manages Docker container lifecycle and <a class="autorefs autorefs-internal" href="../api/executor/#freeact.executor.CodeExecutor">CodeExecutor</a> manages IPython kernel lifecycle within the container.</li>
+<li>A code action model that generates executable Python code snippets (<em>code actions</em>) for environment interaction. All <a href="../#supported-models">supported models</a> implement the <a class="autorefs autorefs-internal" href="../api/model/#freeact.model.base.CodeActModel"><code>CodeActModel</code></a> interface.</li>
+<li>A <code>freeact</code> agent (<a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.CodeActAgent"><code>CodeActAgent</code></a>) that orchestrates interactions between model and executor and manages user conversations through an end-to-end <a href="#streaming-protocol">streaming protocol</a>.</li>
 </ol>
+<p>For implementation examples, see the <a href="../tutorials/basics/">Basic usage</a> tutorial. Agents leverage predefined skills from <a href="https://gradion-ai.github.io/freeact-skills/"><code>freeact-skills</code></a> to extend their capabilities. They can also develop custom skills to adapt to specific environments. See the <a href="skills.md">Custom skills</a> tutorial for more details.</p>
+<figure>
+<p><a href="../img/architecture.png" target="_blank"><img alt="architecture" src="../img/architecture.png" style="display: block; margin: 0 auto" /></a>
+  </p>
+<figcaption>High-level architecture of a <code>freeact</code> agent system</figcaption>
+</figure>
+<h2 id="streaming-protocol">Streaming protocol</h2>
+<p><code>freeact</code> implements an end-to-end streaming protocol for user-agent communication. The diagram below illustrates a simplified version of this protocol. For details, refer to:</p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.CodeActAgent"><code>CodeActAgent</code></a> and <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.CodeActAgentTurn"><code>CodeActAgentTurn</code></a></li>
+<li><a class="autorefs autorefs-internal" href="../api/model/#freeact.model.base.CodeActModel"><code>CodeActModel</code></a> and <a class="autorefs autorefs-internal" href="../api/model/#freeact.model.base.CodeActModelTurn"><code>CodeActModelTurn</code></a></li>
+<li><a class="autorefs autorefs-internal" href="../api/executor/#freeact.executor.CodeExecutor"><code>CodeExecutor</code></a> and <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.CodeExecution"><code>CodeExecution</code></a></li>
+</ul>
+<figure>
+<p><a href="../img/protocol.png" target="_blank"><img alt="protocol" src="../img/protocol.png" style="display: block; margin: 0 auto" /></a>
+  </p>
+<figcaption>Streaming protocol for user-agent communication (simplified)</figcaption>
+</figure>
 
 
 
