@@ -9,3 +9,5 @@ __pycache__
 logs
 output
 sandbox*
+site
+workspace

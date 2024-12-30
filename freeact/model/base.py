@@ -100,7 +100,8 @@ class CodeActModel(ABC):
     provide final responses to the user.
     """
 
-    def request(self, user_query: str, **kwargs):
+    @abstractmethod
+    def request(self, user_query: str, **kwargs) -> CodeActModelTurn:
         """Creates a new interaction turn from a user query.
 
         Args:
@@ -108,7 +109,7 @@ class CodeActModel(ABC):
             **kwargs: Additional model-specific parameters
 
         Returns:
-            A new turn object representing this interaction
+            CodeActModelTurn: A new turn object representing this interaction.
         """
 
     @abstractmethod

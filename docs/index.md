@@ -18,10 +18,6 @@
 - Custom skills provide optimized interfaces for the agent to interact with specific environments
 - System extensions provide natural language configurations for custom domain knowledge and agent behavior
 
-`freeact` connects coding LLMs (capable of multi-turn reasoning) to [`ipybox`](https://gradion-ai.github.io/ipybox/)—a secure code execution sandbox—and enables communication with users and other agents through an end-to-end streaming protocol.
-
-`freeact` also includes a range of predefined skills to expand agent capabilities. For instance, Google Search and Perplexity Search provide access to up-to-date information, while the Zotero skill enables efficient reference management. Explore all of them in the [`freeact-skills`](https://gradion-ai.github.io/freeact-skills/) project.
-
 ## Tutorials
 
 The best way to get started with `freeact` is to follow the tutorials after completing the [initial setup](tutorials/setup.md). 
