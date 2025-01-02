@@ -9,7 +9,7 @@ from freeact import (
     CodeExecutionContainer,
     CodeExecutor,
 )
-from freeact.cli.utils import stream_conversation
+from freeact.examples.utils import stream_conversation
 from freeact.logger import Logger
 
 

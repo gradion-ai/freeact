@@ -1,31 +1,13 @@
-"""
-Weather reporting functionality using Open-Meteo API
-"""
+"""Module for getting weather reports for cities."""
 
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 from typing import Any, Dict
 
 import requests
 
 
-def get_coordinates(city_name: str) -> tuple[float, float]:
-    """Get latitude and longitude for a given city name using Nominatim geocoding service."""
-    url = f"https://nominatim.openstreetmap.org/search?city={city_name}&format=json"
-    response = requests.get(url, headers={"User-Agent": "weather-report-script"})
-    response.raise_for_status()
-
-    data = response.json()
-    if not data:
-        raise ValueError(f"Could not find coordinates for city: {city_name}")
-
-    # Take the first result
-    location = data[0]
-    return float(location["lat"]), float(location["lon"])
-
-
 def get_weather_report(city_name: str, n_days: int = 7) -> Dict[str, Any]:
-    """
-    Get current and historical weather report for a given city.
+    """Get current and historical weather report for a given city.
 
     Args:
         city_name: Name of the city to get weather for
@@ -33,53 +15,63 @@ def get_weather_report(city_name: str, n_days: int = 7) -> Dict[str, Any]:
 
     Returns:
         Dictionary containing:
-        current:
-            - temperature (float): Current temperature in Celsius
-            - humidity (float): Current relative humidity in percent
-            - measurement_time (datetime): Time of measurement
-        historical:
-            - dates (List[date]): List of dates
-            - temperatures (List[float]): Daily average temperatures in Celsius
-            - humidities (List[float]): Daily average relative humidities in percent
-        metadata:
-            - city (str): City name used in query
-            - coordinates (tuple): (latitude, longitude) of the city
+        - temperature: Current temperature in Celsius
+        - humidity: Current relative humidity percentage
+        - measurement_time: Timestamp of current measurement
+        - coordinates: Dict with latitude and longitude
+        - city: City name used for query
+        - history: List of daily measurements for past n_days (excluding current day), each containing:
+            - date: Date of measurement
+            - temperature: Average daily temperature in Celsius
+            - humidity: Average daily relative humidity percentage
     """
-    # Get coordinates for the city
-    lat, lon = get_coordinates(city_name)
+    # First get coordinates using geocoding API
+    geocoding_url = f"https://geocoding-api.open-meteo.com/v1/search?name={city_name}&count=1&language=en&format=json"
+    geo_response = requests.get(geocoding_url)
+    geo_data = geo_response.json()
+
+    if not geo_data.get("results"):
+        raise ValueError(f"Could not find coordinates for city: {city_name}")
+
+    location = geo_data["results"][0]
+    lat = location["latitude"]
+    lon = location["longitude"]
 
     # Calculate date range for historical data
-    end_date = date.today() - timedelta(days=1)  # yesterday
+    end_date = datetime.now().date() - timedelta(days=1)  # yesterday
     start_date = end_date - timedelta(days=n_days - 1)
 
-    # Make API call for current weather
-    current_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m&timezone=auto"
-    current_response = requests.get(current_url)
-    current_response.raise_for_status()
-    current_data = current_response.json()
+    # Get current and historical weather data using coordinates
+    weather_url = (
+        f"https://api.open-meteo.com/v1/forecast?"
+        f"latitude={lat}&longitude={lon}"
+        f"&current=temperature_2m,relative_humidity_2m"
+        f"&daily=temperature_2m_mean,relative_humidity_2m_mean"
+        f"&timezone=auto"
+        f"&start_date={start_date}&end_date={end_date}"
+    )
+    weather_response = requests.get(weather_url)
+    weather_data = weather_response.json()
 
-    # Make API call for historical weather
-    historical_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&daily=temperature_2m_mean,relative_humidity_2m_mean&start_date={start_date}&end_date={end_date}&timezone=auto"
-    historical_response = requests.get(historical_url)
-    historical_response.raise_for_status()
-    historical_data = historical_response.json()
+    current = weather_data["current"]
+    daily = weather_data["daily"]
 
-    # Extract current weather
-    current = current_data["current"]
-
-    # Extract historical weather
-    daily = historical_data["daily"]
+    # Process historical data
+    history = []
+    for i in range(len(daily["time"])):
+        history.append(
+            {
+                "date": datetime.fromisoformat(daily["time"][i]).date(),
+                "temperature": daily["temperature_2m_mean"][i],
+                "humidity": daily["relative_humidity_2m_mean"][i],
+            }
+        )
 
     return {
-        "current": {
-            "temperature": current["temperature_2m"],
-            "humidity": current["relative_humidity_2m"],
-            "measurement_time": datetime.fromisoformat(current["time"]),
-        },
-        "historical": {
-            "dates": [date.fromisoformat(d) for d in daily["time"]],
-            "temperatures": daily["temperature_2m_mean"],
-            "humidities": daily["relative_humidity_2m_mean"],
-        },
-        "metadata": {"city": city_name, "coordinates": (lat, lon)},
+        "temperature": current["temperature_2m"],
+        "humidity": current["relative_humidity_2m"],
+        "measurement_time": datetime.fromisoformat(current["time"]),
+        "coordinates": {"latitude": lat, "longitude": lon},
+        "city": location["name"],
+        "history": history,
     }

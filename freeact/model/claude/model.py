@@ -281,10 +281,6 @@ class Claude(CodeActModel):
                 formatted_code = f"\n\n```python\n{assistant_message.code}\n```\n"
                 log_message += formatted_code
 
-                # Emit formmatted code when the client streams the model response.
-                # In the accumulated response, `text` and `code` are separate fields.
-                yield formatted_code
-
             await self.logger.log(log_message, metadata=response_metadata)
 
         self._history.append(user_message)

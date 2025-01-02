@@ -3,9 +3,15 @@ from pathlib import Path
 from typing import Dict
 
 import aiofiles
-from aioconsole import ainput
 from dotenv import dotenv_values
+from ipybox import arun
 from PIL import Image
+from rich.console import Console
+from rich.panel import Panel
+from rich.prompt import Prompt
+from rich.rule import Rule
+from rich.syntax import Syntax
+from rich.text import Text
 
 from freeact import (
     CodeActAgent,
@@ -44,48 +50,68 @@ async def execution_environment(
                 yield executor, logger
 
 
-# --8<-- [start:stream_conversation]
-async def stream_conversation(agent: CodeActAgent, **kwargs):
+async def stream_conversation(agent: CodeActAgent, console: Console, **kwargs):
     while True:
-        user_message = await ainput("User message: ('q' to quit) ")
+        console.print(Rule("User message", style="dodger_blue1", characters="━"))
+        user_message = await arun(Prompt.ask, "('q' to quit)", console=console)
+
+        if console.record:
+            console.print(user_message, highlight=False)
 
         if user_message.lower() == "q":
             break
 
         agent_turn = agent.run(user_message, **kwargs)
-        await stream_turn(agent_turn)
+        await stream_turn(agent_turn, console)
 
 
-# --8<-- [end:stream_conversation]
-
-
-# --8<-- [start:stream_turn]
-async def stream_turn(agent_turn: CodeActAgentTurn):
+async def stream_turn(agent_turn: CodeActAgentTurn, console: Console):
     produced_images: Dict[Path, Image.Image] = {}
 
     async for activity in agent_turn.stream():
         match activity:
             case CodeActModelTurn() as turn:
-                print("Agent response:")
-                async for s in turn.stream():
-                    print(s, end="", flush=True)
-                print()
+                console.print(Rule("Model response", style="green", characters="━"))
+
+                if not console.record:
+                    async for s in turn.stream():
+                        console.print(s, end="", highlight=False)
+                    console.print("\n")
+
+                response = await turn.response()
+
+                if console.record:
+                    # needed to wrap text in SVG output
+                    console.print(response.text, highlight=False)
+                    console.print()
+
+                if response.code:
+                    syntax = Syntax(response.code, "python", theme="monokai", line_numbers=True)
+                    panel = Panel(syntax, title="Code action", title_align="left", style="yellow")
+                    console.print(panel)
+                    console.print()
 
             case CodeExecution() as execution:
-                print("Execution result:")
-                async for s in execution.stream():
-                    print(s, end="", flush=True)
+                console.print(Rule("Execution result", style="white", characters="━"))
+
+                if not console.record:
+                    async for s in execution.stream():
+                        r = Text.from_ansi(s, style="navajo_white3")
+                        console.print(r, end="")
+
                 result = await execution.result()
+
+                if console.record:
+                    r = Text.from_ansi(result.text, style="navajo_white3")
+                    console.print(r)
+
                 produced_images.update(result.images)
-                print()
+                console.print()
 
     if produced_images:
-        print("\n\nProduced images:")
-    for path in produced_images.keys():
-        print(str(path))
-
-
-# --8<-- [end:stream_turn]
+        paths_str = "\n".join(str(path) for path in produced_images.keys())
+        panel = Panel(paths_str, title="Produced images", title_align="left", style="magenta")
+        console.print(panel)
 
 
 async def read_file(path: Path | str) -> str:

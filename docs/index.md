@@ -1,6 +1,6 @@
 # Overview
 
-`freeact` is a lightweight Python implementation of AI agents that use *code actions*[^1]—snippets of executable Python code—to dynamically interact with and adapt to their environment. 
+`freeact` is a lightweight Python implementation of AI agents that use *code actions*[^1] to dynamically interact with and adapt to their environment. 
 
 <figure markdown>
   ![logo](img/strawberry.resized.png){ width="400" style="display: block; margin: 0 auto" }
@@ -8,6 +8,7 @@
 
 `freeact` agents:
 
+- Write their actions in code, rather than just being agents for writing code. No JSON tool configs required
 - Have a broad action space since they can install and use any Python library in their code actions
 - Autonomously improve their code actions through reflection on environmental observations, execution feedback, and human input
 - Store code actions as custom skills in long-term memory for efficient reuse, enabling the composition of higher-level capabilities

@@ -5,6 +5,7 @@ from typing import Annotated, List
 
 import typer
 from dotenv import load_dotenv
+from rich.console import Console
 
 from freeact import Claude, CodeActAgent, Gemini
 from freeact.cli.utils import execution_environment, read_file, stream_conversation
@@ -28,6 +29,8 @@ async def amain(
     log_file: Path,
     temperature: float,
     max_tokens: int,
+    record_conversation: bool,
+    record_path: Path,
 ):
     async with execution_environment(
         executor_key=executor_key,
@@ -58,15 +61,24 @@ async def amain(
             )
         agent = CodeActAgent(model=model, executor=executor)
 
+        if record_conversation:
+            console = Console(record=True, width=120, force_terminal=True)
+        else:
+            console = Console()
+
         if model_name == ModelName.GEMINI_2_0_FLASH_EXP:
-            await stream_conversation(agent)
+            await stream_conversation(agent, console)
         else:
             await stream_conversation(
                 agent,
+                console,
                 skill_sources=skill_sources,
                 temperature=temperature,
                 max_tokens=max_tokens,
             )
+
+        if record_conversation:
+            console.save_svg(str(record_path), title="")
 
 
 @app.command()
@@ -80,6 +92,8 @@ def main(
     log_file: Annotated[Path, typer.Option(help="Path to the log file")] = Path("logs", "agent.log"),
     temperature: Annotated[float, typer.Option(help="Temperature for generating model responses")] = 0.0,
     max_tokens: Annotated[int, typer.Option(help="Maximum number of tokens for each model response")] = 4096,
+    record_conversation: Annotated[bool, typer.Option(help="Record conversation as SVG file")] = False,
+    record_path: Annotated[Path, typer.Option(help="Path to the SVG file")] = Path("conversation.svg"),
 ):
     asyncio.run(amain(**locals()))
 
