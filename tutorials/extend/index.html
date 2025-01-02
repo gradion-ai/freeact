@@ -539,6 +539,17 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    System extensions
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -548,6 +559,34 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#example-conversation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example conversation
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -762,6 +801,23 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#example-conversation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example conversation
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -789,7 +845,7 @@
 <p class="admonition-title">Note</p>
 <p>System extensions are currently only supported for <a class="autorefs autorefs-internal" href="../../api/claude/#freeact.model.claude.model.Claude">Claude</a> models.</p>
 </div>
-<p>The conversation below was guided by this system extension:</p>
+<p>The <a href="#example-conversation">example conversation</a> below was guided by this system extension:</p>
 <div class="language-text highlight"><span class="filename">extension.txt</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Your overall workflow instructions (= runbook):
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>- Start answering an initial user query
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>- In your final answer to the user query, additionally suggest 3 follow up actions the user can take
@@ -814,216 +870,8 @@
 </span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span>--skill-modules<span class="o">=</span>weather.weather_report<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span>--system-extension<span class="o">=</span>extension.txt
 </span></code></pre></div>
-<blockquote>
-<p><code>User message: ('q' to quit)</code> what is the weather in heidelberg? do not plot</p>
-</blockquote>
-<!-- -->
-<blockquote>
-<p><code>Agent response:</code></p>
-<p>Let me help you get the weather information for Heidelberg.</p>
-<p>&lt;thinking&gt;</p>
-<ol>
-<li>Since this is a weather-related query for a specific city (Heidelberg), I need to:<ul>
-<li>Use the weather_report module to get the current weather</li>
-<li>According to the domain-specific rules, I need to multiply the current temperature by 3.17</li>
-</ul>
-</li>
-<li>I'll use the get_weather_report function from the weather.weather_report module</li>
-<li>I'll extract just the current temperature and perform the required calculation</li>
-</ol>
-<p>&lt;/thinking&gt;</p>
-<p>Would you like me to proceed with generating and executing the code based on this reasoning?</p>
-</blockquote>
-<!-- -->
-<blockquote>
-<p><code>User message: ('q' to quit)</code> history should be over past 3 days</p>
-</blockquote>
-<!-- -->
-<blockquote>
-<p><code>Agent response:</code></p>
-<p>&lt;thinking&gt;</p>
-<ol>
-<li>Since this is a weather-related query for Heidelberg, I need to:<ul>
-<li>Use the weather_report module to get the current weather and 3 days of history</li>
-<li>According to the domain-specific rules, I need to multiply the current temperature by 3.17</li>
-</ul>
-</li>
-<li>I'll use the get_weather_report function from the weather.weather_report module with n_days=3</li>
-<li>I'll extract:<ul>
-<li>Current temperature (and multiply by 3.17)</li>
-<li>Historical temperatures for the past 3 days</li>
-</ul>
-</li>
-<li>I'll format this information in an easy to read way</li>
-</ol>
-<p>&lt;/thinking&gt;</p>
-<p>Would you like me to proceed with generating and executing the code based on this reasoning?</p>
-</blockquote>
-<!-- -->
-<blockquote>
-<p><code>User message: ('q' to quit)</code> y</p>
-</blockquote>
-<p class="annotate"><code>...</code> (1)</p>
-<ol>
-<li>
-<p><code>Agent response:</code></p>
-<p>I'll generate and execute the code now.</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span> <span class="nn">weather.weather_report</span> <span class="kn">import</span> <span class="n">get_weather_report</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># Get weather report for Heidelberg with 3 days history</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">weather_data</span> <span class="o">=</span> <span class="n">get_weather_report</span><span class="p">(</span><span class="s2">&quot;Heidelberg&quot;</span><span class="p">,</span> <span class="n">n_days</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># Extract current data</span>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="n">current_temp</span> <span class="o">=</span> <span class="n">weather_data</span><span class="p">[</span><span class="s1">&#39;current&#39;</span><span class="p">][</span><span class="s1">&#39;temperature&#39;</span><span class="p">]</span>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="n">current_time</span> <span class="o">=</span> <span class="n">weather_data</span><span class="p">[</span><span class="s1">&#39;current&#39;</span><span class="p">][</span><span class="s1">&#39;measurement_time&#39;</span><span class="p">]</span>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="n">special_temp</span> <span class="o">=</span> <span class="n">current_temp</span> <span class="o">*</span> <span class="mf">3.17</span>
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
-</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="c1"># Extract historical data</span>
-</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="n">historical</span> <span class="o">=</span> <span class="n">weather_data</span><span class="p">[</span><span class="s1">&#39;historical&#39;</span><span class="p">]</span>
-</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="n">dates</span> <span class="o">=</span> <span class="n">historical</span><span class="p">[</span><span class="s1">&#39;dates&#39;</span><span class="p">]</span>
-</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="n">temps</span> <span class="o">=</span> <span class="n">historical</span><span class="p">[</span><span class="s1">&#39;temperatures&#39;</span><span class="p">]</span>
-</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>
-</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="c1"># Print results</span>
-</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Weather in Heidelberg:&quot;</span><span class="p">)</span>
-</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Current temperature (</span><span class="si">{</span><span class="n">current_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">current_temp</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">°C&quot;</span><span class="p">)</span>
-</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current temperature × 3.17 = </span><span class="si">{</span><span class="n">special_temp</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">°C&quot;</span><span class="p">)</span>
-</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>
-</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Historical temperatures (past 3 days):&quot;</span><span class="p">)</span>
-</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="k">for</span> <span class="n">date</span><span class="p">,</span> <span class="n">temp</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dates</span><span class="p">,</span> <span class="n">temps</span><span class="p">):</span>
-</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">date</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">temp</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">°C&quot;</span><span class="p">)</span>
-</span></code></pre></div>
-<p><code>Execution result:</code></p>
-<p>Weather in Heidelberg:</p>
-<p>Current temperature (2024-12-24 07:30): 0.9°C<br />
-Current temperature × 3.17 = 2.9°C</p>
-<p>Historical temperatures (past 3 days):<br />
-2024-12-21: 4.9°C<br />
-2024-12-22: 5.1°C<br />
-2024-12-23: 2.8°C</p>
-</li>
-</ol>
-<blockquote>
-<p><code>Agent response:</code></p>
-<p>Based on the weather data:</p>
-<ul>
-<li>The current temperature in Heidelberg is 0.9°C (measured at 2024-12-24 07:30)</li>
-<li>According to the special calculation rule (temp × 3.17), the result is 2.9°C</li>
-<li>
-<p>Over the past 3 days, temperatures have been:</p>
-<ul>
-<li>Dec 21: 4.9°C</li>
-<li>Dec 22: 5.1°C</li>
-<li>Dec 23: 2.8°C</li>
-</ul>
-<p>showing a cooling trend towards today's temperature.</p>
-</li>
-</ul>
-<p>Here are 3 suggested follow-up actions:</p>
-<ol>
-<li>Would you like to see a visualization of the temperature trend over these days?</li>
-<li>Would you like to compare Heidelberg's weather with another nearby city?</li>
-<li>Would you like to get additional weather parameters like humidity for Heidelberg?</li>
-</ol>
-<p>Please let me know which follow-up action interests you, or feel free to ask something else!</p>
-</blockquote>
-<!-- -->
-<blockquote>
-<p><code>User message: ('q' to quit)</code> 1</p>
-</blockquote>
-<!-- -->
-<blockquote>
-<p><code>Agent response:</code></p>
-<p>&lt;thinking&gt;</p>
-<ol>
-<li>To visualize the temperature trend, I will:<ul>
-<li>Create a line plot using matplotlib</li>
-<li>Include both historical and current temperatures</li>
-<li>Add proper labels, title, and grid for better readability</li>
-<li>Format dates nicely on the x-axis</li>
-</ul>
-</li>
-<li>I'll combine the historical data with the current temperature to show the complete trend</li>
-<li>I'll make sure to call plt.show() to display the plot</li>
-</ol>
-<p>&lt;/thinking&gt;</p>
-<p>Would you like me to proceed with generating and executing the code based on this reasoning?</p>
-</blockquote>
-<!-- -->
-<blockquote>
-<p><code>User message: ('q' to quit)</code> y</p>
-</blockquote>
-<p class="annotate"><code>...</code> (1)</p>
-<ol>
-<li>
-<p><code>Agent response:</code></p>
-<p>I'll generate and execute the code to create the visualization now.</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kn">import</span> <span class="nn">matplotlib.dates</span> <span class="k">as</span> <span class="nn">mdates</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1"># Get the data again</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">weather_data</span> <span class="o">=</span> <span class="n">get_weather_report</span><span class="p">(</span><span class="s2">&quot;Heidelberg&quot;</span><span class="p">,</span> <span class="n">n_days</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="c1"># Combine historical and current data</span>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="n">dates</span> <span class="o">=</span> <span class="n">weather_data</span><span class="p">[</span><span class="s1">&#39;historical&#39;</span><span class="p">][</span><span class="s1">&#39;dates&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">weather_data</span><span class="p">[</span><span class="s1">&#39;current&#39;</span><span class="p">][</span><span class="s1">&#39;measurement_time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">date</span><span class="p">()]</span>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="n">temperatures</span> <span class="o">=</span> <span class="n">weather_data</span><span class="p">[</span><span class="s1">&#39;historical&#39;</span><span class="p">][</span><span class="s1">&#39;temperatures&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">weather_data</span><span class="p">[</span><span class="s1">&#39;current&#39;</span><span class="p">][</span><span class="s1">&#39;temperature&#39;</span><span class="p">]]</span>
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>
-</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="c1"># Create the plot</span>
-</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
-</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">dates</span><span class="p">,</span> <span class="n">temperatures</span><span class="p">,</span> <span class="s1">&#39;b-o&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
-</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>
-</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="c1"># Customize the plot</span>
-</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Temperature Trend in Heidelberg&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
-</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Date&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
-</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Temperature (°C)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
-</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
-</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>
-</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="c1"># Format x-axis</span>
-</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">mdates</span><span class="o">.</span><span class="n">DateFormatter</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">))</span>
-</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
-</span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>
-</span><span id="__span-3-26"><a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="c1"># Add value labels on points</span>
-</span><span id="__span-3-27"><a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">dates</span><span class="p">,</span> <span class="n">temperatures</span><span class="p">)):</span>
-</span><span id="__span-3-28"><a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a>    <span class="n">plt</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">t</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">°C&#39;</span><span class="p">,</span>
-</span><span id="__span-3-29"><a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>                <span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">),</span>
-</span><span id="__span-3-30"><a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a>                <span class="n">textcoords</span><span class="o">=</span><span class="s2">&quot;offset points&quot;</span><span class="p">,</span>
-</span><span id="__span-3-31"><a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a>                <span class="n">xytext</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span>
-</span><span id="__span-3-32"><a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a>                <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
-</span><span id="__span-3-33"><a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a>
-</span><span id="__span-3-34"><a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a><span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-</span><span id="__span-3-35"><a id="__codelineno-3-35" name="__codelineno-3-35" href="#__codelineno-3-35"></a><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</span></code></pre></div>
-<p><code>Execution result:</code></p>
-<p>&lt;Figure size 1000x600 with 1 Axes&gt;</p>
-<p><code>Produced images:</code></p>
-<p>![image_0](workspace/images/example/98709542.png)</p>
-</li>
-</ol>
-<blockquote>
-<p><code>Agent response:</code></p>
-<p>I've created a visualization of Heidelberg's temperature trend over the past few days. The graph shows:</p>
-<ul>
-<li>A relatively stable temperature around 5°C on Dec 21-22</li>
-<li>A significant drop to 2.8°C on Dec 23</li>
-<li>A further decrease to the current temperature of 0.9°C on Dec 24</li>
-</ul>
-<p>Here are 3 suggested follow-up actions:</p>
-<ol>
-<li>Would you like to see this same visualization but with the humidity data included?</li>
-<li>Would you like to extend the historical period to see a longer trend (e.g., 7 days)?</li>
-<li>Would you like to compare this temperature trend with another city?</li>
-</ol>
-<p>Please let me know which follow-up action interests you, or feel free to ask something else!</p>
-<p><code>Produced images:</code></p>
-<p><a href="../../workspace/images/example/98709542.png" target="_blank"><img alt="image_0" src="../../workspace/images/example/98709542.png" width="50%" /></a></p>
-</blockquote>
-<!-- -->
-<blockquote>
-<p><code>User message: ('q' to quit)</code> q</p>
-</blockquote>
-<hr />
-<p>...</p>
+<h3 id="example-conversation">Example conversation</h3>
+<p><a href="../output/extend.html" target="_blank"><img alt="output" src="../output/extend.svg" /></a></p>
 
 
 
