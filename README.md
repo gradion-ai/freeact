@@ -56,7 +56,6 @@ Start a `freeact` agent with generative Google Search skill using the CLI:
 python -m freeact.cli \
   --model-name=claude-3-5-sonnet-20241022 \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
-  --executor-key=example \
   --skill-modules=freeact_skills.search.google.stream.api
 ```
 
