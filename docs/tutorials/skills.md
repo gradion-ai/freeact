@@ -1,4 +1,4 @@
-# Custom skills
+# Skill development
 
 This tutorial demonstrates how to develop and use custom skills through two examples: first creating a weather reporting skill from scratch, and then using that skill to generate weather comparisons and visualizations.
 

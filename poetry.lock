@@ -748,13 +748,13 @@ files = [
 
 [[package]]
 name = "ipybox"
-version = "0.2.6"
+version = "0.3.0"
 description = "Python code execution sandbox based on IPython and Docker"
 optional = false
 python-versions = "<3.14,>=3.11"
 files = [
-    {file = "ipybox-0.2.6-py3-none-any.whl", hash = "sha256:4008629260abfd51285c47c790b802036d034be77ff4951bbe78193e7e57a01d"},
-    {file = "ipybox-0.2.6.tar.gz", hash = "sha256:c2f9b9d8143a38c406a650ffedaa27e6aac29de37db49ac996a5ce58ee9d2ea6"},
+    {file = "ipybox-0.3.0-py3-none-any.whl", hash = "sha256:23e3e25c1d5c801609bcf3548f8cf0677ebc49966572d74f689c7ee4bb4f5d46"},
+    {file = "ipybox-0.3.0.tar.gz", hash = "sha256:1af27b8a58ddc0215ec4169b8c2f42ff58154d17e65bd0e08371d80e97395723"},
 ]
 
 [package.dependencies]
@@ -2347,4 +2347,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11,<3.14"
-content-hash = "84f197cc1f67b7c41b20e3279b595eceec35c2ef0b4420eb72c9494bb53764f5"
+content-hash = "793db4024c0b33aa3bd44647f1f48c9321406c3b930b35ff3370dc64b2a50aca"

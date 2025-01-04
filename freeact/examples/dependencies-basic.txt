@@ -1,0 +1,5 @@
+freeact-skills = {version = "0.0.6", extras = ["search-google", "search-perplexity"]}
+matplotlib = "^3.10"
+numpy = "^2.2"
+pandas = "^2.2"
+sympy = "^1.13"

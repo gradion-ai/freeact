@@ -20,7 +20,7 @@ async def main():
     }
 
     async with CodeExecutionContainer(
-        tag="gradion-ai/ipybox-example",  # (2)!
+        tag="ghcr.io/gradion-ai/ipybox:example",  # (2)!
         env=api_keys,
         workspace_path="workspace",  # (3)!
     ) as container:

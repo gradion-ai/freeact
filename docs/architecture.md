@@ -8,7 +8,7 @@ A `freeact` agent system consists of three core components:
 2. A code action model that generates executable Python code snippets (*code actions*) for environment interaction. All [supported models](index.md#supported-models) implement the [`CodeActModel`][freeact.model.CodeActModel] interface.
 3. A `freeact` agent ([`CodeActAgent`][freeact.agent.CodeActAgent]) that orchestrates interactions between model and executor and manages user conversations through an end-to-end [streaming protocol](#streaming-protocol).
 
-For implementation examples, see the [Basic usage](tutorials/basics.md) tutorial. Agents leverage predefined skills from [`freeact-skills`](https://gradion-ai.github.io/freeact-skills/) to extend their capabilities. They can also develop custom skills to adapt to specific environments. See the [Custom skills](skills.md) tutorial for more details.
+For implementation examples, see the [Basic usage](tutorials/basics.md) tutorial. Agents leverage predefined skills from [`freeact-skills`](https://gradion-ai.github.io/freeact-skills/) to extend their capabilities. They can also develop custom skills to adapt to specific environments. See the [Skill development](skills.md) tutorial for more details.
 
 <figure markdown>
   [![architecture](img/architecture.png){ style="display: block; margin: 0 auto" }](img/architecture.png){target="_blank"}

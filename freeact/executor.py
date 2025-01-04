@@ -40,6 +40,7 @@ class CodeExecutionContainer(ExecutionContainer):
         tag: Docker image tag to use for the container
         env: Optional environment variables to set in the container
         port: Optional host port to map to container's executor port. Random port used if not specified
+        show_pull_progress: Whether to show progress when pulling the Docker image.
         workspace_path: Optional path to workspace directory, defaults to "workspace"
 
     Example:
@@ -56,6 +57,7 @@ class CodeExecutionContainer(ExecutionContainer):
         tag: str,
         env: dict[str, str] | None = None,
         port: int | None = None,
+        show_pull_progress: bool = True,
         workspace_path: Path | str | None = None,
     ):
         self.workspace = Workspace(Path(workspace_path) if workspace_path else Path("workspace"))
@@ -65,7 +67,7 @@ class CodeExecutionContainer(ExecutionContainer):
             self.workspace.shared_skills_path: "skills/shared",
         }
 
-        super().__init__(tag=tag, binds=binds, env=env, port=port)
+        super().__init__(tag=tag, binds=binds, env=env, port=port, show_pull_progress=show_pull_progress)
 
 
 class CodeExecutor(ExecutionClient):
@@ -141,8 +143,8 @@ class CodeExecutor(ExecutionClient):
             import os
             import sys
 
-            workdir = "/home/appuser/skills/private/{self.key}"
-            sys.path.extend(["/home/appuser/skills/shared", workdir])
+            workdir = "/app/skills/private/{self.key}"
+            sys.path.extend(["/app/skills/shared", workdir])
             os.chdir(workdir)
 
             from freeact_skills.editor import file_editor

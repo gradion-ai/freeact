@@ -86,9 +86,8 @@ nav:
     - Installation: installation.md
     - Architecture: architecture.md
     - Tutorials:
-      - Setup: tutorials/setup.md
       - Basic usage: tutorials/basics.md
-      - Custom skills: tutorials/skills.md
+      - Skill development: tutorials/skills.md
       - System extensions: tutorials/extend.md
   - API Documentation:
     - Agent: api/agent.md

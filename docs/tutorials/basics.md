@@ -19,7 +19,7 @@ A `freeact` agent system consists of:
 
 2. Tag of the `ipybox` Docker image.
 
-3. Path to the workspace directory on the host machine. This directory enables sharing custom skills modules between the container and host machine (see [Custom skills](skills.md) tutorial).
+3. Path to the workspace directory on the host machine. This directory enables sharing custom skills modules between the container and host machine (see [Skill development](skills.md) tutorial).
 
 4. Key for this executor's private workspace directories:
     - `workspace/skills/private/example`: Private skills and working directory
@@ -44,9 +44,26 @@ This tutorial uses the `freeact_skills.search.google.stream.api` skill module fr
 
 The skill module's source code is obtained from the `executor` and passed to the model through the agent's `run` method. Other model implementations may require skill module sources to be passed through their constructor instead.
 
+## Setup
+
+Install `freeact` with:
+
+```bash
+pip install freeact
+```
+
+The tutorials require an `ANTHROPIC_API_KEY` for the Claude API and a `GOOGLE_API_KEY` for the Gemini 2 API. You can get them from [Anthropic](https://docs.anthropic.com/en/docs/api/api-keys) and [Google AI Studio](https://aistudio.google.com/app/apikey). Add them to a `.env` file in the current working directory:
+
+```env title=".env"
+ANTHROPIC_API_KEY=...
+GOOGLE_API_KEY=...
+```
+
+The tutorials use the pre-built [`ghcr.io/gradion-ai/ipybox:example`](../installation.md#tutorial-docker-image) Docker image for sandboxed code execution.
+
 ## Running
 
-The Python example above can be run with:
+The Python example above is part of the `freeact` package and can be run with:
 
 ```shell
 python -m freeact.examples.basics
