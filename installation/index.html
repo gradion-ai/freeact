@@ -441,6 +441,30 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Execution environment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom-docker-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Docker image
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tutorial-docker-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tutorial Docker image
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -523,27 +547,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorials/setup/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Setup
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../tutorials/basics/" class="md-nav__link">
         
   
@@ -569,7 +572,7 @@
         
   
   <span class="md-ellipsis">
-    Custom skills
+    Skill development
   </span>
   
 
@@ -830,6 +833,30 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Execution environment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom-docker-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Docker image
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tutorial-docker-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tutorial Docker image
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -855,10 +882,9 @@
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>freeact
 </span></code></pre></div>
 <h2 id="execution-environment">Execution environment</h2>
-<p><code>freeact</code> agents execute code actions in <a href="https://gradion-ai.github.io/ipybox/"><code>ipybox</code></a>, a secure code execution environment. To build an <code>ipybox</code> Docker image with <a href="https://gradion-ai.github.io/freeact-skills/"><code>freeact-skills</code></a> pre-installed:</p>
-<ol>
-<li>
-<p>Create a <code>dependencies.txt</code> file:</p>
+<p><code>freeact</code> agents execute code actions in <a href="https://gradion-ai.github.io/ipybox/"><code>ipybox</code></a>, a secure code execution environment.</p>
+<h3 id="custom-docker-image">Custom Docker image</h3>
+<p>To build a custom <code>ipybox</code> Docker image with <a href="https://gradion-ai.github.io/freeact-skills/"><code>freeact-skills</code></a> pre-installed, create a <code>dependencies.txt</code> file:</p>
 <div class="language-toml highlight"><span class="filename">dependencies.txt</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">freeact-skills</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">version</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;0.0.6&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">extras</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;all&quot;</span><span class="p">]}</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1"># Add additional dependencies here if needed</span>
 </span></code></pre></div>
@@ -866,14 +892,23 @@
 <p class="admonition-title">Note</p>
 <p><code>dependencies.txt</code> must follow the <a href="https://python-poetry.org/docs/dependency-specification/">Poetry dependency specification format</a>.</p>
 </div>
-</li>
-<li>
-<p>Build the <code>ipybox</code> Docker image:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python<span class="w"> </span>-m<span class="w"> </span>ipybox<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>gradion-ai/ipybox-default<span class="w"> </span>-d<span class="w"> </span>dependencies.txt
+<p>Then build the <code>ipybox</code> Docker image referencing the dependencies file:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python<span class="w"> </span>-m<span class="w"> </span>ipybox<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>gradion-ai/ipybox:custom<span class="w"> </span>-d<span class="w"> </span>dependencies.txt
 </span></code></pre></div>
 <p>To use the image, reference it in <a class="autorefs autorefs-internal" href="../api/executor/#freeact.executor.CodeExecutionContainer"><code>CodeExecutionContainer</code></a> when creating an <code>ipybox</code> Docker container. Use the <code>env</code> argument to set any API keys required by the pre-installed skills. </p>
-</li>
-</ol>
+<h3 id="tutorial-docker-image">Tutorial Docker image</h3>
+<p>For running the <a href="../#tutorials">tutorials</a>, we provide a custom <code>ghcr.io/gradion-ai/ipybox:example</code> image with the following dependencies pre-installed:</p>
+<div class="language-toml highlight"><span class="filename">dependencies.txt</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">freeact-skills</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">version</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;0.0.6&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">extras</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;all&quot;</span><span class="p">]}</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">matplotlib</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;^3.10&quot;</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">numpy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;^2.2&quot;</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">pandas</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;^2.2&quot;</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">pygithub</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;^2.5&quot;</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">sympy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;^1.13&quot;</span>
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The tutorials run containers locally. Make sure you have <a href="https://docs.docker.com/get-docker/">Docker</a> installed on your system.</p>
+</div>
 
 
 

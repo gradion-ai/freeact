@@ -11,7 +11,7 @@
       
       
       
-        <link rel="prev" href="../setup/">
+        <link rel="prev" href="../../architecture/">
       
       
         <link rel="next" href="../skills/">
@@ -464,27 +464,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../setup/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Setup
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -534,6 +513,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#running" class="md-nav__link">
     <span class="md-ellipsis">
       Running
@@ -577,7 +565,7 @@
         
   
   <span class="md-ellipsis">
-    Custom skills
+    Skill development
   </span>
   
 
@@ -823,6 +811,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#running" class="md-nav__link">
     <span class="md-ellipsis">
       Running
@@ -894,7 +891,7 @@
 </span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="p">}</span>
 </span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
 </span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">CodeExecutionContainer</span><span class="p">(</span>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>        <span class="n">tag</span><span class="o">=</span><span class="s2">&quot;gradion-ai/ipybox-example&quot;</span><span class="p">,</span>  <span class="c1"># (2)!</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>        <span class="n">tag</span><span class="o">=</span><span class="s2">&quot;ghcr.io/gradion-ai/ipybox:example&quot;</span><span class="p">,</span>  <span class="c1"># (2)!</span>
 </span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>        <span class="n">env</span><span class="o">=</span><span class="n">api_keys</span><span class="p">,</span>
 </span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>        <span class="n">workspace_path</span><span class="o">=</span><span class="s2">&quot;workspace&quot;</span><span class="p">,</span>  <span class="c1"># (3)!</span>
 </span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="p">)</span> <span class="k">as</span> <span class="n">container</span><span class="p">:</span>
@@ -964,7 +961,7 @@
 <p>Tag of the <code>ipybox</code> Docker image.</p>
 </li>
 <li>
-<p>Path to the workspace directory on the host machine. This directory enables sharing custom skills modules between the container and host machine (see <a href="../skills/">Custom skills</a> tutorial).</p>
+<p>Path to the workspace directory on the host machine. This directory enables sharing custom skills modules between the container and host machine (see <a href="../skills/">Skill development</a> tutorial).</p>
 </li>
 <li>
 <p>Key for this executor's private workspace directories:</p>
@@ -1029,23 +1026,32 @@
 </ol>
 <p>This tutorial uses the <code>freeact_skills.search.google.stream.api</code> skill module from the <a href="https://gradion-ai.github.io/freeact-skills/"><code>freeact-skills</code></a> project to process queries that require internet searches. This module provides generative Google search capabilities powered by the Gemini 2 API.</p>
 <p>The skill module's source code is obtained from the <code>executor</code> and passed to the model through the agent's <code>run</code> method. Other model implementations may require skill module sources to be passed through their constructor instead.</p>
+<h2 id="setup">Setup</h2>
+<p>Install <code>freeact</code> with:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pip<span class="w"> </span>install<span class="w"> </span>freeact
+</span></code></pre></div>
+<p>The tutorials require an <code>ANTHROPIC_API_KEY</code> for the Claude API and a <code>GOOGLE_API_KEY</code> for the Gemini 2 API. You can get them from <a href="https://docs.anthropic.com/en/docs/api/api-keys">Anthropic</a> and <a href="https://aistudio.google.com/app/apikey">Google AI Studio</a>. Add them to a <code>.env</code> file in the current working directory:</p>
+<div class="language-text highlight"><span class="filename">.env</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ANTHROPIC_API_KEY=...
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>GOOGLE_API_KEY=...
+</span></code></pre></div>
+<p>The tutorials use the pre-built <a href="../../installation/#tutorial-docker-image"><code>ghcr.io/gradion-ai/ipybox:example</code></a> Docker image for sandboxed code execution.</p>
 <h2 id="running">Running</h2>
-<p>The Python example above can be run with:</p>
-<div class="language-shell highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>python<span class="w"> </span>-m<span class="w"> </span>freeact.examples.basics
+<p>The Python example above is part of the <code>freeact</code> package and can be run with:</p>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>-m<span class="w"> </span>freeact.examples.basics
 </span></code></pre></div>
 <p>For formatted and colored console output, as shown in the <a href="#example-conversation">example conversation</a>, you can use the <code>freeact</code> CLI:</p>
-<div class="language-shell highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>-m<span class="w"> </span>freeact.cli<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>--model-name<span class="o">=</span>claude-3-5-sonnet-20241022<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span>--ipybox-tag<span class="o">=</span>gradion-ai/ipybox-example<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span>--executor-key<span class="o">=</span>example<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span>--skill-modules<span class="o">=</span>freeact_skills.search.google.stream.api
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>-m<span class="w"> </span>freeact.cli<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>--model-name<span class="o">=</span>claude-3-5-sonnet-20241022<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span>--ipybox-tag<span class="o">=</span>ghcr.io/gradion-ai/ipybox:example<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span>--executor-key<span class="o">=</span>example<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span>--skill-modules<span class="o">=</span>freeact_skills.search.google.stream.api
 </span></code></pre></div>
 <p>To use Gemini instead of Claude, run:</p>
-<div class="language-shell highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>-m<span class="w"> </span>freeact.cli<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span>--model-name<span class="o">=</span>gemini-2.0-flash-exp<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span>--ipybox-tag<span class="o">=</span>gradion-ai/ipybox-example<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span>--executor-key<span class="o">=</span>example<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span>--skill-modules<span class="o">=</span>freeact_skills.search.google.stream.api
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>python<span class="w"> </span>-m<span class="w"> </span>freeact.cli<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>--model-name<span class="o">=</span>gemini-2.0-flash-exp<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span>--ipybox-tag<span class="o">=</span>ghcr.io/gradion-ai/ipybox:example<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span>--executor-key<span class="o">=</span>example<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span>--skill-modules<span class="o">=</span>freeact_skills.search.google.stream.api
 </span></code></pre></div>
 <h3 id="example-conversation">Example conversation</h3>
 <p><a href="../output/basics.html" target="_blank"><img alt="output" src="../output/basics.svg" /></a></p>

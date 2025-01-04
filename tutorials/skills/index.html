@@ -22,7 +22,7 @@
     
     
       
-        <title>Custom skills - freeact</title>
+        <title>Skill development - freeact</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#custom-skills" class="md-skip">
+        <a href="#skill-development" class="md-skip">
           Skip to content
         </a>
       
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Custom skills
+              Skill development
             
           </span>
         </div>
@@ -467,27 +467,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../setup/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Setup
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../basics/" class="md-nav__link">
         
   
@@ -522,7 +501,7 @@
           
   
   <span class="md-ellipsis">
-    Custom skills
+    Skill development
   </span>
   
 
@@ -533,7 +512,7 @@
         
   
   <span class="md-ellipsis">
-    Custom skills
+    Skill development
   </span>
   
 
@@ -555,7 +534,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#skill-development" class="md-nav__link">
+  <a href="#skill-development_1" class="md-nav__link">
     <span class="md-ellipsis">
       Skill development
     </span>
@@ -847,7 +826,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#skill-development" class="md-nav__link">
+  <a href="#skill-development_1" class="md-nav__link">
     <span class="md-ellipsis">
       Skill development
     </span>
@@ -912,13 +891,13 @@
   
 
 
-<h1 id="custom-skills">Custom skills</h1>
+<h1 id="skill-development">Skill development</h1>
 <p>This tutorial demonstrates how to develop and use custom skills through two examples: first creating a weather reporting skill from scratch, and then using that skill to generate weather comparisons and visualizations.</p>
 <div class="admonition tip">
 <p class="admonition-title">Prerequisites</p>
 <p>It is recommended to complete the <a href="../basics/">Basic Usage</a> tutorial before proceeding with this one, as it covers fundamental concepts that are built upon here.</p>
 </div>
-<h2 id="skill-development">Skill development</h2>
+<h2 id="skill-development_1">Skill development</h2>
 <p>This section demonstrates the interactive development of a custom weather reporting skill through a conversation between a user and a <code>freeact</code> agent. You'll see how the agent assists with software engineering tasks, evolving a simple weather query into a Python package that can:</p>
 <ul>
 <li>Fetch current weather conditions for any city</li>
@@ -1022,7 +1001,7 @@
 <p>The <a href="#example-conversation">example conversation</a> below was initiated with the following <code>freeact.cli</code> command<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup>. The developed <code>weather.weather_report</code> skill is written to the <code>workspace/skills/private/example</code> directory.</p>
 <div class="language-shell highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python<span class="w"> </span>-m<span class="w"> </span>freeact.cli<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>--model-name<span class="o">=</span>claude-3-5-sonnet-20241022<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>--ipybox-tag<span class="o">=</span>gradion-ai/ipybox-example<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>--ipybox-tag<span class="o">=</span>ghcr.io/gradion-ai/ipybox:example<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span>--executor-key<span class="o">=</span>example<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span>--skill-modules<span class="o">=</span>freeact_skills.search.google.stream.api<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span>--skill-modules<span class="o">=</span>freeact_skills.zotero.api<span class="w"> </span><span class="se">\</span>
@@ -1046,7 +1025,7 @@
 <p>The example conversation was initiated with the following <code>freeact.cli</code> command. The developed skill is is read from <code>workspace/skills/private/example</code>. If we moved it to <code>workspace/skills/shared</code>, it would be available to all executors regardless of their <code>executor-key</code> value.</p>
 <div class="language-shell highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python<span class="w"> </span>-m<span class="w"> </span>freeact.cli<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>--model-name<span class="o">=</span>claude-3-5-sonnet-20241022<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>--ipybox-tag<span class="o">=</span>gradion-ai/ipybox-example<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>--ipybox-tag<span class="o">=</span>ghcr.io/gradion-ai/ipybox:example<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span>--executor-key<span class="o">=</span>example<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span>--skill-modules<span class="o">=</span>freeact_skills.search.google.stream.api<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span>--skill-modules<span class="o">=</span>freeact_skills.zotero.api<span class="w"> </span><span class="se">\</span>
