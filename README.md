@@ -36,15 +36,13 @@ pip install freeact
 
 ### Configuration
 
-Create a `.env` file with API keys:
+Create a `.env` file with [Anthropic](https://console.anthropic.com/settings/keys) and [Gemini](https://aistudio.google.com/app/apikey) API keys:
 
 ```env title=".env"
 # Required for Claude 3.5 Sonnet
-# https://docs.anthropic.com/en/docs/api/api-keys
 ANTHROPIC_API_KEY=...
 
 # Required for generative Google Search via Gemini 2
-# https://aistudio.google.com/app/apikey
 GOOGLE_API_KEY=...
 ```
 

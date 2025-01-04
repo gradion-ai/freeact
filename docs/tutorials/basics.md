@@ -52,7 +52,7 @@ Install `freeact` with:
 pip install freeact
 ```
 
-The tutorials require an `ANTHROPIC_API_KEY` for the Claude API and a `GOOGLE_API_KEY` for the Gemini 2 API. You can get them from [Anthropic](https://docs.anthropic.com/en/docs/api/api-keys) and [Google AI Studio](https://aistudio.google.com/app/apikey). Add them to a `.env` file in the current working directory:
+The tutorials require an `ANTHROPIC_API_KEY` for the Claude API and a `GOOGLE_API_KEY` for the Gemini 2 API. You can get them from [Anthropic Console](https://console.anthropic.com/settings/keys) and [Google AI Studio](https://aistudio.google.com/app/apikey). Add them to a `.env` file in the current working directory:
 
 ```env title=".env"
 ANTHROPIC_API_KEY=...
