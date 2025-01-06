@@ -86,4 +86,4 @@ if __name__ == "__main__":
 
 Once launched, you can start interacting with the agent:
 
-![quickstart](docs/video/freeact_iss_coffee_720.gif)
+https://github.com/user-attachments/assets/83cec179-54dc-456c-b647-ea98ec99600b
