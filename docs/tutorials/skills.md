@@ -5,7 +5,7 @@ This tutorial demonstrates how to develop and use custom skills through two exam
 !!! Tip "Prerequisites"
     It is recommended to complete the [Basic Usage](basics.md) tutorial before proceeding with this one, as it covers fundamental concepts that are built upon here.
 
-## Skill development
+## Interactive development
 
 This section demonstrates the interactive development of a custom weather reporting skill through a conversation between a user and a `freeact` agent. You'll see how the agent assists with software engineering tasks, evolving a simple weather query into a Python package that can:
 

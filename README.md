@@ -1,19 +1,13 @@
 # freeact
 
-`freeact` is a lightweight Python implementation of AI agents that use *code actions* to dynamically interact with and adapt to their environment.
+`freeact` is a lightweight Python implementation of AI agents that use *code actions* to dynamically interact with and adapt to their environment. `freeact` agents:
 
-<p align="center">
-  <img src="docs/img/strawberry.resized.png" alt="logo" width="400">
-</p>
-
-`freeact` agents:
-
-- Write their actions in code, rather than just being agents for writing code. No JSON tool configs required
+- Write their actions in code, rather than just being agents for writing code
 - Have a broad action space since they can install and use any Python library in their code actions
 - Autonomously improve their code actions through reflection on environmental observations, execution feedback, and human input
 - Store code actions as custom skills in long-term memory for efficient reuse, enabling the composition of higher-level capabilities
 - Perform software-engineering tasks during the interactive development and optimization of custom agent skills
-- Execute code actions in [`ipybox`](https://gradion-ai.github.io/ipybox/), a secure code execution environment built with IPython and Docker.
+- Execute code actions in [`ipybox`](https://gradion-ai.github.io/ipybox/), a secure code execution environment built with IPython and Docker
 
 `freeact` agents can function as general-purpose agents right out of the box—no extra tool configuration needed—or be specialized for specific environments using custom skills and system extensions:
 
