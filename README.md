@@ -76,7 +76,7 @@ async def main():
 
         model = Claude(model_name="claude-3-5-sonnet-20241022", logger=logger)
         agent = CodeActAgent(model=model, executor=executor)
-        await stream_conversation(agent, Console(), skill_sources=skill_sources)
+        await stream_conversation(agent, console=Console(), skill_sources=skill_sources)
 
 
 if __name__ == "__main__":
