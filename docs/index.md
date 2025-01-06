@@ -3,7 +3,7 @@
 `freeact` is a lightweight Python implementation of AI agents that use *code actions*[^1] to dynamically interact with and adapt to their environment. 
 
 <video width="100%" controls>
-  <source src="video/freeact_iss_coffee_720.mp4" type="video/mp4">
+  <source src="https://github.com/user-attachments/assets/83cec179-54dc-456c-b647-ea98ec99600b" type="video/mp4">
   Your browser does not support the video tag.
 </video>
 
