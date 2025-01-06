@@ -42,7 +42,7 @@ GOOGLE_API_KEY=...
 
 ### Launch the Agent
 
-Start a `freeact` agent with generative Google Search skill using the CLI:
+Start a `freeact` agent with generative Google Search skill using the CLI
 
 ```bash
 python -m freeact.cli \
@@ -51,6 +51,39 @@ python -m freeact.cli \
   --skill-modules=freeact_skills.search.google.stream.api
 ```
 
+or an equivalent [quickstart.py](freeact/examples/quickstart.py) script:
+
+```python
+import asyncio
+import os
+
+from dotenv import load_dotenv
+from rich.console import Console
+
+from freeact import Claude, CodeActAgent
+from freeact.cli.utils import execution_environment, stream_conversation
+
+
+async def main():
+    async with execution_environment(
+        ipybox_tag="ghcr.io/gradion-ai/ipybox:basic",
+        executor_key="default",
+    ) as (executor, logger):
+
+        skill_sources = await executor.get_module_sources(
+            module_names=["freeact_skills.search.google.stream.api"]
+        )
+
+        model = Claude(model_name="claude-3-5-sonnet-20241022", logger=logger)
+        agent = CodeActAgent(model=model, executor=executor)
+        await stream_conversation(agent, Console(), skill_sources=skill_sources)
+
+
+if __name__ == "__main__":
+    load_dotenv()
+    asyncio.run(main())
+```
+
 Once launched, you can start interacting with the agent:
 
-[![output](docs/tutorials/output/quickstart.svg)](docs/tutorials/output/quickstart.html)
+![quickstart](docs/video/freeact_iss_coffee_720.gif)
