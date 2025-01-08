@@ -1,18 +1,20 @@
-# freeact
+# `freeact`
 
-`freeact` is a lightweight Python implementation of AI agents that use *code actions* to dynamically interact with and adapt to their environment. `freeact` agents:
+A lightweight library for code-action based agents.
 
-- Write their actions in code, rather than just being agents for writing code
-- Have a broad action space since they can install and use any Python library in their code actions
-- Autonomously improve their code actions through reflection on environmental observations, execution feedback, and human input
-- Store code actions as custom skills in long-term memory for efficient reuse, enabling the composition of higher-level capabilities
-- Perform software-engineering tasks during the interactive development and optimization of custom agent skills
-- Execute code actions in [`ipybox`](https://gradion-ai.github.io/ipybox/), a secure code execution environment built with IPython and Docker
+## Introduction
 
-`freeact` agents can function as general-purpose agents right out of the box—no extra tool configuration needed—or be specialized for specific environments using custom skills and system extensions:
+`freeact` is a minimalistic agent library that empowers language models to act as autonomous agents through executable **code actions**. By enabling agents to express their actions directly in code rather than through constrained formats like JSON, `freeact` provides a flexible and powerful approach to solving complex, open-ended problems that require dynamic solution paths.
 
-- Custom skills provide optimized interfaces for the agent to interact with specific environments
-- System extensions provide natural language configurations for custom domain knowledge and agent behavior
+The library builds upon [recent](https://arxiv.org/abs/2402.01030) [research](https://arxiv.org/abs/2411.01747) demonstrating that code-based actions significantly outperform traditional agent approaches, with studies showing up to 20% higher success rates compared to conventional methods. While existing solutions often restrict agents to predefined tool sets, `freeact` removes these limitations by allowing agents to leverage the full power of the Python ecosystem, dynamically installing and utilizing any required libraries as needed.
+
+## Key Capabilities
+
+`freeact` agents can autonomously improve their actions through learning from environmental feedback, execution results, and human guidance. A prominent feature is their ability to store and reuse successful code actions as custom skills in long-term memory. These skills can be composed and interactively refined to build increasingly sophisticated capabilities, enabling efficient scaling to complex tasks.
+
+The library's architecture emphasizes extensibility and transparency, avoiding the accidental complexity often introduced by heavier frameworks that obscure crucial implementation details. This design philosophy makes freeact particularly suitable for developers and researchers who need fine-grained control over their agent implementations while maintaining the flexibility to handle edge cases that fall outside predefined action spaces.
+
+`freeact` executes all code actions within [`ipybox`](https://gradion-ai.github.io/ipybox/), a secure execution environment built on IPython and Docker that can also be deployed locally. This ensures safe execution of dynamically generated code while maintaining full access to the Python ecosystem. Combined with its lightweight and extensible architecture, `freeact` provides a robust foundation for building adaptable AI agents that can tackle real-world challenges requiring dynamic problem-solving approaches.
 
 ## Documentation
 
@@ -20,15 +22,11 @@ The `freeact` documentation is available [here](https://gradion-ai.github.io/fre
 
 ## Quickstart
 
-### Installation
-
 Install `freeact` using pip:
 
 ```bash
 pip install freeact
 ```
-
-### Configuration
 
 Create a `.env` file with [Anthropic](https://console.anthropic.com/settings/keys) and [Gemini](https://aistudio.google.com/app/apikey) API keys:
 
@@ -40,9 +38,7 @@ ANTHROPIC_API_KEY=...
 GOOGLE_API_KEY=...
 ```
 
-### Launch the Agent
-
-Start a `freeact` agent with generative Google Search skill using the CLI
+Launch a `freeact` agent with generative Google Search skill using the CLI
 
 ```bash
 python -m freeact.cli \

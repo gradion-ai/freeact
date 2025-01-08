@@ -34,7 +34,7 @@ To use the image, reference it in [`CodeExecutionContainer`][freeact.executor.Co
 
 ### Tutorial Docker image
 
-For running the [tutorials](index.md#tutorials), we provide a custom `ghcr.io/gradion-ai/ipybox:example` image with the following dependencies pre-installed:
+For running the [tutorials](tutorials/index.md), we provide a custom `ghcr.io/gradion-ai/ipybox:example` image with the following dependencies pre-installed:
 
 ```toml title="dependencies.txt"
 --8<-- "freeact/examples/dependencies-example.txt"

@@ -1,59 +1,34 @@
-# Overview
+# `freeact`
 
-`freeact` is a lightweight Python implementation of AI agents that use *code actions*[^1] to dynamically interact with and adapt to their environment. 
+A lightweight Library for code-action based agents.
 
-<video width="100%" controls>
-  <source src="https://github.com/user-attachments/assets/83cec179-54dc-456c-b647-ea98ec99600b" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+## Introduction
 
+`freeact` is a minimalistic agent library that empowers language models to act as autonomous agents through executable **code actions**. By enabling agents to express their actions directly in code rather than through constrained formats like JSON, `freeact` provides a flexible and powerful approach to solving complex, open-ended problems that require dynamic solution paths.
 
-`freeact` agents:
+The library builds upon [recent](https://arxiv.org/abs/2402.01030) [research](https://arxiv.org/abs/2411.01747) demonstrating that code-based actions significantly outperform traditional agent approaches, with studies showing up to 20% higher success rates compared to conventional methods. While existing solutions often restrict agents to predefined tool sets, `freeact` removes these limitations by allowing agents to leverage the full power of the Python ecosystem, dynamically installing and utilizing any required libraries as needed.
 
-- Write their actions in code, rather than just being agents for writing code
-- Have a broad action space since they can install and use any Python library in their code actions
-- Autonomously improve their code actions through reflection on environmental observations, execution feedback, and human input
-- Store code actions as custom skills in long-term memory for efficient reuse, enabling the composition of higher-level capabilities
-- Perform software-engineering tasks during the interactive development and optimization of custom agent skills
-- Execute code actions in [`ipybox`](https://gradion-ai.github.io/ipybox/), a secure code execution environment built with IPython and Docker
+## Key Capabilities
 
-`freeact` agents can function as general-purpose agents right out of the box—no extra tool configuration needed—or be specialized for specific environments using custom skills and system extensions:
+`freeact` agents can autonomously improve their actions through learning from environmental feedback, execution results, and human guidance. A prominent feature is their ability to store and reuse successful code actions as custom skills in long-term memory. These skills can be composed and interactively refined to build increasingly sophisticated capabilities, enabling efficient scaling to complex tasks.
 
-- Custom skills provide optimized interfaces for the agent to interact with specific environments
-- System extensions provide natural language configurations for custom domain knowledge and agent behavior
+The library's architecture emphasizes extensibility and transparency, avoiding the accidental complexity often introduced by heavier frameworks that obscure crucial implementation details. This design philosophy makes freeact particularly suitable for developers and researchers who need fine-grained control over their agent implementations while maintaining the flexibility to handle edge cases that fall outside predefined action spaces.
 
-## Tutorials
+`freeact` executes all code actions within [`ipybox`](https://gradion-ai.github.io/ipybox/), a secure execution environment built on IPython and Docker that can also be deployed locally. This ensures safe execution of dynamically generated code while maintaining full access to the Python ecosystem. Combined with its lightweight and extensible architecture, `freeact` provides a robust foundation for building adaptable AI agents that can tackle real-world challenges requiring dynamic problem-solving approaches.
 
-The best way to get started with `freeact` is to follow the tutorials:
+## Next steps
 
-1. [Basic usage](tutorials/basics.md) - Learn how to set up an agent, model, and code execution environment. This minimal setup demonstrates running generative Google searches and plotting the results.
-2. [Skill development](tutorials/skills.md) - Learn how to develop and improve custom skills in a conversation with the agent. The agent leverages its software engineering capabilities to support this process.
-3. [System extensions](tutorials/extend.md) - Learn how to define custom agent behavior and constraints through system extensions in natural language. This enables human-in-the-loop workflows, proactive agents, and more.
+- [Quickstart](quickstart.md) - Launch your first `freeact` agent and interact with it on the command line
+- [Building blocks](blocks.md) - Learn about the essential components of a `freeact` agent system
+- [Tutorials](tutorials/index.md) - Tutorials demonstrating the `freeact` building blocks
 
-All tutorials use a pre-built [`ipybox`](https://gradion-ai.github.io/ipybox/) [tutorial Docker image](installation.md#tutorial-docker-image) for sandboxed code execution and the `freeact` [CLI](#cli) for user-agent interactions. The [Basic usage](tutorials/basics.md) tutorial additionally demonstrates the minimal Python code needed to implement a `freeact` agent.
+## Further reading
 
-## CLI
-
-`freeact` provides a minimalistic command-line interface (CLI) for running agents. It is currently intended for demonstration purposes only. [Install `freeact`](installation.md) and run the following command to see all available options:
-
-```bash
-python -m freeact.cli --help
-```
-
-or check the [tutorials](#tutorials) for usage examples.
-
-## Supported models
-
-The following models are currently supported:
-
-- `claude-3-5-sonnet-20241022`
-- `claude-3-5-haiku-20241022`
-- `gemini-2.0-flash-exp`
-
-For most use cases, we recommend `claude-3-5-sonnet-20241022` due to its robust performance. The `gemini-2.0-flash-exp` integration allows developers to replace Gemini’s native code execution with [`ipybox`](https://gradion-ai.github.io/ipybox/)—a secure, locally deployable sandbox that supports extended execution timeouts, on-the-fly package installations, automatic plot generation, and additional features. Note that `gemini-2.0-flash-exp` support is still experimental.
+- [Installation](installation.md) - Detailed instructions for building custom execution environments
+- [Command line](cli.md) - Minimalistic command-line interface for running `freeact` agents
+- [Supported models](models.md) - Models currently supported by `freeact`
+- [Streaming protocol](streaming.md) - Protocol for streaming model responses and execution results
 
 ## Status
 
 `freeact` is in an early stage of development, with ongoing development of new features. Community feedback and contributions are greatly appreciated as `freeact` continues to evolve.
-
-[^1]: Our approach draws inspiration from prior work including [TaskWeaver](https://arxiv.org/abs/2311.17541), [CodeAct](https://arxiv.org/abs/2402.01030), and [OpenHands](https://arxiv.org/abs/2407.16741). `freeact` emphasizes a lightweight, extensible codebase and straightforward Python API, making integration into any Python host application simple and practical. Another key difference is its focus on interactive development of agent skills, enabling rapid prototyping and iteration.

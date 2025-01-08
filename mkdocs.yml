@@ -83,12 +83,17 @@ markdown_extensions:
 nav:
   - User guide:
     - Overview: index.md
+    - Quickstart: quickstart.md
     - Installation: installation.md
-    - Architecture: architecture.md
-    - Tutorials:
-      - Basic usage: tutorials/basics.md
-      - Skill development: tutorials/skills.md
-      - System extensions: tutorials/extend.md
+    - Building blocks: blocks.md
+    - Streaming protocol: streaming.md
+    - Supported models: models.md
+    - Command line: cli.md
+  - Tutorials:
+    - Overview: tutorials/index.md
+    - Basic usage: tutorials/basics.md
+    - Skill development: tutorials/skills.md
+    - System extensions: tutorials/extend.md
   - API Documentation:
     - Agent: api/agent.md
     - Model: api/model.md
