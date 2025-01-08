@@ -29,6 +29,7 @@ async def amain(
     log_file: Path,
     temperature: float,
     max_tokens: int,
+    show_token_usage: bool,
     record_conversation: bool,
     record_path: Path,
 ):
@@ -67,7 +68,11 @@ async def amain(
             console = Console()
 
         if model_name == ModelName.GEMINI_2_0_FLASH_EXP:
-            await stream_conversation(agent, console)
+            await stream_conversation(
+                agent,
+                console,
+                show_token_usage=show_token_usage,
+            )
         else:
             await stream_conversation(
                 agent,
@@ -75,6 +80,7 @@ async def amain(
                 skill_sources=skill_sources,
                 temperature=temperature,
                 max_tokens=max_tokens,
+                show_token_usage=show_token_usage,
             )
 
         if record_conversation:
@@ -92,6 +98,7 @@ def main(
     log_file: Annotated[Path, typer.Option(help="Path to the log file")] = Path("logs", "agent.log"),
     temperature: Annotated[float, typer.Option(help="Temperature for generating model responses")] = 0.0,
     max_tokens: Annotated[int, typer.Option(help="Maximum number of tokens for each model response")] = 4096,
+    show_token_usage: Annotated[bool, typer.Option(help="Include token usage data in responses")] = False,
     record_conversation: Annotated[bool, typer.Option(help="Record conversation as SVG file")] = False,
     record_path: Annotated[Path, typer.Option(help="Path to the SVG file")] = Path("conversation.svg"),
 ):

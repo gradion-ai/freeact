@@ -91,6 +91,7 @@ class _GeminiLive(CodeActModel):
             server_content = response.server_content
 
             if server_content.turn_complete:
+                # TODO: include token usage data into response object
                 yield GeminiResponse(text=accumulated_text, is_error=False)
 
             model_turn = server_content.model_turn

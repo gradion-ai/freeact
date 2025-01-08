@@ -274,6 +274,8 @@ class Claude(CodeActModel):
         if hasattr(provider_message.usage, "cache_read_input_tokens"):
             response_metadata["cache_read_input_tokens"] = provider_message.usage.cache_read_input_tokens
 
+        assistant_message.token_usage = response_metadata.copy()
+
         async with self.logger.context("response"):
             log_message = assistant_message.text
 

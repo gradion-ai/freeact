@@ -50,7 +50,7 @@ async def execution_environment(
                 yield executor, logger
 
 
-async def stream_conversation(agent: CodeActAgent, console: Console, **kwargs):
+async def stream_conversation(agent: CodeActAgent, console: Console, show_token_usage: bool = False, **kwargs):
     while True:
         console.print(Rule("User message", style="dodger_blue1", characters="━"))
         user_message = await arun(Prompt.ask, "('q' to quit)", console=console)
@@ -62,10 +62,10 @@ async def stream_conversation(agent: CodeActAgent, console: Console, **kwargs):
             break
 
         agent_turn = agent.run(user_message, **kwargs)
-        await stream_turn(agent_turn, console)
+        await stream_turn(agent_turn, console, show_token_usage)
 
 
-async def stream_turn(agent_turn: CodeActAgentTurn, console: Console):
+async def stream_turn(agent_turn: CodeActAgentTurn, console: Console, show_token_usage: bool = False):
     produced_images: Dict[Path, Image.Image] = {}
 
     async for activity in agent_turn.stream():
@@ -90,6 +90,11 @@ async def stream_turn(agent_turn: CodeActAgentTurn, console: Console):
                     panel = Panel(syntax, title="Code action", title_align="left", style="yellow")
                     console.print(panel)
                     console.print()
+
+                if show_token_usage and response.token_usage:
+                    token_usage_str = ", ".join(f"{k}={v}" for k, v in response.token_usage.items())
+                    console.print()
+                    console.print(f"\[{token_usage_str}]", highlight=False, style="grey23")
 
             case CodeExecution() as execution:
                 console.print(Rule("Execution result", style="white", characters="━"))

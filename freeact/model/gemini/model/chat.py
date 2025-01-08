@@ -53,6 +53,7 @@ class GeminiTurn(CodeActModelTurn):
         if not self._stream_consumed:
             async for _ in self.stream():
                 pass
+        # TODO: include token usage data into response object
         return GeminiResponse(text=self._response, is_error=False)
 
     async def stream(self, emit_retry: bool = False) -> AsyncIterator[str | StreamRetry]:

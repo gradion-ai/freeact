@@ -11,8 +11,8 @@ to work with the `freeact` agent system. It defines abstract base classes for:
 """
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import AsyncIterator
+from dataclasses import dataclass, field
+from typing import AsyncIterator, Dict
 
 
 @dataclass
@@ -25,10 +25,12 @@ class CodeActModelResponse(ABC):
     Attributes:
         text: The raw text response from the model.
         is_error: Whether this response represents an error condition.
+        token_usage: Provider-specific token usage data.
     """
 
     text: str
     is_error: bool
+    token_usage: Dict[str, int] = field(default_factory=dict)
 
     @property
     @abstractmethod
