@@ -7,8 +7,8 @@ import typer
 from dotenv import load_dotenv
 from rich.console import Console
 
-from freeact import Claude, CodeActAgent, Gemini
-from freeact.cli.utils import execution_environment, read_file, stream_conversation
+from freeact import Claude, CodeActAgent, Gemini, execution_environment
+from freeact.cli.utils import read_file, stream_conversation
 
 app = typer.Typer()
 
@@ -38,8 +38,8 @@ async def amain(
         ipybox_tag=ipybox_tag,
         workspace_path=workspace_path,
         log_file=log_file,
-    ) as (executor, logger):
-        skill_sources = await executor.get_module_sources(module_names=skill_modules)
+    ) as env:
+        skill_sources = await env.executor.get_module_sources(module_names=skill_modules)
 
         if system_extension:
             system_extension_str = await read_file(system_extension)
@@ -58,9 +58,9 @@ async def amain(
                 model_name=model_name,  # type: ignore
                 system_extension=system_extension_str,
                 prompt_caching=True,
-                logger=logger,
+                logger=env.logger,
             )
-        agent = CodeActAgent(model=model, executor=executor)
+        agent = CodeActAgent(model=model, executor=env.executor)
 
         if record_conversation:
             console = Console(record=True, width=120, force_terminal=True)

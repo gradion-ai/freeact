@@ -1,8 +1,12 @@
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
+from dotenv import dotenv_values
 from ipybox import ExecutionClient, ExecutionContainer, arun
+
+from freeact.logger import Logger
 
 
 @dataclass
@@ -150,3 +154,67 @@ class CodeExecutor(ExecutionClient):
             from freeact_skills.editor import file_editor
             """)
         return self
+
+
+@dataclass
+class CodeExecutionEnvironment:
+    """A convenience class that bundles the container, executor and logger of an execution environment.
+
+    Attributes:
+        container: Manages a Docker container of the execution environment
+        executor: Manages an IPython kernel running in the container
+        logger: Logger instance for recording model interactions
+    """
+
+    container: CodeExecutionContainer
+    executor: CodeExecutor
+    logger: Logger
+
+
+def dotenv_variables() -> Dict[str, str]:
+    """Load environment variables from a `.env` file.
+
+    Reads environment variables from a `.env` file in the current directory and
+    returns them as a dictionary, filtering out any `None` values.
+
+    Returns:
+        Dictionary mapping environment variable names to their values.
+    """
+    return {k: v for k, v in dotenv_values().items() if v is not None}
+
+
+@asynccontextmanager
+async def execution_environment(
+    executor_key: str = "default",
+    ipybox_tag: str = "ghcr.io/gradion-ai/ipybox:minimal",
+    env_vars: dict[str, str] = dotenv_variables(),
+    workspace_path: Path | str = Path("workspace"),
+    log_file: Path | str = Path("logs", "agent.log"),
+):
+    """Convenience context manager for a local, sandboxed [code execution environment][freeact.executor.CodeExecutionEnvironment].
+
+    Sets up a complete environment for executing code securely on the local machine, including:
+
+    - A Docker container based on [`ipybox`](https://gradion-ai.github.io/ipybox)
+    - A code executor connected to the container
+    - A logger for recording model interactions
+
+    Args:
+        executor_key: [CodeExecutor][freeact.executor.CodeExecutor] key for private workspace directories
+        ipybox_tag: Tag of the `ipybox` Docker image to use
+        env_vars: Environment variables to pass to the container
+        workspace_path: Path to workspace directory on host machine
+        log_file: Path to log file for recording model interactions
+    """
+    async with CodeExecutionContainer(
+        tag=ipybox_tag,
+        env=env_vars,
+        workspace_path=workspace_path,
+    ) as container:
+        async with CodeExecutor(
+            key=executor_key,
+            port=container.port,
+            workspace=container.workspace,
+        ) as executor:
+            async with Logger(file=log_file) as logger:
+                yield CodeExecutionEnvironment(container=container, executor=executor, logger=logger)

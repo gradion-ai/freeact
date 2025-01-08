@@ -1,6 +1,6 @@
 # `freeact`
 
-A lightweight Library for code-action based agents.
+A lightweight library for code-action based agents.
 
 ## Introduction
 

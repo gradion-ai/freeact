@@ -30,8 +30,8 @@ def dotenv_variables() -> dict[str, str]:
 
 @asynccontextmanager
 async def execution_environment(
-    executor_key: str,
-    ipybox_tag: str = "gradion-ai/ipybox-example",
+    executor_key: str = "default",
+    ipybox_tag: str = "ghcr.io/gradion-ai/ipybox:minimal",
     env_vars: dict[str, str] = dotenv_variables(),
     workspace_path: Path | str = Path("workspace"),
     log_file: Path | str = Path("logs", "agent.log"),
