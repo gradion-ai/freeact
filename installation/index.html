@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="..">
+        <link rel="prev" href="../quickstart/">
       
       
-        <link rel="next" href="../architecture/">
+        <link rel="next" href="../blocks/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -251,6 +251,24 @@
     
     
       <li class="md-tabs__item">
+        <a href="../tutorials/" class="md-tabs__link">
+          
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
         <a href="../api/agent/" class="md-tabs__link">
           
   
@@ -377,6 +395,27 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Quickstart
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -483,11 +522,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../architecture/" class="md-nav__link">
+      <a href="../blocks/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Architecture
+    Building blocks
   </span>
   
 
@@ -503,26 +542,93 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../streaming/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Streaming protocol
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Supported models
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Command line
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
     
     
     
       
       
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
         
           
-          
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_4" >
-        
-          
-          <label class="md-nav__link" for="__nav_1_4" id="__nav_1_4_label" tabindex="">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -533,12 +639,33 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_1_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             Tutorials
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -609,14 +736,6 @@
     </li>
   
 
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
     
       
       
@@ -637,10 +756,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -651,8 +770,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             API Documentation
           </label>
@@ -897,7 +1016,7 @@
 </span></code></pre></div>
 <p>To use the image, reference it in <a class="autorefs autorefs-internal" href="../api/executor/#freeact.executor.CodeExecutionContainer"><code>CodeExecutionContainer</code></a> when creating an <code>ipybox</code> Docker container. Use the <code>env</code> argument to set any API keys required by the pre-installed skills. </p>
 <h3 id="tutorial-docker-image">Tutorial Docker image</h3>
-<p>For running the <a href="../#tutorials">tutorials</a>, we provide a custom <code>ghcr.io/gradion-ai/ipybox:example</code> image with the following dependencies pre-installed:</p>
+<p>For running the <a href="../tutorials/">tutorials</a>, we provide a custom <code>ghcr.io/gradion-ai/ipybox:example</code> image with the following dependencies pre-installed:</p>
 <div class="language-toml highlight"><span class="filename">dependencies.txt</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">freeact-skills</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">version</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;0.0.6&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">extras</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;all&quot;</span><span class="p">]}</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">matplotlib</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;^3.10&quot;</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">numpy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;^2.2&quot;</span>
