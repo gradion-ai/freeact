@@ -12,15 +12,6 @@ import typer
 from dotenv import load_dotenv
 from tqdm import tqdm
 
-from evaluation import (
-    EVAL_EXECUTOR_KEY,
-    EVAL_IPYBOX_TAG,
-    EVAL_LOG_FILE,
-    EVAL_OUTPUT_DIR,
-    EVAL_SKILLS_SOURCE_PATH,
-    EVAL_WORKSPACE_PATH,
-    EVAL_WORKSPACE_SKILLS_PATH,
-)
 from freeact import (
     CodeActAgent,
     CodeActAgentTurn,
@@ -67,6 +58,7 @@ def main(
     model_name: ModelName = ModelName.CLAUDE_3_5_SONNET_20241022,
     subset: Annotated[EvaluationSubset | None, typer.Option(help="Subset of the dataset to evaluate")] = None,
     debug: Annotated[bool, typer.Option(help="Debug mode")] = False,
+    output_dir: Annotated[Path, typer.Option(help="Output directory")] = Path("output", "evaluation"),
 ):
     asyncio.run(amain(**locals()))
 
@@ -76,13 +68,14 @@ async def amain(
     model_name: ModelName,
     subset: EvaluationSubset | None,
     debug: bool,
+    output_dir: Path,
 ):
     print(
         f"Starting evaluation run '{run_id}' of '{model_name}' on '{'full dataset' if subset is None else f'subset {subset}'}'"
     )
     prepare_workspace()
 
-    output_run_dir = EVAL_OUTPUT_DIR / run_id
+    output_run_dir = output_dir / run_id
     if not output_run_dir.exists():
         output_run_dir.mkdir(parents=True)
 
@@ -104,14 +97,17 @@ async def amain(
 
 
 def prepare_workspace():
-    if not EVAL_WORKSPACE_SKILLS_PATH.exists():
-        EVAL_WORKSPACE_SKILLS_PATH.mkdir(parents=True)
+    skills_source_path = Path("evaluation", "skills")
+    skills_target_path = Path("workspace", "skills", "shared")
 
-    if not (EVAL_WORKSPACE_SKILLS_PATH / "google_search").exists():
-        shutil.copytree(EVAL_SKILLS_SOURCE_PATH / "google_search", EVAL_WORKSPACE_SKILLS_PATH / "google_search")
+    if not skills_target_path.exists():
+        skills_target_path.mkdir(parents=True, exist_ok=True)
 
-    if not (EVAL_WORKSPACE_SKILLS_PATH / "visit_webpage").exists():
-        shutil.copytree(EVAL_SKILLS_SOURCE_PATH / "visit_webpage", EVAL_WORKSPACE_SKILLS_PATH / "visit_webpage")
+    if not (skills_target_path / "google_search").exists():
+        shutil.copytree(skills_source_path / "google_search", skills_target_path / "google_search")
+
+    if not (skills_target_path / "visit_webpage").exists():
+        shutil.copytree(skills_source_path / "visit_webpage", skills_target_path / "visit_webpage")
 
 
 async def evaluate_agent(
@@ -215,10 +211,9 @@ async def run_agent(
     debug: bool,
 ) -> tuple[list[str], str]:
     async with execution_environment(
-        executor_key=EVAL_EXECUTOR_KEY,
-        ipybox_tag=EVAL_IPYBOX_TAG,
-        workspace_path=EVAL_WORKSPACE_PATH,
-        log_file=EVAL_LOG_FILE,
+        executor_key="agent-evaluation",
+        ipybox_tag="ghcr.io/gradion-ai/ipybox:eval",
+        log_file=Path("logs", "agent-evaluation.log"),
         env_vars=dotenv_variables(),
     ) as env:
         skill_sources = await env.executor.get_module_sources(
@@ -254,10 +249,8 @@ async def collect_output(agent_turn: CodeActAgentTurn, debug: bool = True) -> Li
         match activity:
             case CodeActModelTurn() as model_turn:
                 model_response = await model_turn.response()
-                # TODO: rename to [model] (extra blank?)
                 output.append("[agent ] " + model_response.text)
                 if debug:
-                    # TODO: rename to "Model response:"
                     print("Agent response:")
                     print(model_response.text)
 

@@ -67,7 +67,10 @@ The evaluation results are saved to a subdirectory named after the `run-id` in t
 Score the results with:
 
 ```bash
-python evaluation/score.py --evaluation-dir output/evaluation/claude-3-5-sonnet
+python evaluation/score.py \
+  --evaluation-dir output/evaluation/claude-3-5-sonnet-20241022 \
+  --evaluation-dir output/evaluation/claude-3-5-haiku-20241022 \
+  --evaluation-dir output/evaluation/gemini-2.0-flash-exp
 ```
 
 Finally, generate result tables and plots with:

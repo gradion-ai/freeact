@@ -7,10 +7,11 @@ import pandas as pd
 import typer
 from tqdm import tqdm
 
-from evaluation import EVAL_RESULTS_FILE
 from evaluation.scoring.gaia import get_question_score_gaia
 from evaluation.scoring.gsm8k import get_question_score_gsm8k
 from evaluation.scoring.simpleqa import SimpleQAScorer
+
+RESULTS_FILE = Path("output", "evaluation-results.csv")
 
 app = typer.Typer()
 
@@ -23,8 +24,13 @@ class EvalProtocol(Enum):
 @app.command()
 def score(
     evaluation_dir: Annotated[
-        list[Path], typer.Option(..., help="Paths to directories containing model evaluation results")
+        list[Path],
+        typer.Option(..., help="Paths to directories containing model evaluation results"),
     ] = [],
+    results_file: Annotated[
+        Path,
+        typer.Option(help="Path to results file"),
+    ] = RESULTS_FILE,
 ):
     all_dfs = []
     model_ids = []
@@ -50,10 +56,10 @@ def score(
     print("Results:")
     print(df_stats)
 
-    if not EVAL_RESULTS_FILE.parent.exists():
-        EVAL_RESULTS_FILE.parent.mkdir(parents=True)
+    if not results_file.parent.exists():
+        results_file.parent.mkdir(parents=True)
 
-    df_stats.to_csv(EVAL_RESULTS_FILE, index=False)
+    df_stats.to_csv(results_file, index=False)
 
 
 def score_dataset(
