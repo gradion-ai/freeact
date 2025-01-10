@@ -1,23 +1,44 @@
 # Evaluation
 
-This directory contains scripts that evaluate `freeact` agents on the [agents_medium_benchmark_2](https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2) dataset of the [smolagents](https://github.com/huggingface/smolagents) project. We used the very same evaluation protocol and tools (converted to `freeact` [skills](skills)) to ensure a fair comparison to the [smolagents results](https://github.com/huggingface/smolagents?tab=readme-ov-file#how-strong-are-open-models-for-agentic-workflows).
+We evaluated `freeact` using three state-of-the-art language models:
 
-## Results
+- `claude-3-5-sonnet-20241022`
+- `claude-3-5-haiku-20241022`
+- `gemini-2.0-flash-exp`
 
-`freeact` shows the following improvements over `smolagents` (as of 2025-01-06) with the `claude-3-5-sonnet-20241022` model. We see these improvements despite using a zero-shot prompting approach for `freeact` agents, while `smolagents` uses a few-shot prompting approach:
+The evaluation was performed on the [m-ric/agents_medium_benchmark_2](https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2) dataset, developed by the [smolagents](https://github.com/huggingface/smolagents) team at 🤗 Hugging Face. It comprises selected tasks from GAIA, GSM8K, and SimpleQA:
 
-(TODO: use table, and also mention prompting approach)
-- GSM8K: smolagents score, freeact score, ...% relative improvement, ...% absolute improvement
-- SimpleQA: smolagents score, freeact score, ...% relative improvement, ...% absolute improvement
-- GAIA: smolagents score, freeact score, ...% relative improvement, ...% absolute improvement
+[<img src="../docs/eval/eval-plot.png" alt="Performance" width="600">](../docs/eval/eval-plot.png)
 
-The following plot also includes other models supported by `freeact` to provide a more comprehensive comparison:
+| model                      | subset   | eval_protocol   | % correct |
+|:---------------------------|:---------|:----------------|----------:|
+| claude-3-5-sonnet-20241022 | GAIA     | exact_match     |  **53.1** |
+| claude-3-5-sonnet-20241022 | GSM8K    | exact_match     |  **95.7** |
+| claude-3-5-sonnet-20241022 | SimpleQA | exact_match     |  **57.5** |
+| claude-3-5-sonnet-20241022 | SimpleQA | llm_as_judge    |  **72.5** |
+| claude-3-5-haiku-20241022  | GAIA     | exact_match     |      31.2 |
+| claude-3-5-haiku-20241022  | GSM8K    | exact_match     |      90.0 |
+| claude-3-5-haiku-20241022  | SimpleQA | exact_match     |      52.5 |
+| claude-3-5-haiku-20241022  | SimpleQA | llm_as_judge    |      70.0 |
+| gemini-2.0-flash-exp       | GAIA     | exact_match     |      34.4 |
+| gemini-2.0-flash-exp       | GSM8K    | exact_match     |  **95.7** |
+| gemini-2.0-flash-exp       | SimpleQA | exact_match     |      50.0 |
+| gemini-2.0-flash-exp       | SimpleQA | llm_as_judge    |      65.0 |
 
-...
+When comparing our results with smolagents using `claude-3-5-sonnet-20241022`, we observed the following outcomes (evaluation conducted on 2025-01-07, reference data [here](https://github.com/huggingface/smolagents/blob/c22fedaee17b8b966e86dc53251f210788ae5c19/examples/benchmark.ipynb)):
 
-For the SimpleQA subset of [agents_medium_benchmark_2](https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2) we additionally introduce an LLM-as-judge evaluation protocol conforming to [OpenAI's SimpleQA guidelines](https://openai.com/index/introducing-simpleqa/) to address issues with exact string matching.
+[<img src="../docs/eval/eval-plot-comparison.png" alt="Performance comparison" width="400">](../docs/eval/eval-plot-comparison.png)
 
-**Note**: Agent outputs from our evaluation runs are available [here](https://github.com/user-attachments/files/18364906/evaluation-results-agents_medium_benchmark_2.zip).
+| agent      | model                      | prompt    | subset   | %correct |
+|:-----------|:---------------------------|:----------|:---------|----------:|
+| freeact    | claude-3-5-sonnet-20241022 | zero-shot | GAIA     |  **53.1** |
+| freeact    | claude-3-5-sonnet-20241022 | zero-shot | GSM8K    |  **95.7** |
+| freeact    | claude-3-5-sonnet-20241022 | zero-shot | SimpleQA |  **57.5** |
+| smolagents | claude-3-5-sonnet-20241022 | few-shot  | GAIA     |      43.8 |
+| smolagents | claude-3-5-sonnet-20241022 | few-shot  | GSM8K    |      91.4 |
+| smolagents | claude-3-5-sonnet-20241022 | few-shot  | SimpleQA |      47.5 |
+
+Interestingly, these results were achieved using zero-shot prompting in `freeact`, while the smolagents implementation utilizes few-shot prompting. To ensure a fair comparison, we employed identical evaluation protocols and tools (converted to [skills](skills)).
 
 ## Running
 
@@ -27,7 +48,7 @@ Clone the `freeact` repository:
 git clone https://github.com/freeact/freeact.git
 ```
 
-Set up the development environment (as described in [CONTRIBUTING.md](../CONTRIBUTING.md)) replacing the default installation command with the following:
+Set up the development environment following [CONTRIBUTING.md](../CONTRIBUTING.md), but use this installation command:
 
 ```bash
 poetry install --with eval
@@ -36,35 +57,40 @@ poetry install --with eval
 Create a `.env` file with [Anthropic](https://console.anthropic.com/settings/keys), [Gemini](https://aistudio.google.com/app/apikey), [SerpAPI](https://serpapi.com/dashboard) and [OpenAI](https://platform.openai.com/settings/organization/api-keys) API keys:
 
 ```env title=".env"
-# Required for Claude 3.5 Sonnet and Haiku
+# Claude 3.5 Sonnet and Haiku
 ANTHROPIC_API_KEY=...
 
-# Required for Gemini 2 Flash Experimental
+# Gemini 2 Flash Experimental
 GOOGLE_API_KEY=...
 
-# Required for Google Web Search
+# Google Web Search
 SERPAPI_API_KEY=...
 
-# Required for GPT-4o Judge in SimpleQA evaluation
+# GPT-4 Judge (SimpleQA evaluation)
 OPENAI_API_KEY=...
 ```
 
-Then run the evaluation script with a model name and a run-id as arguments:
+Then run the evaluation script with a model name and a `run-id` as arguments:
 
 ```bash
 python evaluation/evaluate.py \
     --model-name claude-3-5-sonnet-20241022 \
-    --run-id claude-3-5-sonnet
+    --run-id claude-3-5-sonnet-20241022
+
+python evaluation/evaluate.py \
+    --model-name claude-3-5-haiku-20241022 \
+    --run-id claude-3-5-haiku-20241022
+
+python evaluation/evaluate.py \
+    --model-name gemini-2.0-flash-exp \
+    --run-id gemini-2.0-flash-exp
 ```
 
-The following models are currently supported for evaluation:
-* `claude-3-5-sonnet-20241022`
-* `claude-3-5-haiku-20241022`
-* `gemini-2.0-flash-exp`
+Results are saved in `output/evaluation/<run-id>`. Pre-generated outputs from our runs are available [here](https://github.com/user-attachments/files/18364906/evaluation-results-agents_medium_benchmark_2.zip).
 
-The evaluation results are saved to a subdirectory named after the `run-id` in the `output/evaluation` directory.
+## Analysis
 
-Score the results with:
+Score the results:
 
 ```bash
 python evaluation/score.py \
@@ -73,10 +99,13 @@ python evaluation/score.py \
   --evaluation-dir output/evaluation/gemini-2.0-flash-exp
 ```
 
-Finally, generate result tables and plots with:
+Generate visualization and reports:
 
 ```bash
 python evaluation/report.py performance
+
+python evaluation/report.py performance-comparison \
+  --reference-results-file evaluation/reference/agents_medium_benchmark_2/smolagents-20250107.csv
 ```
 
-This script generates a plot with the results in the `output/evaluation-report/plot.png` file.
+Plots are saved to `output/evaluation-report`.

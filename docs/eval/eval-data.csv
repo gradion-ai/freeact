@@ -1,0 +1,16 @@
+agent,model,prompt,subset,eval_protocol,correct
+smolagents,claude-3-5-sonnet-20241022,few-shot,GAIA,exact_match,43.8
+smolagents,claude-3-5-sonnet-20241022,few-shot,GSM8K,exact_match,91.4
+smolagents,claude-3-5-sonnet-20241022,few-shot,SimpleQA,exact_match,47.5
+freeact,claude-3-5-sonnet-20241022,zero-shot,GAIA,exact_match,53.1
+freeact,claude-3-5-sonnet-20241022,zero-shot,GSM8K,exact_match,95.7
+freeact,claude-3-5-sonnet-20241022,zero-shot,SimpleQA,exact_match,57.5
+freeact,claude-3-5-sonnet-20241022,zero-shot,SimpleQA,llm_as_judge,72.5
+freeact,claude-3-5-haiku-20241022,zero-shot,GAIA,exact_match,31.2
+freeact,claude-3-5-haiku-20241022,zero-shot,GSM8K,exact_match,90.0
+freeact,claude-3-5-haiku-20241022,zero-shot,SimpleQA,exact_match,52.5
+freeact,claude-3-5-haiku-20241022,zero-shot,SimpleQA,llm_as_judge,70.0
+freeact,gemini-2.0-flash-exp,zero-shot,GAIA,exact_match,34.4
+freeact,gemini-2.0-flash-exp,zero-shot,GSM8K,exact_match,95.7
+freeact,gemini-2.0-flash-exp,zero-shot,SimpleQA,exact_match,50.0
+freeact,gemini-2.0-flash-exp,zero-shot,SimpleQA,llm_as_judge,65.0
