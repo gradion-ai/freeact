@@ -28,6 +28,7 @@ The library's architecture emphasizes extensibility and transparency, avoiding t
 - [Command line](cli.md) - Minimalistic command-line interface for running `freeact` agents
 - [Supported models](models.md) - Models currently supported by `freeact`
 - [Streaming protocol](streaming.md) - Protocol for streaming model responses and execution results
+- [Evaluation results](evaluation.md) - Evaluation of `freeact` performance incl. a smolagents comparison
 
 ## Status
 

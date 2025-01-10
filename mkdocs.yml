@@ -89,6 +89,7 @@ nav:
     - Streaming protocol: streaming.md
     - Supported models: models.md
     - Command line: cli.md
+    - Evaluation results: evaluation.md
   - Tutorials:
     - Overview: tutorials/index.md
     - Basic usage: tutorials/basics.md

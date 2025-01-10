@@ -2,6 +2,15 @@
 
 A lightweight library for code-action based agents.
 
+## Contents
+
+- [Introduction](#introduction)
+- [Key Capabilities](#key-capabilities)
+- [Quickstart](#quickstart)
+- [Evaluation](#evaluation)
+
+The `freeact` documentation is available [here](https://gradion-ai.github.io/freeact/).
+
 ## Introduction
 
 `freeact` is a minimalistic agent library that empowers language models to act as autonomous agents through executable **code actions**. By enabling agents to express their actions directly in code rather than through constrained formats like JSON, `freeact` provides a flexible and powerful approach to solving complex, open-ended problems that require dynamic solution paths.
@@ -15,10 +24,6 @@ The library builds upon [recent](https://arxiv.org/abs/2402.01030) [research](ht
 The library's architecture emphasizes extensibility and transparency, avoiding the accidental complexity often introduced by heavier frameworks that obscure crucial implementation details. This design philosophy makes freeact particularly suitable for developers and researchers who need fine-grained control over their agent implementations while maintaining the flexibility to handle edge cases that fall outside predefined action spaces.
 
 `freeact` executes all code actions within [`ipybox`](https://gradion-ai.github.io/ipybox/), a secure execution environment built on IPython and Docker that can also be deployed locally. This ensures safe execution of dynamically generated code while maintaining full access to the Python ecosystem. Combined with its lightweight and extensible architecture, `freeact` provides a robust foundation for building adaptable AI agents that can tackle real-world challenges requiring dynamic problem-solving approaches.
-
-## Documentation
-
-The `freeact` documentation is available [here](https://gradion-ai.github.io/freeact/).
 
 ## Quickstart
 
@@ -80,3 +85,21 @@ if __name__ == "__main__":
 Once launched, you can start interacting with the agent:
 
 https://github.com/user-attachments/assets/83cec179-54dc-456c-b647-ea98ec99600b
+
+## Evaluation
+
+We [evaluated](evaluation) `freeact` using three state-of-the-art models:
+
+- `claude-3-5-sonnet-20241022`
+- `claude-3-5-haiku-20241022`
+- `gemini-2.0-flash-exp`
+
+The evaluation was performed on the [m-ric/agents_medium_benchmark_2](https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2) dataset, developed by the [smolagents](https://github.com/huggingface/smolagents) team at 🤗 Hugging Face. It comprises selected tasks from GAIA, GSM8K, and SimpleQA:
+
+[<img src="docs/eval/eval-plot.png" alt="Performance">](docs/eval/eval-plot.png)
+
+When comparing our results with smolagents using `claude-3-5-sonnet-20241022`, we observed the following outcomes (evaluation conducted on 2025-01-07, reference data [here](https://github.com/huggingface/smolagents/blob/c22fedaee17b8b966e86dc53251f210788ae5c19/examples/benchmark.ipynb)):
+
+[<img src="docs/eval/eval-plot-comparison.png" alt="Performance comparison" width="60%">](docs/eval/eval-plot-comparison.png)
+
+Interestingly, these results were achieved using zero-shot prompting in `freeact`, while the smolagents implementation utilizes few-shot prompting. To ensure a fair comparison, we employed identical evaluation protocols and tools. You can find all evaluation details [here](evaluation).

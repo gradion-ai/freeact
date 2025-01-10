@@ -1,6 +1,6 @@
 # Evaluation
 
-We evaluated `freeact` using three state-of-the-art language models:
+We evaluated `freeact` using three state-of-the-art models:
 
 - `claude-3-5-sonnet-20241022`
 - `claude-3-5-haiku-20241022`
@@ -8,7 +8,7 @@ We evaluated `freeact` using three state-of-the-art language models:
 
 The evaluation was performed on the [m-ric/agents_medium_benchmark_2](https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2) dataset, developed by the [smolagents](https://github.com/huggingface/smolagents) team at 🤗 Hugging Face. It comprises selected tasks from GAIA, GSM8K, and SimpleQA:
 
-[<img src="../docs/eval/eval-plot.png" alt="Performance" width="600">](../docs/eval/eval-plot.png)
+[<img src="../docs/eval/eval-plot.png" alt="Performance">](../docs/eval/eval-plot.png)
 
 | model                      | subset   | eval_protocol   | % correct |
 |:---------------------------|:---------|:----------------|----------:|
@@ -27,7 +27,7 @@ The evaluation was performed on the [m-ric/agents_medium_benchmark_2](https://hu
 
 When comparing our results with smolagents using `claude-3-5-sonnet-20241022`, we observed the following outcomes (evaluation conducted on 2025-01-07, reference data [here](https://github.com/huggingface/smolagents/blob/c22fedaee17b8b966e86dc53251f210788ae5c19/examples/benchmark.ipynb)):
 
-[<img src="../docs/eval/eval-plot-comparison.png" alt="Performance comparison" width="400">](../docs/eval/eval-plot-comparison.png)
+[<img src="../docs/eval/eval-plot-comparison.png" alt="Performance comparison" width="60%">](../docs/eval/eval-plot-comparison.png)
 
 | agent      | model                      | prompt    | subset   | %correct |
 |:-----------|:---------------------------|:----------|:---------|----------:|
@@ -48,7 +48,7 @@ Clone the `freeact` repository:
 git clone https://github.com/freeact/freeact.git
 ```
 
-Set up the development environment following [CONTRIBUTING.md](../CONTRIBUTING.md), but use this installation command:
+Set up the development environment following [DEVELOPMENT.md](../DEVELOPMENT.md), but use this installation command:
 
 ```bash
 poetry install --with eval
