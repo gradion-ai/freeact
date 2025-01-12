@@ -3,7 +3,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List
 
-from dotenv import dotenv_values
+from dotenv import find_dotenv
+from dotenv.main import DotEnv
 from ipybox import ExecutionClient, ExecutionContainer, arun
 
 from freeact.logger import Logger
@@ -171,7 +172,7 @@ class CodeExecutionEnvironment:
     logger: Logger
 
 
-def dotenv_variables() -> Dict[str, str]:
+def dotenv_variables(dotenv_path: Path | None = Path(".env"), export: bool = True, **kwargs) -> Dict[str, str]:
     """Load environment variables from a `.env` file.
 
     Reads environment variables from a `.env` file in the current directory and
@@ -180,7 +181,16 @@ def dotenv_variables() -> Dict[str, str]:
     Returns:
         Dictionary mapping environment variable names to their values.
     """
-    return {k: v for k, v in dotenv_values().items() if v is not None}
+
+    if dotenv_path is None:
+        dotenv_path = find_dotenv()
+
+    dotenv = DotEnv(dotenv_path=dotenv_path, **kwargs)
+
+    if export:
+        dotenv.set_as_environment_variables()
+
+    return {k: v for k, v in dotenv.dict().items() if v is not None}
 
 
 @asynccontextmanager

@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "freeact"
-version = "0.2.1"
+version = "0.2.2"
 description = "A general-purpose CodeAct Agent"
 homepage = "https://github.com/gradion-ai/freeact"
 readme = "README.md"
