@@ -175,8 +175,13 @@ class CodeExecutionEnvironment:
 def dotenv_variables(dotenv_path: Path | None = Path(".env"), export: bool = True, **kwargs) -> Dict[str, str]:
     """Load environment variables from a `.env` file.
 
-    Reads environment variables from a `.env` file in the current directory and
-    returns them as a dictionary, filtering out any `None` values.
+    Reads environment variables from a `.env` file and optionally exports them to `os.environ`.
+    If no path is provided, searches for a `.env` file in parent directories.
+
+    Args:
+        dotenv_path: Path to the `.env` file. Defaults to `.env` in current directory.
+        export: Whether to export variables to current environment. Defaults to `True`.
+        **kwargs: Additional keyword arguments passed to `DotEnv` constructor.
 
     Returns:
         Dictionary mapping environment variable names to their values.
