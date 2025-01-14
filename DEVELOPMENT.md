@@ -16,6 +16,12 @@ conda env create -f environment.yml
 conda activate freeact
 ```
 
+Install the poetry dynamic versioning plugin:
+
+```bash
+poetry self add "poetry-dynamic-versioning[plugin]"
+```
+
 Install dependencies with Poetry:
 
 ```bash

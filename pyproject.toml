@@ -1,10 +1,10 @@
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
+build-backend = "poetry_dynamic_versioning.backend"
 
 [tool.poetry]
 name = "freeact"
-version = "0.2.3"
+version = "0.0.0"
 description = "A general-purpose CodeAct Agent"
 homepage = "https://github.com/gradion-ai/freeact"
 readme = "README.md"
@@ -78,3 +78,9 @@ module = [
     "yaml"
 ]
 ignore_missing_imports = true
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+pattern = "default-unprefixed"
+style = "pep440"
