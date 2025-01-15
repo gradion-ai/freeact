@@ -89,6 +89,16 @@ python evaluation/evaluate.py \
     --model-name qwen2p5-coder-32b-instruct \
     --run-id qwen2p5-coder-32b-instruct \
     --subset GAIA
+
+python evaluation/evaluate.py \
+    --model-name qwen2p5-coder-32b-instruct \
+    --run-id qwen2p5-coder-32b-instruct \
+    --subset SimpleQA
+
+python evaluation/evaluate.py \
+    --model-name qwen2p5-coder-32b-instruct \
+    --run-id qwen2p5-coder-32b-instruct \
+    --subset GSM8K
 ```
 
 Results are saved in `output/evaluation/<run-id>`. Pre-generated outputs from our runs are available [here](https://github.com/user-attachments/files/18364906/evaluation-results-agents_medium_benchmark_2.zip).

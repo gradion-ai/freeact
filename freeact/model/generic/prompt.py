@@ -105,7 +105,7 @@ EXECUTION_OUTPUT_TEMPLATE = """Here are the execution results of the code you ge
 {execution_feedback}
 </execution-results>
 
-Formulate your final answer as direct answer to the user question.
+Proceed with the next step or respond with a final answer to the user question if you have sufficient information.
 """
 
 
