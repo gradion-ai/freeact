@@ -1,0 +1,72 @@
+name: Release Package
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+*'
+
+jobs:
+  release-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+
+    - name: Verify current tag is on main branch
+      run: |
+        # Exit with error if current tag is not on main
+        git merge-base --is-ancestor ${{ github.sha }} origin/main || exit 1
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ vars.CI_PYTHON_VERSION }}
+
+    - name: Install Poetry
+      uses: abatilo/actions-poetry@v3
+      with:
+        poetry-version: ${{ vars.CI_POETRY_VERSION }}
+
+    - name: Install Poetry plugins
+      run: |
+        poetry self add "poetry-dynamic-versioning[plugin]"
+
+    - name: Build package
+      run: |
+        poetry build
+        ls -la dist/
+
+    - name: Upload distributions
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-dists
+        path: dist/
+        retention-days: 1
+
+  pypi-publish:
+    runs-on: ubuntu-latest
+
+    needs:
+      - release-build
+
+    permissions:
+      id-token: write
+
+    environment:
+      name: pypi
+      url: https://pypi.org/project/freeact
+
+    steps:
+      - name: Retrieve release distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: release-dists
+          path: dist/
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          verbose: true

@@ -1,0 +1,101 @@
+name: Package Installation Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  package-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ vars.CI_PYTHON_VERSION }}
+
+    - name: Install Poetry
+      uses: abatilo/actions-poetry@v3
+      with:
+        poetry-version: ${{ vars.CI_POETRY_VERSION }}
+
+    - name: Install Poetry plugins
+      run: |
+        poetry self add "poetry-dynamic-versioning[plugin]"
+
+    - name: Build package
+      run: |
+        poetry build
+
+    - name: Upload dist artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist
+        path: dist/
+        retention-days: 1
+
+  package-test:
+    needs: package-build
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.11', '3.12']
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Download package
+      uses: actions/download-artifact@v4
+      with:
+        name: dist
+        path: dist/
+
+    - name: Test wheel installation (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $wheel = Get-ChildItem dist/*.whl | Select-Object -First 1
+        pip install $wheel
+        python -c "import freeact"
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        pip uninstall -y freeact
+
+    - name: Test wheel installation (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        pip install dist/*.whl
+        python -c "import freeact"
+        pip uninstall -y freeact
+
+    - name: Test tarball installation (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $tarball = Get-ChildItem dist/*.tar.gz | Select-Object -First 1
+        pip install $tarball
+        python -c "import freeact"
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        pip uninstall -y freeact
+
+    - name: Test tarball installation (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        pip install dist/*.tar.gz
+        python -c "import freeact"
+        pip uninstall -y freeact
