@@ -84,6 +84,11 @@ python evaluation/evaluate.py \
 python evaluation/evaluate.py \
     --model-name gemini-2.0-flash-exp \
     --run-id gemini-2.0-flash-exp
+
+python evaluation/evaluate.py \
+    --model-name qwen2p5-coder-32b-instruct \
+    --run-id qwen2p5-coder-32b-instruct \
+    --subset GAIA
 ```
 
 Results are saved in `output/evaluation/<run-id>`. Pre-generated outputs from our runs are available [here](https://github.com/user-attachments/files/18364906/evaluation-results-agents_medium_benchmark_2.zip).
@@ -97,6 +102,9 @@ python evaluation/score.py \
   --evaluation-dir output/evaluation/claude-3-5-sonnet-20241022 \
   --evaluation-dir output/evaluation/claude-3-5-haiku-20241022 \
   --evaluation-dir output/evaluation/gemini-2.0-flash-exp
+
+python evaluation/score.py \
+  --evaluation-dir output/evaluation/qwen2p5-coder-32b-instruct
 ```
 
 Generate visualization and reports:

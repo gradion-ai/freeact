@@ -23,6 +23,7 @@ from freeact.cli.__main__ import ModelName
 from freeact.cli.utils import dotenv_variables
 from freeact.model.claude.model import Claude
 from freeact.model.gemini.model.chat import Gemini
+from freeact.model.generic.model import GenericModel
 
 app = typer.Typer()
 
@@ -55,7 +56,7 @@ class EvaluationSubset(StrEnum):
 @app.command()
 def main(
     run_id: str = typer.Option(..., help="Run ID"),
-    model_name: ModelName = ModelName.CLAUDE_3_5_SONNET_20241022,
+    model_name: str = "qwen2p5-coder-32b-instruct",
     subset: Annotated[EvaluationSubset | None, typer.Option(help="Subset of the dataset to evaluate")] = None,
     debug: Annotated[bool, typer.Option(help="Debug mode")] = False,
     output_dir: Annotated[Path, typer.Option(help="Output directory")] = Path("output", "evaluation"),
@@ -228,6 +229,8 @@ async def run_agent(
                 temperature=0.0,
                 max_tokens=8096,
             )
+        elif model_name == "qwen2p5-coder-32b-instruct":
+            model = GenericModel(skill_sources=skill_sources)
         else:
             raise ValueError(f"Unknown model: {model_name}")
 
