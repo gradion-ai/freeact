@@ -10,6 +10,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+      QWEN_CODER_API_KEY: ${{ secrets.TEST_QWEN_CODER_API_KEY }}
+      QWEN_CODER_BASE_URL: ${{ secrets.TEST_QWEN_CODER_BASE_URL }}
+      QWEN_CODER_MODEL_NAME: ${{ secrets.TEST_QWEN_CODER_MODEL_NAME }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -39,7 +46,13 @@ jobs:
           poetry install
           pip list
 
-      - name: Run tests
+      - name: Run unit tests
         shell: bash -l {0}
         run: |
-          poetry run pytest -s tests
+          poetry run pytest tests/unit
+
+      - name: Run integration tests
+        shell: bash -l {0}
+        run: |
+          docker pull ghcr.io/gradion-ai/ipybox:basic
+          poetry run pytest tests/integration --no-flaky-report
