@@ -1,20 +1,14 @@
-import os
 import re
 from dataclasses import dataclass
-from typing import AsyncIterator
+from typing import Any, AsyncIterator, Dict
 
 from openai import AsyncOpenAI
 
 from freeact.model.base import CodeActModel, CodeActModelResponse, CodeActModelTurn, StreamRetry
-from freeact.model.generic.prompt import (
-    EXECUTION_ERROR_TEMPLATE,
-    EXECUTION_OUTPUT_TEMPLATE,
-    SYSTEM_TEMPLATE,
-)
 
 
 @dataclass
-class GenericResponse(CodeActModelResponse):
+class OpenAIClientResponse(CodeActModelResponse):
     @property
     def tool_use_id(self) -> str | None:
         return None
@@ -25,30 +19,20 @@ class GenericResponse(CodeActModelResponse):
 
     @property
     def code(self) -> str | None:
-        # return self._extract_code_blocks(self.text)
-        x = self._extract_code_blocks_backup(self.text)
-        # if x is not None:
-        #    return x.replace("\n```\n", "")
-        return x
+        return self._extract_code_block(self.text)
 
     @staticmethod
-    def _extract_code_blocks(text: str) -> str | None:
-        # match = re.search(r"```python\n(.*?)(?:```)?", text, re.DOTALL)
-        match = re.search(r"```python\n(.*?)(?:```|\Z)", text, re.DOTALL)
-        return match.group(1).strip() if match else None
-
-    @staticmethod
-    def _extract_code_blocks_backup(text: str) -> str | None:
+    def _extract_code_block(text: str) -> str | None:
         match = re.search(r"```python\n(.*?)```", text, re.DOTALL)
         return match.group(1).strip() if match else None
 
 
-class GenericTurn(CodeActModelTurn):
-    def __init__(self, iter: AsyncIterator[str | GenericResponse]):
+class OpenAIClientTurn(CodeActModelTurn):
+    def __init__(self, iter: AsyncIterator[str | OpenAIClientResponse]):
         self._iter = iter
-        self._response: GenericResponse | None = None
+        self._response: OpenAIClientResponse | None = None
 
-    async def response(self) -> GenericResponse:
+    async def response(self) -> OpenAIClientResponse:
         if self._response is None:
             async for _ in self.stream():
                 pass
@@ -59,27 +43,29 @@ class GenericTurn(CodeActModelTurn):
             match elem:
                 case str():
                     yield elem
-                case GenericResponse() as msg:
+                case OpenAIClientResponse() as msg:
                     self._response = msg
 
 
-class GenericModel(CodeActModel):
+class OpenAIClient(CodeActModel):
     def __init__(
         self,
-        model_name: str = "accounts/fireworks/models/qwen2p5-coder-32b-instruct",
-        skill_sources: str | None = None,
+        api_key: str,
+        base_url: str,
+        model_name: str,
+        system_message: str,
+        execution_output_template: str,
+        execution_error_template: str,
+        run_kwargs: Dict[str, Any] | None = None,
+        **kwargs,
     ):
         self.model_name = model_name
-        self._history = [
-            {
-                "role": "system",
-                "content": SYSTEM_TEMPLATE.format(python_modules=skill_sources or ""),
-            }
-        ]
-        self._client = AsyncOpenAI(
-            base_url="https://api.fireworks.ai/inference/v1",
-            api_key=os.environ.get("FIREWORKS_API_KEY"),
-        )
+        self.execution_output_template = execution_output_template
+        self.execution_error_template = execution_error_template
+        self.run_kwargs = run_kwargs or {}
+
+        self._history = [{"role": "system", "content": system_message}]
+        self._client = AsyncOpenAI(base_url=base_url, api_key=api_key, **kwargs)
 
     async def _stream(
         self,
@@ -87,10 +73,9 @@ class GenericModel(CodeActModel):
         temperature: float = 0.0,
         max_tokens: int = 4096,
         **kwargs,
-    ) -> AsyncIterator[str | GenericResponse]:
-        response_text = ""
-
+    ) -> AsyncIterator[str | OpenAIClientResponse]:
         messages = self._history + [user_message]
+        response_text = ""
 
         stream = await self._client.chat.completions.create(
             model=self.model_name,
@@ -98,9 +83,7 @@ class GenericModel(CodeActModel):
             temperature=temperature,
             max_tokens=max_tokens,
             stream=True,
-            # stop=["```\n"],
-            stop=["```output", "<|im_start|>"],
-            # stop_sequence_included=True
+            **kwargs,
         )
 
         async for chunk in stream:
@@ -108,15 +91,7 @@ class GenericModel(CodeActModel):
                 response_text += chunk_text
                 yield chunk_text
 
-            if chunk.choices[0].finish_reason == "stop":
-                # print("Stream terminated by stop sequence")
-                # yield "<-- terminated -->"
-                pass
-
-        # response_text += "\n```\n"
-        # yield "\n```\n"
-
-        response_message = GenericResponse(
+        response_message = OpenAIClientResponse(
             text=response_text,
             is_error=False,
         )
@@ -126,13 +101,13 @@ class GenericModel(CodeActModel):
 
         yield response_message
 
-    def request(self, user_query: str, **kwargs) -> GenericTurn:
+    def request(self, user_query: str, **kwargs) -> OpenAIClientTurn:
         user_message = {"role": "user", "content": user_query}
-        return GenericTurn(self._stream(user_message, **kwargs))
+        return OpenAIClientTurn(self._stream(user_message, **self.run_kwargs, **kwargs))
 
     def feedback(
         self, feedback: str, is_error: bool, tool_use_id: str | None = None, tool_use_name: str | None = None, **kwargs
-    ) -> GenericTurn:
-        feedback_template = EXECUTION_OUTPUT_TEMPLATE if not is_error else EXECUTION_ERROR_TEMPLATE
+    ) -> OpenAIClientTurn:
+        feedback_template = self.execution_output_template if not is_error else self.execution_error_template
         feedback_message = {"role": "user", "content": feedback_template.format(execution_feedback=feedback)}
-        return GenericTurn(self._stream(feedback_message, **kwargs))
+        return OpenAIClientTurn(self._stream(feedback_message, **self.run_kwargs, **kwargs))
