@@ -5,7 +5,7 @@ build-backend = "poetry_dynamic_versioning.backend"
 [tool.poetry]
 name = "freeact"
 version = "0.0.0"
-description = "A general-purpose CodeAct Agent"
+description = "A lightweight library for code-action based agents"
 homepage = "https://github.com/gradion-ai/freeact"
 readme = "README.md"
 license = "Apache-2.0"

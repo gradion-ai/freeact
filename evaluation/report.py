@@ -103,6 +103,10 @@ def performance_comparison(
         Path,
         typer.Option(help="Path to results file"),
     ] = RESULTS_FILE,
+    model_name: Annotated[
+        str,
+        typer.Option(help="Model name"),
+    ] = "claude-3-5-sonnet-20241022",
     output_dir: Annotated[
         Path,
         typer.Option(help="Output directory"),
@@ -112,15 +116,14 @@ def performance_comparison(
         typer.Option(help="Display name of the dataset"),
     ] = "m-ric/agents_medium_benchmark_2",
 ):
-    model = "claude-3-5-sonnet-20241022"
     eval_protocol = "exact_match"
 
     df_ref = pd.read_csv(reference_results_file)
-    df_ref = df_ref[df_ref["model_id"] == model]
+    df_ref = df_ref[df_ref["model_id"] == model_name]
     df_ref = df_ref[df_ref["eval_protocol"] == eval_protocol]
 
     df = read_evaluation_results(results_file)
-    df = df[df["model_id"] == model]
+    df = df[df["model_id"] == model_name]
     df = df[df["eval_protocol"] == eval_protocol]
 
     df = pd.concat(
@@ -136,8 +139,8 @@ def performance_comparison(
         palette="Blues_d",
         hue="source",
         hue_order=["GAIA", "GSM8K", "SimpleQA"],
-        title=f"freeact vs. smolagents performance on\n{benchmark_display_name}\n\n(model = {model}\neval_protocol = {eval_protocol})",
-        output_file=output_dir / "eval-plot-comparison.png",
+        title=f"freeact vs. smolagents performance on\n{benchmark_display_name}\n\n(model = {model_name}\neval_protocol = {eval_protocol})",
+        output_file=output_dir / f"eval-plot-comparison-{model_name}.png",
     )
 
     print("Results:")

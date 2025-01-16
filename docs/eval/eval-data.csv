@@ -14,3 +14,7 @@ freeact,gemini-2.0-flash-exp,zero-shot,GAIA,exact_match,34.4
 freeact,gemini-2.0-flash-exp,zero-shot,GSM8K,exact_match,95.7
 freeact,gemini-2.0-flash-exp,zero-shot,SimpleQA,exact_match,50.0
 freeact,gemini-2.0-flash-exp,zero-shot,SimpleQA,llm_as_judge,65.0
+freeact,qwen2p5-coder-32b-instruct,zero-shot,GAIA,exact_match,25.0
+freeact,qwen2p5-coder-32b-instruct,zero-shot,GSM8K,exact_match,95.7
+freeact,qwen2p5-coder-32b-instruct,zero-shot,SimpleQA,exact_match,52.5
+freeact,qwen2p5-coder-32b-instruct,zero-shot,SimpleQA,llm_as_judge,65.0

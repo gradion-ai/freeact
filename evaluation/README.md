@@ -1,10 +1,11 @@
 # Evaluation
 
-We evaluated `freeact` using three state-of-the-art models:
+We evaluated `freeact` using four state-of-the-art models:
 
 - `claude-3-5-sonnet-20241022`
 - `claude-3-5-haiku-20241022`
 - `gemini-2.0-flash-exp`
+- `qwen2p5-coder-32b-instruct`
 
 The evaluation was performed on the [m-ric/agents_medium_benchmark_2](https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2) dataset, developed by the [smolagents](https://github.com/huggingface/smolagents) team at 🤗 Hugging Face. It comprises selected tasks from GAIA, GSM8K, and SimpleQA:
 
@@ -24,6 +25,10 @@ The evaluation was performed on the [m-ric/agents_medium_benchmark_2](https://hu
 | gemini-2.0-flash-exp       | GSM8K    | exact_match     |  **95.7** |
 | gemini-2.0-flash-exp       | SimpleQA | exact_match     |      50.0 |
 | gemini-2.0-flash-exp       | SimpleQA | llm_as_judge    |      65.0 |
+| qwen2p5-coder-32b-instruct | GAIA     | exact_match     |      25.0 |
+| qwen2p5-coder-32b-instruct | GSM8K    | exact_match     |  **95.7** |
+| qwen2p5-coder-32b-instruct | SimpleQA | exact_match     |      52.5 |
+| qwen2p5-coder-32b-instruct | SimpleQA | llm_as_judge    |      65.0 |
 
 When comparing our results with smolagents using `claude-3-5-sonnet-20241022`, we observed the following outcomes (evaluation conducted on 2025-01-07, reference data [here](https://github.com/huggingface/smolagents/blob/c22fedaee17b8b966e86dc53251f210788ae5c19/examples/benchmark.ipynb)):
 
@@ -54,7 +59,7 @@ Set up the development environment following [DEVELOPMENT.md](../DEVELOPMENT.md)
 poetry install --with eval
 ```
 
-Create a `.env` file with [Anthropic](https://console.anthropic.com/settings/keys), [Gemini](https://aistudio.google.com/app/apikey), [SerpAPI](https://serpapi.com/dashboard) and [OpenAI](https://platform.openai.com/settings/organization/api-keys) API keys:
+Create a `.env` file with [Anthropic](https://console.anthropic.com/settings/keys), [Gemini](https://aistudio.google.com/app/apikey), [Fireworks AI](https://fireworks.ai/account/api-keys) [SerpAPI](https://serpapi.com/dashboard) and [OpenAI](https://platform.openai.com/settings/organization/api-keys) API keys:
 
 ```env title=".env"
 # Claude 3.5 Sonnet and Haiku
@@ -62,6 +67,9 @@ ANTHROPIC_API_KEY=...
 
 # Gemini 2 Flash Experimental
 GOOGLE_API_KEY=...
+
+# Qwen 2.5 Coder 32B Instruct
+FIREWORKS_API_KEY=...
 
 # Google Web Search
 SERPAPI_API_KEY=...
@@ -87,18 +95,7 @@ python evaluation/evaluate.py \
 
 python evaluation/evaluate.py \
     --model-name qwen2p5-coder-32b-instruct \
-    --run-id qwen2p5-coder-32b-instruct \
-    --subset GAIA
-
-python evaluation/evaluate.py \
-    --model-name qwen2p5-coder-32b-instruct \
-    --run-id qwen2p5-coder-32b-instruct \
-    --subset SimpleQA
-
-python evaluation/evaluate.py \
-    --model-name qwen2p5-coder-32b-instruct \
-    --run-id qwen2p5-coder-32b-instruct \
-    --subset GSM8K
+    --run-id qwen2p5-coder-32b-instruct
 ```
 
 Results are saved in `output/evaluation/<run-id>`. Pre-generated outputs from our runs are available [here](https://github.com/user-attachments/files/18433107/evaluation-results-agents-2_medium_benchmark_2.zip).
@@ -111,9 +108,7 @@ Score the results:
 python evaluation/score.py \
   --evaluation-dir output/evaluation/claude-3-5-sonnet-20241022 \
   --evaluation-dir output/evaluation/claude-3-5-haiku-20241022 \
-  --evaluation-dir output/evaluation/gemini-2.0-flash-exp
-
-python evaluation/score.py \
+  --evaluation-dir output/evaluation/gemini-2.0-flash-exp \
   --evaluation-dir output/evaluation/qwen2p5-coder-32b-instruct
 ```
 
@@ -123,6 +118,11 @@ Generate visualization and reports:
 python evaluation/report.py performance
 
 python evaluation/report.py performance-comparison \
+  --model-name claude-3-5-sonnet-20241022 \
+  --reference-results-file evaluation/reference/agents_medium_benchmark_2/smolagents-20250107.csv
+
+python evaluation/report.py performance-comparison \
+  --model-name qwen2p5-coder-32b-instruct \
   --reference-results-file evaluation/reference/agents_medium_benchmark_2/smolagents-20250107.csv
 ```
 
