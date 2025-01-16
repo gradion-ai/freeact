@@ -101,7 +101,7 @@ python evaluation/evaluate.py \
     --subset GSM8K
 ```
 
-Results are saved in `output/evaluation/<run-id>`. Pre-generated outputs from our runs are available [here](https://github.com/user-attachments/files/18364906/evaluation-results-agents_medium_benchmark_2.zip).
+Results are saved in `output/evaluation/<run-id>`. Pre-generated outputs from our runs are available [here](https://github.com/user-attachments/files/18433066/evaluation-results-agents-ext_medium_benchmark_2.zip).
 
 ## Analysis
 
