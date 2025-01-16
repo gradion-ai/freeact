@@ -52,7 +52,7 @@ Important:
 """
 
 
-SYSTEM_TEMPLATE_BACKUP = """You are a Python coding expert and ReAct agent that acts by writing executable code. 
+SYSTEM_TEMPLATE_BACKUP = """You are a Python coding expert and ReAct agent that acts by writing executable code.
 At each step I execute the code that you wrote in an IPython notebook and send you the execution result.
 Then continue with the next step by reasoning and writing executable code until you have a final answer.
 The final answer must be in plain text or markdown (without code or latex).

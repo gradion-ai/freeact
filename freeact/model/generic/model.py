@@ -1,15 +1,16 @@
 import os
 import re
 from dataclasses import dataclass
-from typing import AsyncIterator, Literal
+from typing import AsyncIterator
 
-from freeact.model.base import CodeActModel, CodeActModelResponse, CodeActModelTurn
+from openai import AsyncOpenAI
+
+from freeact.model.base import CodeActModel, CodeActModelResponse, CodeActModelTurn, StreamRetry
 from freeact.model.generic.prompt import (
     EXECUTION_ERROR_TEMPLATE,
     EXECUTION_OUTPUT_TEMPLATE,
     SYSTEM_TEMPLATE,
 )
-from openai import AsyncOpenAI
 
 
 @dataclass
@@ -24,15 +25,15 @@ class GenericResponse(CodeActModelResponse):
 
     @property
     def code(self) -> str | None:
-        #return self._extract_code_blocks(self.text)
+        # return self._extract_code_blocks(self.text)
         x = self._extract_code_blocks_backup(self.text)
-        #if x is not None:
+        # if x is not None:
         #    return x.replace("\n```\n", "")
         return x
 
     @staticmethod
     def _extract_code_blocks(text: str) -> str | None:
-        #match = re.search(r"```python\n(.*?)(?:```)?", text, re.DOTALL)
+        # match = re.search(r"```python\n(.*?)(?:```)?", text, re.DOTALL)
         match = re.search(r"```python\n(.*?)(?:```|\Z)", text, re.DOTALL)
         return match.group(1).strip() if match else None
 
@@ -53,7 +54,7 @@ class GenericTurn(CodeActModelTurn):
                 pass
         return self._response  # type: ignore
 
-    async def stream(self) -> AsyncIterator[str]:
+    async def stream(self, emit_retry: bool = False) -> AsyncIterator[str | StreamRetry]:
         async for elem in self._iter:
             match elem:
                 case str():
@@ -97,23 +98,23 @@ class GenericModel(CodeActModel):
             temperature=temperature,
             max_tokens=max_tokens,
             stream=True,
-            #stop=["```\n"],
+            # stop=["```\n"],
             stop=["```output", "<|im_start|>"],
-            #stop_sequence_included=True
+            # stop_sequence_included=True
         )
 
         async for chunk in stream:
             if chunk_text := chunk.choices[0].delta.content:
                 response_text += chunk_text
                 yield chunk_text
-            
+
             if chunk.choices[0].finish_reason == "stop":
-                #print("Stream terminated by stop sequence")
-                #yield "<-- terminated -->"
+                # print("Stream terminated by stop sequence")
+                # yield "<-- terminated -->"
                 pass
-            
-        #response_text += "\n```\n"
-        #yield "\n```\n"
+
+        # response_text += "\n```\n"
+        # yield "\n```\n"
 
         response_message = GenericResponse(
             text=response_text,
@@ -122,7 +123,7 @@ class GenericModel(CodeActModel):
 
         self._history.append(user_message)
         self._history.append({"role": "assistant", "content": response_text})
-        
+
         yield response_message
 
     def request(self, user_query: str, **kwargs) -> GenericTurn:
@@ -130,12 +131,7 @@ class GenericModel(CodeActModel):
         return GenericTurn(self._stream(user_message, **kwargs))
 
     def feedback(
-        self,
-        feedback: str,
-        is_error: bool,
-        tool_use_id: str | None = None,
-        tool_use_name: str | None = None,
-        **kwargs
+        self, feedback: str, is_error: bool, tool_use_id: str | None = None, tool_use_name: str | None = None, **kwargs
     ) -> GenericTurn:
         feedback_template = EXECUTION_OUTPUT_TEMPLATE if not is_error else EXECUTION_ERROR_TEMPLATE
         feedback_message = {"role": "user", "content": feedback_template.format(execution_feedback=feedback)}
