@@ -1,7 +1,7 @@
 import os
 from typing import Any, Dict
 
-from freeact.model.generic.model import OpenAIClient
+from freeact.model.generic.model import GenericModel
 from freeact.model.qwen.prompt import (
     EXECUTION_ERROR_TEMPLATE,
     EXECUTION_OUTPUT_TEMPLATE,
@@ -9,7 +9,29 @@ from freeact.model.qwen.prompt import (
 )
 
 
-class QwenCoder(OpenAIClient):
+class QwenCoder(GenericModel):
+    """A specialized implementation of `GenericModel` for Qwen's Coder models.
+
+    This class configures `GenericModel` specifically for use with Qwen 2.5 Coder models,
+    It has been tested with *QwenCoder 2.5 Coder 32B Instruct*. Smaller models
+    in this series may require adjustments to the prompt templates.
+
+    Args:
+        model_name: The provider-specific name of the Qwen model to use.
+        api_key: Optional API key for Qwen. If not provided, reads from QWEN_API_KEY environment variable.
+        base_url: Optional base URL for the API. If not provided, reads from QWEN_BASE_URL environment variable.
+        skill_sources: Optional string containing Python skill module information to include in system template.
+        system_template: Prompt template for the system message that guides the model to generate code actions.
+            Must define a `{python_modules}` placeholder for the skill sources.
+        execution_output_template: Prompt template for formatting execution outputs.
+            Must define an `{execution_feedback}` placeholder.
+        execution_error_template: Prompt template for formatting execution errors.
+            Must define an `{execution_feedback}` placeholder.
+        run_kwargs: Defines the stopping conditions for the model. Additionally include `<|im_start|>`
+            as Qwen 2.5 Coder models sometimes leak these chat protocol tokens.
+        **kwargs: Additional keyword arguments passed to the `GenericModel` constructor.
+    """
+
     def __init__(
         self,
         model_name: str,
@@ -19,7 +41,7 @@ class QwenCoder(OpenAIClient):
         system_template: str = SYSTEM_TEMPLATE,
         execution_output_template: str = EXECUTION_OUTPUT_TEMPLATE,
         execution_error_template: str = EXECUTION_ERROR_TEMPLATE,
-        # qwen coder 2.5 models sometimes leak <|im_start|>, so we stop here too
+        #
         run_kwargs: Dict[str, Any] | None = {"stop": ["```output", "<|im_start|>"]},
         **kwargs,
     ):

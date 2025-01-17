@@ -9,6 +9,6 @@ from freeact.model import (
     Gemini,
     GeminiLive,
     GeminiModelName,
-    OpenAIClient,
+    GenericModel,
     QwenCoder,
 )

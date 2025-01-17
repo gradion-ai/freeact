@@ -8,7 +8,7 @@ from freeact.model.base import CodeActModel, CodeActModelResponse, CodeActModelT
 
 
 @dataclass
-class OpenAIClientResponse(CodeActModelResponse):
+class GenericModelResponse(CodeActModelResponse):
     @property
     def tool_use_id(self) -> str | None:
         return None
@@ -27,12 +27,12 @@ class OpenAIClientResponse(CodeActModelResponse):
         return match.group(1).strip() if match else None
 
 
-class OpenAIClientTurn(CodeActModelTurn):
-    def __init__(self, iter: AsyncIterator[str | OpenAIClientResponse]):
+class GenericModelTurn(CodeActModelTurn):
+    def __init__(self, iter: AsyncIterator[str | GenericModelResponse]):
         self._iter = iter
-        self._response: OpenAIClientResponse | None = None
+        self._response: GenericModelResponse | None = None
 
-    async def response(self) -> OpenAIClientResponse:
+    async def response(self) -> GenericModelResponse:
         if self._response is None:
             async for _ in self.stream():
                 pass
@@ -43,11 +43,30 @@ class OpenAIClientTurn(CodeActModelTurn):
             match elem:
                 case str():
                     yield elem
-                case OpenAIClientResponse() as msg:
+                case GenericModelResponse() as msg:
                     self._response = msg
 
 
-class OpenAIClient(CodeActModel):
+class GenericModel(CodeActModel):
+    """A generic implementation of a code action model based on the [OpenAI Python SDK](https://github.com/openai/openai-python).
+
+    This class can be used to integrate any model that is accessible via the OpenAI Python SDK.
+    See [qwen](https://github.com/gradion-ai/freeact/tree/main/freeact/model/qwen) for an implementation example.
+
+    Args:
+        model_name: The provider-specific name of the model.
+        system_message: The system message to guide the model to generate code actions.
+        execution_output_template: Prompt template for formatting successful execution feedback.
+            Must define an `{execution_feedback}` placeholder.
+        execution_error_template: Prompt template for formatting execution error feedback.
+            Must define an `{execution_feedback}` placeholder.
+        run_kwargs: Optional dictionary of additional arguments passed to the model's
+            [`request`][freeact.model.base.CodeActModel.request] and
+            [`feedback`][freeact.model.base.CodeActModel.feedback] methods.
+        **kwargs: Additional keyword arguments passed to `AsyncOpenAI` client constructor.
+            (e.g. `api_key`, `base_url`, ..., etc.).
+    """
+
     def __init__(
         self,
         model_name: str,
@@ -62,6 +81,7 @@ class OpenAIClient(CodeActModel):
         self.execution_error_template = execution_error_template
         self.run_kwargs = run_kwargs or {}
 
+        # TODO: alternative solution for models that don't support system messages
         self._history = [{"role": "system", "content": system_message}]
         self._client = AsyncOpenAI(**kwargs)
 
@@ -71,7 +91,7 @@ class OpenAIClient(CodeActModel):
         temperature: float = 0.0,
         max_tokens: int = 4096,
         **kwargs,
-    ) -> AsyncIterator[str | OpenAIClientResponse]:
+    ) -> AsyncIterator[str | GenericModelResponse]:
         messages = self._history + [user_message]
         response_text = ""
 
@@ -89,7 +109,7 @@ class OpenAIClient(CodeActModel):
                 response_text += chunk_text
                 yield chunk_text
 
-        response_message = OpenAIClientResponse(
+        response_message = GenericModelResponse(
             text=response_text,
             is_error=False,
         )
@@ -99,13 +119,13 @@ class OpenAIClient(CodeActModel):
 
         yield response_message
 
-    def request(self, user_query: str, **kwargs) -> OpenAIClientTurn:
+    def request(self, user_query: str, **kwargs) -> GenericModelTurn:
         user_message = {"role": "user", "content": user_query}
-        return OpenAIClientTurn(self._stream(user_message, **self.run_kwargs, **kwargs))
+        return GenericModelTurn(self._stream(user_message, **self.run_kwargs, **kwargs))
 
     def feedback(
         self, feedback: str, is_error: bool, tool_use_id: str | None = None, tool_use_name: str | None = None, **kwargs
-    ) -> OpenAIClientTurn:
+    ) -> GenericModelTurn:
         feedback_template = self.execution_output_template if not is_error else self.execution_error_template
         feedback_message = {"role": "user", "content": feedback_template.format(execution_feedback=feedback)}
-        return OpenAIClientTurn(self._stream(feedback_message, **self.run_kwargs, **kwargs))
+        return GenericModelTurn(self._stream(feedback_message, **self.run_kwargs, **kwargs))
