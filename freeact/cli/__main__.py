@@ -34,7 +34,10 @@ async def amain(
         workspace_path=workspace_path,
         log_file=log_file,
     ) as env:
-        skill_sources = await env.executor.get_module_sources(module_names=skill_modules)
+        if skill_modules:
+            skill_sources = await env.executor.get_module_sources(module_names=skill_modules)
+        else:
+            skill_sources = None
 
         if system_extension:
             system_extension_str = await read_file(system_extension)
