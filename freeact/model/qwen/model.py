@@ -27,8 +27,9 @@ class QwenCoder(GenericModel):
             Must define an `{execution_feedback}` placeholder.
         execution_error_template: Prompt template for formatting execution errors.
             Must define an `{execution_feedback}` placeholder.
-        run_kwargs: Defines the stopping conditions for the model. Additionally include `<|im_start|>`
-            as Qwen 2.5 Coder models sometimes leak these chat protocol tokens.
+        run_kwargs: Optional dictionary of additional arguments passed to the model's
+            `request` and `feedback` methods. Defaults to a stop sequence that prevents
+            the model from guessing code execution outputs.
         **kwargs: Additional keyword arguments passed to the `GenericModel` constructor.
     """
 
@@ -41,7 +42,7 @@ class QwenCoder(GenericModel):
         system_template: str = SYSTEM_TEMPLATE,
         execution_output_template: str = EXECUTION_OUTPUT_TEMPLATE,
         execution_error_template: str = EXECUTION_ERROR_TEMPLATE,
-        run_kwargs: Dict[str, Any] | None = {"stop": ["```output", "<|im_start|>"]},
+        run_kwargs: Dict[str, Any] | None = {"stop": ["```output"]},
         **kwargs,
     ):
         super().__init__(
