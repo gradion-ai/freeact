@@ -74,6 +74,7 @@ class Gemini(CodeActModel):
         skill_sources: Skill module sources to include in the system instruction
         temperature: Controls randomness in the model's output (0.0 = deterministic)
         max_tokens: Maximum number of tokens in the model's response
+        **kwargs: Additional keyword arguments to pass to the Google Gen AI client.
     """
 
     def __init__(
@@ -82,9 +83,10 @@ class Gemini(CodeActModel):
         skill_sources: str | None = None,
         temperature: float = 0.0,
         max_tokens: int = 4096,
+        **kwargs,
     ):
         self._model_name = model_name
-        self._client = genai.Client(http_options={"api_version": "v1alpha"})
+        self._client = genai.Client(http_options={"api_version": "v1alpha"}, **kwargs)
         self._chat = self._client.aio.chats.create(
             model=model_name,
             config=GenerateContentConfig(

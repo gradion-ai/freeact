@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import shutil
 import time
 import uuid
@@ -13,16 +14,17 @@ from dotenv import load_dotenv
 from tqdm import tqdm
 
 from freeact import (
+    Claude,
     CodeActAgent,
     CodeActAgentTurn,
+    CodeActModel,
     CodeActModelTurn,
     CodeExecution,
+    Gemini,
+    QwenCoder,
     execution_environment,
 )
-from freeact.cli.__main__ import ModelName
 from freeact.cli.utils import dotenv_variables
-from freeact.model.claude.model import Claude
-from freeact.model.gemini.model.chat import Gemini
 
 app = typer.Typer()
 
@@ -55,7 +57,7 @@ class EvaluationSubset(StrEnum):
 @app.command()
 def main(
     run_id: str = typer.Option(..., help="Run ID"),
-    model_name: ModelName = ModelName.CLAUDE_3_5_SONNET_20241022,
+    model_name: str = typer.Option(..., help="Model name"),
     subset: Annotated[EvaluationSubset | None, typer.Option(help="Subset of the dataset to evaluate")] = None,
     debug: Annotated[bool, typer.Option(help="Debug mode")] = False,
     output_dir: Annotated[Path, typer.Option(help="Output directory")] = Path("output", "evaluation"),
@@ -65,7 +67,7 @@ def main(
 
 async def amain(
     run_id: str,
-    model_name: ModelName,
+    model_name: str,
     subset: EvaluationSubset | None,
     debug: bool,
     output_dir: Path,
@@ -113,7 +115,7 @@ def prepare_workspace():
 async def evaluate_agent(
     dataset,
     output_dir: Path,
-    model_name: ModelName,
+    model_name: str,
     debug: bool,
 ):
     answered_questions = []
@@ -180,7 +182,7 @@ def extract_normalized_answer(answer: str) -> str:
 def save_example(
     output_file: Path,
     example: dict,
-    model_name: ModelName,
+    model_name: str,
     answer: str,
     agent_steps: list[str] | None = None,
     start_time: float | None = None,
@@ -205,7 +207,7 @@ def save_example(
 
 
 async def run_agent(
-    model_name: ModelName,
+    model_name: str,
     question: str,
     normalization_prompt: str,
     debug: bool,
@@ -219,24 +221,35 @@ async def run_agent(
         skill_sources = await env.executor.get_module_sources(
             ["google_search.api", "visit_webpage.api"],
         )
-        if model_name in [ModelName.CLAUDE_3_5_SONNET_20241022, ModelName.CLAUDE_3_5_HAIKU_20241022]:
+
+        run_kwargs = {}
+        model: CodeActModel
+
+        if model_name in ["claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022"]:
             model = Claude(model_name=model_name, logger=env.logger)  # type: ignore
-        elif model_name == ModelName.GEMINI_2_0_FLASH_EXP:
+            run_kwargs["skill_sources"] = skill_sources
+        elif model_name == "gemini-2.0-flash-exp":
             model = Gemini(
                 model_name=model_name,  # type: ignore
                 skill_sources=skill_sources,
-                temperature=0.0,
                 max_tokens=8096,
+            )
+        elif model_name == "qwen2p5-coder-32b-instruct":
+            model = QwenCoder(
+                api_key=os.getenv("FIREWORKS_API_KEY"),
+                base_url="https://api.fireworks.ai/inference/v1",
+                model_name=f"accounts/fireworks/models/{model_name}",
+                skill_sources=skill_sources,
             )
         else:
             raise ValueError(f"Unknown model: {model_name}")
 
         agent = CodeActAgent(model=model, executor=env.executor)
 
-        agent_turn = agent.run(question, skill_sources=skill_sources)
+        agent_turn = agent.run(question, **run_kwargs)
         agent_output = await collect_output(agent_turn, debug=debug)
 
-        normalization_turn = agent.run(normalization_prompt, skill_sources=skill_sources)
+        normalization_turn = agent.run(normalization_prompt, **run_kwargs)
         normalization_output = await collect_output(normalization_turn, debug=debug)
 
         normalized_answer = normalization_output[-1].replace("[agent ]", "").strip()

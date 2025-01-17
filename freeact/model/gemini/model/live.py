@@ -34,6 +34,7 @@ async def GeminiLive(
     skill_sources: str | None = None,
     temperature: float = 0.0,
     max_tokens: int = 4096,
+    **kwargs,
 ):
     """
     Context manager for a `CodeActModel` implementation based on Google's Gemini 2 live API.
@@ -43,6 +44,7 @@ async def GeminiLive(
         skill_sources: Skill module sources to include in the system instruction.
         temperature: Controls randomness in the model's output (0.0 = deterministic)
         max_tokens: Maximum number of tokens in the model's response
+        **kwargs: Additional keyword arguments to pass to the Google Gen AI client.
 
     Example:
         ```python
@@ -52,7 +54,7 @@ async def GeminiLive(
         ```
     """
 
-    client = genai.Client(http_options={"api_version": "v1alpha"})
+    client = genai.Client(http_options={"api_version": "v1alpha"}, **kwargs)
     config = {
         "tools": [],
         "generation_config": {
