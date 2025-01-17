@@ -28,9 +28,5 @@ def claude(logger):
 
 
 @pytest.fixture
-def qwen_coder_config():
-    return {
-        "model_name": os.getenv("QWEN_CODER_MODEL_NAME"),
-        "api_key": os.getenv("QWEN_CODER_API_KEY"),
-        "base_url": os.getenv("QWEN_CODER_BASE_URL"),
-    }
+def qwen_model_name():
+    return os.getenv("QWEN_MODEL_NAME")
