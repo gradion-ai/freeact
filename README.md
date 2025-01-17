@@ -14,7 +14,8 @@ A lightweight library for code-action based agents.
 ## Contents
 
 - [Introduction](#introduction)
-- [Key Capabilities](#key-capabilities)
+- [Key capabilities](#key-capabilities)
+- [Supported models](#supported-models)
 - [Quickstart](#quickstart)
 - [Evaluation](#evaluation)
 
@@ -26,13 +27,17 @@ The `freeact` documentation is available [here](https://gradion-ai.github.io/fre
 
 The library builds upon [recent](https://arxiv.org/abs/2402.01030) [research](https://arxiv.org/abs/2411.01747) demonstrating that code-based actions significantly outperform traditional agent approaches, with studies showing up to 20% higher success rates compared to conventional methods. While existing solutions often restrict agents to predefined tool sets, `freeact` removes these limitations by allowing agents to leverage the full power of the Python ecosystem, dynamically installing and utilizing any required libraries as needed.
 
-## Key Capabilities
+## Key capabilities
 
 `freeact` agents can autonomously improve their actions through learning from environmental feedback, execution results, and human guidance. A prominent feature is their ability to store and reuse successful code actions as custom skills in long-term memory. These skills can be composed and interactively refined to build increasingly sophisticated capabilities, enabling efficient scaling to complex tasks.
 
 The library's architecture emphasizes extensibility and transparency, avoiding the accidental complexity often introduced by heavier frameworks that obscure crucial implementation details. This design philosophy makes freeact particularly suitable for developers and researchers who need fine-grained control over their agent implementations while maintaining the flexibility to handle edge cases that fall outside predefined action spaces.
 
 `freeact` executes all code actions within [`ipybox`](https://gradion-ai.github.io/ipybox/), a secure execution environment built on IPython and Docker that can also be deployed locally. This ensures safe execution of dynamically generated code while maintaining full access to the Python ecosystem. Combined with its lightweight and extensible architecture, `freeact` provides a robust foundation for building adaptable AI agents that can tackle real-world challenges requiring dynamic problem-solving approaches.
+
+## Supported models
+
+In addition to the models we [evaluated](#evaluation), `freeact` also supports any model from any provider that is compatible with the [OpenAI Python SDK](https://github.com/openai/openai-python), including open models deployed locally on [ollama](https://ollama.com/) or [TGI](https://huggingface.co/docs/text-generation-inference/index), for example. See [Model integration](https://gradion-ai.github.io/freeact/models/#model-integration) for details.
 
 ## Quickstart
 

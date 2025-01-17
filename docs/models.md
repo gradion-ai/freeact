@@ -1,5 +1,7 @@
 # Supported models
 
+In addition to the models we evaluated, `freeact` also supports any model from any provider that is compatible with the [OpenAI Python SDK](https://github.com/openai/openai-python), including open models deployed locally on [ollama](https://ollama.com/) or [TGI](https://huggingface.co/docs/text-generation-inference/index), for example. See [Model integration](#model-integration) for details.
+
 ## Evaluated models
 
 The following models have been [evaluated](evaluation.md) with `freeact`:
