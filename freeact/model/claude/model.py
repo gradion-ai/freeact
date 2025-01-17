@@ -86,6 +86,8 @@ class Claude(CodeActModel):
         system_extension: Additional system prompt text. Defaults to None.
         system_message: Complete system message to override default. Defaults to None.
         retry_max_attempts: Maximum number of retry attempts. Defaults to 10.
+        retry_wait_strategy: Wait strategy for retrying requests. Defaults to exponential backoff.
+        **kwargs: Additional keyword arguments to pass to the Anthropic client.
     """
 
     def __init__(
@@ -97,6 +99,7 @@ class Claude(CodeActModel):
         system_message: str | None = None,
         retry_max_attempts: int = 10,
         retry_wait_strategy: WaitStrategy = WaitExponential(multiplier=1, max=10, exp_base=2),
+        **kwargs,
     ):
         if system_message and system_extension:
             raise ValueError("If system_message is provided, system_extension must be None")
@@ -119,6 +122,7 @@ class Claude(CodeActModel):
             }
             if prompt_caching
             else None,
+            **kwargs,
         )
         self._retry_max_attempts = retry_max_attempts
         self._retry_wait_strategy = retry_wait_strategy

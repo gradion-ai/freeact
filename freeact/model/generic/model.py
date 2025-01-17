@@ -50,8 +50,6 @@ class OpenAIClientTurn(CodeActModelTurn):
 class OpenAIClient(CodeActModel):
     def __init__(
         self,
-        api_key: str,
-        base_url: str,
         model_name: str,
         system_message: str,
         execution_output_template: str,
@@ -65,7 +63,7 @@ class OpenAIClient(CodeActModel):
         self.run_kwargs = run_kwargs or {}
 
         self._history = [{"role": "system", "content": system_message}]
-        self._client = AsyncOpenAI(base_url=base_url, api_key=api_key, **kwargs)
+        self._client = AsyncOpenAI(**kwargs)
 
     async def _stream(
         self,

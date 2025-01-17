@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict
 
 from freeact.model.generic.model import OpenAIClient
@@ -11,20 +12,21 @@ from freeact.model.qwen.prompt import (
 class QwenCoder(OpenAIClient):
     def __init__(
         self,
-        api_key: str,
-        base_url: str,
         model_name: str,
+        api_key: str | None = None,
+        base_url: str | None = None,
         skill_sources: str | None = None,
         system_template: str = SYSTEM_TEMPLATE,
         execution_output_template: str = EXECUTION_OUTPUT_TEMPLATE,
         execution_error_template: str = EXECUTION_ERROR_TEMPLATE,
+        # qwen coder 2.5 models sometimes leak <|im_start|>, so we stop here too
         run_kwargs: Dict[str, Any] | None = {"stop": ["```output", "<|im_start|>"]},
         **kwargs,
     ):
         super().__init__(
-            base_url=base_url,
-            api_key=api_key,
             model_name=model_name,
+            api_key=api_key or os.getenv("QWEN_API_KEY"),
+            base_url=base_url or os.getenv("QWEN_BASE_URL"),
             system_message=system_template.format(python_modules=skill_sources or ""),
             execution_output_template=execution_output_template,
             execution_error_template=execution_error_template,
