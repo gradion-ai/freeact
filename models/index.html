@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../streaming/">
+        <link rel="prev" href="../blocks/">
       
       
-        <link rel="next" href="../cli/">
+        <link rel="next" href="../streaming/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -440,11 +440,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../blocks/" class="md-nav__link">
+      <a href="../cli/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Building blocks
+    Command line
   </span>
   
 
@@ -461,11 +461,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../streaming/" class="md-nav__link">
+      <a href="../blocks/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Streaming protocol
+    Building blocks
   </span>
   
 
@@ -491,6 +491,17 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Supported models
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -500,6 +511,100 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#evaluated-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      Evaluated models
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Model integration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Model integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#low-level-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      Low-level API
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#high-level-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      High-level API
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="High-level API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prompt-templates" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prompt templates
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      Model definition
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Model usage
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -513,11 +618,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../cli/" class="md-nav__link">
+      <a href="../streaming/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Command line
+    Streaming protocol
   </span>
   
 
@@ -754,6 +859,27 @@
   
   
     <li class="md-nav__item">
+      <a href="../api/executor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Executor
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../api/model/" class="md-nav__link">
         
   
@@ -767,6 +893,67 @@
   
 
               
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/logger/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Logger
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Models
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            Models
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -817,11 +1004,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/executor/" class="md-nav__link">
+      <a href="../api/generic/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Executor
+    Generic
   </span>
   
 
@@ -838,15 +1025,23 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/logger/" class="md-nav__link">
+      <a href="../api/qwen/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Logger
+    Qwen
   </span>
   
 
       </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -879,6 +1074,89 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#evaluated-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      Evaluated models
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Model integration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Model integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#low-level-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      Low-level API
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#high-level-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      High-level API
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="High-level API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prompt-templates" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prompt templates
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      Model definition
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Model usage
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -896,13 +1174,187 @@
 
 
 <h1 id="supported-models">Supported models</h1>
-<p>The following models are currently supported:</p>
+<h2 id="evaluated-models">Evaluated models</h2>
+<p>The following models have been <a href="../evaluation/">evaluated</a> with <code>freeact</code>:</p>
 <ul>
-<li><code>claude-3-5-sonnet-20241022</code></li>
-<li><code>claude-3-5-haiku-20241022</code></li>
-<li><code>gemini-2.0-flash-exp</code></li>
+<li>Claude 3.5 Sonnet (20241022)</li>
+<li>Claude 3.5 Haiku (20241022)</li>
+<li>Gemini 2.0 Flash (experimental)</li>
+<li>Qwen 2.5 Coder 32B Instruct</li>
 </ul>
-<p>For most use cases, we recommend <code>claude-3-5-sonnet-20241022</code> due to its robust performance. The <code>gemini-2.0-flash-exp</code> integration allows developers to replace Gemini’s native code execution with <a href="https://gradion-ai.github.io/ipybox/"><code>ipybox</code></a>—a secure, locally deployable sandbox that supports extended execution timeouts, on-the-fly package installations, automatic plot generation, and additional features. Note that <code>gemini-2.0-flash-exp</code> support is still experimental.</p>
+<p>For these models, <code>freeact</code> provides model-specific prompt templates.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>For best performance, we recommend using Claude 3.5 Sonnet. Support for Gemini 2.0 Flash and Qwen 2.5 Coder is still experimental. The Qwen 2.5 Coder integration is described in <a href="#model-integration">Model integration</a>.</p>
+</div>
+<h2 id="model-integration">Model integration</h2>
+<p><code>freeact</code> provides both a low-level and high-level API for integrating new models.</p>
+<ul>
+<li>The <a href="../api/model/">low-level API</a> defines the <code>CodeActModel</code> interface and related abstractions</li>
+<li>The <a href="../api/generic/">high-level API</a> provides a <code>GenericModel</code> implementation of <code>CodeActModel</code> using the <a href="https://github.com/openai/openai-python">OpenAI Python SDK</a></li>
+</ul>
+<h3 id="low-level-api">Low-level API</h3>
+<p>The low-level API is not further described here. For implementation examples see packages <a href="https://github.com/gradion-ai/freeact/tree/main/freeact/model/claude">claude</a> or <a href="https://github.com/gradion-ai/freeact/tree/main/freeact/model/gemini">gemini</a>.</p>
+<h3 id="high-level-api">High-level API</h3>
+<p>The high-level API support usage of any model from any provider that is compatible with the <a href="https://github.com/openai/openai-python">OpenAI Python SDK</a>, including models deployed locally on <a href="https://ollama.com/">ollama</a> or <a href="https://huggingface.co/docs/text-generation-inference/index">TGI</a>, for example. This is shown in the following for Qwen 2.5 Coder 32B Instruct.</p>
+<h4 id="prompt-templates">Prompt templates</h4>
+<p>Start with model-specific prompt templates that guide Qwen 2.5 Coder Instruct models to generate code actions:</p>
+<div class="language-python highlight"><span class="filename">freeact/model/qwen/prompt.py</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">SYSTEM_TEMPLATE</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;You are a Python coding expert and ReAct agent that acts by writing executable code.</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="s2">At each step I execute the code that you wrote in an IPython notebook and send you the execution result.</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="s2">Then continue with the next step by reasoning and writing executable code until you have a final answer.</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="s2">The final answer must be in plain text or markdown (exclude code and exclude latex).</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="s2">You can use any Python package from pypi.org and install it with !pip install ...</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="s2">Additionally, you can also use modules defined in the following &lt;python-modules&gt; tags:</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="s2">&lt;python-modules&gt;</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="si">{python_modules}</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="s2">&lt;/python-modules&gt;</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="s2">Important: import these &lt;python-modules&gt; before using them.</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="s2">&quot;&quot;&quot;</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="n">EXECUTION_OUTPUT_TEMPLATE</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Here are the execution results of the code you generated:</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="s2">&lt;execution-results&gt;</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="si">{execution_feedback}</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="s2">&lt;/execution-results&gt;</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="s2">Proceed with the next step or respond with a final answer to the user question if you have sufficient information.</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="s2">&quot;&quot;&quot;</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="n">EXECUTION_ERROR_TEMPLATE</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;The code you generated produced an error during execution:</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="s2">&lt;execution-error&gt;</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="si">{execution_feedback}</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="s2">&lt;/execution-error&gt;</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="s2">Try to fix the error and continue answering the user question.</span>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="s2">&quot;&quot;&quot;</span>
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>These prompt templates are still experimental.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>While tested with Qwen 2.5 Coder Instruct, these prompt templates may also serve as a good starting point for other models.</p>
+</div>
+<h4 id="model-definition">Model definition</h4>
+<p>Although we could instantiate <code>GenericModel</code> directly with these prompt templates, <code>freeact</code> provides a <code>QwenCoder</code> subclass for convenience.</p>
+<div class="language-python highlight"><span class="filename">freeact/model/qwen/model.py</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">freeact.model.generic.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenericModel</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">freeact.model.qwen.prompt</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">EXECUTION_ERROR_TEMPLATE</span><span class="p">,</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="n">EXECUTION_OUTPUT_TEMPLATE</span><span class="p">,</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="n">SYSTEM_TEMPLATE</span><span class="p">,</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="p">)</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="k">class</span><span class="w"> </span><span class="nc">QwenCoder</span><span class="p">(</span><span class="n">GenericModel</span><span class="p">):</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A specialized implementation of `GenericModel` for Qwen&#39;s Coder models.</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="sd">    This class configures `GenericModel` specifically for use with Qwen 2.5 Coder models,</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="sd">    It has been tested with *QwenCoder 2.5 Coder 32B Instruct*. Smaller models</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="sd">    in this series may require adjustments to the prompt templates.</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="sd">    Args:</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="sd">        model_name: The provider-specific name of the Qwen model to use.</span>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="sd">        api_key: Optional API key for Qwen. If not provided, reads from QWEN_API_KEY environment variable.</span>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="sd">        base_url: Optional base URL for the API. If not provided, reads from QWEN_BASE_URL environment variable.</span>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="sd">        skill_sources: Optional string containing Python skill module information to include in system template.</span>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="sd">        system_template: Prompt template for the system message that guides the model to generate code actions.</span>
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="sd">            Must define a `{python_modules}` placeholder for the skill sources.</span>
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="sd">        execution_output_template: Prompt template for formatting execution outputs.</span>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="sd">            Must define an `{execution_feedback}` placeholder.</span>
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="sd">        execution_error_template: Prompt template for formatting execution errors.</span>
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="sd">            Must define an `{execution_feedback}` placeholder.</span>
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="sd">        run_kwargs: Defines the stopping conditions for the model. Additionally include `&lt;|im_start|&gt;`</span>
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="sd">            as Qwen 2.5 Coder models sometimes leak these chat protocol tokens.</span>
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a><span class="sd">        **kwargs: Additional keyword arguments passed to the `GenericModel` constructor.</span>
+</span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>
+</span><span id="__span-1-35"><a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+</span><span id="__span-1-36"><a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>        <span class="bp">self</span><span class="p">,</span>
+</span><span id="__span-1-37"><a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a>        <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-1-38"><a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a>        <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-1-39"><a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a>        <span class="n">base_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-1-40"><a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a>        <span class="n">skill_sources</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-1-41"><a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a>        <span class="n">system_template</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">SYSTEM_TEMPLATE</span><span class="p">,</span>
+</span><span id="__span-1-42"><a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a>        <span class="n">execution_output_template</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">EXECUTION_OUTPUT_TEMPLATE</span><span class="p">,</span>
+</span><span id="__span-1-43"><a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a>        <span class="n">execution_error_template</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">EXECUTION_ERROR_TEMPLATE</span><span class="p">,</span>
+</span><span id="__span-1-44"><a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a>        <span class="n">run_kwargs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;stop&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;```output&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;|im_start|&gt;&quot;</span><span class="p">]},</span>
+</span><span id="__span-1-45"><a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a>        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+</span><span id="__span-1-46"><a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a>    <span class="p">):</span>
+</span><span id="__span-1-47"><a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+</span><span id="__span-1-48"><a id="__codelineno-1-48" name="__codelineno-1-48" href="#__codelineno-1-48"></a>            <span class="n">model_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span>
+</span><span id="__span-1-49"><a id="__codelineno-1-49" name="__codelineno-1-49" href="#__codelineno-1-49"></a>            <span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;QWEN_API_KEY&quot;</span><span class="p">),</span>
+</span><span id="__span-1-50"><a id="__codelineno-1-50" name="__codelineno-1-50" href="#__codelineno-1-50"></a>            <span class="n">base_url</span><span class="o">=</span><span class="n">base_url</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;QWEN_BASE_URL&quot;</span><span class="p">),</span>
+</span><span id="__span-1-51"><a id="__codelineno-1-51" name="__codelineno-1-51" href="#__codelineno-1-51"></a>            <span class="n">system_message</span><span class="o">=</span><span class="n">system_template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">python_modules</span><span class="o">=</span><span class="n">skill_sources</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+</span><span id="__span-1-52"><a id="__codelineno-1-52" name="__codelineno-1-52" href="#__codelineno-1-52"></a>            <span class="n">execution_output_template</span><span class="o">=</span><span class="n">execution_output_template</span><span class="p">,</span>
+</span><span id="__span-1-53"><a id="__codelineno-1-53" name="__codelineno-1-53" href="#__codelineno-1-53"></a>            <span class="n">execution_error_template</span><span class="o">=</span><span class="n">execution_error_template</span><span class="p">,</span>
+</span><span id="__span-1-54"><a id="__codelineno-1-54" name="__codelineno-1-54" href="#__codelineno-1-54"></a>            <span class="n">run_kwargs</span><span class="o">=</span><span class="n">run_kwargs</span><span class="p">,</span>
+</span><span id="__span-1-55"><a id="__codelineno-1-55" name="__codelineno-1-55" href="#__codelineno-1-55"></a>            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+</span><span id="__span-1-56"><a id="__codelineno-1-56" name="__codelineno-1-56" href="#__codelineno-1-56"></a>        <span class="p">)</span>
+</span></code></pre></div>
+<h4 id="model-usage">Model usage</h4>
+<p>Here's a Python example that uses <code>QwenCoder</code> in an interactive CLI:</p>
+<div class="language-python highlight"><span class="filename">freeact/examples/qwen.py</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rich.console</span><span class="w"> </span><span class="kn">import</span> <span class="n">Console</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">freeact</span><span class="w"> </span><span class="kn">import</span> <span class="n">CodeActAgent</span><span class="p">,</span> <span class="n">QwenCoder</span><span class="p">,</span> <span class="n">execution_environment</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="kn">from</span><span class="w"> </span><span class="nn">freeact.cli.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">stream_conversation</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">execution_environment</span><span class="p">(</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>        <span class="n">ipybox_tag</span><span class="o">=</span><span class="s2">&quot;ghcr.io/gradion-ai/ipybox:basic&quot;</span><span class="p">,</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    <span class="p">)</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>        <span class="n">skill_sources</span> <span class="o">=</span> <span class="k">await</span> <span class="n">env</span><span class="o">.</span><span class="n">executor</span><span class="o">.</span><span class="n">get_module_sources</span><span class="p">(</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>            <span class="n">module_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;freeact_skills.search.google.stream.api&quot;</span><span class="p">],</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>        <span class="p">)</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>        <span class="n">model</span> <span class="o">=</span> <span class="n">QwenCoder</span><span class="p">(</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>            <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;Qwen/Qwen2.5-Coder-32B-Instruct&quot;</span><span class="p">,</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>            <span class="n">base_url</span><span class="o">=</span><span class="s2">&quot;https://api-inference.huggingface.co/v1/&quot;</span><span class="p">,</span>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>            <span class="n">api_key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;HF_TOKEN&quot;</span><span class="p">),</span>  <span class="c1"># (1)!</span>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>            <span class="n">skill_sources</span><span class="o">=</span><span class="n">skill_sources</span><span class="p">,</span>
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>        <span class="p">)</span>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>        <span class="n">agent</span> <span class="o">=</span> <span class="n">CodeActAgent</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">executor</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">executor</span><span class="p">)</span>
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a>        <span class="k">await</span> <span class="n">stream_conversation</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">console</span><span class="o">=</span><span class="n">Console</span><span class="p">())</span>
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a>
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a>
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a>    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</span></code></pre></div>
+<ol>
+<li>Your Hugging Face <a href="https://huggingface.co/docs/hub/en/security-tokens">user access token</a></li>
+</ol>
+<p>Run it with:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">HF_TOKEN</span><span class="o">=</span>&lt;your-huggingface-token&gt;<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>freeact.examples.qwen
+</span></code></pre></div>
+<p>Or use the <code>freeact</code> CLI directly:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>-m<span class="w"> </span>freeact.cli<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>--model-name<span class="o">=</span>Qwen/Qwen2.5-Coder-32B-Instruct<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span>--base-url<span class="o">=</span>https://api-inference.huggingface.co/v1/<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span>--api-key<span class="o">=</span>&lt;your-huggingface-token&gt;<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span>--ipybox-tag<span class="o">=</span>ghcr.io/gradion-ai/ipybox:basic<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span>--skill-modules<span class="o">=</span>freeact_skills.search.google.stream.api
+</span></code></pre></div>
+<p>For using the same model deployed locally on <a href="https://ollama.com/">ollama</a>, for example, change <code>--model-name</code>, <code>--base-url</code> and <code>--api-key</code> to match your local deployment:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>-m<span class="w"> </span>freeact.cli<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span>--model-name<span class="o">=</span>qwen2.5-coder:32b-instruct-fp16<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span>--base-url<span class="o">=</span>http://localhost:11434/v1<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span>--api-key<span class="o">=</span>ollama<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span>--ipybox-tag<span class="o">=</span>ghcr.io/gradion-ai/ipybox:basic<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span>--skill-modules<span class="o">=</span>freeact_skills.search.google.stream.api
+</span></code></pre></div>
 
 
 
