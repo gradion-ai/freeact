@@ -43,10 +43,10 @@ ANTHROPIC_API_KEY=...
 # Required for generative Google Search via Gemini 2
 GOOGLE_API_KEY=...
 
-# Required to run integration tests for QwenCoder via HuggingFace API
-QWEN_CODER_MODEL_NAME=Qwen/Qwen2.5-Coder-32B-Instruct
-QWEN_CODER_BASE_URL=https://api-inference.huggingface.co/v1/
-QWEN_CODER_API_KEY=...
+# Required to run integration tests using Qwen models via HuggingFace API
+QWEN_MODEL_NAME=Qwen/Qwen2.5-Coder-32B-Instruct
+QWEN_BASE_URL=https://api-inference.huggingface.co/v1/
+QWEN_API_KEY=...
 ```
 
 Enforce coding conventions (done automatically by pre-commit hooks):

@@ -13,9 +13,9 @@ jobs:
     env:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-      QWEN_CODER_API_KEY: ${{ secrets.TEST_QWEN_CODER_API_KEY }}
-      QWEN_CODER_BASE_URL: ${{ secrets.TEST_QWEN_CODER_BASE_URL }}
-      QWEN_CODER_MODEL_NAME: ${{ secrets.TEST_QWEN_CODER_MODEL_NAME }}
+      QWEN_API_KEY: ${{ secrets.TEST_QWEN_CODER_API_KEY }}
+      QWEN_BASE_URL: ${{ secrets.TEST_QWEN_CODER_BASE_URL }}
+      QWEN_MODEL_NAME: ${{ secrets.TEST_QWEN_CODER_MODEL_NAME }}
 
     steps:
       - uses: actions/checkout@v4

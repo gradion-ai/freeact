@@ -66,13 +66,11 @@ def gemini(skill_sources, request):
 
 
 @pytest.fixture
-def qwen_coder(qwen_coder_config, skill_sources, request):
+def qwen_coder(qwen_model_name, skill_sources, request):
     use_skill_sources = "skill_sources" in request.node.fixturenames  # check if the test requires skill sources
 
     return QwenCoder(
-        model_name=qwen_coder_config["model_name"],
-        api_key=qwen_coder_config["api_key"],
-        base_url=qwen_coder_config["base_url"],
+        model_name=qwen_model_name,
         skill_sources=skill_sources if use_skill_sources else None,
     )
 
