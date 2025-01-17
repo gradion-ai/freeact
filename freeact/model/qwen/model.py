@@ -41,7 +41,6 @@ class QwenCoder(GenericModel):
         system_template: str = SYSTEM_TEMPLATE,
         execution_output_template: str = EXECUTION_OUTPUT_TEMPLATE,
         execution_error_template: str = EXECUTION_ERROR_TEMPLATE,
-        #
         run_kwargs: Dict[str, Any] | None = {"stop": ["```output", "<|im_start|>"]},
         **kwargs,
     ):

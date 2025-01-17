@@ -85,10 +85,10 @@ nav:
     - Overview: index.md
     - Quickstart: quickstart.md
     - Installation: installation.md
-    - Building blocks: blocks.md
-    - Streaming protocol: streaming.md
-    - Supported models: models.md
     - Command line: cli.md
+    - Building blocks: blocks.md
+    - Supported models: models.md
+    - Streaming protocol: streaming.md
     - Evaluation results: evaluation.md
   - Tutorials:
     - Overview: tutorials/index.md
@@ -97,8 +97,11 @@ nav:
     - System extensions: tutorials/extend.md
   - API Documentation:
     - Agent: api/agent.md
-    - Model: api/model.md
-    - Claude: api/claude.md
-    - Gemini: api/gemini.md
     - Executor: api/executor.md
+    - Model: api/model.md
     - Logger: api/logger.md
+    - Models:
+      - Claude: api/claude.md
+      - Gemini: api/gemini.md
+      - Generic: api/generic.md
+      - Qwen: api/qwen.md
