@@ -28,7 +28,9 @@ class DeepSeek(GenericModel):
             Must define an `{execution_feedback}` placeholder.
         execution_error_template: Prompt template for formatting execution errors.
             Must define an `{execution_feedback}` placeholder.
-        run_kwargs: Defines the stopping conditions for the model.
+        run_kwargs: Optional dictionary of additional arguments passed to the model's
+            [`request`][freeact.model.base.CodeActModel.request] and
+            [`feedback`][freeact.model.base.CodeActModel.feedback] methods.
         **kwargs: Additional keyword arguments passed to the `GenericModel` constructor.
     """
 

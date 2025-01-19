@@ -105,3 +105,4 @@ nav:
       - Gemini: api/gemini.md
       - Generic: api/generic.md
       - Qwen: api/qwen.md
+      - DeepSeek: api/deepseek.md
