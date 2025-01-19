@@ -6,7 +6,7 @@ import typer
 from dotenv import load_dotenv
 from rich.console import Console
 
-from freeact import Claude, CodeActAgent, CodeActModel, Gemini, QwenCoder, execution_environment
+from freeact import Claude, CodeActAgent, CodeActModel, DeepSeek, Gemini, QwenCoder, execution_environment
 from freeact.cli.utils import read_file, stream_conversation
 
 app = typer.Typer()
@@ -71,6 +71,17 @@ async def amain(
             )
         elif "qwen" in model_name.lower():
             model = QwenCoder(
+                model_name=model_name,
+                skill_sources=skill_sources,
+                api_key=api_key,
+                base_url=base_url,
+            )
+            run_kwargs |= {
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+        elif "deepseek" in model_name.lower():
+            model = DeepSeek(
                 model_name=model_name,
                 skill_sources=skill_sources,
                 api_key=api_key,

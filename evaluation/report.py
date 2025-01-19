@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -42,6 +42,7 @@ def performance(
         hue_order=["GAIA (exact_match)", "GSM8K (exact_match)", "SimpleQA (exact_match)", "SimpleQA (llm_as_judge)"],
         title=f"freeact performance on {benchmark_display_name}",
         output_file=output_dir / "eval-plot.png",
+        legend_location="top",
     )
 
     print("Results:")
@@ -63,6 +64,7 @@ def create_barplot(
     hue_order: list[str],
     title: str,
     output_file: Path,
+    legend_location: Literal["top", "right"] = "right",
 ):
     sns.set_style("whitegrid")
     plt.figure(figsize=figsize)
@@ -82,8 +84,13 @@ def create_barplot(
     ax.set_ylabel("% Correct")
     ax.spines["top"].set_visible(False)
 
-    plt.title(title)
-    plt.legend(fontsize=10, bbox_to_anchor=(1.05, 0.5), loc="center left")
+    if legend_location == "top":
+        plt.title(title, pad=50)
+        plt.legend(fontsize=10, bbox_to_anchor=(0.5, 1.05), loc="center", ncol=2)
+    else:
+        plt.title(title)
+        plt.legend(fontsize=10, bbox_to_anchor=(1.05, 0.5), loc="center left")
+
     plt.xticks(rotation=0, fontsize=8)
 
     if not output_file.parent.exists():

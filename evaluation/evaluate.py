@@ -20,6 +20,7 @@ from freeact import (
     CodeActModel,
     CodeActModelTurn,
     CodeExecution,
+    DeepSeek,
     Gemini,
     QwenCoder,
     execution_environment,
@@ -236,6 +237,13 @@ async def run_agent(
             )
         elif model_name == "qwen2p5-coder-32b-instruct":
             model = QwenCoder(
+                api_key=os.getenv("FIREWORKS_API_KEY"),
+                base_url="https://api.fireworks.ai/inference/v1",
+                model_name=f"accounts/fireworks/models/{model_name}",
+                skill_sources=skill_sources,
+            )
+        elif model_name == "deepseek-v3":
+            model = DeepSeek(
                 api_key=os.getenv("FIREWORKS_API_KEY"),
                 base_url="https://api.fireworks.ai/inference/v1",
                 model_name=f"accounts/fireworks/models/{model_name}",
