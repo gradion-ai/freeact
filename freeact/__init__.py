@@ -6,6 +6,7 @@ from freeact.model import (
     CodeActModel,
     CodeActModelResponse,
     CodeActModelTurn,
+    DeepSeek,
     Gemini,
     GeminiLive,
     GeminiModelName,

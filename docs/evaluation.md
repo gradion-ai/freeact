@@ -6,6 +6,7 @@ We [evaluated](https://github.com/gradion-ai/freeact/tree/main/evaluation) `free
 - Claude 3.5 Haiku (`claude-3-5-haiku-20241022`)
 - Gemini 2.0 Flash (`gemini-2.0-flash-exp`)
 - Qwen 2.5 Coder 32B Instruct (`qwen2p5-coder-32b-instruct`)
+- DeepSeek V3 (`deepseek-v3`)
 
 The evaluation was performed on the [m-ric/agents_medium_benchmark_2](https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2) dataset, developed by the [smolagents](https://github.com/huggingface/smolagents) team at 🤗 Hugging Face. It comprises selected tasks from GAIA, GSM8K, and SimpleQA:
 

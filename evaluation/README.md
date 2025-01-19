@@ -1,11 +1,12 @@
 # Evaluation
 
-We evaluated `freeact` using four state-of-the-art models:
+We evaluated `freeact` using five state-of-the-art models:
 
 - Claude 3.5 Sonnet (`claude-3-5-sonnet-20241022`)
 - Claude 3.5 Haiku (`claude-3-5-haiku-20241022`)
 - Gemini 2.0 Flash (`gemini-2.0-flash-exp`)
 - Qwen 2.5 Coder 32B Instruct (`qwen2p5-coder-32b-instruct`)
+- DeepSeek V3 (`deepseek-v3`)
 
 The evaluation was performed on the [m-ric/agents_medium_benchmark_2](https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2) dataset, developed by the [smolagents](https://github.com/huggingface/smolagents) team at 🤗 Hugging Face. It comprises selected tasks from GAIA, GSM8K, and SimpleQA:
 
@@ -29,6 +30,10 @@ The evaluation was performed on the [m-ric/agents_medium_benchmark_2](https://hu
 | qwen2p5-coder-32b-instruct | GSM8K    | exact_match     |  **95.7** |
 | qwen2p5-coder-32b-instruct | SimpleQA | exact_match     |      52.5 |
 | qwen2p5-coder-32b-instruct | SimpleQA | llm_as_judge    |      65.0 |
+| deepseek-v3                | GAIA     | exact_match     |      37.5 |
+| deepseek-v3                | GSM8K    | exact_match     |      91.4 |
+| deepseek-v3                | SimpleQA | exact_match     |      60.0 |
+| deepseek-v3                | SimpleQA | llm_as_judge    |      67.5 |
 
 When comparing our results with smolagents using `claude-3-5-sonnet-20241022`, we observed the following outcomes (evaluation conducted on 2025-01-07, reference data [here](https://github.com/huggingface/smolagents/blob/c22fedaee17b8b966e86dc53251f210788ae5c19/examples/benchmark.ipynb)):
 
@@ -68,7 +73,7 @@ ANTHROPIC_API_KEY=...
 # Gemini 2 Flash Experimental
 GOOGLE_API_KEY=...
 
-# Qwen 2.5 Coder 32B Instruct
+# Qwen 2.5 Coder 32B Instruct and DeepSeek V3
 FIREWORKS_API_KEY=...
 
 # Google Web Search
@@ -96,6 +101,10 @@ python evaluation/evaluate.py \
 python evaluation/evaluate.py \
     --model-name qwen2p5-coder-32b-instruct \
     --run-id qwen2p5-coder-32b-instruct
+
+python evaluation/evaluate.py \
+    --model-name deepseek-v3 \
+    --run-id deepseek-v3
 ```
 
 Results are saved in `output/evaluation/<run-id>`. Pre-generated outputs from our runs are available [here](https://github.com/user-attachments/files/18433107/evaluation-results-agents-2_medium_benchmark_2.zip).
@@ -109,7 +118,8 @@ python evaluation/score.py \
   --evaluation-dir output/evaluation/claude-3-5-sonnet-20241022 \
   --evaluation-dir output/evaluation/claude-3-5-haiku-20241022 \
   --evaluation-dir output/evaluation/gemini-2.0-flash-exp \
-  --evaluation-dir output/evaluation/qwen2p5-coder-32b-instruct
+  --evaluation-dir output/evaluation/qwen2p5-coder-32b-instruct \
+  --evaluation-dir output/evaluation/deepseek-v3
 ```
 
 Generate visualization and reports:

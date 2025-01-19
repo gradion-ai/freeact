@@ -10,12 +10,13 @@ The following models have been [evaluated](evaluation.md) with `freeact`:
 - Claude 3.5 Haiku (20241022)
 - Gemini 2.0 Flash (experimental)
 - Qwen 2.5 Coder 32B Instruct
+- DeepSeek V3
 
 For these models, `freeact` provides model-specific prompt templates.
 
 !!! Tip
 
-    For best performance, we recommend using Claude 3.5 Sonnet. Support for Gemini 2.0 Flash and Qwen 2.5 Coder is still experimental. The Qwen 2.5 Coder integration is described in [Model integration](#model-integration).
+    For best performance, we recommend using Claude 3.5 Sonnet. Support for Gemini 2.0 Flash, Qwen 2.5 Coder and DeepSeek V3 is still experimental. The Qwen 2.5 Coder integration is described in [Model integration](#model-integration). The DeepSeek V3 integration follows the same pattern using a custom model class.
 
 ## Model integration
 
@@ -46,7 +47,7 @@ Start with model-specific prompt templates that guide Qwen 2.5 Coder Instruct mo
 
 !!! Tip
 
-    While tested with Qwen 2.5 Coder Instruct, these prompt templates may also serve as a good starting point for other models.
+    While tested with Qwen 2.5 Coder Instruct, these prompt templates may also serve as a good starting point for other models (e.g. DeepSeek V3 which uses the same prompt templates).
 
 #### Model definition
 
