@@ -1039,6 +1039,27 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/deepseek/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DeepSeek
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1182,11 +1203,12 @@
 <li>Claude 3.5 Haiku (20241022)</li>
 <li>Gemini 2.0 Flash (experimental)</li>
 <li>Qwen 2.5 Coder 32B Instruct</li>
+<li>DeepSeek V3</li>
 </ul>
 <p>For these models, <code>freeact</code> provides model-specific prompt templates.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>For best performance, we recommend using Claude 3.5 Sonnet. Support for Gemini 2.0 Flash and Qwen 2.5 Coder is still experimental. The Qwen 2.5 Coder integration is described in <a href="#model-integration">Model integration</a>.</p>
+<p>For best performance, we recommend using Claude 3.5 Sonnet. Support for Gemini 2.0 Flash, Qwen 2.5 Coder and DeepSeek V3 is still experimental. The Qwen 2.5 Coder integration is described in <a href="#model-integration">Model integration</a>. The DeepSeek V3 integration follows the same pattern using a custom model class.</p>
 </div>
 <h2 id="model-integration">Model integration</h2>
 <p><code>freeact</code> provides both a low-level and high-level API for integrating new models.</p>
@@ -1240,7 +1262,7 @@
 </div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>While tested with Qwen 2.5 Coder Instruct, these prompt templates may also serve as a good starting point for other models.</p>
+<p>While tested with Qwen 2.5 Coder Instruct, these prompt templates may also serve as a good starting point for other models (e.g. DeepSeek V3 which uses the same prompt templates).</p>
 </div>
 <h4 id="model-definition">Model definition</h4>
 <p>Although we could instantiate <code>GenericModel</code> directly with these prompt templates, <code>freeact</code> provides a <code>QwenCoder</code> subclass for convenience.</p>
