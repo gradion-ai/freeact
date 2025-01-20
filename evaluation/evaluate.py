@@ -243,11 +243,21 @@ async def run_agent(
                 skill_sources=skill_sources,
             )
         elif model_name == "deepseek-v3":
+            # was used for earlier evaluation runs
+            from freeact.model.qwen.model import (
+                EXECUTION_ERROR_TEMPLATE,
+                EXECUTION_OUTPUT_TEMPLATE,
+                SYSTEM_TEMPLATE,
+            )
+
             model = DeepSeek(
                 api_key=os.getenv("FIREWORKS_API_KEY"),
                 base_url="https://api.fireworks.ai/inference/v1",
                 model_name=f"accounts/fireworks/models/{model_name}",
                 skill_sources=skill_sources,
+                system_template=SYSTEM_TEMPLATE,
+                execution_output_template=EXECUTION_OUTPUT_TEMPLATE,
+                execution_error_template=EXECUTION_ERROR_TEMPLATE,
             )
         else:
             raise ValueError(f"Unknown model: {model_name}")

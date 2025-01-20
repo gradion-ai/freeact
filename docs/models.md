@@ -47,7 +47,7 @@ Start with model-specific prompt templates that guide Qwen 2.5 Coder Instruct mo
 
 !!! Tip
 
-    While tested with Qwen 2.5 Coder Instruct, these prompt templates may also serve as a good starting point for other models (e.g. DeepSeek V3 which uses the same prompt templates).
+    While tested with Qwen 2.5 Coder Instruct, these prompt templates can also serve as a good starting point for other models (as we did for DeepSeek V3, for example).
 
 #### Model definition
 

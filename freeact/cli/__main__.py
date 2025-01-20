@@ -87,6 +87,7 @@ async def amain(
                 api_key=api_key,
                 base_url=base_url,
             )
+            print(model._history[0]["content"])
             run_kwargs |= {
                 "temperature": temperature,
                 "max_tokens": max_tokens,
