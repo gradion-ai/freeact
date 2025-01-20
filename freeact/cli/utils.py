@@ -51,9 +51,22 @@ async def execution_environment(
 
 
 async def stream_conversation(agent: CodeActAgent, console: Console, show_token_usage: bool = False, **kwargs):
+    empty_input = False
+
     while True:
         console.print(Rule("User message", style="dodger_blue1", characters="━"))
-        user_message = await arun(Prompt.ask, "('q' to quit)", console=console)
+
+        if empty_input:
+            empty_input = False
+            prefix = "Please provide a non-empty message "
+        else:
+            prefix = ""
+
+        user_message = await arun(Prompt.ask, f"{prefix}('q' to quit)", console=console)
+
+        if not user_message.strip():
+            empty_input = True
+            continue
 
         if console.record:
             console.print(user_message, highlight=False)
