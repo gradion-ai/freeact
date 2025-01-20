@@ -41,6 +41,7 @@ def score(
                 score_dataset(results_dir, "SimpleQA", EvalProtocol.LLM_AS_JUDGE),
                 score_dataset(results_dir, "SimpleQA", EvalProtocol.EXACT_MATCH),
                 score_dataset(results_dir, "GSM8K", EvalProtocol.EXACT_MATCH),
+                score_dataset(results_dir, "MATH", EvalProtocol.EXACT_MATCH),
             ]
         )
         all_dfs.append(df)
@@ -125,7 +126,7 @@ def is_correct(example, simpleqa_scorer: SimpleQAScorer, eval_protocol: EvalProt
     question = str(example["question"])
 
     match example["source"]:
-        case "GSM8K":
+        case "GSM8K" | "MATH":
             return get_question_score_gsm8k(answer, true_answer)
         case "SimpleQA" if eval_protocol == EvalProtocol.LLM_AS_JUDGE:
             return simpleqa_scorer.score(question, answer, true_answer)

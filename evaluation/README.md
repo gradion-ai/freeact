@@ -8,7 +8,7 @@ We evaluated `freeact` using five state-of-the-art models:
 - Qwen 2.5 Coder 32B Instruct (`qwen2p5-coder-32b-instruct`)
 - DeepSeek V3 (`deepseek-v3`)
 
-The evaluation was performed on the [m-ric/agents_medium_benchmark_2](https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2) dataset, developed by the [smolagents](https://github.com/huggingface/smolagents) team at 🤗 Hugging Face. It comprises selected tasks from GAIA, GSM8K, and SimpleQA:
+The evaluation was performed using two benchmark datasets: [m-ric/agents_medium_benchmark_2](https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2) and the MATH subset from [m-ric/smol_agents_benchmark](https://huggingface.co/datasets/m-ric/smol_agents_benchmark). Both datasets were created by the [smolagents](https://github.com/huggingface/smolagents) team at 🤗 Hugging Face and contain selected tasks from GAIA, GSM8K, SimpleQA and MATH:
 
 [<img src="../docs/eval/eval-plot.png" alt="Performance">](../docs/eval/eval-plot.png)
 
@@ -16,26 +16,31 @@ The evaluation was performed on the [m-ric/agents_medium_benchmark_2](https://hu
 |:---------------------------|:---------|:----------------|----------:|
 | claude-3-5-sonnet-20241022 | GAIA     | exact_match     |  **53.1** |
 | claude-3-5-sonnet-20241022 | GSM8K    | exact_match     |  **95.7** |
+| claude-3-5-sonnet-20241022 | MATH     | exact_match     |  **90.0** |
 | claude-3-5-sonnet-20241022 | SimpleQA | exact_match     |  **57.5** |
 | claude-3-5-sonnet-20241022 | SimpleQA | llm_as_judge    |  **72.5** |
 | claude-3-5-haiku-20241022  | GAIA     | exact_match     |      31.2 |
 | claude-3-5-haiku-20241022  | GSM8K    | exact_match     |      90.0 |
+| claude-3-5-haiku-20241022  | MATH     | exact_match     |      76.0 |
 | claude-3-5-haiku-20241022  | SimpleQA | exact_match     |      52.5 |
 | claude-3-5-haiku-20241022  | SimpleQA | llm_as_judge    |      70.0 |
 | gemini-2.0-flash-exp       | GAIA     | exact_match     |      34.4 |
 | gemini-2.0-flash-exp       | GSM8K    | exact_match     |  **95.7** |
+| gemini-2.0-flash-exp       | MATH     | exact_match     |      88.0 |
 | gemini-2.0-flash-exp       | SimpleQA | exact_match     |      50.0 |
 | gemini-2.0-flash-exp       | SimpleQA | llm_as_judge    |      65.0 |
 | qwen2p5-coder-32b-instruct | GAIA     | exact_match     |      25.0 |
 | qwen2p5-coder-32b-instruct | GSM8K    | exact_match     |  **95.7** |
+| qwen2p5-coder-32b-instruct | MATH     | exact_match     |      88.0 |
 | qwen2p5-coder-32b-instruct | SimpleQA | exact_match     |      52.5 |
 | qwen2p5-coder-32b-instruct | SimpleQA | llm_as_judge    |      65.0 |
 | deepseek-v3                | GAIA     | exact_match     |      37.5 |
 | deepseek-v3                | GSM8K    | exact_match     |      91.4 |
+| deepseek-v3                | MATH     | exact_match     |      88.0 |
 | deepseek-v3                | SimpleQA | exact_match     |      60.0 |
 | deepseek-v3                | SimpleQA | llm_as_judge    |      67.5 |
 
-When comparing our results with smolagents using `claude-3-5-sonnet-20241022`, we observed the following outcomes (evaluation conducted on 2025-01-07, reference data [here](https://github.com/huggingface/smolagents/blob/c22fedaee17b8b966e86dc53251f210788ae5c19/examples/benchmark.ipynb)):
+When comparing our results with smolagents on [m-ric/agents_medium_benchmark_2](https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2) using `claude-3-5-sonnet-20241022`, we observed the following outcomes (evaluation conducted on 2025-01-07, reference data [here](https://github.com/huggingface/smolagents/blob/c22fedaee17b8b966e86dc53251f210788ae5c19/examples/benchmark.ipynb)):
 
 [<img src="../docs/eval/eval-plot-comparison.png" alt="Performance comparison" width="60%">](../docs/eval/eval-plot-comparison.png)
 
