@@ -1,12 +1,12 @@
 import os
 from typing import Any, Dict
 
-from freeact.model.generic.model import GenericModel
-from freeact.model.qwen.prompt import (
+from freeact.model.deepseek.prompt import (
     EXECUTION_ERROR_TEMPLATE,
     EXECUTION_OUTPUT_TEMPLATE,
     SYSTEM_TEMPLATE,
 )
+from freeact.model.generic.model import GenericModel
 
 
 class DeepSeek(GenericModel):
@@ -40,17 +40,25 @@ class DeepSeek(GenericModel):
         api_key: str | None = None,
         base_url: str | None = None,
         skill_sources: str | None = None,
+        system_extension: str | None = None,
         system_template: str = SYSTEM_TEMPLATE,
         execution_output_template: str = EXECUTION_OUTPUT_TEMPLATE,
         execution_error_template: str = EXECUTION_ERROR_TEMPLATE,
         run_kwargs: Dict[str, Any] | None = None,
         **kwargs,
     ):
+        format_kwargs = {
+            "python_modules": skill_sources or "",
+        }
+
+        if "{extensions}" in system_template:
+            format_kwargs["extensions"] = system_extension or ""
+
         super().__init__(
             model_name=model_name,
             api_key=api_key or os.getenv("DEEPSEEK_API_KEY"),
             base_url=base_url or os.getenv("DEEPSEEK_BASE_URL"),
-            system_message=system_template.format(python_modules=skill_sources or ""),
+            system_message=system_template.format(**format_kwargs),
             execution_output_template=execution_output_template,
             execution_error_template=execution_error_template,
             run_kwargs=run_kwargs,
