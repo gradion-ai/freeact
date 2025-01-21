@@ -112,7 +112,7 @@ The evaluation was performed using two benchmark datasets: [m-ric/agents_medium_
 
 [<img src="docs/eval/eval-plot.png" alt="Performance">](docs/eval/eval-plot.png)
 
-When comparing our results with smolagents using Claude 3.5 Sonnet on [m-ric/agents_medium_benchmark_2](https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2) (dataset with available smolagents [reference data](https://github.com/huggingface/smolagents/blob/c22fedaee17b8b966e86dc53251f210788ae5c19/examples/benchmark.ipynb)), we observed the following outcomes (evaluation conducted on 2025-01-07):
+When comparing our results with smolagents using Claude 3.5 Sonnet on [m-ric/agents_medium_benchmark_2](https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2) (only dataset with available smolagents [reference data](https://github.com/huggingface/smolagents/blob/c22fedaee17b8b966e86dc53251f210788ae5c19/examples/benchmark.ipynb)), we observed the following outcomes (evaluation conducted on 2025-01-07):
 
 [<img src="docs/eval/eval-plot-comparison.png" alt="Performance comparison" width="60%">](docs/eval/eval-plot-comparison.png)
 
