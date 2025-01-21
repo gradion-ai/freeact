@@ -8,13 +8,13 @@ We [evaluated](https://github.com/gradion-ai/freeact/tree/main/evaluation) `free
 - Qwen 2.5 Coder 32B Instruct (`qwen2p5-coder-32b-instruct`)
 - DeepSeek V3 (`deepseek-v3`)
 
-The evaluation was performed on the [m-ric/agents_medium_benchmark_2](https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2) dataset, developed by the [smolagents](https://github.com/huggingface/smolagents) team at 🤗 Hugging Face. It comprises selected tasks from GAIA, GSM8K, and SimpleQA:
+The evaluation was performed using two benchmark datasets: [m-ric/agents_medium_benchmark_2](https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2) and the MATH subset from [m-ric/smol_agents_benchmark](https://huggingface.co/datasets/m-ric/smol_agents_benchmark). Both datasets were created by the [smolagents](https://github.com/huggingface/smolagents) team at 🤗 Hugging Face and contain selected tasks from GAIA, GSM8K, SimpleQA and MATH:
 
 <figure markdown>
   [![architecture](eval/eval-plot.png){ align="left" }](eval/eval-plot.png){target="_blank"}
 </figure>
 
-When comparing our results with smolagents using Claude 3.5 Sonnet, we observed the following outcomes (evaluation conducted on 2025-01-07, reference data [here](https://github.com/huggingface/smolagents/blob/c22fedaee17b8b966e86dc53251f210788ae5c19/examples/benchmark.ipynb)):
+When comparing our results with smolagents using Claude 3.5 Sonnet on [m-ric/agents_medium_benchmark_2](https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2) (only dataset with available smolagents [reference data](https://github.com/huggingface/smolagents/blob/c22fedaee17b8b966e86dc53251f210788ae5c19/examples/benchmark.ipynb)), we observed the following outcomes (evaluation conducted on 2025-01-07):
 
 <figure markdown>
   [![architecture](eval/eval-plot-comparison.png){ width="60%" align="left" }](eval/eval-plot-comparison.png){target="_blank"}

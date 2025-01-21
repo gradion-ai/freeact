@@ -37,7 +37,7 @@ If you are asked for a string, don't use articles, neither abbreviations (e.g. f
 If you are asked for a comma separated list, apply the above rules depending of whether the element to be put in the list is a number or a string.
 """
 
-GSM8K_NORMALIZATION_PROMPT = """
+GSM8K_MATH_NORMALIZATION_PROMPT = """
 Finish your answer with the following template:
 FINAL ANSWER: [YOUR FINAL ANSWER]. YOUR FINAL ANSWER should only be a number. Don't use units such as $ or percent sign.
 """
@@ -53,6 +53,7 @@ class EvaluationSubset(StrEnum):
     GSM8K = "GSM8K"
     SIMPLEQA = "SimpleQA"
     GAIA = "GAIA"
+    MATH = "MATH"
 
 
 @app.command()
@@ -84,8 +85,14 @@ async def amain(
 
     print(f"Output directory: {output_run_dir.absolute()}")
 
-    dataset = datasets.load_dataset("m-ric/agents_medium_benchmark_2")
-    dataset = dataset["train"]
+    dataset = datasets.concatenate_datasets(
+        [
+            datasets.load_dataset("m-ric/agents_medium_benchmark_2")["train"],
+            datasets.load_dataset("m-ric/smol_agents_benchmark")["test"].filter(
+                lambda example: example["source"] == "MATH"
+            ),
+        ]
+    )
 
     if subset is not None:
         _subset = str(subset)  # convert to string avoid datasets warning
@@ -134,8 +141,8 @@ async def evaluate_agent(
 
         source = example["source"]
         try:
-            if source == "GSM8K":
-                normalization_prompt = GSM8K_NORMALIZATION_PROMPT
+            if source in ["GSM8K", "MATH"]:
+                normalization_prompt = GSM8K_MATH_NORMALIZATION_PROMPT
             elif source == "GAIA":
                 normalization_prompt = GAIA_NORMALIZATION_PROMPT
             elif source == "SimpleQA":

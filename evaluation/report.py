@@ -39,7 +39,13 @@ def performance(
         figsize=(10, 6),
         palette="Blues_d",
         hue="source_protocol",
-        hue_order=["GAIA (exact_match)", "GSM8K (exact_match)", "SimpleQA (exact_match)", "SimpleQA (llm_as_judge)"],
+        hue_order=[
+            "GAIA (exact_match)",
+            "GSM8K (exact_match)",
+            "MATH (exact_match)",
+            "SimpleQA (exact_match)",
+            "SimpleQA (llm_as_judge)",
+        ],
         title=f"freeact performance on {benchmark_display_name}",
         output_file=output_dir / "eval-plot.png",
         legend_location="top",
@@ -85,8 +91,8 @@ def create_barplot(
     ax.spines["top"].set_visible(False)
 
     if legend_location == "top":
-        plt.title(title, pad=50)
-        plt.legend(fontsize=10, bbox_to_anchor=(0.5, 1.05), loc="center", ncol=2)
+        plt.title(title, pad=70)
+        plt.legend(fontsize=10, bbox_to_anchor=(0.5, 1.10), loc="center", ncol=2)
     else:
         plt.title(title)
         plt.legend(fontsize=10, bbox_to_anchor=(1.05, 0.5), loc="center left")
