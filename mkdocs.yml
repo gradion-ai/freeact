@@ -88,7 +88,7 @@ nav:
       - Installation: installation.md
       - Building blocks: blocks.md
       - Supported models: models.md
-      - Command line interface: cli.md
+      - CLI: cli.md
     - Tutorials:
       - Overview: tutorials/index.md
       - Basic usage: tutorials/basics.md
