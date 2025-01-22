@@ -1015,11 +1015,11 @@
 <li>Qwen 2.5 Coder 32B Instruct (<code>qwen2p5-coder-32b-instruct</code>)</li>
 <li>DeepSeek V3 (<code>deepseek-v3</code>)</li>
 </ul>
-<p>The evaluation was performed on the <a href="https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2">m-ric/agents_medium_benchmark_2</a> dataset, developed by the <a href="https://github.com/huggingface/smolagents">smolagents</a> team at 🤗 Hugging Face. It comprises selected tasks from GAIA, GSM8K, and SimpleQA:</p>
+<p>The evaluation was performed using two benchmark datasets: <a href="https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2">m-ric/agents_medium_benchmark_2</a> and the MATH subset from <a href="https://huggingface.co/datasets/m-ric/smol_agents_benchmark">m-ric/smol_agents_benchmark</a>. Both datasets were created by the <a href="https://github.com/huggingface/smolagents">smolagents</a> team at 🤗 Hugging Face and contain selected tasks from GAIA, GSM8K, SimpleQA and MATH:</p>
 <figure>
 <p><a href="../eval/eval-plot.png" target="_blank"><img align="left" alt="architecture" src="../eval/eval-plot.png" /></a></p>
 </figure>
-<p>When comparing our results with smolagents using Claude 3.5 Sonnet, we observed the following outcomes (evaluation conducted on 2025-01-07, reference data <a href="https://github.com/huggingface/smolagents/blob/c22fedaee17b8b966e86dc53251f210788ae5c19/examples/benchmark.ipynb">here</a>):</p>
+<p>When comparing our results with smolagents using Claude 3.5 Sonnet on <a href="https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2">m-ric/agents_medium_benchmark_2</a> (only dataset with available smolagents <a href="https://github.com/huggingface/smolagents/blob/c22fedaee17b8b966e86dc53251f210788ae5c19/examples/benchmark.ipynb">reference data</a>), we observed the following outcomes (evaluation conducted on 2025-01-07):</p>
 <figure>
 <p><a href="../eval/eval-plot-comparison.png" target="_blank"><img align="left" alt="architecture" src="../eval/eval-plot-comparison.png" width="60%" /></a></p>
 </figure>
