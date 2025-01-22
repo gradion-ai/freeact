@@ -38,10 +38,10 @@ def score(
         df = pd.concat(
             [
                 score_dataset(results_dir, "GAIA", EvalProtocol.EXACT_MATCH),
-                score_dataset(results_dir, "SimpleQA", EvalProtocol.LLM_AS_JUDGE),
-                score_dataset(results_dir, "SimpleQA", EvalProtocol.EXACT_MATCH),
                 score_dataset(results_dir, "GSM8K", EvalProtocol.EXACT_MATCH),
                 score_dataset(results_dir, "MATH", EvalProtocol.EXACT_MATCH),
+                score_dataset(results_dir, "SimpleQA", EvalProtocol.LLM_AS_JUDGE),
+                score_dataset(results_dir, "SimpleQA", EvalProtocol.EXACT_MATCH),
             ]
         )
         all_dfs.append(df)
