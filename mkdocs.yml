@@ -79,6 +79,8 @@ markdown_extensions:
   - md_in_html
   - admonition
   - footnotes
+  - pymdownx.tabbed:
+      alternate_style: true
 
 nav:
   - User guide:
@@ -86,6 +88,7 @@ nav:
       - Overview: index.md
       - Quickstart: quickstart.md
       - Installation: installation.md
+      - Guided tour: guided_tour.md
       - Building blocks: blocks.md
       - Supported models: models.md
       - CLI: cli.md

@@ -20,6 +20,7 @@ The library's architecture emphasizes extensibility and transparency, avoiding t
 
 - [Quickstart](quickstart.md) - Launch your first `freeact` agent and interact with it on the command line
 - [Installation](installation.md) - Installation instructions and configuration of execution environments
+- [Guided tour](guided_tour.md) - A guided tour of the `freeact` library
 - [Building blocks](blocks.md) - Learn about the essential components of a `freeact` agent system
 - [Tutorials](tutorials/index.md) - Tutorials demonstrating the `freeact` building blocks
 
