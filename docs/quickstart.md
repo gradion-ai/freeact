@@ -16,7 +16,7 @@ ANTHROPIC_API_KEY=...
 GOOGLE_API_KEY=...
 ```
 
-Launch a `freeact` agent with generative Google Search skill using the CLI
+Launch a `freeact` agent with generative Google Search skill using the [CLI](cli.md):
 
 ```bash
 python -m freeact.cli \
