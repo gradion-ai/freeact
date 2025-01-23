@@ -25,7 +25,6 @@ from freeact import (
     QwenCoder,
     execution_environment,
 )
-from freeact.cli.utils import dotenv_variables
 
 app = typer.Typer()
 
@@ -224,7 +223,6 @@ async def run_agent(
         executor_key="agent-evaluation",
         ipybox_tag="ghcr.io/gradion-ai/ipybox:eval",
         log_file=Path("logs", "agent-evaluation.log"),
-        env_vars=dotenv_variables(),
     ) as env:
         skill_sources = await env.executor.get_module_sources(
             ["google_search.api", "visit_webpage.api"],

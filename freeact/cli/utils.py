@@ -1,11 +1,9 @@
 import platform
-from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Dict
 
 import aiofiles
 import prompt_toolkit
-from dotenv import dotenv_values
 from PIL import Image
 from prompt_toolkit.key_binding import KeyBindings
 from rich.console import Console
@@ -19,36 +17,7 @@ from freeact import (
     CodeActAgentTurn,
     CodeActModelTurn,
     CodeExecution,
-    CodeExecutionContainer,
-    CodeExecutor,
 )
-from freeact.logger import Logger
-
-
-def dotenv_variables() -> dict[str, str]:
-    return {k: v for k, v in dotenv_values().items() if v is not None}
-
-
-@asynccontextmanager
-async def execution_environment(
-    executor_key: str = "default",
-    ipybox_tag: str = "ghcr.io/gradion-ai/ipybox:minimal",
-    env_vars: dict[str, str] = dotenv_variables(),
-    workspace_path: Path | str = Path("workspace"),
-    log_file: Path | str = Path("logs", "agent.log"),
-):
-    async with CodeExecutionContainer(
-        tag=ipybox_tag,
-        env=env_vars,
-        workspace_path=workspace_path,
-    ) as container:
-        async with CodeExecutor(
-            key=executor_key,
-            port=container.port,
-            workspace=container.workspace,
-        ) as executor:
-            async with Logger(file=log_file) as logger:
-                yield executor, logger
 
 
 async def stream_conversation(agent: CodeActAgent, console: Console, show_token_usage: bool = False, **kwargs):
