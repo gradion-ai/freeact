@@ -1,14 +1,15 @@
+import platform
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Dict
 
 import aiofiles
+import prompt_toolkit
 from dotenv import dotenv_values
-from ipybox import arun
 from PIL import Image
+from prompt_toolkit.key_binding import KeyBindings
 from rich.console import Console
 from rich.panel import Panel
-from rich.prompt import Prompt
 from rich.rule import Rule
 from rich.syntax import Syntax
 from rich.text import Text
@@ -51,18 +52,38 @@ async def execution_environment(
 
 
 async def stream_conversation(agent: CodeActAgent, console: Console, show_token_usage: bool = False, **kwargs):
+    "enter"
     empty_input = False
+
+    kb = KeyBindings()
+
+    @kb.add("enter")
+    def _(event):
+        """Submit the input when Enter is pressed."""
+        event.app.exit(result=event.app.current_buffer.text)
+
+    @kb.add("escape", "enter")
+    def _(event):
+        """Insert a newline when Alt+Enter or Meta+Enter is pressed."""
+        event.current_buffer.insert_text("\n")
+
+    session = prompt_toolkit.PromptSession(
+        multiline=True,
+        key_bindings=kb,
+    )
+
+    escape_key = "Option" if platform.system() == "Darwin" else "Alt"
 
     while True:
         console.print(Rule("User message", style="dodger_blue1", characters="━"))
 
         if empty_input:
             empty_input = False
-            prefix = "Please provide a non-empty message "
+            prefix = "Please enter a non-empty message"
         else:
             prefix = ""
 
-        user_message = await arun(Prompt.ask, f"{prefix}('q' to quit)", console=console)
+        user_message = await session.prompt_async(f"'q': quit, {escape_key}+Enter: newline\n\n{prefix}> ")
 
         if not user_message.strip():
             empty_input = True
