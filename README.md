@@ -15,11 +15,9 @@ A lightweight library for code-action based agents.
 
 - [Introduction](#introduction)
 - [Key capabilities](#key-capabilities)
-- [Supported models](#supported-models)
 - [Quickstart](#quickstart)
 - [Evaluation](#evaluation)
-
-The `freeact` documentation is available [here](https://gradion-ai.github.io/freeact/).
+- [Supported models](#supported-models)
 
 ## Introduction
 
@@ -34,10 +32,6 @@ The library builds upon [recent](https://arxiv.org/abs/2402.01030) [research](ht
 The library's architecture emphasizes extensibility and transparency, avoiding the accidental complexity often introduced by heavier frameworks that obscure crucial implementation details. This design philosophy makes freeact particularly suitable for developers and researchers who need fine-grained control over their agent implementations while maintaining the flexibility to handle edge cases that fall outside predefined action spaces.
 
 `freeact` executes all code actions within [`ipybox`](https://gradion-ai.github.io/ipybox/), a secure execution environment built on IPython and Docker that can also be deployed locally. This ensures safe execution of dynamically generated code while maintaining full access to the Python ecosystem. Combined with its lightweight and extensible architecture, `freeact` provides a robust foundation for building adaptable AI agents that can tackle real-world challenges requiring dynamic problem-solving approaches.
-
-## Supported models
-
-In addition to the models we [evaluated](#evaluation), `freeact` also supports any model from any provider that is compatible with the [OpenAI Python SDK](https://github.com/openai/openai-python), including open models deployed locally on [ollama](https://ollama.com/) or [TGI](https://huggingface.co/docs/text-generation-inference/index), for example. See [Model integration](https://gradion-ai.github.io/freeact/models/#model-integration) for details.
 
 ## Quickstart
 
@@ -57,7 +51,7 @@ ANTHROPIC_API_KEY=...
 GOOGLE_API_KEY=...
 ```
 
-Launch a `freeact` agent with generative Google Search skill using the CLI
+Launch a `freeact` agent with generative Google Search skill using the [CLI](https://gradion-ai.github.io/freeact/cli/):
 
 ```bash
 python -m freeact.cli \
@@ -117,3 +111,7 @@ When comparing our results with smolagents using Claude 3.5 Sonnet on [m-ric/age
 [<img src="docs/eval/eval-plot-comparison.png" alt="Performance comparison" width="60%">](docs/eval/eval-plot-comparison.png)
 
 Interestingly, these results were achieved using zero-shot prompting in `freeact`, while the smolagents implementation utilizes few-shot prompting. To ensure a fair comparison, we employed identical evaluation protocols and tools. You can find all evaluation details [here](evaluation).
+
+## Supported models
+
+In addition to the models we [evaluated](#evaluation), `freeact` also supports the [integration](https://gradion-ai.github.io/freeact/integration/) of new models from any provider that is compatible with the [OpenAI Python SDK](https://github.com/openai/openai-python), including open models deployed locally with [ollama](https://ollama.com/) or [TGI](https://huggingface.co/docs/text-generation-inference/index), for example.

@@ -95,6 +95,7 @@ nav:
       - Skill development: tutorials/skills.md
       - System extensions: tutorials/extend.md
     - Advanced topics:
+      - Model integration: integration.md
       - Streaming protocol: streaming.md
       - Evaluation results: evaluation.md
   - API Documentation:

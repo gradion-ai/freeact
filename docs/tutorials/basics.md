@@ -69,7 +69,7 @@ The Python example above is part of the `freeact` package and can be run with:
 python -m freeact.examples.basics
 ```
 
-For formatted and colored console output, as shown in the [example conversation](#example-conversation), you can use the `freeact` CLI:
+For formatted and colored console output, as shown in the [example conversation](#example-conversation), you can use the `freeact` [CLI](../cli.md):
 
 ```shell
 --8<-- "freeact/examples/commands.txt:cli-basics-claude"
@@ -80,6 +80,8 @@ To use Gemini instead of Claude, run:
 ```shell
 --8<-- "freeact/examples/commands.txt:cli-basics-gemini"
 ```
+
+See also [this example](../cli.md#example-2) for running DeepSeek V3 or [this example](../integration.md#model-usage) for Qwen 2.5 Coder.
 
 ### Example conversation
 
