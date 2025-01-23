@@ -26,7 +26,7 @@ def performance(
     benchmark_display_name: Annotated[
         str,
         typer.Option(help="Display name of the dataset"),
-    ] = "m-ric/agents_medium_benchmark_2",
+    ] = "\nm-ric/agents_medium_benchmark_2 (GAIA, GSM8K, SimpleQA)\nm-ric/smol_agents_benchmark (MATH)",
 ):
     df = read_evaluation_results(results_file)
     df["source_protocol"] = df.apply(
@@ -34,18 +34,14 @@ def performance(
         axis=1,
     )
 
+    hue_order = df["model_id"].unique().tolist()
+
     create_barplot(
         data=df,
         figsize=(10, 6),
-        palette="Blues_d",
-        hue="source_protocol",
-        hue_order=[
-            "GAIA (exact_match)",
-            "GSM8K (exact_match)",
-            "MATH (exact_match)",
-            "SimpleQA (exact_match)",
-            "SimpleQA (llm_as_judge)",
-        ],
+        palette="coolwarm",
+        hue="model_id",
+        hue_order=hue_order,
         title=f"freeact performance on {benchmark_display_name}",
         output_file=output_dir / "eval-plot.png",
         legend_location="top",
@@ -65,7 +61,7 @@ def read_evaluation_results(results_file: Path) -> pd.DataFrame:
 def create_barplot(
     data: pd.DataFrame,
     figsize: tuple[int, int],
-    palette: str,
+    palette: str | list[str],
     hue: str,
     hue_order: list[str],
     title: str,
@@ -77,7 +73,7 @@ def create_barplot(
 
     ax = sns.barplot(
         data=data,
-        x="model_id",
+        x="source_protocol",
         y="correct",
         hue=hue,
         hue_order=hue_order,
@@ -138,6 +134,7 @@ def performance_comparison(
     df = read_evaluation_results(results_file)
     df = df[df["model_id"] == model_name]
     df = df[df["eval_protocol"] == eval_protocol]
+    df = df[df["source"].isin(["GAIA", "GSM8K", "SimpleQA"])]
 
     df = pd.concat(
         [
@@ -146,18 +143,23 @@ def performance_comparison(
         ]
     ).reset_index(drop=True)
 
+    df["source_protocol"] = df.apply(
+        lambda row: f"{row['source']}",
+        axis=1,
+    )
+
     create_barplot(
         data=df,
         figsize=(6, 6),
-        palette="Blues_d",
-        hue="source",
-        hue_order=["GAIA", "GSM8K", "SimpleQA"],
+        palette=["#8099e1", "#ec9381"],
+        hue="model_id",
+        hue_order=["freeact (zero-shot)", "smolagents (few-shot)"],
         title=f"freeact vs. smolagents performance on\n{benchmark_display_name}\n\n(model = {model_name}\neval_protocol = {eval_protocol})",
         output_file=output_dir / f"eval-plot-comparison-{model_name}.png",
     )
 
     print("Results:")
-    print(df)
+    print(df.drop(columns=["source_protocol"]))
 
 
 if __name__ == "__main__":

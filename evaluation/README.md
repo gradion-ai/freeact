@@ -12,33 +12,13 @@ The evaluation was performed using two benchmark datasets: [m-ric/agents_medium_
 
 [<img src="../docs/eval/eval-plot.png" alt="Performance">](../docs/eval/eval-plot.png)
 
-| model                      | subset   | eval_protocol   | % correct |
-|:---------------------------|:---------|:----------------|----------:|
-| claude-3-5-sonnet-20241022 | GAIA     | exact_match     |  **53.1** |
-| claude-3-5-sonnet-20241022 | GSM8K    | exact_match     |  **95.7** |
-| claude-3-5-sonnet-20241022 | MATH     | exact_match     |  **90.0** |
-| claude-3-5-sonnet-20241022 | SimpleQA | exact_match     |  **57.5** |
-| claude-3-5-sonnet-20241022 | SimpleQA | llm_as_judge    |  **72.5** |
-| claude-3-5-haiku-20241022  | GAIA     | exact_match     |      31.2 |
-| claude-3-5-haiku-20241022  | GSM8K    | exact_match     |      90.0 |
-| claude-3-5-haiku-20241022  | MATH     | exact_match     |      76.0 |
-| claude-3-5-haiku-20241022  | SimpleQA | exact_match     |      52.5 |
-| claude-3-5-haiku-20241022  | SimpleQA | llm_as_judge    |      70.0 |
-| gemini-2.0-flash-exp       | GAIA     | exact_match     |      34.4 |
-| gemini-2.0-flash-exp       | GSM8K    | exact_match     |  **95.7** |
-| gemini-2.0-flash-exp       | MATH     | exact_match     |      88.0 |
-| gemini-2.0-flash-exp       | SimpleQA | exact_match     |      50.0 |
-| gemini-2.0-flash-exp       | SimpleQA | llm_as_judge    |      65.0 |
-| qwen2p5-coder-32b-instruct | GAIA     | exact_match     |      25.0 |
-| qwen2p5-coder-32b-instruct | GSM8K    | exact_match     |  **95.7** |
-| qwen2p5-coder-32b-instruct | MATH     | exact_match     |      88.0 |
-| qwen2p5-coder-32b-instruct | SimpleQA | exact_match     |      52.5 |
-| qwen2p5-coder-32b-instruct | SimpleQA | llm_as_judge    |      65.0 |
-| deepseek-v3                | GAIA     | exact_match     |      37.5 |
-| deepseek-v3                | GSM8K    | exact_match     |      91.4 |
-| deepseek-v3                | MATH     | exact_match     |      88.0 |
-| deepseek-v3                | SimpleQA | exact_match     |      60.0 |
-| deepseek-v3                | SimpleQA | llm_as_judge    |      67.5 |
+| model                        | GAIA (exact_match) | GSM8K (exact_match) | MATH (exact_match) | SimpleQA (exact_match) | SimpleQA (llm_as_judge) |
+|:----------------------------|--------------------:|--------------------:|-------------------:|-----------------------:|------------------------:|
+| claude-3-5-sonnet-20241022  |            **53.1** |            **95.7** |           **90.0** |                  57.5  |                **72.5** |
+| claude-3-5-haiku-20241022   |                31.2 |                90.0 |               76.0 |                  52.5  |                   70.0  |
+| gemini-2.0-flash-exp        |                34.4 |            **95.7** |               88.0 |                  50.0  |                   65.0  |
+| qwen2p5-coder-32b-instruct  |                25.0 |            **95.7** |               88.0 |                  52.5  |                   65.0  |
+| deepseek-v3                 |                37.5 |                91.4 |               88.0 |               **60.0** |                   67.5  |
 
 When comparing our results with smolagents using `claude-3-5-sonnet-20241022` on [m-ric/agents_medium_benchmark_2](https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2) (only dataset with available smolagents [reference data](https://github.com/huggingface/smolagents/blob/c22fedaee17b8b966e86dc53251f210788ae5c19/examples/benchmark.ipynb)), we observed the following outcomes (evaluation conducted on 2025-01-07):
 
