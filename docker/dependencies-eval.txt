@@ -1,0 +1,6 @@
+freeact-skills = {version = "^0.0.7", extras = ["all"]}
+requests = "^2.32.0"
+markdownify = "^0.14.1"
+matplotlib = "^3.10.0"
+numpy = "^2.2.1"
+scipy = "^1.15.0"

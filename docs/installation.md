@@ -19,7 +19,7 @@ pip install freeact
 To build a custom `ipybox` Docker image with [`freeact-skills`](https://gradion-ai.github.io/freeact-skills/) pre-installed, create a `dependencies.txt` file:
 
 ```toml title="dependencies.txt"
-freeact-skills = {version = "0.0.6", extras = ["all"]}
+freeact-skills = {version = "*", extras = ["all"]}
 # Add additional dependencies here if needed
 ```
 
@@ -41,7 +41,7 @@ To use the image, reference it in [`CodeExecutionContainer`][freeact.executor.Co
 For running the [tutorials](tutorials/index.md), we provide a custom `ghcr.io/gradion-ai/ipybox:example` image with the following dependencies pre-installed:
 
 ```toml title="dependencies.txt"
---8<-- "freeact/examples/dependencies-example.txt"
+--8<-- "docker/dependencies-example.txt"
 ```
 
 !!! Note
