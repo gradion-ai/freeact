@@ -2,7 +2,7 @@
 
 A `freeact` agent system consists of:
 
-- A code execution Docker container, managed by the [`CodeExecutionContainer`][freeact.executor.CodeExecutionContainer] context manager. This tutorial uses the `gradion-ai/ipybox-example` image.
+- A code execution Docker container, managed by the [`CodeExecutionContainer`][freeact.executor.CodeExecutionContainer] context manager. This tutorial uses the [prebuilt](../environment.md#prebuilt-docker-images) `ghcr.io/gradion-ai/ipybox:example` image.
 - A code executor, managed by the [`CodeExecutor`][freeact.executor.CodeExecutor] context manager. It manages an IPython kernel's lifecycle within the container and handles code execution.
 - A code action model that generates *code actions* to be executed by the executor. Models must implement the interfaces defined in the [`freeact.model`](../api/model.md) package. This tutorial uses [`Claude`][freeact.model.claude.model.Claude], configured with `claude-3-5-sonnet-20241022` as model name.
 - A [`CodeActAgent`][freeact.agent.CodeActAgent] configured with both the model and executor. It orchestrates their interaction until a final response is ready.
@@ -59,7 +59,7 @@ ANTHROPIC_API_KEY=...
 GOOGLE_API_KEY=...
 ```
 
-The tutorials use the pre-built [`ghcr.io/gradion-ai/ipybox:example`](../installation.md#tutorial-docker-image) Docker image for sandboxed code execution.
+The tutorials use the prebuilt [`ghcr.io/gradion-ai/ipybox:example`](../environment.md#prebuilt-docker-images) Docker image for sandboxed code execution.
 
 ## Running
 

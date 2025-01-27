@@ -21,7 +21,7 @@ To submit a multiline message, simply press `Enter`.
 
 ## Environment variables
 
-The CLI reads environment variables from a `.env` file in the current directory and passes them to the [execution environment](installation.md#execution-environment). API keys required for an agent's code action model must be either defined in the `.env` file, passed as command-line arguments, or directly set as variables in the shell.
+The CLI reads environment variables from a `.env` file in the current directory and passes them to the [execution environment](environment.md#execution-environment). API keys required for an agent's code action model must be either defined in the `.env` file, passed as command-line arguments, or directly set as variables in the shell.
 
 ### Example 1
 
