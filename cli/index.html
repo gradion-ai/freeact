@@ -11,7 +11,7 @@
       
       
       
-        <link rel="prev" href="../models/">
+        <link rel="prev" href="../environment/">
       
       
         <link rel="next" href="../tutorials/">
@@ -504,6 +504,27 @@
   
   <span class="md-ellipsis">
     Supported models
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Execution environment
   </span>
   
 
@@ -1264,7 +1285,7 @@
 <p>To submit a multiline message, simply press <code>Enter</code>.</p>
 <p><img alt="Multiline input" src="../img/multiline.png" /></p>
 <h2 id="environment-variables">Environment variables</h2>
-<p>The CLI reads environment variables from a <code>.env</code> file in the current directory and passes them to the <a href="../installation/#execution-environment">execution environment</a>. API keys required for an agent's code action model must be either defined in the <code>.env</code> file, passed as command-line arguments, or directly set as variables in the shell.</p>
+<p>The CLI reads environment variables from a <code>.env</code> file in the current directory and passes them to the <a href="../environment/#execution-environment">execution environment</a>. API keys required for an agent's code action model must be either defined in the <code>.env</code> file, passed as command-line arguments, or directly set as variables in the shell.</p>
 <h3 id="example-1">Example 1</h3>
 <p>The <a href="../quickstart/">quickstart</a> example requires <code>ANTHROPIC_API_KEY</code> and <code>GOOGLE_API_KEY</code> to be defined in a <code>.env</code> file in the current directory. The <code>ANTHROPIC_API_KEY</code> is needed for the <code>claude-3-5-sonnet-20241022</code> code action model, while the <code>GOOGLE_API_KEY</code> is required for the <code>freeact_skills.search.google.stream.api</code> skill in the execution environment. Given a <code>.env</code> file with the following content:</p>
 <div class="language-text highlight"><span class="filename">.env</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a># Required for Claude 3.5 Sonnet

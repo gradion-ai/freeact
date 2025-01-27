@@ -518,6 +518,27 @@
   
   
     <li class="md-nav__item">
+      <a href="../../environment/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Execution environment
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../cli/" class="md-nav__link">
         
   
@@ -1235,7 +1256,7 @@
 <h1 id="basic-usage">Basic usage</h1>
 <p>A <code>freeact</code> agent system consists of:</p>
 <ul>
-<li>A code execution Docker container, managed by the <a class="autorefs autorefs-internal" href="../../api/executor/#freeact.executor.CodeExecutionContainer"><code>CodeExecutionContainer</code></a> context manager. This tutorial uses the <code>gradion-ai/ipybox-example</code> image.</li>
+<li>A code execution Docker container, managed by the <a class="autorefs autorefs-internal" href="../../api/executor/#freeact.executor.CodeExecutionContainer"><code>CodeExecutionContainer</code></a> context manager. This tutorial uses the <a href="../../environment/#prebuilt-docker-images">prebuilt</a> <code>ghcr.io/gradion-ai/ipybox:example</code> image.</li>
 <li>A code executor, managed by the <a class="autorefs autorefs-internal" href="../../api/executor/#freeact.executor.CodeExecutor"><code>CodeExecutor</code></a> context manager. It manages an IPython kernel's lifecycle within the container and handles code execution.</li>
 <li>A code action model that generates <em>code actions</em> to be executed by the executor. Models must implement the interfaces defined in the <a href="../../api/model/"><code>freeact.model</code></a> package. This tutorial uses <a class="autorefs autorefs-internal" href="../../api/claude/#freeact.model.claude.model.Claude"><code>Claude</code></a>, configured with <code>claude-3-5-sonnet-20241022</code> as model name.</li>
 <li>A <a class="autorefs autorefs-internal" href="../../api/agent/#freeact.agent.CodeActAgent"><code>CodeActAgent</code></a> configured with both the model and executor. It orchestrates their interaction until a final response is ready.</li>
@@ -1405,7 +1426,7 @@
 <div class="language-text highlight"><span class="filename">.env</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ANTHROPIC_API_KEY=...
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>GOOGLE_API_KEY=...
 </span></code></pre></div>
-<p>The tutorials use the pre-built <a href="../../installation/#tutorial-docker-image"><code>ghcr.io/gradion-ai/ipybox:example</code></a> Docker image for sandboxed code execution.</p>
+<p>The tutorials use the prebuilt <a href="../../environment/#prebuilt-docker-images"><code>ghcr.io/gradion-ai/ipybox:example</code></a> Docker image for sandboxed code execution.</p>
 <h2 id="running">Running</h2>
 <p>The Python example above is part of the <code>freeact</code> package and can be run with:</p>
 <div class="language-shell highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>-m<span class="w"> </span>freeact.examples.basics
