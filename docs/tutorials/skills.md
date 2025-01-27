@@ -68,7 +68,7 @@ The example conversation was initiated with the following `freeact.cli` command.
 ```
 
 !!! Note
-    If you've developed a custom skill that has external dependencies, you either need to build a [custom Docker image](../installation.md#custom-docker-image) with the required dependencies or need to [install them at runtime](../installation.md#installing-dependencies-at-runtime) prior to launching an agent.
+    If you've developed a custom skill that has external dependencies, you either need to build a [custom Docker image](../environment.md#custom-docker-image) with the required dependencies or need to [install them at runtime](../environment.md#installing-dependencies-at-runtime) prior to launching an agent.
 
 ### Example conversation
 
