@@ -1,12 +1,14 @@
-# Command-line interface
+# Command line interface
 
-`freeact` provides a minimalistic command-line interface (CLI) for running agents. It is currently intended for demonstration purposes only. [Install `freeact`](installation.md) and run the following command to see all available options:
+`freeact` provides a minimalistic command line interface (CLI) for running agents. It is currently intended for demonstration purposes only. [Install `freeact`](installation.md) and run the following command to see all available options:
 
 ```bash
 python -m freeact.cli --help
 ```
 
-or check [quickstart](quickstart.md) and [tutorials](tutorials/index.md) for usage examples.
+!!! Tip
+
+    Check [quickstart](quickstart.md), [tutorials](tutorials/index.md) or [supported models](models.md) for usage examples.
 
 ## Multiline input
 
@@ -21,7 +23,22 @@ To submit a multiline message, simply press `Enter`.
 
 ## Environment variables
 
-The CLI reads environment variables from a `.env` file in the current directory and passes them to the [execution environment](environment.md#execution-environment). API keys required for an agent's code action model must be either defined in the `.env` file, passed as command-line arguments, or directly set as variables in the shell.
+Environment variables may be required for two purposes:
+
+1. Running skill modules in the [execution environment](environment.md#execution-environment), including:
+    - [Predefined skills](https://gradion-ai.github.io/freeact-skills/)
+    - [Custom skills](tutorials/skills.md)
+2. Running code action models by `freeact` agents
+
+There are three ways to provide these environment variables:
+
+- For skill modules (purpose 1): Variables must be defined in a `.env` file in your current working directory
+- For code action models (purpose 2): Variables can be provided through:
+    - A `.env` file in the current working directory
+    - Command-line arguments
+    - Shell environment variables
+
+This is shown by example in the following two subsections.
 
 ### Example 1
 
@@ -29,10 +46,10 @@ The [quickstart](quickstart.md) example requires `ANTHROPIC_API_KEY` and `GOOGLE
 
 ```env title=".env"
 # Required for Claude 3.5 Sonnet
-ANTHROPIC_API_KEY=your-anthropic-api-key
+ANTHROPIC_API_KEY=...
 
 # Required for generative Google Search via Gemini 2
-GOOGLE_API_KEY=your-google-api-key
+GOOGLE_API_KEY=...
 ```
 
 the following command will launch an agent with `claude-3-5-sonnet-20241022` as code action model configured with a generative Google search skill implemented by module `freeact_skills.search.google.stream.api`:
@@ -49,7 +66,7 @@ The API key can alternatively be passed as command-line argument:
 ```bash
 python -m freeact.cli \
   --model-name=claude-3-5-sonnet-20241022 \
-  --api-key=your-anthropic-api-key \
+  --api-key=$ANTHROPIC_API_KEY \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
   --skill-modules=freeact_skills.search.google.stream.api
 ```
@@ -61,10 +78,10 @@ To use models from other providers, such as [accounts/fireworks/models/deepseek-
 ```env title=".env"
 # Required for DeepSeek V3 hosted by Fireworks
 DEEPSEEK_BASE_URL=https://api.fireworks.ai/inference/v1
-DEEPSEEK_API_KEY=your-deepseek-api-key
+DEEPSEEK_API_KEY=...
 
 # Required for generative Google Search via Gemini 2
-GOOGLE_API_KEY=your-google-api-key
+GOOGLE_API_KEY=...
 ```
 
 and launch the agent with
@@ -82,7 +99,7 @@ or pass the base URL and API key directly as command-line arguments:
 python -m freeact.cli \
   --model-name=accounts/fireworks/models/deepseek-v3 \
   --base-url=https://api.fireworks.ai/inference/v1 \
-  --api-key=your-deepseek-api-key \
+  --api-key=$DEEPSEEK_API_KEY \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
   --skill-modules=freeact_skills.search.google.stream.api
 ```

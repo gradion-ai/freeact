@@ -81,7 +81,7 @@ To use Gemini instead of Claude, run:
 --8<-- "freeact/examples/commands.txt:cli-basics-gemini"
 ```
 
-See also [this example](../cli.md#example-2) for running DeepSeek V3 or [this example](../integration.md#model-usage) for Qwen 2.5 Coder.
+See also [Supported models](../models.md) for other CLI examples.
 
 ### Example conversation
 

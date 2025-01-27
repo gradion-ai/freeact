@@ -6,7 +6,15 @@ import typer
 from dotenv import load_dotenv
 from rich.console import Console
 
-from freeact import Claude, CodeActAgent, CodeActModel, DeepSeek, Gemini, QwenCoder, execution_environment
+from freeact import (
+    Claude,
+    CodeActAgent,
+    CodeActModel,
+    DeepSeek,
+    Gemini,
+    QwenCoder,
+    execution_environment,
+)
 from freeact.cli.utils import read_file, stream_conversation
 
 app = typer.Typer()

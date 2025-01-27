@@ -19,15 +19,15 @@ The library's architecture emphasizes extensibility and transparency, avoiding t
 ## Next steps
 
 - [Quickstart](quickstart.md) - Launch your first `freeact` agent and interact with it on the command line
-- [Installation](installation.md) - Installation instructions and configuration of execution environments
 - [Building blocks](blocks.md) - Learn about the essential components of a `freeact` agent system
-- [Tutorials](tutorials/index.md) - Tutorials demonstrating the `freeact` building blocks
+- [Tutorials](tutorials/index.md) - Tutorials demonstrating the usage of `freeact` building blocks
+- [Command line](cli.md) - Guide to using `freeact` agents from the command line
+- [Supported models](models.md) - Overview of models [evaluated](evaluation.md) with `freeact`
 
 ## Further reading
 
-- [Command line interface](cli.md) - Guide to using `freeact` agents on the command line
-- [Supported models](models.md) - Overview of models [evaluated](evaluation.md) with `freeact`
-- [Model integration](integration.md) - Guidelines for integrating new models into `freeact`
+- [Model integration](integration.md) - Guide for integrating new models into `freeact`
+- [Execution environment](environment.md) - Overview of prebuilt and custom execution environments
 - [Streaming protocol](streaming.md) - Specification for streaming model responses and execution results
 
 ## Status
