@@ -24,14 +24,10 @@ When comparing our results with smolagents using `claude-3-5-sonnet-20241022` on
 
 [<img src="../docs/eval/eval-plot-comparison.png" alt="Performance comparison" width="60%">](../docs/eval/eval-plot-comparison.png)
 
-| agent      | model                      | prompt    | subset   | %correct |
-|:-----------|:---------------------------|:----------|:---------|----------:|
-| freeact    | claude-3-5-sonnet-20241022 | zero-shot | GAIA     |  **53.1** |
-| freeact    | claude-3-5-sonnet-20241022 | zero-shot | GSM8K    |  **95.7** |
-| freeact    | claude-3-5-sonnet-20241022 | zero-shot | SimpleQA |  **57.5** |
-| smolagents | claude-3-5-sonnet-20241022 | few-shot  | GAIA     |      43.8 |
-| smolagents | claude-3-5-sonnet-20241022 | few-shot  | GSM8K    |      91.4 |
-| smolagents | claude-3-5-sonnet-20241022 | few-shot  | SimpleQA |      47.5 |
+| agent      | model                      | prompt    | GAIA      | GSM8K     | SimpleQA  |
+|:-----------|:---------------------------|:----------|----------:|----------:|----------:|
+| freeact    | claude-3-5-sonnet-20241022 | zero-shot |  **53.1** |  **95.7** |  **57.5** |
+| smolagents | claude-3-5-sonnet-20241022 | few-shot  |      43.8 |      91.4 |      47.5 |
 
 Interestingly, these results were achieved using zero-shot prompting in `freeact`, while the smolagents implementation utilizes few-shot prompting. To ensure a fair comparison, we employed identical evaluation protocols and tools (converted to [skills](skills)).
 
