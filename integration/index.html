@@ -14,7 +14,7 @@
         <link rel="prev" href="../tutorials/extend/">
       
       
-        <link rel="next" href="../streaming/">
+        <link rel="next" href="../environment/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -497,53 +497,32 @@
   
   
     <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Command line
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../models/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     Supported models
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../environment/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Execution environment
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../cli/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    CLI
   </span>
   
 
@@ -848,6 +827,27 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Execution environment
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -1298,7 +1298,7 @@
 <h3 id="low-level-api">Low-level API</h3>
 <p>The low-level API is not further described here. For implementation examples, see the <a href="https://github.com/gradion-ai/freeact/tree/main/freeact/model/claude"><code>freeact.model.claude</code></a> or <a href="https://github.com/gradion-ai/freeact/tree/main/freeact/model/gemini"><code>freeact.model.gemini</code></a> packages.</p>
 <h3 id="high-level-api">High-level API</h3>
-<p>The high-level API supports usage of models from any provider that is compatible with the <a href="https://github.com/openai/openai-python">OpenAI Python SDK</a>. To use a model, you need to provide prompt templates that guide it to generate code actions. You can either reuse existing templates or create your own. Then, you can either create an instance of <code>GenericModel</code> or subclass it.</p>
+<p>The high-level API supports usage of models from any provider that is compatible with the <a href="https://github.com/openai/openai-python">OpenAI Python SDK</a>. To use a model, you need to provide prompt templates that guide it to generate code actions. You can either reuse existing templates or create your own.</p>
 <p>The following subsections demonstrate this using Qwen 2.5 Coder 32B Instruct as an example, showing how to use it both via the <a href="https://huggingface.co/docs/api-inference/index">Hugging Face Inference API</a> and locally with <a href="https://ollama.com/">ollama</a>.</p>
 <h4 id="prompt-templates">Prompt templates</h4>
 <p>Start with model-specific prompt templates that guide Qwen 2.5 Coder Instruct models to generate code actions. For example:</p>
@@ -1336,10 +1336,6 @@
 </span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="s2">Try to fix the error and continue answering the user question.</span>
 </span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="s2">&quot;&quot;&quot;</span>
 </span></code></pre></div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>These prompt templates are still experimental. They work reasonably well for larger Qwen 2.5 Coder models, but need optimization for smaller ones.</p>
-</div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>While tested with Qwen 2.5 Coder Instruct, these prompt templates can also serve as a good starting point for other models (as we did for DeepSeek V3, for example).</p>
@@ -1446,13 +1442,13 @@
 </li>
 </ol>
 <p>Run it with:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">HF_TOKEN</span><span class="o">=</span>&lt;your-huggingface-token&gt;<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>freeact.examples.qwen
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">HF_TOKEN</span><span class="o">=</span>...<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>freeact.examples.qwen
 </span></code></pre></div>
 <p>Alternatively, use the <code>freeact</code> <a href="../cli/">CLI</a> directly:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>-m<span class="w"> </span>freeact.cli<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>--model-name<span class="o">=</span>Qwen/Qwen2.5-Coder-32B-Instruct<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span>--base-url<span class="o">=</span>https://api-inference.huggingface.co/v1/<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span>--api-key<span class="o">=</span>&lt;your-huggingface-token&gt;<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span>--api-key<span class="o">=</span><span class="nv">$HF_TOKEN</span><span class="w"> </span><span class="se">\</span>
 </span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span>--ipybox-tag<span class="o">=</span>ghcr.io/gradion-ai/ipybox:basic<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span>--skill-modules<span class="o">=</span>freeact_skills.search.google.stream.api
 </span></code></pre></div>
