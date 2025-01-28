@@ -11,7 +11,7 @@ The low-level API is not further described here. For implementation examples, se
 
 ### High-level API
 
-The high-level API supports usage of models from any provider that is compatible with the [OpenAI Python SDK](https://github.com/openai/openai-python). To use a model, you need to provide prompt templates that guide it to generate code actions. You can either reuse existing templates or create your own. Then, you can either create an instance of `GenericModel` or subclass it.
+The high-level API supports usage of models from any provider that is compatible with the [OpenAI Python SDK](https://github.com/openai/openai-python). To use a model, you need to provide prompt templates that guide it to generate code actions. You can either reuse existing templates or create your own.
 
 The following subsections demonstrate this using Qwen 2.5 Coder 32B Instruct as an example, showing how to use it both via the [Hugging Face Inference API](https://huggingface.co/docs/api-inference/index) and locally with [ollama](https://ollama.com/).
 
@@ -22,10 +22,6 @@ Start with model-specific prompt templates that guide Qwen 2.5 Coder Instruct mo
 ```python title="freeact/model/qwen/prompt.py"
 --8<-- "freeact/model/qwen/prompt.py"
 ```
-
-!!! Note
-
-    These prompt templates are still experimental. They work reasonably well for larger Qwen 2.5 Coder models, but need optimization for smaller ones.
 
 !!! Tip
 
@@ -54,7 +50,7 @@ Here's a Python example that uses `QwenCoder` as code action model in a `freeact
 Run it with:
 
 ```bash
-HF_TOKEN=<your-huggingface-token> python -m freeact.examples.qwen
+HF_TOKEN=... python -m freeact.examples.qwen
 ```
 
 Alternatively, use the `freeact` [CLI](cli.md) directly:
@@ -63,7 +59,7 @@ Alternatively, use the `freeact` [CLI](cli.md) directly:
 python -m freeact.cli \
   --model-name=Qwen/Qwen2.5-Coder-32B-Instruct \
   --base-url=https://api-inference.huggingface.co/v1/ \
-  --api-key=<your-huggingface-token> \
+  --api-key=$HF_TOKEN \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
   --skill-modules=freeact_skills.search.google.stream.api
 ```

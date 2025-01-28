@@ -87,9 +87,8 @@ nav:
       - Quickstart: quickstart.md
       - Installation: installation.md
       - Building blocks: blocks.md
+      - Command line: cli.md
       - Supported models: models.md
-      - Execution environment: environment.md
-      - CLI: cli.md
     - Tutorials:
       - Overview: tutorials/index.md
       - Basic usage: tutorials/basics.md
@@ -97,6 +96,7 @@ nav:
       - System extensions: tutorials/extend.md
     - Advanced topics:
       - Model integration: integration.md
+      - Execution environment: environment.md
       - Streaming protocol: streaming.md
       - Evaluation results: evaluation.md
   - API Documentation:

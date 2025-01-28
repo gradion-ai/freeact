@@ -94,7 +94,7 @@ https://github.com/user-attachments/assets/83cec179-54dc-456c-b647-ea98ec99600b
 
 ## Evaluation
 
-We [evaluated](evaluation) `freeact` using five state-of-the-art models:
+We [evaluated](evaluation) `freeact` with these models:
 
 - Claude 3.5 Sonnet (`claude-3-5-sonnet-20241022`)
 - Claude 3.5 Haiku (`claude-3-5-haiku-20241022`)
@@ -114,4 +114,4 @@ Interestingly, these results were achieved using zero-shot prompting in `freeact
 
 ## Supported models
 
-In addition to the models we [evaluated](#evaluation), `freeact` also supports the [integration](https://gradion-ai.github.io/freeact/integration/) of new models from any provider that is compatible with the [OpenAI Python SDK](https://github.com/openai/openai-python), including open models deployed locally with [ollama](https://ollama.com/) or [TGI](https://huggingface.co/docs/text-generation-inference/index), for example.
+In addition to all [supported models](https://gradion-ai.github.io/freeact/models/), `freeact` also supports the [integration](https://gradion-ai.github.io/freeact/integration/) of new models from any provider that is compatible with the [OpenAI Python SDK](https://github.com/openai/openai-python), including open models deployed locally with [ollama](https://ollama.com/) or [TGI](https://huggingface.co/docs/text-generation-inference/index), for example.

@@ -1,6 +1,6 @@
 # Evaluation results
 
-We [evaluated](https://github.com/gradion-ai/freeact/tree/main/evaluation) `freeact` using four state-of-the-art models:
+We [evaluated](https://github.com/gradion-ai/freeact/tree/main/evaluation) `freeact` with these models:
 
 - Claude 3.5 Sonnet (`claude-3-5-sonnet-20241022`)
 - Claude 3.5 Haiku (`claude-3-5-haiku-20241022`)
