@@ -52,13 +52,15 @@ async def stream_conversation(agent: CodeActAgent, console: Console, show_token_
         else:
             prefix = ""
 
-        user_message = await session.prompt_async(f"'q': quit, {escape_key}+Enter: newline\n\n{prefix}> ")
+        input_prompt = f"'q': quit, {escape_key}+Enter: newline\n\n{prefix}> "
+        user_message = await session.prompt_async(input_prompt)
 
         if not user_message.strip():
             empty_input = True
             continue
 
         if console.record:
+            console.print(input_prompt, highlight=False, end="")
             console.print(user_message, highlight=False)
 
         if user_message.lower() == "q":
