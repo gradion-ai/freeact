@@ -123,7 +123,7 @@ class Gemini(CodeActModel):
         )
 
     def request(self, user_query: str, **kwargs) -> GeminiTurn:
-        return GeminiTurn(self._chat, user_query)
+        return GeminiThinkingTurn(self._chat, user_query) if self.thinking else GeminiTurn(self._chat, user_query)
 
     def feedback(
         self, feedback: str, is_error: bool, tool_use_id: str | None, tool_use_name: str | None, **kwargs

@@ -119,7 +119,7 @@ async def amain(
 
 @app.command()
 def main(
-    model_name: Annotated[str, typer.Option(help="Name of the model")] = "claude-3-5-sonnet-20241022",
+    model_name: Annotated[str, typer.Option(help="Name of the model")] = "gemini-2.0-flash-thinking-exp-01-21",
     api_key: Annotated[str | None, typer.Option(help="API key of the model")] = None,
     base_url: Annotated[str | None, typer.Option(help="Base URL of the model")] = None,
     ipybox_tag: Annotated[str, typer.Option(help="Tag of the ipybox Docker image")] = "ghcr.io/gradion-ai/ipybox:basic",
