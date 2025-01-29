@@ -10,18 +10,14 @@ from freeact.model.generic.model import GenericModel
 
 
 class DeepSeek(GenericModel):
-    """A specialized implementation of `GenericModel` for DeepSeek's models.
-
-    This class configures `GenericModel` specifically for use with DeepSeek V3 models
-    and uses the same prompt templates as Qwen 2.5 Coder.
-    It has been tested with *DeepSeek V3*. Smaller models
-    in this series may require adjustments to the prompt templates.
+    """A specialized implementation of `GenericModel` for DeepSeek V3.
 
     Args:
         model_name: The provider-specific name of the DeepSeek model to use.
         api_key: Optional API key for DeepSeek. If not provided, reads from DEEPSEEK_API_KEY environment variable.
         base_url: Optional base URL for the API. If not provided, reads from DEEPSEEK_BASE_URL environment variable.
         skill_sources: Optional string containing Python skill module information to include in system template.
+        system_extension: System message extension for domain- or environment-specific instructions.
         system_template: Prompt template for the system message that guides the model to generate code actions.
             Must define a `{python_modules}` placeholder for the skill sources.
         execution_output_template: Prompt template for formatting execution outputs.
