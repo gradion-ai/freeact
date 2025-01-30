@@ -56,7 +56,7 @@ python -m freeact.cli \
 python -m freeact.cli \
   --model-name=gemini-2.0-flash-exp \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
-  --skill-modules=freeact_skills.search.google.stream.api
+  --skill-modules=freeact_skills.search.google.stream.api \
   --api-key=$GOOGLE_API_KEY
 ```
 
@@ -66,7 +66,7 @@ python -m freeact.cli \
 python -m freeact.cli \
   --model-name=gemini-2.0-flash-thinking-exp-01-21 \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
-  --skill-modules=freeact_skills.search.google.stream.api
+  --skill-modules=freeact_skills.search.google.stream.api \
   --api-key=$GOOGLE_API_KEY
 ```
 
