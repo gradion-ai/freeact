@@ -8,7 +8,7 @@ python -m freeact.cli \
 
 # --8<-- [start:cli-basics-gemini]
 python -m freeact.cli \
-  --model-name=gemini-2.0-flash-exp \
+  --model-name=gemini-2.0-flash \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:example \
   --executor-key=example \
   --skill-modules=freeact_skills.search.google.stream.api

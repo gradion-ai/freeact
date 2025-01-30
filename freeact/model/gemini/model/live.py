@@ -6,7 +6,7 @@ from google.genai.live import AsyncSession
 
 from freeact.model.base import CodeActModel, CodeActModelTurn, StreamRetry
 from freeact.model.gemini.model.chat import GeminiModelName, GeminiResponse
-from freeact.model.gemini.prompt.default import EXECUTION_ERROR_TEMPLATE, EXECUTION_OUTPUT_TEMPLATE, SYSTEM_TEMPLATE
+from freeact.model.gemini.prompt import EXECUTION_ERROR_TEMPLATE, EXECUTION_OUTPUT_TEMPLATE, SYSTEM_TEMPLATE
 
 
 class GeminiLiveTurn(CodeActModelTurn):
@@ -30,7 +30,7 @@ class GeminiLiveTurn(CodeActModelTurn):
 
 @asynccontextmanager
 async def GeminiLive(
-    model_name: GeminiModelName = "gemini-2.0-flash-exp",
+    model_name: GeminiModelName = "gemini-2.0-flash",
     skill_sources: str | None = None,
     temperature: float = 0.0,
     max_tokens: int = 4096,
@@ -48,7 +48,7 @@ async def GeminiLive(
 
     Example:
         ```python
-        async with GeminiLive(model_name="gemini-2.0-flash-exp", skill_sources=skill_sources) as model:
+        async with GeminiLive(model_name="gemini-2.0-flash", skill_sources=skill_sources) as model:
             # use model with active session to Gemini 2 live API
             agent = CodeActAgent(model=model, ...)
         ```

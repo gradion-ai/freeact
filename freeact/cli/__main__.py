@@ -127,7 +127,7 @@ def main(
     system_extension: Annotated[Path | None, typer.Option(help="Path to a system extension file")] = None,
     log_file: Annotated[Path, typer.Option(help="Path to the log file")] = Path("logs", "agent.log"),
     temperature: Annotated[float, typer.Option(help="Temperature for generating model responses")] = 0.0,
-    max_tokens: Annotated[int, typer.Option(help="Maximum number of tokens for each model response")] = 4096,
+    max_tokens: Annotated[int, typer.Option(help="Maximum number of tokens for each model response")] = 8192,
     show_token_usage: Annotated[bool, typer.Option(help="Include token usage data in responses")] = False,
     record_conversation: Annotated[bool, typer.Option(help="Record conversation as SVG file")] = False,
     record_path: Annotated[Path, typer.Option(help="Path to the SVG file")] = Path("conversation.svg"),
