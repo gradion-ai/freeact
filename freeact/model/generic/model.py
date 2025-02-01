@@ -23,8 +23,9 @@ class GenericModelResponse(CodeActModelResponse):
 
     @staticmethod
     def _extract_code_block(text: str) -> str | None:
-        match = re.search(r"```python\n(.*?)```", text, re.DOTALL)
-        return match.group(1).strip() if match else None
+        # return the last Python code block from text or None if not found
+        matches = list(re.finditer(r"```python\n(.*?)```", text, re.DOTALL))
+        return matches[-1].group(1).strip() if matches else None
 
 
 class GenericModelTurn(CodeActModelTurn):
@@ -70,9 +71,9 @@ class GenericModel(CodeActModel):
     def __init__(
         self,
         model_name: str,
-        system_message: str,
         execution_output_template: str,
         execution_error_template: str,
+        system_message: str | None = None,
         run_kwargs: Dict[str, Any] | None = None,
         **kwargs,
     ):
@@ -81,9 +82,11 @@ class GenericModel(CodeActModel):
         self.execution_error_template = execution_error_template
         self.run_kwargs = run_kwargs or {}
 
-        # TODO: alternative solution for models that don't support system messages
-        self._history = [{"role": "system", "content": system_message}]
+        self._history = []
         self._client = AsyncOpenAI(**kwargs)
+
+        if system_message:
+            self._history.append({"role": "system", "content": system_message})
 
     async def _stream(
         self,
@@ -121,11 +124,11 @@ class GenericModel(CodeActModel):
 
     def request(self, user_query: str, **kwargs) -> GenericModelTurn:
         user_message = {"role": "user", "content": user_query}
-        return GenericModelTurn(self._stream(user_message, **self.run_kwargs, **kwargs))
+        return GenericModelTurn(self._stream(user_message, **(self.run_kwargs | kwargs)))
 
     def feedback(
         self, feedback: str, is_error: bool, tool_use_id: str | None = None, tool_use_name: str | None = None, **kwargs
     ) -> GenericModelTurn:
         feedback_template = self.execution_output_template if not is_error else self.execution_error_template
         feedback_message = {"role": "user", "content": feedback_template.format(execution_feedback=feedback)}
-        return GenericModelTurn(self._stream(feedback_message, **self.run_kwargs, **kwargs))
+        return GenericModelTurn(self._stream(feedback_message, **(self.run_kwargs | kwargs)))

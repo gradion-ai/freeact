@@ -7,7 +7,7 @@ This tutorial demonstrates how `freeact` agents can be customized through system
 - How to implement domain-specific rules (demonstrated by an example that multiplies temperatures by 3.17 in weather-related responses)
 
 !!! Note
-    System extensions are currently only supported for [Claude][freeact.model.claude.model.Claude] models and [DeepSeek V3][freeact.model.deepseek.model.DeepSeek].
+    System extensions are currently only supported for [Claude][freeact.model.claude.model.Claude] models and [DeepSeek V3][freeact.model.deepseek.model.DeepSeekV3].
 
 The [example conversation](#example-conversation) below was guided by this system extension:
 
