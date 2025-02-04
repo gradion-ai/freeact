@@ -41,7 +41,13 @@ def get_question_score_gaia(
         return normalize_str(model_answer) == normalize_str(ground_truth)
 
 
+def remove_boxed(text):
+    # Replace \boxed{number} with just the number
+    return re.sub(r"\\boxed\{(\d+)\}", r"\1", text)
+
+
 def normalize_number_str(number_str: str) -> float:
+    number_str = remove_boxed(number_str)
     # we replace these common units and commas to allow
     # conversion to float
     for char in ["$", "%", ","]:

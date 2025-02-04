@@ -10,7 +10,8 @@ from freeact import (
     Claude,
     CodeActAgent,
     CodeActModel,
-    DeepSeek,
+    DeepSeekR1,
+    DeepSeekV3,
     Gemini,
     QwenCoder,
     execution_environment,
@@ -52,7 +53,10 @@ async def amain(
         else:
             system_extension_str = None
 
-        run_kwargs: Dict[str, Any] = {}
+        run_kwargs: Dict[str, Any] = {
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
         model: CodeActModel
 
         if "claude" in model_name.lower():
@@ -64,11 +68,7 @@ async def amain(
                 api_key=api_key,
                 base_url=base_url,
             )
-            run_kwargs |= {
-                "skill_sources": skill_sources,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-            }
+            run_kwargs |= {"skill_sources": skill_sources}
         elif "gemini" in model_name.lower():
             model = Gemini(
                 model_name=model_name,  # type: ignore
@@ -84,22 +84,20 @@ async def amain(
                 api_key=api_key,
                 base_url=base_url,
             )
-            run_kwargs |= {
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-            }
-        elif "deepseek" in model_name.lower():
-            model = DeepSeek(
+        elif "deepseek-v3" in model_name.lower():
+            model = DeepSeekV3(
                 model_name=model_name,
                 skill_sources=skill_sources,
                 api_key=api_key,
                 base_url=base_url,
             )
-            print(model._history[0]["content"])
-            run_kwargs |= {
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-            }
+        elif "deepseek-r1" in model_name.lower():
+            model = DeepSeekR1(
+                model_name=model_name,
+                api_key=api_key,
+                base_url=base_url,
+                skill_sources=skill_sources,
+            )
         else:
             typer.echo(f"Unsupported model: {model_name}", err=True)
             raise typer.Exit(code=1)
@@ -119,7 +117,7 @@ async def amain(
 
 @app.command()
 def main(
-    model_name: Annotated[str, typer.Option(help="Name of the model")] = "gemini-2.0-flash-thinking-exp-01-21",
+    model_name: Annotated[str, typer.Option(help="Name of the model")] = "claude-3-5-sonnet-20241022",
     api_key: Annotated[str | None, typer.Option(help="API key of the model")] = None,
     base_url: Annotated[str | None, typer.Option(help="Base URL of the model")] = None,
     ipybox_tag: Annotated[str, typer.Option(help="Tag of the ipybox Docker image")] = "ghcr.io/gradion-ai/ipybox:basic",

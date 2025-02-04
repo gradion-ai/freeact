@@ -2,4 +2,5 @@
     options:
       show_root_heading: false
       members:
-      - DeepSeek
+      - DeepSeekV3
+      - DeepSeekR1

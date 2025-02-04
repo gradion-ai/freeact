@@ -49,9 +49,9 @@ class QwenCoder(GenericModel):
             model_name=model_name,
             api_key=api_key or os.getenv("QWEN_API_KEY"),
             base_url=base_url or os.getenv("QWEN_BASE_URL"),
-            system_message=system_template.format(python_modules=skill_sources or ""),
             execution_output_template=execution_output_template,
             execution_error_template=execution_error_template,
+            system_message=system_template.format(python_modules=skill_sources or ""),
             run_kwargs=run_kwargs,
             **kwargs,
         )

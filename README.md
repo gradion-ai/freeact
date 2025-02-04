@@ -92,15 +92,21 @@ https://github.com/user-attachments/assets/83cec179-54dc-456c-b647-ea98ec99600b
 
 ## Evaluation
 
-We [evaluated](evaluation) `freeact` with these models:
+We [evaluated](evaluation) `freeact` with the following models:
 
 - Claude 3.5 Sonnet (`claude-3-5-sonnet-20241022`)
 - Claude 3.5 Haiku (`claude-3-5-haiku-20241022`)
 - Gemini 2.0 Flash (`gemini-2.0-flash-exp`)
 - Qwen 2.5 Coder 32B Instruct (`qwen2p5-coder-32b-instruct`)
 - DeepSeek V3 (`deepseek-v3`)
+- DeepSeek R1 (`deepseek-r1`)
 
-The evaluation was performed using two benchmark datasets: [m-ric/agents_medium_benchmark_2](https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2) and the MATH subset from [m-ric/smol_agents_benchmark](https://huggingface.co/datasets/m-ric/smol_agents_benchmark). Both datasets were created by the [smolagents](https://github.com/huggingface/smolagents) team at 🤗 Hugging Face and contain selected tasks from GAIA, GSM8K, SimpleQA and MATH:
+The evaluation uses two datasets:
+
+1. [m-ric/agents_medium_benchmark_2](https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2)
+2. [m-ric/smol_agents_benchmark](https://huggingface.co/datasets/m-ric/smol_agents_benchmark)
+
+Both datasets were created by the [smolagents](https://github.com/huggingface/smolagents) team at 🤗 Hugging Face and contain curated tasks from GAIA, GSM8K, SimpleQA, and MATH. We selected these datasets primarily for a quick evaluation of relative performance between models in a `freeact` setup, with the additional benefit of enabling comparisons with smolagents. To ensure fair comparisons with [their published results](https://huggingface.co/blog/smolagents#how-strong-are-open-models-for-agentic-workflows), we used identical evaluation protocols and tools.
 
 [<img src="docs/eval/eval-plot.png" alt="Performance">](docs/eval/eval-plot.png)
 
@@ -108,7 +114,7 @@ When comparing our results with smolagents using Claude 3.5 Sonnet on [m-ric/age
 
 [<img src="docs/eval/eval-plot-comparison.png" alt="Performance comparison" width="60%">](docs/eval/eval-plot-comparison.png)
 
-Interestingly, these results were achieved using zero-shot prompting in `freeact`, while the smolagents implementation utilizes few-shot prompting. To ensure a fair comparison, we employed identical evaluation protocols and tools. You can find all evaluation details [here](evaluation).
+Interestingly, these results were achieved using zero-shot prompting in `freeact`, while the smolagents implementation utilizes few-shot prompting. You can find all evaluation details [here](evaluation).
 
 ## Supported models
 

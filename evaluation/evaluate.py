@@ -20,7 +20,8 @@ from freeact import (
     CodeActModel,
     CodeActModelTurn,
     CodeExecution,
-    DeepSeek,
+    DeepSeekR1,
+    DeepSeekV3,
     Gemini,
     QwenCoder,
     execution_environment,
@@ -255,7 +256,7 @@ async def run_agent(
                 SYSTEM_TEMPLATE,
             )
 
-            model = DeepSeek(
+            model = DeepSeekV3(
                 api_key=os.getenv("FIREWORKS_API_KEY"),
                 base_url="https://api.fireworks.ai/inference/v1",
                 model_name=f"accounts/fireworks/models/{model_name}",
@@ -264,6 +265,15 @@ async def run_agent(
                 execution_output_template=EXECUTION_OUTPUT_TEMPLATE,
                 execution_error_template=EXECUTION_ERROR_TEMPLATE,
             )
+        elif model_name == "deepseek-r1":
+            model = DeepSeekR1(
+                api_key=os.getenv("FIREWORKS_API_KEY"),
+                base_url="https://api.fireworks.ai/inference/v1",
+                model_name=f"accounts/fireworks/models/{model_name}",
+                skill_sources=skill_sources,
+                instruction_extension="Important: never pass a PDF file as argument to visit_webpage.",
+            )
+            run_kwargs |= {"max_tokens": 16384}
         else:
             raise ValueError(f"Unknown model: {model_name}")
 
@@ -284,11 +294,13 @@ async def collect_output(agent_turn: CodeActAgentTurn, debug: bool = True) -> Li
     async for activity in agent_turn.stream():
         match activity:
             case CodeActModelTurn() as model_turn:
+                if debug:
+                    async for chunk in model_turn.stream():
+                        print(chunk, end="", flush=True)
+                    print()
+
                 model_response = await model_turn.response()
                 output.append("[agent ] " + model_response.text)
-                if debug:
-                    print("Agent response:")
-                    print(model_response.text)
 
                 if model_response.code:
                     output.append("[python] " + model_response.code)
