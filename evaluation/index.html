@@ -1150,15 +1150,21 @@
 
 
 <h1 id="evaluation-results">Evaluation results</h1>
-<p>We <a href="https://github.com/gradion-ai/freeact/tree/main/evaluation">evaluated</a> <code>freeact</code> with these models:</p>
+<p>We <a href="https://github.com/gradion-ai/freeact/tree/main/evaluation">evaluated</a> <code>freeact</code> with the following models:</p>
 <ul>
 <li>Claude 3.5 Sonnet (<code>claude-3-5-sonnet-20241022</code>)</li>
 <li>Claude 3.5 Haiku (<code>claude-3-5-haiku-20241022</code>)</li>
 <li>Gemini 2.0 Flash (<code>gemini-2.0-flash-exp</code>)</li>
 <li>Qwen 2.5 Coder 32B Instruct (<code>qwen2p5-coder-32b-instruct</code>)</li>
 <li>DeepSeek V3 (<code>deepseek-v3</code>)</li>
+<li>DeepSeek R1 (<code>deepseek-r1</code>)</li>
 </ul>
-<p>The evaluation was performed using two benchmark datasets: <a href="https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2">m-ric/agents_medium_benchmark_2</a> and the MATH subset from <a href="https://huggingface.co/datasets/m-ric/smol_agents_benchmark">m-ric/smol_agents_benchmark</a>. Both datasets were created by the <a href="https://github.com/huggingface/smolagents">smolagents</a> team at 🤗 Hugging Face and contain selected tasks from GAIA, GSM8K, SimpleQA and MATH:</p>
+<p>The evaluation uses two datasets:</p>
+<ol>
+<li><a href="https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2">m-ric/agents_medium_benchmark_2</a></li>
+<li><a href="https://huggingface.co/datasets/m-ric/smol_agents_benchmark">m-ric/smol_agents_benchmark</a></li>
+</ol>
+<p>Both datasets were created by the <a href="https://github.com/huggingface/smolagents">smolagents</a> team at 🤗 Hugging Face and contain curated tasks from GAIA, GSM8K, SimpleQA, and MATH. We selected these datasets primarily for a quick evaluation of relative performance between models in a <code>freeact</code> setup, with the additional benefit of enabling comparisons with smolagents. To ensure fair comparisons with <a href="https://huggingface.co/blog/smolagents#how-strong-are-open-models-for-agentic-workflows">their published results</a>, we used identical evaluation protocols and tools.</p>
 <figure>
 <p><a href="../eval/eval-plot.png" target="_blank"><img align="left" alt="architecture" src="../eval/eval-plot.png" /></a></p>
 </figure>
@@ -1166,7 +1172,7 @@
 <figure>
 <p><a href="../eval/eval-plot-comparison.png" target="_blank"><img align="left" alt="architecture" src="../eval/eval-plot-comparison.png" width="60%" /></a></p>
 </figure>
-<p>Interestingly, these results were achieved using zero-shot prompting in <code>freeact</code>, while the smolagents implementation utilizes few-shot prompting. To ensure a fair comparison, we employed identical evaluation protocols and tools. You can find all evaluation details <a href="https://github.com/gradion-ai/freeact/tree/main/evaluation">here</a>.</p>
+<p>Interestingly, these results were achieved using zero-shot prompting in <code>freeact</code>, while the smolagents implementation utilizes few-shot prompting. You can find all evaluation details <a href="https://github.com/gradion-ai/freeact/tree/main/evaluation">here</a>.</p>
 
 
 
