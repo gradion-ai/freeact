@@ -603,6 +603,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#gemini-20-flash-thinking" class="md-nav__link">
+    <span class="md-ellipsis">
+      Gemini 2.0 Flash Thinking
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#qwen-25-coder-32b-instruct" class="md-nav__link">
     <span class="md-ellipsis">
       Qwen 2.5 Coder 32B Instruct
@@ -1276,6 +1285,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#gemini-20-flash-thinking" class="md-nav__link">
+    <span class="md-ellipsis">
+      Gemini 2.0 Flash Thinking
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#qwen-25-coder-32b-instruct" class="md-nav__link">
     <span class="md-ellipsis">
       Qwen 2.5 Coder 32B Instruct
@@ -1351,9 +1369,15 @@
 </tr>
 <tr>
 <td>Gemini 2.0 Flash</td>
-<td>2024-12-11</td>
-<td>✓</td>
+<td>2024-02-05</td>
+<td>✓<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup></td>
 <td>draft</td>
+</tr>
+<tr>
+<td>Gemini 2.0 Flash Thinking</td>
+<td>2024-02-05</td>
+<td>✗</td>
+<td>experimental</td>
 </tr>
 <tr>
 <td>Qwen 2.5 Coder 32B Instruct</td>
@@ -1368,7 +1392,7 @@
 <td>draft</td>
 </tr>
 <tr>
-<td>DeepSeek R1<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup></td>
+<td>DeepSeek R1<sup id="fnref:2"><a class="footnote-ref" href="#fn:2">2</a></sup></td>
 <td></td>
 <td>✓</td>
 <td>experimental</td>
@@ -1405,40 +1429,50 @@
 </span></code></pre></div>
 <h3 id="gemini-20-flash">Gemini 2.0 Flash</h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>python<span class="w"> </span>-m<span class="w"> </span>freeact.cli<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>--model-name<span class="o">=</span>gemini-2.0-flash-exp<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>--model-name<span class="o">=</span>gemini-2.0-flash<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>--ipybox-tag<span class="o">=</span>ghcr.io/gradion-ai/ipybox:basic<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span>--skill-modules<span class="o">=</span>freeact_skills.search.google.stream.api<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span>--api-key<span class="o">=</span><span class="nv">$GOOGLE_API_KEY</span>
 </span></code></pre></div>
-<h3 id="qwen-25-coder-32b-instruct">Qwen 2.5 Coder 32B Instruct</h3>
+<h3 id="gemini-20-flash-thinking">Gemini 2.0 Flash Thinking</h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>-m<span class="w"> </span>freeact.cli<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>--model-name<span class="o">=</span>Qwen/Qwen2.5-Coder-32B-Instruct<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>--model-name<span class="o">=</span>gemini-2.0-flash-thinking-exp<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span>--ipybox-tag<span class="o">=</span>ghcr.io/gradion-ai/ipybox:basic<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span>--skill-modules<span class="o">=</span>freeact_skills.search.google.stream.api<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span>--base-url<span class="o">=</span>https://api-inference.huggingface.co/v1/<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span>--api-key<span class="o">=</span><span class="nv">$HF_TOKEN</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span>--api-key<span class="o">=</span><span class="nv">$GOOGLE_API_KEY</span>
 </span></code></pre></div>
-<h3 id="deepseek-r1">DeepSeek R1</h3>
+<h3 id="qwen-25-coder-32b-instruct">Qwen 2.5 Coder 32B Instruct</h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>-m<span class="w"> </span>freeact.cli<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span>--model-name<span class="o">=</span>accounts/fireworks/models/deepseek-r1<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span>--model-name<span class="o">=</span>Qwen/Qwen2.5-Coder-32B-Instruct<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span>--ipybox-tag<span class="o">=</span>ghcr.io/gradion-ai/ipybox:basic<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span>--skill-modules<span class="o">=</span>freeact_skills.search.google.stream.api<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span>--base-url<span class="o">=</span>https://api.fireworks.ai/inference/v1<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span>--api-key<span class="o">=</span><span class="nv">$FIREWORKS_API_KEY</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span>--base-url<span class="o">=</span>https://api-inference.huggingface.co/v1/<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span>--api-key<span class="o">=</span><span class="nv">$HF_TOKEN</span>
 </span></code></pre></div>
-<h3 id="deepseek-v3">DeepSeek V3</h3>
+<h3 id="deepseek-r1">DeepSeek R1</h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>-m<span class="w"> </span>freeact.cli<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>--model-name<span class="o">=</span>accounts/fireworks/models/deepseek-v3<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>--model-name<span class="o">=</span>accounts/fireworks/models/deepseek-r1<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span>--ipybox-tag<span class="o">=</span>ghcr.io/gradion-ai/ipybox:basic<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span>--skill-modules<span class="o">=</span>freeact_skills.search.google.stream.api<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span>--base-url<span class="o">=</span>https://api.fireworks.ai/inference/v1<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span>--api-key<span class="o">=</span><span class="nv">$FIREWORKS_API_KEY</span>
 </span></code></pre></div>
+<h3 id="deepseek-v3">DeepSeek V3</h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>python<span class="w"> </span>-m<span class="w"> </span>freeact.cli<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>--model-name<span class="o">=</span>accounts/fireworks/models/deepseek-v3<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span>--ipybox-tag<span class="o">=</span>ghcr.io/gradion-ai/ipybox:basic<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span>--skill-modules<span class="o">=</span>freeact_skills.search.google.stream.api<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span>--base-url<span class="o">=</span>https://api.fireworks.ai/inference/v1<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span>--api-key<span class="o">=</span><span class="nv">$FIREWORKS_API_KEY</span>
+</span></code></pre></div>
 <div class="footnote">
 <hr />
 <ol>
 <li id="fn:1">
-<p>DeepSeek R1 wasn't trained on agentic tool use but demonstrates strong performance with code actions, even surpassing Claude 3.5 Sonnet on the GAIA subset in our <a href="../evaluation/">evaluation</a>. However, its token usage for reasoning remains significantly higher than other models, making it impractical for everyday use yet.&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+<p>We evaluated Gemini 2.0 Flash Experimental (<code>gemini-2.0-flash-exp</code>), released on 2024-12-11.&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:2">
+<p>DeepSeek R1 wasn't trained on agentic tool use but demonstrates strong performance with code actions, even surpassing Claude 3.5 Sonnet on the GAIA subset in our <a href="../evaluation/">evaluation</a>. See <a href="https://krasserm.github.io/2025/02/05/deepseek-r1-agent/">this article</a> for further details.&#160;<a class="footnote-backref" href="#fnref:2" title="Jump back to footnote 2 in the text">&#8617;</a></p>
 </li>
 </ol>
 </div>
