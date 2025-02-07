@@ -24,7 +24,7 @@ def gemini(skill_sources, request):
     use_skill_sources = "skill_sources" in request.node.fixturenames  # check if the test requires skill sources
 
     return Gemini(
-        model_name="gemini-2.0-flash-exp",
+        model_name="gemini-2.0-flash",
         skill_sources=skill_sources if use_skill_sources else None,
         temperature=0.0,
         max_tokens=1024,

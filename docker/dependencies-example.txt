@@ -1,4 +1,4 @@
-freeact-skills = {version = "0.0.7", extras = ["all"]}
+freeact-skills = {version = "0.0.8", extras = ["all"]}
 matplotlib = "^3.10"
 numpy = "^2.2"
 pandas = "^2.2"

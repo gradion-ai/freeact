@@ -6,12 +6,14 @@ For the following models, `freeact` provides model-specific prompt templates.
 |-----------------------------|------------|-----------|--------------|
 | Claude 3.5 Sonnet           | 2024-10-22 | ✓         | optimized    |
 | Claude 3.5 Haiku            | 2024-10-22 | ✓         | optimized    |
-| Gemini 2.0 Flash            | 2024-12-11 | ✓         | draft        |
+| Gemini 2.0 Flash            | 2024-02-05 | ✓[^1]     | draft        |
+| Gemini 2.0 Flash Thinking   | 2024-02-05 | ✗         | experimental |
 | Qwen 2.5 Coder 32B Instruct |            | ✓         | draft        |
 | DeepSeek V3                 |            | ✓         | draft        |
-| DeepSeek R1[^1]             |            | ✓         | experimental |
+| DeepSeek R1[^2]             |            | ✓         | experimental |
 
-[^1]: DeepSeek R1 wasn't trained on agentic tool use but demonstrates strong performance with code actions, even surpassing Claude 3.5 Sonnet on the GAIA subset in our [evaluation](evaluation.md). However, its token usage for reasoning remains significantly higher than other models, making it impractical for everyday use yet. 
+[^1]: We evaluated Gemini 2.0 Flash Experimental (`gemini-2.0-flash-exp`), released on 2024-12-11.
+[^2]: DeepSeek R1 wasn't trained on agentic tool use but demonstrates strong performance with code actions, even surpassing Claude 3.5 Sonnet on the GAIA subset in our [evaluation](evaluation.md). See [this article](https://krasserm.github.io/2025/02/05/deepseek-r1-agent/) for further details. 
 
 !!! Info
 
@@ -56,7 +58,17 @@ python -m freeact.cli \
 
 ```bash
 python -m freeact.cli \
-  --model-name=gemini-2.0-flash-exp \
+  --model-name=gemini-2.0-flash \
+  --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
+  --skill-modules=freeact_skills.search.google.stream.api \
+  --api-key=$GOOGLE_API_KEY
+```
+
+### Gemini 2.0 Flash Thinking
+
+```bash
+python -m freeact.cli \
+  --model-name=gemini-2.0-flash-thinking-exp \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
   --skill-modules=freeact_skills.search.google.stream.api \
   --api-key=$GOOGLE_API_KEY

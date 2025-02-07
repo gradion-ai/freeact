@@ -11,13 +11,11 @@
 
 A lightweight library for code-action based agents.
 
-## Contents
-
 - [Introduction](#introduction)
 - [Key capabilities](#key-capabilities)
 - [Quickstart](#quickstart)
 - [Evaluation](#evaluation)
-- [Supported models](#supported-models)
+- [Supported models](https://gradion-ai.github.io/freeact/models/)
 
 ## Introduction
 
@@ -115,7 +113,3 @@ When comparing our results with smolagents using Claude 3.5 Sonnet on [m-ric/age
 [<img src="docs/eval/eval-plot-comparison.png" alt="Performance comparison" width="60%">](docs/eval/eval-plot-comparison.png)
 
 Interestingly, these results were achieved using zero-shot prompting in `freeact`, while the smolagents implementation utilizes few-shot prompting. You can find all evaluation details [here](evaluation).
-
-## Supported models
-
-In addition to all [supported models](https://gradion-ai.github.io/freeact/models/), `freeact` also supports the [integration](https://gradion-ai.github.io/freeact/integration/) of new models from any provider that is compatible with the [OpenAI Python SDK](https://github.com/openai/openai-python), including open models deployed locally with [ollama](https://ollama.com/) or [TGI](https://huggingface.co/docs/text-generation-inference/index), for example.

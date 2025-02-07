@@ -7,10 +7,12 @@ from google.genai.chats import AsyncChat
 from google.genai.types import GenerateContentConfig, ThinkingConfig
 
 from freeact.model.base import CodeActModel, CodeActModelResponse, CodeActModelTurn, StreamRetry
-from freeact.model.gemini.prompt import default, thinking
+from freeact.model.gemini.prompt import EXECUTION_ERROR_TEMPLATE, EXECUTION_OUTPUT_TEMPLATE, SYSTEM_TEMPLATE
 
 GeminiModelName = Literal[
-    "gemini-2.0-flash-exp",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-001",
+    "gemini-2.0-flash-lite-preview-02-05" "gemini-2.0-flash-exp",
     "gemini-2.0-flash-thinking-exp",
     "gemini-2.0-flash-thinking-exp-01-21",
 ]
@@ -39,7 +41,7 @@ class GeminiResponse(CodeActModelResponse):
 
     @staticmethod
     def _extract_code_blocks(text: str):
-        pattern = r"```(?:python|tool_code)\s*(.*?)(?:\s*```|\s*$)"
+        pattern = r"```(?:python|tool_code|tool)\s*(.*?)(?:\s*```|\s*$)"
         return re.findall(pattern, text, re.DOTALL)
 
 
@@ -48,7 +50,6 @@ class GeminiTurn(CodeActModelTurn):
         self.chat = chat
         self.message = message
 
-        self._thoughts: str = ""
         self._response: str = ""
         self._stream_consumed = False
 
@@ -57,35 +58,14 @@ class GeminiTurn(CodeActModelTurn):
             async for _ in self.stream():
                 pass
         # TODO: include token usage data into response object
-        return GeminiResponse(text=self._response, thoughts=self._thoughts, is_error=False)
+        return GeminiResponse(text=self._response, is_error=False)
 
     async def stream(self, emit_retry: bool = False) -> AsyncIterator[str | StreamRetry]:
-        async for chunk in self.chat.send_message_stream(self.message):
+        async for chunk in await self.chat.send_message_stream(self.message):
             text = chunk.text
             if text is not None:
                 yield text
                 self._response += text
-
-        self._stream_consumed = True
-
-
-class GeminiThinkingTurn(GeminiTurn):
-    async def stream(self, emit_retry: bool = False) -> AsyncIterator[str | StreamRetry]:
-        thinking = True
-        yield "<thinking>\n"
-
-        async for chunk in self.chat.send_message_stream(self.message):
-            for part in chunk.candidates[0].content.parts:
-                text = part.text
-                if part.thought:
-                    self._thoughts += text
-                    yield text
-                else:
-                    if thinking:
-                        thinking = False
-                        yield "\n</thinking>\n\n"
-                    yield text
-                    self._response += text
 
         self._stream_consumed = True
 
@@ -103,46 +83,34 @@ class Gemini(CodeActModel):
 
     def __init__(
         self,
-        model_name: GeminiModelName = "gemini-2.0-flash-exp",
+        model_name: GeminiModelName = "gemini-2.0-flash",
         skill_sources: str | None = None,
         temperature: float = 0.0,
         max_tokens: int = 4096,
         **kwargs,
     ):
         self._model_name = model_name
-        self._client = genai.Client(http_options={"api_version": "v1alpha"}, **kwargs)
+        self._client = genai.Client(**kwargs, http_options={"api_version": "v1alpha"})
         self._chat = self._client.aio.chats.create(
             model=model_name,
             config=GenerateContentConfig(
                 temperature=temperature,
                 max_output_tokens=max_tokens,
                 response_modalities=["TEXT"],
-                thinking_config=self.thinking_config,
-                system_instruction=self.system_template.format(python_modules=skill_sources or ""),
+                system_instruction=SYSTEM_TEMPLATE.format(python_modules=skill_sources or ""),
+                thinking_config=ThinkingConfig(include_thoughts=True) if self.thinking else None,
             ),
         )
-
-    def request(self, user_query: str, **kwargs) -> GeminiTurn:
-        return GeminiThinkingTurn(self._chat, user_query) if self.thinking else GeminiTurn(self._chat, user_query)
-
-    def feedback(
-        self, feedback: str, is_error: bool, tool_use_id: str | None, tool_use_name: str | None, **kwargs
-    ) -> GeminiTurn:
-        if self.thinking:
-            feedback_template = thinking.EXECUTION_ERROR_TEMPLATE if is_error else thinking.EXECUTION_OUTPUT_TEMPLATE
-            return GeminiThinkingTurn(self._chat, feedback_template.format(execution_feedback=feedback))
-        else:
-            feedback_template = default.EXECUTION_ERROR_TEMPLATE if is_error else default.EXECUTION_OUTPUT_TEMPLATE
-            return GeminiTurn(self._chat, feedback_template.format(execution_feedback=feedback))
-
-    @property
-    def system_template(self) -> str:
-        return thinking.SYSTEM_TEMPLATE if self.thinking else default.SYSTEM_TEMPLATE
-
-    @property
-    def thinking_config(self) -> ThinkingConfig | None:
-        return ThinkingConfig(include_thoughts=True) if self.thinking else None
 
     @property
     def thinking(self) -> bool:
         return "thinking" in self._model_name.lower()
+
+    def request(self, user_query: str, **kwargs) -> GeminiTurn:
+        return GeminiTurn(self._chat, user_query)
+
+    def feedback(
+        self, feedback: str, is_error: bool, tool_use_id: str | None, tool_use_name: str | None, **kwargs
+    ) -> GeminiTurn:
+        feedback_template = EXECUTION_ERROR_TEMPLATE if is_error else EXECUTION_OUTPUT_TEMPLATE
+        return GeminiTurn(self._chat, feedback_template.format(execution_feedback=feedback))
