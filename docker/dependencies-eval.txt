@@ -1,4 +1,4 @@
-freeact-skills = {version = "^0.0.7", extras = ["all"]}
+freeact-skills = {version = "^0.0.8", extras = ["all"]}
 requests = "^2.32.0"
 markdownify = "^0.14.1"
 matplotlib = "^3.10.0"
