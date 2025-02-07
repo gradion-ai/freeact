@@ -184,7 +184,9 @@ async def test_agent_returns_follow_up_text_response(agent):
     response_1 = await agent_turn_1.response()
     assert "2.13" in response_1.text
 
-    agent_turn_2 = run_agent(agent, "Reply with the result again. Do not generate any code for this.")
+    agent_turn_2 = run_agent(
+        agent, "Show the numerical result again. Do not generate any code for this. Output plain text."
+    )
     output = await collect_output(agent_turn_2)
 
     assert len(output) == 1
