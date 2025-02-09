@@ -6,7 +6,7 @@ from google.genai.live import AsyncSession
 
 from freeact.model.base import CodeActModel, CodeActModelTurn, StreamRetry
 from freeact.model.gemini.model.chat import GeminiModelName, GeminiResponse
-from freeact.model.gemini.prompt import EXECUTION_ERROR_TEMPLATE, EXECUTION_OUTPUT_TEMPLATE, SYSTEM_TEMPLATE
+from freeact.model.gemini.prompt.default import EXECUTION_ERROR_TEMPLATE, EXECUTION_OUTPUT_TEMPLATE, SYSTEM_TEMPLATE
 
 
 class GeminiLiveTurn(CodeActModelTurn):

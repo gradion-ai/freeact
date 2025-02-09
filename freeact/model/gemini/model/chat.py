@@ -7,12 +7,13 @@ from google.genai.chats import AsyncChat
 from google.genai.types import GenerateContentConfig, ThinkingConfig
 
 from freeact.model.base import CodeActModel, CodeActModelResponse, CodeActModelTurn, StreamRetry
-from freeact.model.gemini.prompt import EXECUTION_ERROR_TEMPLATE, EXECUTION_OUTPUT_TEMPLATE, SYSTEM_TEMPLATE
+from freeact.model.gemini.prompt import default, thinking
 
 GeminiModelName = Literal[
     "gemini-2.0-flash",
     "gemini-2.0-flash-001",
-    "gemini-2.0-flash-lite-preview-02-05" "gemini-2.0-flash-exp",
+    "gemini-2.0-flash-lite-preview-02-05",
+    "gemini-2.0-flash-exp",
     "gemini-2.0-flash-thinking-exp",
     "gemini-2.0-flash-thinking-exp-01-21",
 ]
@@ -89,7 +90,26 @@ class Gemini(CodeActModel):
         max_tokens: int = 4096,
         **kwargs,
     ):
-        self._model_name = model_name
+        is_thinking_model = "thinking" in model_name.lower()
+
+        if is_thinking_model:
+            # ------------------------------------------------------
+            #  EXPERIMENTAL
+            # ------------------------------------------------------
+            self.system_template = thinking.SYSTEM_TEMPLATE.format(
+                python_modules=skill_sources or "",
+                python_packages=thinking.EXAMPLE_PYTHON_PACKAGES,
+                rest_apis=thinking.EXAMPLE_REST_APIS,
+            )
+            self.execution_error_template = thinking.EXECUTION_ERROR_TEMPLATE
+            self.execution_output_template = thinking.EXECUTION_OUTPUT_TEMPLATE
+            self.thinking_config = ThinkingConfig(include_thoughts=True)
+        else:
+            self.system_template = default.SYSTEM_TEMPLATE.format(python_modules=skill_sources or "")
+            self.execution_error_template = default.EXECUTION_ERROR_TEMPLATE
+            self.execution_output_template = default.EXECUTION_OUTPUT_TEMPLATE
+            self.thinking_config = None
+
         self._client = genai.Client(**kwargs, http_options={"api_version": "v1alpha"})
         self._chat = self._client.aio.chats.create(
             model=model_name,
@@ -97,14 +117,10 @@ class Gemini(CodeActModel):
                 temperature=temperature,
                 max_output_tokens=max_tokens,
                 response_modalities=["TEXT"],
-                system_instruction=SYSTEM_TEMPLATE.format(python_modules=skill_sources or ""),
-                thinking_config=ThinkingConfig(include_thoughts=True) if self.thinking else None,
+                system_instruction=self.system_template,
+                thinking_config=self.thinking_config,
             ),
         )
-
-    @property
-    def thinking(self) -> bool:
-        return "thinking" in self._model_name.lower()
 
     def request(self, user_query: str, **kwargs) -> GeminiTurn:
         return GeminiTurn(self._chat, user_query)
@@ -112,5 +128,5 @@ class Gemini(CodeActModel):
     def feedback(
         self, feedback: str, is_error: bool, tool_use_id: str | None, tool_use_name: str | None, **kwargs
     ) -> GeminiTurn:
-        feedback_template = EXECUTION_ERROR_TEMPLATE if is_error else EXECUTION_OUTPUT_TEMPLATE
+        feedback_template = self.execution_error_template if is_error else self.execution_output_template
         return GeminiTurn(self._chat, feedback_template.format(execution_feedback=feedback))
