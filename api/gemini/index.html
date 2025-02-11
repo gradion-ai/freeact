@@ -1300,7 +1300,7 @@
   </span>
 
 </h2>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">GeminiModelName</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Literal" href="https://docs.python.org/3/library/typing.html#typing.Literal">Literal</a></span><span class="p">[</span><span class="s1">&#39;gemini-2.0-flash&#39;</span><span class="p">,</span> <span class="s1">&#39;gemini-2.0-flash-001&#39;</span><span class="p">,</span> <span class="s1">&#39;gemini-2.0-flash-lite-preview-02-05gemini-2.0-flash-exp&#39;</span><span class="p">,</span> <span class="s1">&#39;gemini-2.0-flash-thinking-exp&#39;</span><span class="p">,</span> <span class="s1">&#39;gemini-2.0-flash-thinking-exp-01-21&#39;</span><span class="p">]</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">GeminiModelName</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Literal" href="https://docs.python.org/3/library/typing.html#typing.Literal">Literal</a></span><span class="p">[</span><span class="s1">&#39;gemini-2.0-flash&#39;</span><span class="p">,</span> <span class="s1">&#39;gemini-2.0-flash-001&#39;</span><span class="p">,</span> <span class="s1">&#39;gemini-2.0-flash-lite-preview-02-05&#39;</span><span class="p">,</span> <span class="s1">&#39;gemini-2.0-flash-exp&#39;</span><span class="p">,</span> <span class="s1">&#39;gemini-2.0-flash-thinking-exp&#39;</span><span class="p">,</span> <span class="s1">&#39;gemini-2.0-flash-thinking-exp-01-21&#39;</span><span class="p">]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1429,8 +1429,7 @@
 
                   <details class="quote">
                     <summary>Source code in <code>freeact/model/gemini/model/chat.py</code></summary>
-                    <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-84"> 84</a></span>
-<span class="normal"><a href="#__codelineno-0-85"> 85</a></span>
+                    <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-85"> 85</a></span>
 <span class="normal"><a href="#__codelineno-0-86"> 86</a></span>
 <span class="normal"><a href="#__codelineno-0-87"> 87</a></span>
 <span class="normal"><a href="#__codelineno-0-88"> 88</a></span>
@@ -1448,26 +1447,65 @@
 <span class="normal"><a href="#__codelineno-0-100">100</a></span>
 <span class="normal"><a href="#__codelineno-0-101">101</a></span>
 <span class="normal"><a href="#__codelineno-0-102">102</a></span>
-<span class="normal"><a href="#__codelineno-0-103">103</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84"></a><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
-</span><span id="__span-0-85"><a id="__codelineno-0-85" name="__codelineno-0-85"></a>    <span class="bp">self</span><span class="p">,</span>
-</span><span id="__span-0-86"><a id="__codelineno-0-86" name="__codelineno-0-86"></a>    <span class="n">model_name</span><span class="p">:</span> <span class="n">GeminiModelName</span> <span class="o">=</span> <span class="s2">&quot;gemini-2.0-flash&quot;</span><span class="p">,</span>
-</span><span id="__span-0-87"><a id="__codelineno-0-87" name="__codelineno-0-87"></a>    <span class="n">skill_sources</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-88"><a id="__codelineno-0-88" name="__codelineno-0-88"></a>    <span class="n">temperature</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
-</span><span id="__span-0-89"><a id="__codelineno-0-89" name="__codelineno-0-89"></a>    <span class="n">max_tokens</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4096</span><span class="p">,</span>
-</span><span id="__span-0-90"><a id="__codelineno-0-90" name="__codelineno-0-90"></a>    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-</span><span id="__span-0-91"><a id="__codelineno-0-91" name="__codelineno-0-91"></a><span class="p">):</span>
-</span><span id="__span-0-92"><a id="__codelineno-0-92" name="__codelineno-0-92"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">_model_name</span> <span class="o">=</span> <span class="n">model_name</span>
-</span><span id="__span-0-93"><a id="__codelineno-0-93" name="__codelineno-0-93"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="o">=</span> <span class="n">genai</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">http_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;api_version&quot;</span><span class="p">:</span> <span class="s2">&quot;v1alpha&quot;</span><span class="p">})</span>
-</span><span id="__span-0-94"><a id="__codelineno-0-94" name="__codelineno-0-94"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">_chat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">aio</span><span class="o">.</span><span class="n">chats</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-</span><span id="__span-0-95"><a id="__codelineno-0-95" name="__codelineno-0-95"></a>        <span class="n">model</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span>
-</span><span id="__span-0-96"><a id="__codelineno-0-96" name="__codelineno-0-96"></a>        <span class="n">config</span><span class="o">=</span><span class="n">GenerateContentConfig</span><span class="p">(</span>
-</span><span id="__span-0-97"><a id="__codelineno-0-97" name="__codelineno-0-97"></a>            <span class="n">temperature</span><span class="o">=</span><span class="n">temperature</span><span class="p">,</span>
-</span><span id="__span-0-98"><a id="__codelineno-0-98" name="__codelineno-0-98"></a>            <span class="n">max_output_tokens</span><span class="o">=</span><span class="n">max_tokens</span><span class="p">,</span>
-</span><span id="__span-0-99"><a id="__codelineno-0-99" name="__codelineno-0-99"></a>            <span class="n">response_modalities</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;TEXT&quot;</span><span class="p">],</span>
-</span><span id="__span-0-100"><a id="__codelineno-0-100" name="__codelineno-0-100"></a>            <span class="n">system_instruction</span><span class="o">=</span><span class="n">SYSTEM_TEMPLATE</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">python_modules</span><span class="o">=</span><span class="n">skill_sources</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
-</span><span id="__span-0-101"><a id="__codelineno-0-101" name="__codelineno-0-101"></a>            <span class="n">thinking_config</span><span class="o">=</span><span class="n">ThinkingConfig</span><span class="p">(</span><span class="n">include_thoughts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">thinking</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-102"><a id="__codelineno-0-102" name="__codelineno-0-102"></a>        <span class="p">),</span>
-</span><span id="__span-0-103"><a id="__codelineno-0-103" name="__codelineno-0-103"></a>    <span class="p">)</span>
+<span class="normal"><a href="#__codelineno-0-103">103</a></span>
+<span class="normal"><a href="#__codelineno-0-104">104</a></span>
+<span class="normal"><a href="#__codelineno-0-105">105</a></span>
+<span class="normal"><a href="#__codelineno-0-106">106</a></span>
+<span class="normal"><a href="#__codelineno-0-107">107</a></span>
+<span class="normal"><a href="#__codelineno-0-108">108</a></span>
+<span class="normal"><a href="#__codelineno-0-109">109</a></span>
+<span class="normal"><a href="#__codelineno-0-110">110</a></span>
+<span class="normal"><a href="#__codelineno-0-111">111</a></span>
+<span class="normal"><a href="#__codelineno-0-112">112</a></span>
+<span class="normal"><a href="#__codelineno-0-113">113</a></span>
+<span class="normal"><a href="#__codelineno-0-114">114</a></span>
+<span class="normal"><a href="#__codelineno-0-115">115</a></span>
+<span class="normal"><a href="#__codelineno-0-116">116</a></span>
+<span class="normal"><a href="#__codelineno-0-117">117</a></span>
+<span class="normal"><a href="#__codelineno-0-118">118</a></span>
+<span class="normal"><a href="#__codelineno-0-119">119</a></span>
+<span class="normal"><a href="#__codelineno-0-120">120</a></span>
+<span class="normal"><a href="#__codelineno-0-121">121</a></span>
+<span class="normal"><a href="#__codelineno-0-122">122</a></span>
+<span class="normal"><a href="#__codelineno-0-123">123</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-85"><a id="__codelineno-0-85" name="__codelineno-0-85"></a><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+</span><span id="__span-0-86"><a id="__codelineno-0-86" name="__codelineno-0-86"></a>    <span class="bp">self</span><span class="p">,</span>
+</span><span id="__span-0-87"><a id="__codelineno-0-87" name="__codelineno-0-87"></a>    <span class="n">model_name</span><span class="p">:</span> <span class="n">GeminiModelName</span> <span class="o">=</span> <span class="s2">&quot;gemini-2.0-flash&quot;</span><span class="p">,</span>
+</span><span id="__span-0-88"><a id="__codelineno-0-88" name="__codelineno-0-88"></a>    <span class="n">skill_sources</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-89"><a id="__codelineno-0-89" name="__codelineno-0-89"></a>    <span class="n">temperature</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+</span><span id="__span-0-90"><a id="__codelineno-0-90" name="__codelineno-0-90"></a>    <span class="n">max_tokens</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4096</span><span class="p">,</span>
+</span><span id="__span-0-91"><a id="__codelineno-0-91" name="__codelineno-0-91"></a>    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+</span><span id="__span-0-92"><a id="__codelineno-0-92" name="__codelineno-0-92"></a><span class="p">):</span>
+</span><span id="__span-0-93"><a id="__codelineno-0-93" name="__codelineno-0-93"></a>    <span class="n">is_thinking_model</span> <span class="o">=</span> <span class="s2">&quot;thinking&quot;</span> <span class="ow">in</span> <span class="n">model_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+</span><span id="__span-0-94"><a id="__codelineno-0-94" name="__codelineno-0-94"></a>
+</span><span id="__span-0-95"><a id="__codelineno-0-95" name="__codelineno-0-95"></a>    <span class="k">if</span> <span class="n">is_thinking_model</span><span class="p">:</span>
+</span><span id="__span-0-96"><a id="__codelineno-0-96" name="__codelineno-0-96"></a>        <span class="c1"># ------------------------------------------------------</span>
+</span><span id="__span-0-97"><a id="__codelineno-0-97" name="__codelineno-0-97"></a>        <span class="c1">#  EXPERIMENTAL</span>
+</span><span id="__span-0-98"><a id="__codelineno-0-98" name="__codelineno-0-98"></a>        <span class="c1"># ------------------------------------------------------</span>
+</span><span id="__span-0-99"><a id="__codelineno-0-99" name="__codelineno-0-99"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">system_template</span> <span class="o">=</span> <span class="n">thinking</span><span class="o">.</span><span class="n">SYSTEM_TEMPLATE</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+</span><span id="__span-0-100"><a id="__codelineno-0-100" name="__codelineno-0-100"></a>            <span class="n">python_modules</span><span class="o">=</span><span class="n">skill_sources</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+</span><span id="__span-0-101"><a id="__codelineno-0-101" name="__codelineno-0-101"></a>            <span class="n">python_packages</span><span class="o">=</span><span class="n">thinking</span><span class="o">.</span><span class="n">EXAMPLE_PYTHON_PACKAGES</span><span class="p">,</span>
+</span><span id="__span-0-102"><a id="__codelineno-0-102" name="__codelineno-0-102"></a>            <span class="n">rest_apis</span><span class="o">=</span><span class="n">thinking</span><span class="o">.</span><span class="n">EXAMPLE_REST_APIS</span><span class="p">,</span>
+</span><span id="__span-0-103"><a id="__codelineno-0-103" name="__codelineno-0-103"></a>        <span class="p">)</span>
+</span><span id="__span-0-104"><a id="__codelineno-0-104" name="__codelineno-0-104"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">execution_error_template</span> <span class="o">=</span> <span class="n">thinking</span><span class="o">.</span><span class="n">EXECUTION_ERROR_TEMPLATE</span>
+</span><span id="__span-0-105"><a id="__codelineno-0-105" name="__codelineno-0-105"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">execution_output_template</span> <span class="o">=</span> <span class="n">thinking</span><span class="o">.</span><span class="n">EXECUTION_OUTPUT_TEMPLATE</span>
+</span><span id="__span-0-106"><a id="__codelineno-0-106" name="__codelineno-0-106"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">thinking_config</span> <span class="o">=</span> <span class="n">ThinkingConfig</span><span class="p">(</span><span class="n">include_thoughts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-0-107"><a id="__codelineno-0-107" name="__codelineno-0-107"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-108"><a id="__codelineno-0-108" name="__codelineno-0-108"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">system_template</span> <span class="o">=</span> <span class="n">default</span><span class="o">.</span><span class="n">SYSTEM_TEMPLATE</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">python_modules</span><span class="o">=</span><span class="n">skill_sources</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+</span><span id="__span-0-109"><a id="__codelineno-0-109" name="__codelineno-0-109"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">execution_error_template</span> <span class="o">=</span> <span class="n">default</span><span class="o">.</span><span class="n">EXECUTION_ERROR_TEMPLATE</span>
+</span><span id="__span-0-110"><a id="__codelineno-0-110" name="__codelineno-0-110"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">execution_output_template</span> <span class="o">=</span> <span class="n">default</span><span class="o">.</span><span class="n">EXECUTION_OUTPUT_TEMPLATE</span>
+</span><span id="__span-0-111"><a id="__codelineno-0-111" name="__codelineno-0-111"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">thinking_config</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="__span-0-112"><a id="__codelineno-0-112" name="__codelineno-0-112"></a>
+</span><span id="__span-0-113"><a id="__codelineno-0-113" name="__codelineno-0-113"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="o">=</span> <span class="n">genai</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">http_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;api_version&quot;</span><span class="p">:</span> <span class="s2">&quot;v1alpha&quot;</span><span class="p">})</span>
+</span><span id="__span-0-114"><a id="__codelineno-0-114" name="__codelineno-0-114"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">_chat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">aio</span><span class="o">.</span><span class="n">chats</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+</span><span id="__span-0-115"><a id="__codelineno-0-115" name="__codelineno-0-115"></a>        <span class="n">model</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span>
+</span><span id="__span-0-116"><a id="__codelineno-0-116" name="__codelineno-0-116"></a>        <span class="n">config</span><span class="o">=</span><span class="n">GenerateContentConfig</span><span class="p">(</span>
+</span><span id="__span-0-117"><a id="__codelineno-0-117" name="__codelineno-0-117"></a>            <span class="n">temperature</span><span class="o">=</span><span class="n">temperature</span><span class="p">,</span>
+</span><span id="__span-0-118"><a id="__codelineno-0-118" name="__codelineno-0-118"></a>            <span class="n">max_output_tokens</span><span class="o">=</span><span class="n">max_tokens</span><span class="p">,</span>
+</span><span id="__span-0-119"><a id="__codelineno-0-119" name="__codelineno-0-119"></a>            <span class="n">response_modalities</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;TEXT&quot;</span><span class="p">],</span>
+</span><span id="__span-0-120"><a id="__codelineno-0-120" name="__codelineno-0-120"></a>            <span class="n">system_instruction</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">system_template</span><span class="p">,</span>
+</span><span id="__span-0-121"><a id="__codelineno-0-121" name="__codelineno-0-121"></a>            <span class="n">thinking_config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">thinking_config</span><span class="p">,</span>
+</span><span id="__span-0-122"><a id="__codelineno-0-122" name="__codelineno-0-122"></a>        <span class="p">),</span>
+</span><span id="__span-0-123"><a id="__codelineno-0-123" name="__codelineno-0-123"></a>    <span class="p">)</span>
 </span></code></pre></div></td></tr></table></div>
                   </details>
 
