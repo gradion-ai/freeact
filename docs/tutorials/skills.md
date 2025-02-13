@@ -38,7 +38,7 @@ The [example conversation](#example-conversation) below was initiated with the f
 [^1]: The provided skill modules are not needed in this example but included to demonstrate that their usage is optional.
 
 ```shell
---8<-- "freeact/examples/commands.txt:cli-skills"
+--8<-- "examples/commands.txt:cli-skills"
 ```
 
 ### Example conversation
@@ -64,7 +64,7 @@ The example shows a request for weather data from Paris and Berlin, where the ag
 The example conversation was initiated with the following `freeact.cli` command. The developed skill is is read from `workspace/skills/private/example`. If we moved it to `workspace/skills/shared`, it would be available to all executors regardless of their `executor-key` value.
 
 ```shell
---8<-- "freeact/examples/commands.txt:cli-skills-weather"
+--8<-- "examples/commands.txt:cli-skills-weather"
 ```
 
 !!! Note

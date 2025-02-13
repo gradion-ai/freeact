@@ -39,8 +39,8 @@ Although we could instantiate `GenericModel` directly with these prompt template
 
 Here's a Python example that uses `QwenCoder` as code action model in a `freeact` agent. The model is accessed via the Hugging Face Inference API:
 
-```python title="freeact/examples/qwen.py"
---8<-- "freeact/examples/qwen.py"
+```python title="examples/qwen.py"
+--8<-- "examples/qwen.py"
 ```
 
 1. Your Hugging Face [user access token](https://huggingface.co/docs/hub/en/security-tokens)

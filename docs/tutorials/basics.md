@@ -7,14 +7,14 @@ A `freeact` agent system consists of:
 - A code action model that generates *code actions* to be executed by the executor. Models must implement the interfaces defined in the [`freeact.model`](../api/model.md) package. This tutorial uses [`Claude`][freeact.model.claude.model.Claude], configured with `claude-3-5-sonnet-20241022` as model name.
 - A [`CodeActAgent`][freeact.agent.CodeActAgent] configured with both the model and executor. It orchestrates their interaction until a final response is ready.
 
-```python title="freeact/examples/basics.py"
---8<-- "freeact/examples/basics.py"
+```python title="examples/basics.py"
+--8<-- "examples/basics.py"
 ```
 
 1.  
-```python title="freeact/examples/utils.py::stream_conversation"
---8<-- "freeact/examples/utils.py:stream_conversation"
---8<-- "freeact/examples/utils.py:stream_turn"
+```python title="examples/utils.py::stream_conversation"
+--8<-- "examples/utils.py:stream_conversation"
+--8<-- "examples/utils.py:stream_turn"
 ```
 
 2. Tag of the `ipybox` Docker image.
@@ -35,9 +35,9 @@ A `CodeActAgent` can engage in multi-turn conversations with a user. Each turn i
 { .annotate }
 
 1.  
-```python title="freeact/examples/utils.py::stream_conversation"
---8<-- "freeact/examples/utils.py:stream_conversation"
---8<-- "freeact/examples/utils.py:stream_turn"
+```python title="examples/utils.py::stream_conversation"
+--8<-- "examples/utils.py:stream_conversation"
+--8<-- "examples/utils.py:stream_turn"
 ```
 
 This tutorial uses the `freeact_skills.search.google.stream.api` skill module from the [`freeact-skills`](https://gradion-ai.github.io/freeact-skills/) project to process queries that require internet searches. This module provides generative Google search capabilities powered by the Gemini 2 API.
@@ -63,22 +63,30 @@ The tutorials use the prebuilt [`ghcr.io/gradion-ai/ipybox:example`](../environm
 
 ## Running
 
-The Python example above is part of the `freeact` package and can be run with:
+Download the Python example
 
 ```shell
-python -m freeact.examples.basics
+mkdir examples
+curl -o examples/basics.py https://raw.githubusercontent.com/gradion-ai/freeact/refs/heads/main/freeact/examples/basics.py
+curl -o examples/utils.py https://raw.githubusercontent.com/gradion-ai/freeact/refs/heads/main/freeact/examples/utils.py
+```
+
+and run it with:
+
+```shell
+python examples/basics.py
 ```
 
 For formatted and colored console output, as shown in the [example conversation](#example-conversation), you can use the `freeact` [CLI](../cli.md):
 
 ```shell
---8<-- "freeact/examples/commands.txt:cli-basics-claude"
+--8<-- "examples/commands.txt:cli-basics-claude"
 ```
 
 To use Gemini instead of Claude, run:
 
 ```shell
---8<-- "freeact/examples/commands.txt:cli-basics-gemini"
+--8<-- "examples/commands.txt:cli-basics-gemini"
 ```
 
 See also [Supported models](../models.md) for other CLI examples.

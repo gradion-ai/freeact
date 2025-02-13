@@ -27,8 +27,8 @@ python -m freeact.cli \
 
 or an equivalent Python script:
 
-```python title="freeact/examples/quickstart.py"
---8<-- "freeact/examples/quickstart.py"
+```python title="examples/quickstart.py"
+--8<-- "examples/quickstart.py"
 ```
 
 Once launched, you can start interacting with the agent:
