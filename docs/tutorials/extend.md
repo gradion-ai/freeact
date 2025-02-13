@@ -12,13 +12,13 @@ This tutorial demonstrates how `freeact` agents can be customized through system
 The [example conversation](#example-conversation) below was guided by this system extension:
 
 ```text title="extension.txt"
---8<-- "freeact/examples/extension.txt"
+--8<-- "examples/extension.txt"
 ```
 
 It was initiated with the following `freeact.cli` command, referencing the `extension.txt` file with the `--system-extension` option and reusing the developed `weather.weather_report` skill from the [Skill development](skills.md) tutorial.
 
 ```shell
---8<-- "freeact/examples/commands.txt:cli-extension"
+--8<-- "examples/commands.txt:cli-extension"
 ```
 
 ### Example conversation

@@ -56,7 +56,7 @@ python -m freeact.cli \
   --skill-modules=freeact_skills.search.google.stream.api
 ```
 
-or an equivalent [quickstart.py](freeact/examples/quickstart.py) script:
+or an equivalent [quickstart.py](examples/quickstart.py) script:
 
 ```python
 import asyncio

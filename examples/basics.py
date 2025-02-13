@@ -3,13 +3,13 @@ import os
 
 from dotenv import load_dotenv
 
+from examples.utils import stream_conversation
 from freeact import (
     Claude,
     CodeActAgent,
     CodeExecutionContainer,
     CodeExecutor,
 )
-from freeact.examples.utils import stream_conversation
 from freeact.logger import Logger
 
 
