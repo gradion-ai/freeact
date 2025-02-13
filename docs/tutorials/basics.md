@@ -67,8 +67,8 @@ Download the Python example
 
 ```shell
 mkdir examples
-curl -o examples/basics.py https://raw.githubusercontent.com/gradion-ai/freeact/refs/heads/main/freeact/examples/basics.py
-curl -o examples/utils.py https://raw.githubusercontent.com/gradion-ai/freeact/refs/heads/main/freeact/examples/utils.py
+curl -o examples/basics.py https://raw.githubusercontent.com/gradion-ai/freeact/refs/heads/main/examples/basics.py
+curl -o examples/utils.py https://raw.githubusercontent.com/gradion-ai/freeact/refs/heads/main/examples/utils.py
 ```
 
 and run it with:
