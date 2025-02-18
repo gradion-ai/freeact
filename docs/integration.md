@@ -3,33 +3,33 @@
 `freeact` provides both a low-level and high-level API for integrating new models.
 
 - The [low-level API](api/model.md) defines the `CodeActModel` interface and related abstractions
-- The [high-level API](api/generic.md) provides a `GenericModel` class based on the [OpenAI Python SDK](https://github.com/openai/openai-python)
+- The [high-level API](api/litellm.md) provides a `LiteLLM` class based on the [LiteLLM Python SDK](https://docs.litellm.ai/docs/#litellm-python-sdk)
 
 ### Low-level API
 
-The low-level API is not further described here. For implementation examples, see the [`freeact.model.claude`](https://github.com/gradion-ai/freeact/tree/main/freeact/model/claude) or [`freeact.model.gemini`](https://github.com/gradion-ai/freeact/tree/main/freeact/model/gemini) packages.
+The low-level API is not further described here. For implementation examples, see the [`freeact.model.litellm.model`](https://github.com/gradion-ai/freeact/tree/main/freeact/model/litellm/model.py) or [`freeact.model.gemini.live`](https://github.com/gradion-ai/freeact/tree/main/freeact/model/gemini/live.py) modules.
 
 ### High-level API
 
-The high-level API supports usage of models from any provider that is compatible with the [OpenAI Python SDK](https://github.com/openai/openai-python). To use a model, you need to provide prompt templates that guide it to generate code actions. You can either reuse existing templates or create your own.
+The high-level API supports usage of models from any provider that is compatible with the [LiteLLM Python SDK](https://docs.litellm.ai/docs/#litellm-python-sdk). To use a model, you need to provide prompt templates that guide it to generate code actions. You can either reuse existing templates or create your own.
 
-The following subsections demonstrate this using Qwen 2.5 Coder 32B Instruct as an example, showing how to use it both via the [Hugging Face Inference API](https://huggingface.co/docs/api-inference/index) and locally with [ollama](https://ollama.com/).
+The following subsections demonstrate this using Qwen 2.5 Coder 32B Instruct as an example, showing how to use it both via the [Fireworks](https://docs.fireworks.ai/) API and locally with [ollama](https://ollama.com/).
 
 #### Prompt templates
 
 Start with model-specific prompt templates that guide Qwen 2.5 Coder Instruct models to generate code actions. For example:
 
-```python title="freeact/model/qwen/prompt.py"
+`````python title="freeact/model/qwen/prompt.py"
 --8<-- "freeact/model/qwen/prompt.py"
-```
+`````
 
 !!! Tip
 
-    While tested with Qwen 2.5 Coder Instruct, these prompt templates can also serve as a good starting point for other models (as we did for DeepSeek V3, for example).
+    While tested with Qwen 2.5 Coder Instruct, these prompt templates can also serve as starting point for other models.
 
 #### Model definition
 
-Although we could instantiate `GenericModel` directly with these prompt templates, `freeact` provides a `QwenCoder` subclass for convenience:
+Although we could instantiate `LiteLLM` directly with these prompt templates, `freeact` provides a `QwenCoder` subclass for convenience:
 
 ```python title="freeact/model/qwen/model.py"
 --8<-- "freeact/model/qwen/model.py"
@@ -37,7 +37,7 @@ Although we could instantiate `GenericModel` directly with these prompt template
 
 #### Model usage
 
-Here's a Python example that uses `QwenCoder` as code action model in a `freeact` agent. The model is accessed via the Hugging Face Inference API:
+Here's a Python example that uses `QwenCoder` as code action model in a `freeact` agent. The model is accessed via the Fireworks API:
 
 ```python title="examples/qwen.py"
 --8<-- "examples/qwen.py"
@@ -50,27 +50,25 @@ Here's a Python example that uses `QwenCoder` as code action model in a `freeact
 Run it with:
 
 ```bash
-HF_TOKEN=... python -m freeact.examples.qwen
+FIREWORKS_API_KEY=... python -m freeact.examples.qwen
 ```
 
 Alternatively, use the `freeact` [CLI](cli.md) directly:
 
 ```bash
 python -m freeact.cli \
-  --model-name=Qwen/Qwen2.5-Coder-32B-Instruct \
-  --base-url=https://api-inference.huggingface.co/v1/ \
-  --api-key=$HF_TOKEN \
+  --model-name=fireworks_ai/accounts/fireworks/models/qwen2p5-coder-32b-instruct \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
-  --skill-modules=freeact_skills.search.google.stream.api
+  --skill-modules=freeact_skills.search.google.stream.api \
+  --api-key=$FIREWORKS_API_KEY
 ```
 
-For using the same model deployed locally with [ollama](https://ollama.com/), modify `--model-name`, `--base-url` and `--api-key` to match your local deployment:
+For using the same model deployed locally with [ollama](https://ollama.com/), modify `--model-name`, remove `--api-key` and set `--base-url` to match your local deployment:
 
 ```bash
 python -m freeact.cli \
-  --model-name=qwen2.5-coder:32b-instruct-fp16 \
-  --base-url=http://localhost:11434/v1 \
-  --api-key=ollama \
+  --model-name=ollama/qwen2.5-coder:32b-instruct-fp16 \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
-  --skill-modules=freeact_skills.search.google.stream.api
+  --skill-modules=freeact_skills.search.google.stream.api \
+  --base-url=http://localhost:11434
 ```

@@ -14,7 +14,7 @@ async def main():
             module_names=["freeact_skills.search.google.stream.api"],
         )
 
-        model = Claude(model_name="claude-3-5-sonnet-20241022", logger=env.logger)
+        model = Claude(model_name="anthropic/claude-3-5-sonnet-20241022")
         agent = CodeActAgent(model=model, executor=env.executor)
         await stream_conversation(agent, console=Console(), skill_sources=skill_sources)
 

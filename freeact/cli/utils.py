@@ -97,9 +97,7 @@ async def stream_turn(agent_turn: CodeActAgentTurn, console: Console, show_token
                     console.print()
 
                 if show_token_usage and response.token_usage:
-                    token_usage_str = ", ".join(f"{k}={v}" for k, v in response.token_usage.items())
-                    console.print()
-                    console.print(f"{{{token_usage_str}}}]", highlight=False, style="grey23")
+                    pass  # not supported at the moment
 
             case CodeExecution() as execution:
                 console.print(Rule("Execution result", style="white", characters="━"))

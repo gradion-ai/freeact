@@ -11,6 +11,12 @@ Additionally, you can also use modules defined in the following <python-modules>
 </python-modules>
 
 Important: import these <python-modules> before using them.
+
+Write code in the following format:
+
+```python
+...
+```
 """
 
 EXECUTION_OUTPUT_TEMPLATE = """Here are the execution results of the code you generated:

@@ -2,7 +2,6 @@ from freeact.agent import CodeActAgent, CodeActAgentResponse, CodeActAgentTurn, 
 from freeact.executor import CodeExecutionContainer, CodeExecutionEnvironment, CodeExecutor, execution_environment
 from freeact.model import (
     Claude,
-    ClaudeModelName,
     CodeActModel,
     CodeActModelResponse,
     CodeActModelTurn,
@@ -10,7 +9,7 @@ from freeact.model import (
     DeepSeekV3,
     Gemini,
     GeminiLive,
-    GeminiModelName,
-    GenericModel,
+    LiteLLM,
+    LiteLLMBase,
     QwenCoder,
 )

@@ -76,27 +76,39 @@ Then run the evaluation script for each model:
 ```bash
 python evaluation/evaluate.py \
     --model-name claude-3-5-sonnet-20241022 \
-    --run-id claude-3-5-sonnet-20241022
+    --run-id claude-3-5-sonnet-20241022 \
+    --subset SimpleQA \
+    --debug
 
 python evaluation/evaluate.py \
     --model-name claude-3-5-haiku-20241022 \
-    --run-id claude-3-5-haiku-20241022
+    --run-id claude-3-5-haiku-20241022 \
+    --subset SimpleQA \
+    --debug
 
 python evaluation/evaluate.py \
     --model-name gemini-2.0-flash-exp \
-    --run-id gemini-2.0-flash-exp
+    --run-id gemini-2.0-flash-exp \
+    --subset SimpleQA \
+    --debug
 
 python evaluation/evaluate.py \
     --model-name qwen2p5-coder-32b-instruct \
-    --run-id qwen2p5-coder-32b-instruct
+    --run-id qwen2p5-coder-32b-instruct \
+    --subset SimpleQA \
+    --debug
 
 python evaluation/evaluate.py \
     --model-name deepseek-v3 \
-    --run-id deepseek-v3
+    --run-id deepseek-v3 \
+    --subset SimpleQA \
+    --debug
 
 python evaluation/evaluate.py \
     --model-name deepseek-r1 \
-    --run-id deepseek-r1
+    --run-id deepseek-r1 \
+    --subset SimpleQA \
+    --debug
 ```
 
 Results are saved in `output/evaluation/<run-id>`. Pre-generated outputs from our runs are available [here](https://github.com/user-attachments/files/18655103/evaluation-results-agents-5_medium_benchmark_2.zip).

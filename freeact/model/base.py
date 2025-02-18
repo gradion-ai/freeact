@@ -46,21 +46,6 @@ class CodeActModelResponse(ABC):
         """Executable code from the model response if present."""
 
 
-@dataclass
-class StreamRetry:
-    """Emitted in a response stream to inform about a retry event.
-
-    Used when streaming responses encounter temporary failures and need to retry.
-
-    Attributes:
-        cause: The reason for the retry attempt.
-        retry_wait_time: Time in seconds to wait before retrying.
-    """
-
-    cause: str
-    retry_wait_time: float
-
-
 class CodeActModelTurn(ABC):
     """A single turn of interaction with a code action model.
 
@@ -78,19 +63,11 @@ class CodeActModelTurn(ABC):
         """
 
     @abstractmethod
-    def stream(self, emit_retry: bool = False) -> AsyncIterator[str | StreamRetry]:
+    def stream(self) -> AsyncIterator[str]:
         """Stream the model's response as it is generated.
 
         Yields chunks of the response as they become available, allowing for
         real-time processing of model output.
-
-        Args:
-            emit_retry (bool): If `True`, emit `StreamRetry` objects when retries occur.
-                             If `False`, handle retries silently. Defaults to `False`.
-
-        Yields:
-            str | StreamRetry: Either a chunk of the response text, or a `StreamRetry`
-                             object if a retry event occurs and `emit_retry` is `True`.
         """
 
 

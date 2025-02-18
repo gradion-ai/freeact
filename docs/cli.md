@@ -17,7 +17,7 @@ The `freeact` CLI supports entering messages that span multiple lines in two way
 1. **Copy-paste**: You can directly copy and paste multiline content into the CLI
 2. **Manual entry**: Press `Alt+Enter` (Linux/Windows) or `Option+Enter` (macOS) to add a new line while typing
 
-To submit a multiline message, simply press `Enter`.
+To submit a multiline message for processing, simply press `Enter`.
 
 ![Multiline input](img/multiline.png)
 
@@ -42,42 +42,44 @@ This is shown by example in the following two subsections.
 
 ### Example 1
 
-The [quickstart](quickstart.md) example requires `ANTHROPIC_API_KEY` and `GOOGLE_API_KEY` to be defined in a `.env` file in the current directory. The `ANTHROPIC_API_KEY` is needed for the `claude-3-5-sonnet-20241022` code action model, while the `GOOGLE_API_KEY` is required for the `freeact_skills.search.google.stream.api` skill in the execution environment. Given a `.env` file with the following content:
+The [quickstart](quickstart.md) example requires `ANTHROPIC_API_KEY` and `GOOGLE_API_KEY` to be defined in a `.env` file in the current directory. The `ANTHROPIC_API_KEY` is needed for the `anthropic/claude-3-5-sonnet-20241022` code action model, while the `GOOGLE_API_KEY` is required for the `freeact_skills.search.google.stream.api` skill in the execution environment. Given the following `.env` file
 
 ```env title=".env"
-# Required for Claude 3.5 Sonnet
+# Required by agents that use a Claude 3.5 model as code action model
 ANTHROPIC_API_KEY=...
 
-# Required for generative Google Search via Gemini 2
+# Required for Google Search via Gemini 2 in the execution environment
 GOOGLE_API_KEY=...
 ```
 
-the following command will launch an agent with `claude-3-5-sonnet-20241022` as code action model configured with a generative Google search skill implemented by module `freeact_skills.search.google.stream.api`:
+you can launch an agent with `anthropic/claude-3-5-sonnet-20241022` as code action model, configured with a generative Google search skill implemented by module `freeact_skills.search.google.stream.api`, with the following command:
 
 ```bash
 python -m freeact.cli \
-  --model-name=claude-3-5-sonnet-20241022 \
+  --model-name=anthropic/claude-3-5-sonnet-20241022 \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
   --skill-modules=freeact_skills.search.google.stream.api
 ```
 
-The API key can alternatively be passed as command-line argument:
+The API key for the code action model can alternatively be passed as command-line argument:
 
 ```bash
 python -m freeact.cli \
-  --model-name=claude-3-5-sonnet-20241022 \
+  --model-name=anthropic/claude-3-5-sonnet-20241022 \
   --api-key=$ANTHROPIC_API_KEY \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
   --skill-modules=freeact_skills.search.google.stream.api
 ```
 
+!!! note
+    Valid model names are those accepted by [LiteLLM](https://www.litellm.ai/).
+
 ### Example 2
 
-To use models from other providers, such as [accounts/fireworks/models/deepseek-v3](https://fireworks.ai/models/fireworks/deepseek-v3) hosted by [Fireworks](https://fireworks.ai/), you can either provide all required environment variables in a `.env` file:
+To use models from other providers, such as [fireworks_ai/accounts/fireworks/models/deepseek-v3](https://fireworks.ai/models/fireworks/deepseek-v3), you can either provide all required environment variables in a `.env` file:
 
 ```env title=".env"
 # Required for DeepSeek V3 hosted by Fireworks
-DEEPSEEK_BASE_URL=https://api.fireworks.ai/inference/v1
 DEEPSEEK_API_KEY=...
 
 # Required for generative Google Search via Gemini 2
@@ -88,17 +90,16 @@ and launch the agent with
 
 ```bash
 python -m freeact.cli \
-  --model-name=accounts/fireworks/models/deepseek-v3 \
+  --model-name=fireworks_ai/accounts/fireworks/models/deepseek-v3 \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
   --skill-modules=freeact_skills.search.google.stream.api
 ```
 
-or pass the base URL and API key directly as command-line arguments:
+or pass the API key directly as command-line arguments:
 
 ```bash
 python -m freeact.cli \
-  --model-name=accounts/fireworks/models/deepseek-v3 \
-  --base-url=https://api.fireworks.ai/inference/v1 \
+  --model-name=fireworks_ai/accounts/fireworks/models/deepseek-v3 \
   --api-key=$DEEPSEEK_API_KEY \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
   --skill-modules=freeact_skills.search.google.stream.api
