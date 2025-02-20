@@ -45,6 +45,7 @@ class Claude(LiteLLMBase):
             model_name=model_name,
             system_instruction=self.system_message,
             tools=[CODE_EXECUTOR_TOOL, CODE_EDITOR_TOOL],
+            parallel_tool_calls=False,
             **kwargs,
         )
 
