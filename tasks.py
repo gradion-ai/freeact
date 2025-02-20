@@ -44,7 +44,7 @@ def integration_test(c, cov=False, cov_report=None):
 
 
 def _run_pytest(c, test_dir, cov=False, cov_report=None):
-    c.run(f"pytest {test_dir} {_pytest_cov_options(cov, cov_report)} --no-flaky-report", pty=_use_pty())
+    c.run(f"pytest {test_dir} {_pytest_cov_options(cov, cov_report)}", pty=_use_pty())
 
 
 def _use_pty():

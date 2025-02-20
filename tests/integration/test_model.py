@@ -1,12 +1,6 @@
 import pytest
 
 from freeact.model.claude.model import Claude
-from freeact.model.gemini.model.chat import Gemini
-from freeact.model.qwen.model import QwenCoder
-from tests.helpers.flaky import rerun_on_google_genai_resource_exhausted
-
-GEMINI_BACKOFF_WAIT_TIME = 5
-GEMINI_BACKOFF_MAX_RETRIES = 10
 
 CUSTOM_SKILL_SOURCES = """
     def custom_pow(base, exponent):
@@ -19,38 +13,10 @@ def skill_sources():
     return CUSTOM_SKILL_SOURCES
 
 
-@pytest.fixture
-def gemini(skill_sources, request):
-    use_skill_sources = "skill_sources" in request.node.fixturenames  # check if the test requires skill sources
-
-    return Gemini(
-        model_name="gemini-2.0-flash",
-        skill_sources=skill_sources if use_skill_sources else None,
-        temperature=0.0,
-        max_tokens=1024,
-    )
-
-
-@pytest.fixture
-def qwen_coder(qwen_model_name, skill_sources, request):
-    use_skill_sources = "skill_sources" in request.node.fixturenames  # check if the test requires skill sources
-
-    return QwenCoder(
-        model_name=qwen_model_name,
-        skill_sources=skill_sources if use_skill_sources else None,
-    )
-
-
 @pytest.fixture(
     params=[
         pytest.param("claude"),
-        pytest.param(
-            "gemini",
-            marks=pytest.mark.flaky(
-                max_runs=GEMINI_BACKOFF_MAX_RETRIES,
-                rerun_filter=rerun_on_google_genai_resource_exhausted(GEMINI_BACKOFF_WAIT_TIME),
-            ),
-        ),
+        pytest.param("gemini"),
         pytest.param("qwen_coder"),
     ]
 )
@@ -58,7 +24,7 @@ def model(request):
     return request.getfixturevalue(request.param)
 
 
-def run_model(model, user_query: str, skill_sources: str | None = None):
+def create_turn(model, user_query: str, skill_sources: str | None = None):
     kwargs = {}
     if isinstance(model, Claude):
         kwargs["skill_sources"] = skill_sources
@@ -69,20 +35,19 @@ def run_model(model, user_query: str, skill_sources: str | None = None):
     )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="package")
 async def test_model_returns_text_response(model):
-    turn = run_model(model, "Do not generate any code. Just respond with the text 'Hello, world!'")
+    turn = create_turn(model, "Do not generate any code. Just respond with the text 'Hello, world!'")
     response = await turn.response()
 
     assert response.text.strip() == "Hello, world!"
     assert response.code is None
     assert response.is_error is False
-    assert response.token_usage is not None
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="package")
 async def test_model_returns_code_response(model):
-    turn = run_model(model, "What is 25 raised to the power of 0.235? Use the math library to solve this problem.")
+    turn = create_turn(model, "What is 25 raised to the power of 0.235? Use the math library to solve this problem.")
     response = await turn.response()
 
     assert response.text is not None
@@ -91,9 +56,9 @@ async def test_model_returns_code_response(model):
     assert "math.pow(25, 0.235)" in response.code
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="package")
 async def test_model_returns_text_response_on_success_feedback(model):
-    turn_1 = run_model(model, "What is 25 raised to the power of 0.235? Use the math library to solve this problem.")
+    turn_1 = create_turn(model, "What is 25 raised to the power of 0.235? Use the math library to solve this problem.")
     response_1 = await turn_1.response()
 
     assert response_1.text is not None
@@ -113,9 +78,9 @@ async def test_model_returns_text_response_on_success_feedback(model):
     assert "2.13" in response_2.text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="package")
 async def test_model_returns_code_to_recover_on_error_feedback(model):
-    turn_1 = run_model(model, "What is 25 raised to the power of 0.235? Use the math library to solve this problem.")
+    turn_1 = create_turn(model, "What is 25 raised to the power of 0.235? Use the math library to solve this problem.")
     response_1 = await turn_1.response()
 
     assert response_1.text is not None
@@ -136,9 +101,9 @@ async def test_model_returns_code_to_recover_on_error_feedback(model):
     assert "math.pow(25, 0.235)" in response_2.code
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="package")
 async def test_model_uses_custom_skill_in_code(model, skill_sources):
-    turn = run_model(
+    turn = create_turn(
         model,
         "What is 25 raised to the power of 0.235? Use one of the custom Python modules to solve this problem. IMPORTANT: If you cannot find a module only print the text 'Module not found' nothing else.",
         skill_sources,

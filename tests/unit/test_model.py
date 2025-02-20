@@ -1,7 +1,6 @@
 from typing import AsyncIterator, List
 
 from freeact.agent import CodeActModel, CodeActModelResponse, CodeActModelTurn
-from freeact.model.base import StreamRetry
 
 
 class MockModelResponse(CodeActModelResponse):
@@ -34,7 +33,7 @@ class MockModelTurn(CodeActModelTurn):
     async def response(self) -> CodeActModelResponse:
         return self.response_obj
 
-    async def stream(self, emit_retry: bool = False) -> AsyncIterator[str | StreamRetry]:
+    async def stream(self) -> AsyncIterator[str]:
         for chunk in self.stream_chunks:
             yield chunk
 

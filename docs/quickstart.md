@@ -20,7 +20,7 @@ Launch a `freeact` agent with generative Google Search skill using the [CLI](cli
 
 ```bash
 python -m freeact.cli \
-  --model-name=claude-3-5-sonnet-20241022 \
+  --model-name=anthropic/claude-3-5-sonnet-20241022 \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
   --skill-modules=freeact_skills.search.google.stream.api
 ```
@@ -30,6 +30,9 @@ or an equivalent Python script:
 ```python title="examples/quickstart.py"
 --8<-- "examples/quickstart.py"
 ```
+
+!!! note
+    Valid model names are those accepted by [LiteLLM](https://www.litellm.ai/).
 
 Once launched, you can start interacting with the agent:
 

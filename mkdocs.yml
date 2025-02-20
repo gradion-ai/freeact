@@ -106,8 +106,8 @@ nav:
     - Model: api/model.md
     - Logger: api/logger.md
     - Models:
+      - LiteLLM: api/litellm.md
       - Claude: api/claude.md
       - Gemini: api/gemini.md
-      - Generic: api/generic.md
-      - Qwen: api/qwen.md
       - DeepSeek: api/deepseek.md
+      - Qwen: api/qwen.md

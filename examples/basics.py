@@ -10,7 +10,6 @@ from freeact import (
     CodeExecutionContainer,
     CodeExecutor,
 )
-from freeact.logger import Logger
 
 
 async def main():
@@ -32,10 +31,9 @@ async def main():
             skill_sources = await executor.get_module_sources(
                 ["freeact_skills.search.google.stream.api"],  # (6)!
             )
-            async with Logger(file="logs/agent.log") as logger:  # (7)!
-                model = Claude(model_name="claude-3-5-sonnet-20241022", logger=logger)
-                agent = CodeActAgent(model=model, executor=executor)
-                await stream_conversation(agent, skill_sources=skill_sources)  # (1)!
+            model = Claude(model_name="anthropic/claude-3-5-sonnet-20241022")  # (7)!
+            agent = CodeActAgent(model=model, executor=executor)
+            await stream_conversation(agent, skill_sources=skill_sources)  # (1)!
 
 
 if __name__ == "__main__":

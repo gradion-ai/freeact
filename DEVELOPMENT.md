@@ -34,18 +34,16 @@ Install pre-commit hooks:
 invoke precommit-install
 ```
 
-Create a `.env` file with [Anthropic](https://console.anthropic.com/settings/keys) and [Gemini](https://aistudio.google.com/app/apikey) API keys:
+Create a `.env` file with [Anthropic](https://console.anthropic.com/settings/keys), [Gemini](https://aistudio.google.com/app/apikey) and [Fireworks](https://fireworks.ai/account/api-keys) API keys:
 
 ```env title=".env"
-# Required for Claude 3.5 Sonnet
+# Required integration tests with Claude 3.5 Haiku
 ANTHROPIC_API_KEY=...
 
-# Required for generative Google Search via Gemini 2
+# Required integration tests with Gemini 2. Flash
 GOOGLE_API_KEY=...
 
-# Required to run integration tests using Qwen models via HuggingFace API
-QWEN_MODEL_NAME=Qwen/Qwen2.5-Coder-32B-Instruct
-QWEN_BASE_URL=https://api-inference.huggingface.co/v1/
+# Required integration tests with Qwen 2.5 Coder
 QWEN_API_KEY=...
 ```
 

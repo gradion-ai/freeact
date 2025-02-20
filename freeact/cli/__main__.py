@@ -64,7 +64,6 @@ async def amain(
                 model_name=model_name,  # type: ignore
                 system_extension=system_extension_str,
                 prompt_caching=True,
-                logger=env.logger,
                 api_key=api_key,
                 base_url=base_url,
             )
@@ -73,9 +72,8 @@ async def amain(
             model = Gemini(
                 model_name=model_name,  # type: ignore
                 skill_sources=skill_sources,
-                temperature=temperature,
-                max_tokens=max_tokens,
                 api_key=api_key,
+                base_url=base_url,
             )
         elif "qwen" in model_name.lower():
             model = QwenCoder(
@@ -94,9 +92,9 @@ async def amain(
         elif "deepseek-r1" in model_name.lower():
             model = DeepSeekR1(
                 model_name=model_name,
+                skill_sources=skill_sources,
                 api_key=api_key,
                 base_url=base_url,
-                skill_sources=skill_sources,
             )
         else:
             typer.echo(f"Unsupported model: {model_name}", err=True)
@@ -117,7 +115,7 @@ async def amain(
 
 @app.command()
 def main(
-    model_name: Annotated[str, typer.Option(help="Name of the model")] = "claude-3-5-sonnet-20241022",
+    model_name: Annotated[str, typer.Option(help="Name of the model")] = "anthropic/claude-3-5-sonnet-20241022",
     api_key: Annotated[str | None, typer.Option(help="API key of the model")] = None,
     base_url: Annotated[str | None, typer.Option(help="Base URL of the model")] = None,
     ipybox_tag: Annotated[str, typer.Option(help="Tag of the ipybox Docker image")] = "ghcr.io/gradion-ai/ipybox:basic",

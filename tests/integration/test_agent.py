@@ -4,21 +4,16 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+import pytest_asyncio
 
 from freeact.agent import CodeActAgent, CodeActAgentTurn, CodeExecution, CodeExecutionResult
 from freeact.executor import CodeExecutionContainer, CodeExecutor
 from freeact.model.base import CodeActModelResponse, CodeActModelTurn
 from freeact.model.claude.model import Claude
-from freeact.model.gemini.model.chat import Gemini
-from freeact.model.qwen.model import QwenCoder
 from tests import TEST_ROOT_PATH
-from tests.helpers.flaky import rerun_on_google_genai_resource_exhausted
-
-GEMINI_BACKOFF_WAIT_TIME = 5
-GEMINI_BACKOFF_MAX_RETRIES = 10
 
 
-@pytest.fixture(scope="module")
+@pytest_asyncio.fixture
 async def workspace():
     with tempfile.TemporaryDirectory() as temp_dir:
         shared_skills_path = Path(temp_dir) / "skills" / "shared" / "user_repository"
@@ -29,7 +24,7 @@ async def workspace():
         yield temp_dir
 
 
-@pytest.fixture(scope="module")
+@pytest_asyncio.fixture
 async def executor(workspace: str):
     async with CodeExecutionContainer(
         tag="ghcr.io/gradion-ai/ipybox:basic",
@@ -46,45 +41,17 @@ async def executor(workspace: str):
             yield executor
 
 
-@pytest.fixture(scope="module")
+@pytest_asyncio.fixture
 async def skill_sources(executor):
     return await executor.get_module_sources(
         module_names=["user_repository.api"],
     )
 
 
-@pytest.fixture
-def gemini(skill_sources, request):
-    use_skill_sources = "skill_sources" in request.node.fixturenames  # check if the test requires skill sources
-
-    return Gemini(
-        model_name="gemini-2.0-flash",
-        skill_sources=skill_sources if use_skill_sources else None,
-        temperature=0.0,
-        max_tokens=1024,
-    )
-
-
-@pytest.fixture
-def qwen_coder(qwen_model_name, skill_sources, request):
-    use_skill_sources = "skill_sources" in request.node.fixturenames  # check if the test requires skill sources
-
-    return QwenCoder(
-        model_name=qwen_model_name,
-        skill_sources=skill_sources if use_skill_sources else None,
-    )
-
-
 @pytest.fixture(
     params=[
         pytest.param("claude"),
-        pytest.param(
-            "gemini",
-            marks=pytest.mark.flaky(
-                max_runs=GEMINI_BACKOFF_MAX_RETRIES,
-                rerun_filter=rerun_on_google_genai_resource_exhausted(GEMINI_BACKOFF_WAIT_TIME),
-            ),
-        ),
+        pytest.param("gemini"),
         pytest.param("qwen_coder"),
     ]
 )
@@ -115,7 +82,7 @@ async def collect_output(agent_turn: CodeActAgentTurn) -> list[CodeActModelRespo
     return output
 
 
-@pytest.mark.asyncio(loop_scope="module")
+@pytest.mark.asyncio(loop_scope="package")
 async def test_agent_returns_text_response(agent):
     agent_turn = run_agent(agent, "Do not generate any code. Just respond with the text 'Hello, world!'")
     output = await collect_output(agent_turn)
@@ -126,7 +93,7 @@ async def test_agent_returns_text_response(agent):
     assert output[0].text.strip() == "Hello, world!"
 
 
-@pytest.mark.asyncio(loop_scope="module")
+@pytest.mark.asyncio(loop_scope="package")
 async def test_agent_returns_code_response(agent):
     agent_turn = run_agent(
         agent, "What is 25 raised to the power of 0.235? Use the math library to solve this problem."
@@ -147,17 +114,18 @@ async def test_agent_returns_code_response(agent):
     assert "2.13" in response.text
 
 
-@pytest.mark.asyncio(loop_scope="module")
+@pytest.mark.asyncio(loop_scope="package")
 async def test_agent_returns_follow_up_code_response(agent):
     agent_turn_1 = run_agent(
-        agent, "What is 25 raised to the power of 0.235? Use the math library to solve this problem."
+        agent,
+        "What is 25 raised to the power of 0.235? Use the math library to solve this problem and print with 6 digits precision.",
     )
     await collect_output(agent_turn_1)
 
     response_1 = await agent_turn_1.response()
     assert "2.13" in response_1.text
 
-    agent_turn_2 = run_agent(agent, "What is the square root of the result?")
+    agent_turn_2 = run_agent(agent, "What is the square root of the result? Print with 6 digits precision.")
     output = await collect_output(agent_turn_2)
 
     assert len(output) == 3
@@ -174,7 +142,7 @@ async def test_agent_returns_follow_up_code_response(agent):
     assert "1.45" in response_2.text
 
 
-@pytest.mark.asyncio(loop_scope="module")
+@pytest.mark.asyncio(loop_scope="package")
 async def test_agent_returns_follow_up_text_response(agent):
     agent_turn_1 = run_agent(
         agent, "What is 25 raised to the power of 0.235? Use the math library to solve this problem."
@@ -185,7 +153,7 @@ async def test_agent_returns_follow_up_text_response(agent):
     assert "2.13" in response_1.text
 
     agent_turn_2 = run_agent(
-        agent, "Show the numerical result again. Do not generate any code for this. Output plain text."
+        agent, "Show the numerical result again enclosed on backticks. Do not generate any code for this."
     )
     output = await collect_output(agent_turn_2)
 
@@ -197,7 +165,7 @@ async def test_agent_returns_follow_up_text_response(agent):
     assert "2.13" in response_2.text
 
 
-@pytest.mark.asyncio(loop_scope="module")
+@pytest.mark.asyncio(loop_scope="package")
 async def test_agent_uses_provided_skills(agent, skill_sources):
     agent_turn = run_agent(
         agent,
@@ -210,7 +178,7 @@ async def test_agent_uses_provided_skills(agent, skill_sources):
     assert "user_a37c1f54" in response.text
 
 
-@pytest.mark.asyncio(loop_scope="module")
+@pytest.mark.asyncio(loop_scope="package")
 async def test_agent_recovers_from_skill_error(agent, skill_sources):
     agent_turn = run_agent(
         agent,

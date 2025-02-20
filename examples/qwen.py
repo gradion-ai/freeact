@@ -16,9 +16,8 @@ async def main():
         )
 
         model = QwenCoder(
-            model_name="Qwen/Qwen2.5-Coder-32B-Instruct",
-            base_url="https://api-inference.huggingface.co/v1/",
-            api_key=os.environ.get("HF_TOKEN"),  # (1)!
+            model_name="fireworks_ai/accounts/fireworks/models/qwen2p5-coder-32b-instruct",
+            api_key=os.environ.get("FIREWORKS_API_KEY"),  # (1)!
             skill_sources=skill_sources,
         )
 

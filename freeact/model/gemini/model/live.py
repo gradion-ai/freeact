@@ -1,36 +1,64 @@
+import re
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
 from typing import AsyncIterator
 
 from google import genai
 from google.genai.live import AsyncSession
 
-from freeact.model.base import CodeActModel, CodeActModelTurn, StreamRetry
-from freeact.model.gemini.model.chat import GeminiModelName, GeminiResponse
+from freeact.model.base import CodeActModel, CodeActModelResponse, CodeActModelTurn
 from freeact.model.gemini.prompt.default import EXECUTION_ERROR_TEMPLATE, EXECUTION_OUTPUT_TEMPLATE, SYSTEM_TEMPLATE
 
 
-class GeminiLiveTurn(CodeActModelTurn):
-    def __init__(self, iter: AsyncIterator[str | GeminiResponse]):
-        self._iter = iter
-        self._response: GeminiResponse | None = None
+@dataclass
+class GeminiLiveResponse(CodeActModelResponse):
+    thoughts: str = ""
 
-    async def response(self) -> GeminiResponse:
+    @property
+    def tool_use_id(self) -> str | None:
+        return None
+
+    @property
+    def tool_use_name(self) -> str | None:
+        return None
+
+    @property
+    def code(self) -> str | None:
+        blocks = self._extract_code_blocks(self.text)
+
+        if not blocks:
+            return None
+
+        return "\n\n".join(blocks)
+
+    @staticmethod
+    def _extract_code_blocks(text: str):
+        pattern = r"```(?:python|tool_code|tool)\s*(.*?)(?:\s*```|\s*$)"
+        return re.findall(pattern, text, re.DOTALL)
+
+
+class GeminiLiveTurn(CodeActModelTurn):
+    def __init__(self, iter: AsyncIterator[str | GeminiLiveResponse]):
+        self._iter = iter
+        self._response: GeminiLiveResponse | None = None
+
+    async def response(self) -> GeminiLiveResponse:
         async for elem in self.stream():
             pass
         return self._response  # type: ignore
 
-    async def stream(self, emit_retry: bool = False) -> AsyncIterator[str | StreamRetry]:
+    async def stream(self) -> AsyncIterator[str]:
         async for elem in self._iter:
             match elem:
                 case str():
                     yield elem
-                case GeminiResponse() as msg:
+                case GeminiLiveResponse() as msg:
                     self._response = msg
 
 
 @asynccontextmanager
 async def GeminiLive(
-    model_name: GeminiModelName = "gemini-2.0-flash",
+    model_name: str = "gemini-2.0-flash",
     skill_sources: str | None = None,
     temperature: float = 0.0,
     max_tokens: int = 4096,
@@ -84,7 +112,7 @@ class _GeminiLive(CodeActModel):
         template = EXECUTION_OUTPUT_TEMPLATE if not is_error else EXECUTION_ERROR_TEMPLATE
         return GeminiLiveTurn(self._turn(template.format(execution_feedback=feedback)))
 
-    async def _turn(self, message: str) -> AsyncIterator[str | GeminiResponse]:
+    async def _turn(self, message: str) -> AsyncIterator[str | GeminiLiveResponse]:
         await self._session.send(message, end_of_turn=True)
 
         accumulated_text = ""
@@ -94,7 +122,7 @@ class _GeminiLive(CodeActModel):
 
             if server_content.turn_complete:
                 # TODO: include token usage data into response object
-                yield GeminiResponse(text=accumulated_text, is_error=False)
+                yield GeminiLiveResponse(text=accumulated_text, is_error=False)
 
             model_turn = server_content.model_turn
 

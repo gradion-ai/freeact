@@ -223,7 +223,6 @@ async def run_agent(
     async with execution_environment(
         executor_key="agent-evaluation",
         ipybox_tag="ghcr.io/gradion-ai/ipybox:eval",
-        log_file=Path("logs", "agent-evaluation.log"),
     ) as env:
         skill_sources = await env.executor.get_module_sources(
             ["google_search.api", "visit_webpage.api"],
@@ -233,47 +232,34 @@ async def run_agent(
         model: CodeActModel
 
         if model_name in ["claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022"]:
-            model = Claude(model_name=model_name, logger=env.logger)  # type: ignore
+            model = Claude(model_name=f"anthropic/{model_name}")
             run_kwargs["skill_sources"] = skill_sources
-        elif model_name == "gemini-2.0-flash-exp":
+        elif model_name in ["gemini-2.0-flash-exp", "gemini-2.0-flash"]:
             model = Gemini(
-                model_name=model_name,  # type: ignore
+                model_name=f"gemini/{model_name}",
                 skill_sources=skill_sources,
                 max_tokens=8096,
             )
         elif model_name == "qwen2p5-coder-32b-instruct":
             model = QwenCoder(
-                api_key=os.getenv("FIREWORKS_API_KEY"),
-                base_url="https://api.fireworks.ai/inference/v1",
-                model_name=f"accounts/fireworks/models/{model_name}",
+                model_name=f"fireworks_ai/accounts/fireworks/models/{model_name}",
                 skill_sources=skill_sources,
+                api_key=os.getenv("FIREWORKS_API_KEY"),
             )
         elif model_name == "deepseek-v3":
-            # was used for earlier evaluation runs
-            from freeact.model.qwen.model import (
-                EXECUTION_ERROR_TEMPLATE,
-                EXECUTION_OUTPUT_TEMPLATE,
-                SYSTEM_TEMPLATE,
-            )
-
             model = DeepSeekV3(
-                api_key=os.getenv("FIREWORKS_API_KEY"),
-                base_url="https://api.fireworks.ai/inference/v1",
-                model_name=f"accounts/fireworks/models/{model_name}",
+                model_name=f"fireworks_ai/accounts/fireworks/models/{model_name}",
                 skill_sources=skill_sources,
-                system_template=SYSTEM_TEMPLATE,
-                execution_output_template=EXECUTION_OUTPUT_TEMPLATE,
-                execution_error_template=EXECUTION_ERROR_TEMPLATE,
+                api_key=os.getenv("FIREWORKS_API_KEY"),
             )
         elif model_name == "deepseek-r1":
             model = DeepSeekR1(
-                api_key=os.getenv("FIREWORKS_API_KEY"),
-                base_url="https://api.fireworks.ai/inference/v1",
-                model_name=f"accounts/fireworks/models/{model_name}",
+                model_name=f"fireworks_ai/accounts/fireworks/models/{model_name}",
                 skill_sources=skill_sources,
                 instruction_extension="Important: never pass a PDF file as argument to visit_webpage.",
+                max_tokens=16384,
+                api_key=os.getenv("FIREWORKS_API_KEY"),
             )
-            run_kwargs |= {"max_tokens": 16384}
         else:
             raise ValueError(f"Unknown model: {model_name}")
 
