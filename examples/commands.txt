@@ -1,8 +1,8 @@
 # --8<-- [start:cli-basics-claude]
 python -m freeact.cli \
-  --model-name=anthropic/claude-3-5-sonnet-20241022 \
+  --model-name=anthropic/claude-3-7-sonnet-20250219 \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:example \
-  --executor-key=example \
+  --workspace-key=example \
   --skill-modules=freeact_skills.search.google.stream.api
 # --8<-- [end:cli-basics-claude]
 
@@ -10,7 +10,7 @@ python -m freeact.cli \
 python -m freeact.cli \
   --model-name=gemini/gemini-2.0-flash \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:example \
-  --executor-key=example \
+  --workspace-key=example \
   --skill-modules=freeact_skills.search.google.stream.api
 # --8<-- [end:cli-basics-gemini]
 
@@ -18,7 +18,7 @@ python -m freeact.cli \
 python -m freeact.cli \
   --model-name=anthropic/claude-3-5-sonnet-20241022 \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:example \
-  --executor-key=example \
+  --workspace-key=example \
   --skill-modules=freeact_skills.search.google.stream.api \
   --skill-modules=freeact_skills.zotero.api \
   --skill-modules=freeact_skills.reader.api
@@ -28,7 +28,7 @@ python -m freeact.cli \
 python -m freeact.cli \
   --model-name=anthropic/claude-3-5-sonnet-20241022 \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:example \
-  --executor-key=example \
+  --workspace-key=example \
   --skill-modules=freeact_skills.search.google.stream.api \
   --skill-modules=freeact_skills.zotero.api \
   --skill-modules=freeact_skills.reader.api \
@@ -39,10 +39,19 @@ python -m freeact.cli \
 python -m freeact.cli \
   --model-name=anthropic/claude-3-5-sonnet-20241022 \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:example \
-  --executor-key=example \
+  --workspace-key=example \
   --skill-modules=freeact_skills.search.google.stream.api \
   --skill-modules=freeact_skills.zotero.api \
   --skill-modules=freeact_skills.reader.api \
   --skill-modules=weather.weather_report \
   --system-extension=extension.txt
 # --8<-- [end:cli-extension]
+
+# --8<-- [start:mcp-server]
+python -m freeact.cli \
+  --model-name=anthropic/claude-3-7-sonnet-20250219 \
+  --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
+  --workspace-key=example \
+  --skill-modules=freeact_skills.search.google.stream.api \
+  --mcp-servers=mcp.json
+# --8<-- [end:mcp-server]

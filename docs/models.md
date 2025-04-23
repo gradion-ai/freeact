@@ -4,6 +4,7 @@ For the following models, `freeact` provides model-specific prompt templates.
 
 | Model                       | Release    | [Evaluation](evaluation.md) | Prompt |
 |-----------------------------|------------|-----------|--------------|
+| Claude 3.7 Sonnet           | 2025-02-19 | ✗         | optimized    |
 | Claude 3.5 Sonnet           | 2024-10-22 | ✓         | optimized    |
 | Claude 3.5 Haiku            | 2024-10-22 | ✓         | optimized    |
 | Gemini 2.0 Flash            | 2024-02-05 | ✓[^1]     | experimental |
@@ -33,6 +34,16 @@ API keys for code action models are provided as `--api-key` argument, respective
 !!! Info
 
     The [CLI documentation](cli.md) covers more details how environment variables can be passed to `freeact` agent systems.
+
+### Claude 3.7 Sonnet
+
+```bash
+python -m freeact.cli \
+  --model-name=anthropic/claude-3-7-sonnet-20250219 \
+  --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
+  --skill-modules=freeact_skills.search.google.stream.api \
+  --api-key=$ANTHROPIC_API_KEY
+```
 
 ### Claude 3.5 Sonnet
 

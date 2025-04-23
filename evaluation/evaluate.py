@@ -221,12 +221,13 @@ async def run_agent(
     debug: bool,
 ) -> tuple[list[str], str]:
     async with execution_environment(
-        executor_key="agent-evaluation",
         ipybox_tag="ghcr.io/gradion-ai/ipybox:eval",
+        workspace_key="agent-evaluation",
     ) as env:
-        skill_sources = await env.executor.get_module_sources(
-            ["google_search.api", "visit_webpage.api"],
-        )
+        async with env.code_provider() as provider:
+            skill_sources = await provider.get_sources(
+                module_names=["google_search.api", "visit_webpage.api"],
+            )
 
         run_kwargs = {}
         model: CodeActModel
@@ -263,16 +264,17 @@ async def run_agent(
         else:
             raise ValueError(f"Unknown model: {model_name}")
 
-        agent = CodeActAgent(model=model, executor=env.executor)
+        async with env.code_executor() as executor:
+            agent = CodeActAgent(model=model, executor=executor)
 
-        agent_turn = agent.run(question, **run_kwargs)
-        agent_output = await collect_output(agent_turn, debug=debug)
+            agent_turn = agent.run(question, **run_kwargs)
+            agent_output = await collect_output(agent_turn, debug=debug)
 
-        normalization_turn = agent.run(normalization_prompt, **run_kwargs)
-        normalization_output = await collect_output(normalization_turn, debug=debug)
+            normalization_turn = agent.run(normalization_prompt, **run_kwargs)
+            normalization_output = await collect_output(normalization_turn, debug=debug)
 
-        normalized_answer = normalization_output[-1].replace("[agent ]", "").strip()
-        return agent_output + normalization_output, normalized_answer
+            normalized_answer = normalization_output[-1].replace("[agent ]", "").strip()
+            return agent_output + normalization_output, normalized_answer
 
 
 async def collect_output(agent_turn: CodeActAgentTurn, debug: bool = True) -> List[str]:

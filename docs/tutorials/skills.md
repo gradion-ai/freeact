@@ -61,7 +61,7 @@ The example shows a request for weather data from Paris and Berlin, where the ag
 
 [^2]: We may automate this process in the future e.g. to load skill modules based on the details of a user's query.
 
-The example conversation was initiated with the following `freeact.cli` command. The developed skill is is read from `workspace/skills/private/example`. If we moved it to `workspace/skills/shared`, it would be available to all executors regardless of their `executor-key` value.
+The example conversation was initiated with the following `freeact.cli` command. The developed skill is is read from `workspace/skills/private/example`. If we moved it to `workspace/skills/shared`, it would be available to all executors regardless of their `workspace-key` value.
 
 ```shell
 --8<-- "examples/commands.txt:cli-skills-weather"

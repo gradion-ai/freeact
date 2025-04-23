@@ -42,6 +42,6 @@ def qwen_coder(skill_sources, request):
     use_skill_sources = "skill_sources" in request.node.fixturenames  # check if the test requires skill sources
 
     return QwenCoder(
-        model_name="fireworks_ai/accounts/fireworks/models/qwen2p5-coder-32b-instruct",
+        model_name="fireworks_ai/accounts/fireworks/models/qwen2p5-72b-instruct",
         skill_sources=skill_sources if use_skill_sources else None,
     )

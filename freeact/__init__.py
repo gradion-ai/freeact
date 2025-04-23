@@ -1,5 +1,13 @@
-from freeact.agent import CodeActAgent, CodeActAgentResponse, CodeActAgentTurn, CodeExecution, CodeExecutionResult
-from freeact.executor import CodeExecutionContainer, CodeExecutionEnvironment, CodeExecutor, execution_environment
+from freeact.agent import CodeActAgent, CodeActAgentResponse, CodeActAgentTurn
+from freeact.executor import (
+    CodeExecution,
+    CodeExecutionContainer,
+    CodeExecutionEnvironment,
+    CodeExecutionResult,
+    CodeExecutor,
+    CodeProvider,
+    execution_environment,
+)
 from freeact.model import (
     Claude,
     CodeActModel,
