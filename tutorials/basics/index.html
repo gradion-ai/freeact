@@ -756,6 +756,28 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    MCP servers
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1288,9 +1310,10 @@
 <p>A <code>freeact</code> agent system consists of:</p>
 <ul>
 <li>A code execution Docker container, managed by the <a class="autorefs autorefs-internal" href="../../api/executor/#freeact.executor.CodeExecutionContainer"><code>CodeExecutionContainer</code></a> context manager. This tutorial uses the <a href="../../environment/#prebuilt-docker-images">prebuilt</a> <code>ghcr.io/gradion-ai/ipybox:example</code> image.</li>
+<li>A code provider, managed by the <a class="autorefs autorefs-internal" href="../../api/executor/#freeact.executor.CodeProvider"><code>CodeProvider</code></a> context manager. It loads the source code of skills and other modules available in the code execution container.</li>
 <li>A code executor, managed by the <a class="autorefs autorefs-internal" href="../../api/executor/#freeact.executor.CodeExecutor"><code>CodeExecutor</code></a> context manager. It manages an IPython kernel's lifecycle within the container and handles code execution.</li>
 <li>
-<p class="annotate">A code action model that generates <em>code actions</em> to be executed by the executor. Models must implement the interfaces defined in the <a href="../../api/model/"><code>freeact.model</code></a> package. This tutorial uses <a class="autorefs autorefs-internal" href="../../api/claude/#freeact.model.claude.model.Claude"><code>Claude</code></a>, configured with <code>anthropic/claude-3-5-sonnet-20241022</code> as model name (1).</p>
+<p class="annotate">A code action model that generates <em>code actions</em> to be executed by the executor. Models must implement the interfaces defined in the <a href="../../api/model/"><code>freeact.model</code></a> package. This tutorial uses <a class="autorefs autorefs-internal" href="../../api/claude/#freeact.model.claude.model.Claude"><code>Claude</code></a>, configured with <code>anthropic/claude-3-7-sonnet-20250219</code> as model name (1).</p>
 <ol>
 <li>Valid model names are those accepted by <a href="https://www.litellm.ai/">LiteLLM</a>.</li>
 </ol>
@@ -1310,38 +1333,63 @@
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">CodeActAgent</span><span class="p">,</span>
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">CodeExecutionContainer</span><span class="p">,</span>
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">CodeExecutor</span><span class="p">,</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="p">)</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">CodeProvider</span><span class="p">,</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="p">)</span>
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n">api_keys</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        <span class="s2">&quot;ANTHROPIC_API_KEY&quot;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;ANTHROPIC_API_KEY&quot;</span><span class="p">],</span>
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        <span class="s2">&quot;GOOGLE_API_KEY&quot;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;GOOGLE_API_KEY&quot;</span><span class="p">],</span>
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="p">}</span>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">CodeExecutionContainer</span><span class="p">(</span>
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>        <span class="n">tag</span><span class="o">=</span><span class="s2">&quot;ghcr.io/gradion-ai/ipybox:example&quot;</span><span class="p">,</span>  <span class="c1"># (2)!</span>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>        <span class="n">env</span><span class="o">=</span><span class="n">api_keys</span><span class="p">,</span>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>        <span class="n">workspace_path</span><span class="o">=</span><span class="s2">&quot;workspace&quot;</span><span class="p">,</span>  <span class="c1"># (3)!</span>
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="p">)</span> <span class="k">as</span> <span class="n">container</span><span class="p">:</span>
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>        <span class="k">async</span> <span class="k">with</span> <span class="n">CodeExecutor</span><span class="p">(</span>
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>            <span class="n">key</span><span class="o">=</span><span class="s2">&quot;example&quot;</span><span class="p">,</span>  <span class="c1"># (4)!</span>
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>            <span class="n">port</span><span class="o">=</span><span class="n">container</span><span class="o">.</span><span class="n">port</span><span class="p">,</span>  <span class="c1"># (5)!</span>
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>            <span class="n">workspace</span><span class="o">=</span><span class="n">container</span><span class="o">.</span><span class="n">workspace</span><span class="p">,</span>
-</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>        <span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
-</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>            <span class="n">skill_sources</span> <span class="o">=</span> <span class="k">await</span> <span class="n">executor</span><span class="o">.</span><span class="n">get_module_sources</span><span class="p">(</span>
-</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>                <span class="p">[</span><span class="s2">&quot;freeact_skills.search.google.stream.api&quot;</span><span class="p">],</span>  <span class="c1"># (6)!</span>
-</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>            <span class="p">)</span>
-</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>            <span class="n">model</span> <span class="o">=</span> <span class="n">Claude</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;anthropic/claude-3-5-sonnet-20241022&quot;</span><span class="p">)</span>  <span class="c1"># (7)!</span>
-</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>            <span class="n">agent</span> <span class="o">=</span> <span class="n">CodeActAgent</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">executor</span><span class="o">=</span><span class="n">executor</span><span class="p">)</span>
-</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>            <span class="k">await</span> <span class="n">stream_conversation</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">skill_sources</span><span class="o">=</span><span class="n">skill_sources</span><span class="p">)</span>  <span class="c1"># (1)!</span>
-</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>
-</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>
-</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>    <span class="n">load_dotenv</span><span class="p">()</span>
-</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">CodeExecutionContainer</span><span class="p">(</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        <span class="n">tag</span><span class="o">=</span><span class="s2">&quot;ghcr.io/gradion-ai/ipybox:example&quot;</span><span class="p">,</span>  <span class="c1"># (1)!</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        <span class="n">env</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;GOOGLE_API_KEY&quot;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;GOOGLE_API_KEY&quot;</span><span class="p">]},</span>  <span class="c1"># (2)!</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>        <span class="n">workspace_key</span><span class="o">=</span><span class="s2">&quot;example&quot;</span><span class="p">,</span>  <span class="c1"># (3)!</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="p">)</span> <span class="k">as</span> <span class="n">container</span><span class="p">:</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>        <span class="k">async</span> <span class="k">with</span> <span class="n">CodeProvider</span><span class="p">(</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>            <span class="n">workspace</span><span class="o">=</span><span class="n">container</span><span class="o">.</span><span class="n">workspace</span><span class="p">,</span>  <span class="c1"># (4)!</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>            <span class="n">port</span><span class="o">=</span><span class="n">container</span><span class="o">.</span><span class="n">resource_port</span><span class="p">,</span>  <span class="c1"># (5)!</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>        <span class="p">)</span> <span class="k">as</span> <span class="n">provider</span><span class="p">:</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>            <span class="n">skill_sources</span> <span class="o">=</span> <span class="k">await</span> <span class="n">provider</span><span class="o">.</span><span class="n">get_sources</span><span class="p">(</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>                <span class="n">module_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;freeact_skills.search.google.stream.api&quot;</span><span class="p">],</span>  
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>            <span class="p">)</span>  <span class="c1"># (6)!</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>        <span class="n">model</span> <span class="o">=</span> <span class="n">Claude</span><span class="p">(</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>            <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;anthropic/claude-3-7-sonnet-20250219&quot;</span><span class="p">,</span> 
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>            <span class="n">api_key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;ANTHROPIC_API_KEY&quot;</span><span class="p">],</span>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>        <span class="p">)</span>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>        <span class="k">async</span> <span class="k">with</span> <span class="n">CodeExecutor</span><span class="p">(</span>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>            <span class="n">workspace</span><span class="o">=</span><span class="n">container</span><span class="o">.</span><span class="n">workspace</span><span class="p">,</span>
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>            <span class="n">port</span><span class="o">=</span><span class="n">container</span><span class="o">.</span><span class="n">executor_port</span><span class="p">,</span>  <span class="c1"># (7)!</span>
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>        <span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>            <span class="n">agent</span> <span class="o">=</span> <span class="n">CodeActAgent</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">executor</span><span class="o">=</span><span class="n">executor</span><span class="p">)</span>
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>            <span class="k">await</span> <span class="n">stream_conversation</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">skill_sources</span><span class="o">=</span><span class="n">skill_sources</span><span class="p">)</span>  <span class="c1"># (8)!</span>
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>
+</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>    <span class="n">load_dotenv</span><span class="p">()</span>
+</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </span></code></pre></div>
 <ol>
+<li>
+<p>Tag of the <code>ipybox</code> Docker image.</p>
+</li>
+<li>
+<p>Environment variables passed to the container. The <code>GOOGLE_API_KEY</code> is needed by the <code>freeact_skills.search.google.stream.api</code> skill module for generative Google search via the Gemini API.</p>
+</li>
+<li>
+<p>A key for the private subdirectories in the workspace e.g. private skills are stored in <code>workspace/skills/private/example</code>.  </p>
+</li>
+<li>
+<p>A container-specific workspace for storing private and shared custom skills, and images (see <a href="../skills/">skill development</a> tutorial)</p>
+</li>
+<li>
+<p>A dynamically allocated host port for the container's code provider.</p>
+</li>
+<li>
+<p>Loads the source code of the <code>freeact_skills.search.google.stream.api</code> skill module.</p>
+</li>
+<li>
+<p>A dynamically allocated host port for the container's code executor.</p>
+</li>
 <li>
 <div class="language-python highlight"><span class="filename">examples/utils.py::stream_conversation</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">stream_conversation</span><span class="p">(</span><span class="n">agent</span><span class="p">:</span> <span class="n">CodeActAgent</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
@@ -1384,28 +1432,6 @@
 </span><span id="__span-1-39"><a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a>    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">produced_images</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
 </span><span id="__span-1-40"><a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a>        <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
 </span></code></pre></div>
-</li>
-<li>
-<p>Tag of the <code>ipybox</code> Docker image.</p>
-</li>
-<li>
-<p>Path to the workspace directory on the host machine. This directory enables sharing custom skills modules between the container and host machine (see <a href="../skills/">Skill development</a> tutorial).</p>
-</li>
-<li>
-<p>Key for this executor's private workspace directories:</p>
-<ul>
-<li><code>workspace/skills/private/example</code>: Private skills and working directory</li>
-<li><code>workspace/images/example</code>: Directory for storing produced images</li>
-</ul>
-</li>
-<li>
-<p>Container host port. Automatically allocated by <a class="autorefs autorefs-internal" href="../../api/executor/#freeact.executor.CodeExecutionContainer"><code>CodeExecutionContainer</code></a> but can be manually specified.</p>
-</li>
-<li>
-<p>Skill modules on the <code>executor</code>'s Python path that can be resolved to their source code and metadata. This information is included in the code action <code>model</code>'s context.</p>
-</li>
-<li>
-<p>Valid model names are those accepted by <a href="https://www.litellm.ai/">LiteLLM</a>.</p>
 </li>
 </ol>
 <p class="annotate">A <code>CodeActAgent</code> can engage in multi-turn conversations with a user. Each turn is initiated using the agent's <a class="autorefs autorefs-internal" href="../../api/agent/#freeact.agent.CodeActAgent.run"><code>run</code></a> method. We use the <code>stream_conversation</code> (1) helper function to <code>run</code> the agent and stream the output from both the agent's model and code executor to <code>stdout</code>.</p>
@@ -1452,8 +1478,12 @@
 </span><span id="__span-2-40"><a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a>        <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
 </span></code></pre></div></li>
 </ol>
-<p>This tutorial uses the <code>freeact_skills.search.google.stream.api</code> skill module from the <a href="https://gradion-ai.github.io/freeact-skills/"><code>freeact-skills</code></a> project to process queries that require internet searches. This module provides generative Google search capabilities powered by the Gemini 2 API.</p>
-<p>The skill module's source code is obtained from the <code>executor</code> and passed to the model through the agent's <code>run</code> method. Other model implementations may require skill module sources to be passed through their constructor instead.</p>
+<p>This tutorial uses the <code>freeact_skills.search.google.stream.api</code> skill module from the <a href="https://gradion-ai.github.io/freeact-skills/"><code>freeact-skills</code></a> project to process queries that require internet searches. This module provides generative Google search capabilities via the Gemini API.</p>
+<p>The skill module's source code is obtained from the <code>provider</code> and passed to the model through the agent's <code>run</code> method (inside <code>stream_conversation</code>).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Other model implementations may require skill module sources to be passed to their constructor instead.</p>
+</div>
 <h2 id="setup">Setup</h2>
 <p>Install <code>freeact</code> with:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pip<span class="w"> </span>install<span class="w"> </span>freeact
@@ -1474,16 +1504,16 @@
 </span></code></pre></div>
 <p>For formatted and colored console output, as shown in the <a href="#example-conversation">example conversation</a>, you can use the <code>freeact</code> <a href="../../cli/">CLI</a>:</p>
 <div class="language-shell highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>python<span class="w"> </span>-m<span class="w"> </span>freeact.cli<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>--model-name<span class="o">=</span>anthropic/claude-3-5-sonnet-20241022<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>--model-name<span class="o">=</span>anthropic/claude-3-7-sonnet-20250219<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span>--ipybox-tag<span class="o">=</span>ghcr.io/gradion-ai/ipybox:example<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span>--executor-key<span class="o">=</span>example<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span>--workspace-key<span class="o">=</span>example<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span>--skill-modules<span class="o">=</span>freeact_skills.search.google.stream.api
 </span></code></pre></div>
 <p>To use Gemini instead of Claude, run:</p>
 <div class="language-shell highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python<span class="w"> </span>-m<span class="w"> </span>freeact.cli<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span>--model-name<span class="o">=</span>gemini/gemini-2.0-flash<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span>--ipybox-tag<span class="o">=</span>ghcr.io/gradion-ai/ipybox:example<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span>--executor-key<span class="o">=</span>example<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span>--workspace-key<span class="o">=</span>example<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span>--skill-modules<span class="o">=</span>freeact_skills.search.google.stream.api
 </span></code></pre></div>
 <p>See also <a href="../../models/">Supported models</a> for other CLI examples.</p>
