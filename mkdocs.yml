@@ -95,6 +95,7 @@ nav:
       - Basic usage: tutorials/basics.md
       - Skill development: tutorials/skills.md
       - System extensions: tutorials/extend.md
+      - MCP servers: tutorials/mcp.md
     - Advanced topics:
       - Model integration: integration.md
       - Execution environment: environment.md

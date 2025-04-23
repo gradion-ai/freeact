@@ -2,7 +2,7 @@ from pathlib import Path
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-from ipybox import Execution, ExecutionError
+from ipybox import ExecutionError
 
 from freeact.agent import CodeActAgent, CodeExecution, MaxStepsReached
 from tests.unit.test_model import MockModel, MockModelResponse, MockModelTurn
@@ -42,7 +42,7 @@ async def test_code_execution_success(mock_executor):
     async def mock_stream(timeout):
         yield "hello\n"
 
-    mock_execution = AsyncMock(spec=Execution)
+    mock_execution = AsyncMock(spec=CodeExecution)
     mock_execution.stream = mock_stream
     mock_execution.result.return_value = Mock(text="hello\n", images=[])
 
@@ -79,7 +79,7 @@ async def test_max_iterations_reached(mock_executor):
     async def mock_stream(timeout):
         yield "output\n"
 
-    mock_execution = AsyncMock(spec=Execution)
+    mock_execution = AsyncMock(spec=CodeExecution)
     mock_execution.stream = mock_stream
     mock_execution.result.return_value = Mock(text="output\n", images=[])
 
@@ -103,7 +103,7 @@ async def test_code_execution_error(mock_executor):
         ]
     )
 
-    mock_execution = AsyncMock(spec=Execution)
+    mock_execution = AsyncMock(spec=CodeExecution)
     mock_execution.stream.side_effect = ExecutionError("Error message", "Error trace")
 
     mock_executor.submit = AsyncMock(return_value=mock_execution)

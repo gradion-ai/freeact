@@ -1,4 +1,5 @@
 import asyncio
+import json
 from pathlib import Path
 from typing import Annotated, Any, Dict, List
 
@@ -26,11 +27,11 @@ async def amain(
     base_url: str | None,
     model_name: str,
     ipybox_tag: str,
-    executor_key: str,
     workspace_path: Path,
+    workspace_key: str,
     skill_modules: List[str] | None,
+    mcp_servers: Path | None,
     system_extension: Path | None,
-    log_file: Path,
     temperature: float,
     max_tokens: int,
     show_token_usage: bool,
@@ -38,15 +39,22 @@ async def amain(
     record_path: Path,
 ):
     async with execution_environment(
-        executor_key=executor_key,
         ipybox_tag=ipybox_tag,
         workspace_path=workspace_path,
-        log_file=log_file,
+        workspace_key=workspace_key,
     ) as env:
-        if skill_modules:
-            skill_sources = await env.executor.get_module_sources(module_names=skill_modules)
-        else:
-            skill_sources = None
+        async with env.code_provider() as provider:
+            if mcp_servers:
+                server_params = await read_file(mcp_servers)
+                server_params_dict = json.loads(server_params)
+                tool_names = await provider.register_mcp_servers(server_params_dict["mcpServers"])
+            else:
+                tool_names = {}
+
+            if skill_modules or tool_names:
+                skill_sources = await provider.get_sources(module_names=skill_modules, mcp_tool_names=tool_names)
+            else:
+                skill_sources = None
 
         if system_extension:
             system_extension_str = await read_file(system_extension)
@@ -100,14 +108,14 @@ async def amain(
             typer.echo(f"Unsupported model: {model_name}", err=True)
             raise typer.Exit(code=1)
 
-        agent = CodeActAgent(model=model, executor=env.executor)
-
         if record_conversation:
             console = Console(record=True, width=120, force_terminal=True)
         else:
             console = Console()
 
-        await stream_conversation(agent, console, **run_kwargs, show_token_usage=show_token_usage)
+        async with env.code_executor() as executor:
+            agent = CodeActAgent(model=model, executor=executor)
+            await stream_conversation(agent, console, **run_kwargs, show_token_usage=show_token_usage)
 
         if record_conversation:
             console.save_svg(str(record_path), title="")
@@ -119,11 +127,11 @@ def main(
     api_key: Annotated[str | None, typer.Option(help="API key of the model")] = None,
     base_url: Annotated[str | None, typer.Option(help="Base URL of the model")] = None,
     ipybox_tag: Annotated[str, typer.Option(help="Tag of the ipybox Docker image")] = "ghcr.io/gradion-ai/ipybox:basic",
-    executor_key: Annotated[str, typer.Option(help="Key for private executor directories")] = "default",
     workspace_path: Annotated[Path, typer.Option(help="Path to the workspace directory")] = Path("workspace"),
+    workspace_key: Annotated[str, typer.Option(help="Key for private workspace directories")] = "default",
     skill_modules: Annotated[List[str] | None, typer.Option(help="Skill modules to load")] = None,
+    mcp_servers: Annotated[Path | None, typer.Option(help="Path to a MCP servers file")] = None,
     system_extension: Annotated[Path | None, typer.Option(help="Path to a system extension file")] = None,
-    log_file: Annotated[Path, typer.Option(help="Path to the log file")] = Path("logs", "agent.log"),
     temperature: Annotated[float, typer.Option(help="Temperature for generating model responses")] = 0.0,
     max_tokens: Annotated[int, typer.Option(help="Maximum number of tokens for each model response")] = 8192,
     show_token_usage: Annotated[bool, typer.Option(help="Include token usage data in responses")] = False,

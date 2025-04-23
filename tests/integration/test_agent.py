@@ -6,8 +6,8 @@ from typing import Any
 import pytest
 import pytest_asyncio
 
-from freeact.agent import CodeActAgent, CodeActAgentTurn, CodeExecution, CodeExecutionResult
-from freeact.executor import CodeExecutionContainer, CodeExecutor
+from freeact.agent import CodeActAgent, CodeActAgentTurn
+from freeact.executor import CodeExecution, CodeExecutionContainer, CodeExecutionResult, CodeExecutor, CodeProvider
 from freeact.model.base import CodeActModelResponse, CodeActModelTurn
 from freeact.model.claude.model import Claude
 from tests import TEST_ROOT_PATH
@@ -25,27 +25,36 @@ async def workspace():
 
 
 @pytest_asyncio.fixture
-async def executor(workspace: str):
+async def container(workspace: str):
     async with CodeExecutionContainer(
         tag="ghcr.io/gradion-ai/ipybox:basic",
         workspace_path=workspace,
+        workspace_key="test",
         env={
             "PYTHONDONTWRITEBYTECODE": "1"
         },  # Prevent creation of __pycache__ directories created by ipybox root container which cannot be deleted
     ) as container:
-        async with CodeExecutor(
-            key="test",
-            port=container.port,
-            workspace=container.workspace,
-        ) as executor:
-            yield executor
+        yield container
 
 
 @pytest_asyncio.fixture
-async def skill_sources(executor):
-    return await executor.get_module_sources(
-        module_names=["user_repository.api"],
-    )
+async def executor(container):
+    async with CodeExecutor(
+        workspace=container.workspace,
+        port=container.executor_port,
+    ) as executor:
+        yield executor
+
+
+@pytest_asyncio.fixture
+async def skill_sources(container):
+    async with CodeProvider(
+        workspace=container.workspace,
+        port=container.resource_port,
+    ) as provider:
+        return await provider.get_sources(
+            module_names=["user_repository.api"],
+        )
 
 
 @pytest.fixture(

@@ -21,8 +21,8 @@ packages = [
 aioconsole = "^0.8.1"
 aiofiles = "^24.1"
 google-genai = "^1.2"
-ipybox = "^0.3.1"
-litellm = "^1.61.9"
+ipybox = "^0.4.0"
+litellm = "^1.67.1"
 prompt_toolkit = "^3.0"
 python = "^3.11,<3.14"
 python-dotenv = "^1.0"
@@ -80,7 +80,7 @@ module = [
 ignore_missing_imports = true
 
 [tool.poetry-dynamic-versioning]
-enable = true
+enable = false
 vcs = "git"
 pattern = "default-unprefixed"
 style = "pep440"

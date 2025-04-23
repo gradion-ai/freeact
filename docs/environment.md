@@ -57,16 +57,19 @@ In addition to letting an agent install required dependencies at runtime, you ca
 from freeact import execution_environment
 
 async with execution_environment(ipybox_tag="ghcr.io/gradion-ai/ipybox:basic") as env:
-    # Install the serpapi package in the current environment
-    await env.executor.execute("!pip install serpapi")
+    async with env.code_executor() as executor:
+        # Install the serpapi package in the current environment
+        await executor.execute("!pip install serpapi")
+    
+    async with env.code_provider() as provider:
+        # Import skill modules that depend on serpapi
+        skill_sources = await provider.get_sources(
+            module_names=["my_skill_module_1", "my_skill_module_2"],
+        )
 
-    # Import skill modules that depend on serpapi
-    skill_sources = await env.executor.get_module_sources(
-        module_names=["my_skill_module_1", "my_skill_module_2"],
-    )
-
-    # Initialize agent with the new skills
-    # ...
+    async with env.code_executor() as executor:
+        # Initialize agent with the new skills
+        # ...
 ```
 
 For production use, it's recommended to include frequently used dependencies in a custom Docker image instead.
