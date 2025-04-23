@@ -80,7 +80,7 @@ module = [
 ignore_missing_imports = true
 
 [tool.poetry-dynamic-versioning]
-enable = false
+enable = true
 vcs = "git"
 pattern = "default-unprefixed"
 style = "pep440"
