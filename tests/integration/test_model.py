@@ -88,7 +88,7 @@ async def test_model_returns_code_to_recover_on_error_feedback(model):
     assert "math.pow(25, 0.235)" in response_1.code
 
     turn_2 = model.feedback(
-        feedback="NameError: name 'math' is not defined",
+        feedback="NameError: name 'math' is not defined. Try importing the math library again, it should be available now.",
         is_error=True,
         tool_use_id=response_1.tool_use_id,
         tool_use_name=response_1.tool_use_name,

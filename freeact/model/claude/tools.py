@@ -82,3 +82,22 @@ CODE_EDITOR_TOOL = {
         },
     },
 }
+
+
+def code_editor_tool(model_name: str):
+    match model_name:
+        case "anthropic/claude-3-7-sonnet-20250219":
+            return code_edit_tool_ref("text_editor_20250124")
+        case "anthropic/claude-3-5-sonnet-20241022":
+            return code_edit_tool_ref("text_editor_20241022")
+        case _:
+            return CODE_EDITOR_TOOL
+
+
+def code_edit_tool_ref(editor_type: str):
+    return {
+        "type": f"{editor_type}",
+        "function": {
+            "name": "str_replace_editor",
+        },
+    }

@@ -6,7 +6,7 @@ from freeact.model.claude.prompt import (
     SYSTEM_TEMPLATE,
     USER_QUERY_TEMPLATE,
 )
-from freeact.model.claude.tools import CODE_EDITOR_TOOL, CODE_EXECUTOR_TOOL
+from freeact.model.claude.tools import CODE_EDITOR_TOOL, CODE_EXECUTOR_TOOL, code_editor_tool
 from freeact.model.litellm.model import LiteLLMBase, LiteLLMResponse, LiteLLMTurn, tool_name
 
 
@@ -44,7 +44,8 @@ class Claude(LiteLLMBase):
         super().__init__(
             model_name=model_name,
             system_instruction=self.system_message,
-            tools=[CODE_EXECUTOR_TOOL, CODE_EDITOR_TOOL],
+            tools=[CODE_EXECUTOR_TOOL, code_editor_tool(model_name)],
+            extra_headers={"anthropic-beta": "computer-use-2024-10-22"},
             parallel_tool_calls=False,
             **kwargs,
         )
