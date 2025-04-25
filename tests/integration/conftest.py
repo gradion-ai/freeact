@@ -18,9 +18,12 @@ def logger():
 
 
 @pytest.fixture
-def claude():
+def claude(skill_sources, request):
+    use_skill_sources = "skill_sources" in request.node.fixturenames  # check if the test requires skill sources
+
     return Claude(
-        model_name="anthropic/claude-3-5-haiku-20241022",
+        model_name="anthropic/claude-3-7-sonnet-20250219",
+        skill_sources=skill_sources if use_skill_sources else None,
         prompt_caching=False,
     )
 

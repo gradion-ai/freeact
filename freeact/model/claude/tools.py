@@ -84,6 +84,16 @@ CODE_EDITOR_TOOL = {
 }
 
 
+def beta_flag(model_name: str):
+    match model_name:
+        case "anthropic/claude-3-7-sonnet-20250219":
+            return {"anthropic-beta": "computer-use-2025-01-24"}
+        case "anthropic/claude-3-5-sonnet-20241022":
+            return {"anthropic-beta": "computer-use-2024-10-22"}
+        case _:
+            return {}
+
+
 def code_editor_tool(model_name: str):
     match model_name:
         case "anthropic/claude-3-7-sonnet-20250219":

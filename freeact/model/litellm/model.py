@@ -51,6 +51,9 @@ class LiteLLMTurn(CodeActModelTurn):
                     self._response = msg
 
 
+Content = str | list[dict[str, Any]]
+
+
 class LiteLLMBase(CodeActModel):
     """Base class for all code action models in `freeact`.
 
@@ -81,7 +84,7 @@ class LiteLLMBase(CodeActModel):
     def __init__(
         self,
         model_name: str,
-        system_instruction: str | None = None,
+        system_instruction: Content | None = None,
         tools: list[dict[str, Any]] | None = None,
         **kwargs,
     ):
@@ -265,7 +268,7 @@ class LiteLLM(LiteLLMBase):
         model_name: str,
         execution_output_template: str,
         execution_error_template: str,
-        system_instruction: str | None = None,
+        system_instruction: str | list[dict[str, Any]] | None = None,
         tools: list[dict[str, Any]] | None = None,
         **kwargs,
     ):
