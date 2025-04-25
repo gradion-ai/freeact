@@ -12,8 +12,8 @@ async def main():
             skill_sources = await provider.get_sources(
                 module_names=[
                     "freeact_skills.search.google.stream.api",
-                    "freeact_skills.zotero.api",
-                    "freeact_skills.reader.api",
+                    # "freeact_skills.zotero.api",
+                    # "freeact_skills.reader.api",
                 ],
             )
 
@@ -22,7 +22,9 @@ async def main():
                 model_name="anthropic/claude-3-7-sonnet-20250219",
                 skill_sources=skill_sources,
                 prompt_caching=True,
+                reasoning_effort="low",
             )
+
             agent = CodeActAgent(model=model, executor=executor)
             await stream_conversation(agent, console=Console())
 

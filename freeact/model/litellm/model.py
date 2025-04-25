@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from typing import Any, AsyncIterator
 
 import litellm
-from litellm import acompletion
 
+# from litellm import CustomStreamWrapper, Message, ModelResponse, acompletion
 from freeact.model.base import CodeActModel, CodeActModelResponse, CodeActModelTurn
 from freeact.model.litellm.utils import code_block, sanitize_tool_name, tool_name
 
@@ -86,10 +86,12 @@ class LiteLLMBase(CodeActModel):
         model_name: str,
         system_instruction: Content | None = None,
         tools: list[dict[str, Any]] | None = None,
+        stream: bool = True,
         **kwargs,
     ):
         self.model_name = model_name
         self.completion_kwargs = kwargs
+        self.stream = stream
 
         self.tools = tools or []
         self.tool_names = [tool_name(tool) for tool in self.tools]
@@ -117,7 +119,7 @@ class LiteLLMBase(CodeActModel):
             LiteLLMTurn: Represents a single user interaction.
         """
         user_message = {"role": "user", "content": user_query}
-        return LiteLLMTurn(self._stream(user_message, **kwargs))
+        return LiteLLMTurn(self._handle(user_message, **kwargs))
 
     def feedback(
         self,
@@ -156,43 +158,45 @@ class LiteLLMBase(CodeActModel):
                 "content": feedback,
             }
 
-        return LiteLLMTurn(self._stream(feedback_message, **kwargs))
+        return LiteLLMTurn(self._handle(feedback_message, **kwargs))
 
-    async def _stream(self, input_message: dict[str, Any], **kwargs) -> AsyncIterator[str | LiteLLMResponse]:
+    async def _handle(self, input_message: dict[str, Any], **kwargs) -> AsyncIterator[str | LiteLLMResponse]:
         messages = self.history + [input_message]
         response = LiteLLMResponse(text="", is_error=False)
 
-        stream = await acompletion(
+        result = await litellm.acompletion(
             model=self.model_name,
             messages=messages,
-            stream=True,
+            stream=self.stream,
             stream_options={"include_usage": True},
-            # gemini does not support [] for tools
             tools=self.tools if self.tools else None,
             **(self.completion_kwargs | kwargs),
         )
 
-        chunks = []
-        async for chunk in stream:
-            chunks.append(chunk)
-            content = chunk.choices[0].delta.content
+        if self.stream:
+            iter = self._handle_stream_result(result, messages)
+        else:
+            iter = self._handle_batch_result(result)
 
-            if content:
-                yield content
+        result_message: litellm.Message
 
-        aggregated = litellm.stream_chunk_builder(chunks, messages=messages)
-        aggregated_message = aggregated.choices[0].message
+        async for elem in iter:
+            match elem:
+                case str():
+                    yield elem
+                case litellm.Message():
+                    result_message = elem
 
         assistant_message: dict[str, Any] = {
             "role": "assistant",
         }
 
-        if aggregated_message.content:
-            response.text = aggregated_message.content
-            assistant_message["content"] = aggregated_message.content
+        if content := self._extract_content(result_message):
+            response.text = result_message.content
+            assistant_message["content"] = content
 
-        if aggregated_message.tool_calls:
-            tool_call = aggregated_message.tool_calls[0]
+        if result_message.tool_calls:
+            tool_call = result_message.tool_calls[0]
             tool_name = sanitize_tool_name(tool_call.function.name)
 
             if tool_name not in self.tool_names:
@@ -231,6 +235,47 @@ class LiteLLMBase(CodeActModel):
         self.history.append(assistant_message)
 
         yield response
+
+    async def _handle_stream_result(
+        self, result: litellm.CustomStreamWrapper, messages
+    ) -> AsyncIterator[str | litellm.Message]:
+        chunks = []
+        think = False
+
+        async for chunk in result:
+            chunks.append(chunk)
+            delta = chunk.choices[0].delta
+
+            if hasattr(delta, "reasoning_content") and delta.reasoning_content:
+                if not think:
+                    think = True
+                    yield "<think>\n"
+                yield delta.reasoning_content
+
+            if hasattr(delta, "content") and delta.content:
+                if think:
+                    think = False
+                    yield "\n</think>\n\n"
+                yield delta.content
+
+        result = litellm.stream_chunk_builder(chunks, messages=messages)
+        result_message = result.choices[0].message
+
+        yield result_message
+
+    async def _handle_batch_result(self, result: litellm.ModelResponse) -> AsyncIterator[str | litellm.Message]:
+        result_message = result.choices[0].message
+
+        if hasattr(result_message, "reasoning_content") and result_message.reasoning_content:
+            yield f"<think>\n{result_message.reasoning_content}\n</think>\n\n"
+
+        if hasattr(result_message, "content") and result_message.content:
+            yield result_message.content
+
+        yield result_message
+
+    def _extract_content(self, response: litellm.Message) -> str | list[dict[str, Any]]:
+        return response.content
 
     @abstractmethod
     def extract_code(self, response: LiteLLMResponse) -> str | None:

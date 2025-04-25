@@ -1,3 +1,5 @@
+import litellm
+
 from freeact.model.claude.prompt import (
     EXECUTION_ERROR_TEMPLATE,
     EXECUTION_OUTPUT_TEMPLATE,
@@ -31,6 +33,9 @@ class Claude(LiteLLM):
                     },
                 }
             ]
+
+        if "thinking" in kwargs or "reasoning_effort" in kwargs:
+            kwargs["stream"] = False
 
         super().__init__(
             model_name=model_name,
@@ -66,3 +71,19 @@ class Claude(LiteLLM):
             return f"print(file_editor(**{response.tool_use.input}))"  # type: ignore
         else:
             return None
+
+    def _extract_content(self, result_message: litellm.Message):
+        output = []
+
+        if hasattr(result_message, "thinking_blocks") and result_message.thinking_blocks:
+            output.extend(result_message.thinking_blocks)
+
+        if result_message.content:
+            output.append(
+                {
+                    "type": "text",
+                    "text": result_message.content,
+                },
+            )
+
+        return output
