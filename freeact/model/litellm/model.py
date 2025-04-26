@@ -86,12 +86,10 @@ class LiteLLMBase(CodeActModel):
         model_name: str,
         system_instruction: Content | None = None,
         tools: list[dict[str, Any]] | None = None,
-        stream: bool = True,
         **kwargs,
     ):
         self.model_name = model_name
         self.completion_kwargs = kwargs
-        self.stream = stream
 
         self.tools = tools or []
         self.tool_names = [tool_name(tool) for tool in self.tools]
@@ -164,23 +162,17 @@ class LiteLLMBase(CodeActModel):
         messages = self.history + [input_message]
         response = LiteLLMResponse(text="", is_error=False)
 
+        result_message: litellm.Message
         result = await litellm.acompletion(
             model=self.model_name,
             messages=messages,
-            stream=self.stream,
+            stream=True,
             stream_options={"include_usage": True},
             tools=self.tools if self.tools else None,
             **(self.completion_kwargs | kwargs),
         )
 
-        if self.stream:
-            iter = self._handle_stream_result(result, messages)
-        else:
-            iter = self._handle_batch_result(result)
-
-        result_message: litellm.Message
-
-        async for elem in iter:
+        async for elem in self._handle_stream_result(result, messages):
             match elem:
                 case str():
                     yield elem
@@ -191,8 +183,10 @@ class LiteLLMBase(CodeActModel):
             "role": "assistant",
         }
 
+        if content := result_message.content:
+            response.text = content
+
         if content := self._extract_content(result_message):
-            response.text = result_message.content
             assistant_message["content"] = content
 
         if result_message.tool_calls:
@@ -240,42 +234,78 @@ class LiteLLMBase(CodeActModel):
         self, result: litellm.CustomStreamWrapper, messages
     ) -> AsyncIterator[str | litellm.Message]:
         chunks = []
+        chunks_deltas = []
+
         think = False
 
         async for chunk in result:
             chunks.append(chunk)
-            delta = chunk.choices[0].delta
+            chunk_delta = chunk.choices[0].delta
+            chunks_deltas.append(chunk_delta)
 
-            if hasattr(delta, "reasoning_content") and delta.reasoning_content:
+            if hasattr(chunk_delta, "reasoning_content") and chunk_delta.reasoning_content:
                 if not think:
                     think = True
                     yield "<think>\n"
-                yield delta.reasoning_content
+                yield chunk_delta.reasoning_content
 
-            if hasattr(delta, "content") and delta.content:
+            if hasattr(chunk_delta, "content") and chunk_delta.content:
                 if think:
                     think = False
                     yield "\n</think>\n\n"
-                yield delta.content
+                yield chunk_delta.content
 
         result = litellm.stream_chunk_builder(chunks, messages=messages)
         result_message = result.choices[0].message
 
-        yield result_message
-
-    async def _handle_batch_result(self, result: litellm.ModelResponse) -> AsyncIterator[str | litellm.Message]:
-        result_message = result.choices[0].message
-
-        if hasattr(result_message, "reasoning_content") and result_message.reasoning_content:
-            yield f"<think>\n{result_message.reasoning_content}\n</think>\n\n"
-
-        if hasattr(result_message, "content") and result_message.content:
-            yield result_message.content
+        # litellm.stream_chunk_builder() does not include the thinking blocks
+        # emitted by Anthropic models so we need to accumulate them here.
+        if thinking_block := self._accumulate_thinking_blocks(chunks_deltas):
+            result_message.thinking_blocks = [thinking_block]
 
         yield result_message
 
-    def _extract_content(self, response: litellm.Message) -> str | list[dict[str, Any]]:
-        return response.content
+    def _accumulate_thinking_blocks(self, chunks_deltas) -> dict[str, Any] | None:
+        """Accumulates thinking blocks emitted by Anthropic models."""
+
+        # -----------------------------------------------------------------------------------------------------
+        #  FIXME: handle redacted_thinking blocks when https://github.com/BerriAI/litellm/pull/10329 is merged
+        # -----------------------------------------------------------------------------------------------------
+
+        thinking = ""
+        signature = None
+
+        for chunk_delta in chunks_deltas:
+            if not hasattr(chunk_delta, "thinking_blocks"):
+                continue
+
+            for block in chunk_delta.thinking_blocks:
+                if block.get("type") == "thinking":
+                    if thinking_delta := block.get("thinking"):
+                        thinking += thinking_delta
+
+                    if signature_delta := block.get("signature"):
+                        signature = signature_delta
+
+        return {"type": "thinking", "thinking": thinking, "signature": signature} if thinking else None
+
+    def _extract_content(self, result_message: litellm.Message):
+        """Extracts content suitable for the model's history."""
+
+        if hasattr(result_message, "thinking_blocks") and result_message.thinking_blocks:
+            # Anthropic-specific content structure
+            output = result_message.thinking_blocks
+            if content := result_message.content:
+                output.append(
+                    {
+                        "type": "text",
+                        "text": content,
+                    },
+                )
+            return output
+        else:
+            # Content is an optional string
+            return result_message.content
 
     @abstractmethod
     def extract_code(self, response: LiteLLMResponse) -> str | None:
