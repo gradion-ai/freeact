@@ -20,4 +20,5 @@ from freeact.model import (
     LiteLLM,
     LiteLLMBase,
     QwenCoder,
+    Usage,
 )

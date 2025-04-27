@@ -1,5 +1,6 @@
 import asyncio
 import json
+from enum import StrEnum
 from pathlib import Path
 from typing import Annotated, Any, Dict, List
 
@@ -19,6 +20,13 @@ from freeact import (
 )
 from freeact.cli.utils import read_file, stream_conversation
 
+
+class ReasoningEffort(StrEnum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+
+
 app = typer.Typer()
 
 
@@ -34,6 +42,7 @@ async def amain(
     system_extension: Path | None,
     temperature: float,
     max_tokens: int,
+    reasoning_effort: ReasoningEffort | None,
     show_token_usage: bool,
     record_conversation: bool,
     record_path: Path,
@@ -59,7 +68,7 @@ async def amain(
         if system_extension:
             system_extension_str = await read_file(system_extension)
         else:
-            system_extension_str = None
+            system_extension_str = None  # noqa: F841
 
         run_kwargs: Dict[str, Any] = {
             "temperature": temperature,
@@ -70,12 +79,14 @@ async def amain(
         if "claude" in model_name.lower():
             model = Claude(
                 model_name=model_name,  # type: ignore
-                system_extension=system_extension_str,
+                skill_sources=skill_sources,
+                reasoning_effort=reasoning_effort,
                 prompt_caching=True,
                 api_key=api_key,
                 base_url=base_url,
             )
-            run_kwargs |= {"skill_sources": skill_sources}
+            if reasoning_effort:
+                run_kwargs["temperature"] = 1.0
         elif "gemini" in model_name.lower():
             model = Gemini(
                 model_name=model_name,  # type: ignore
@@ -134,7 +145,8 @@ def main(
     system_extension: Annotated[Path | None, typer.Option(help="Path to a system extension file")] = None,
     temperature: Annotated[float, typer.Option(help="Temperature for generating model responses")] = 0.0,
     max_tokens: Annotated[int, typer.Option(help="Maximum number of tokens for each model response")] = 8192,
-    show_token_usage: Annotated[bool, typer.Option(help="Include token usage data in responses")] = False,
+    reasoning_effort: Annotated[ReasoningEffort | None, typer.Option(help="Reasoning effort for the model")] = None,
+    show_token_usage: Annotated[bool, typer.Option(help="Include token usage data in responses")] = True,
     record_conversation: Annotated[bool, typer.Option(help="Record conversation as SVG file")] = False,
     record_path: Annotated[Path, typer.Option(help="Path to the SVG file")] = Path("conversation.svg"),
 ):

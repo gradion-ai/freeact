@@ -5,8 +5,7 @@ from typing import Any, AsyncIterator
 
 import litellm
 
-# from litellm import CustomStreamWrapper, Message, ModelResponse, acompletion
-from freeact.model.base import CodeActModel, CodeActModelResponse, CodeActModelTurn
+from freeact.model.base import CodeActModel, CodeActModelResponse, CodeActModelTurn, Usage
 from freeact.model.litellm.utils import code_block, sanitize_tool_name, tool_name
 
 
@@ -117,7 +116,7 @@ class LiteLLMBase(CodeActModel):
             LiteLLMTurn: Represents a single user interaction.
         """
         user_message = {"role": "user", "content": user_query}
-        return LiteLLMTurn(self._handle(user_message, **kwargs))
+        return LiteLLMTurn(self._stream(user_message, **kwargs))
 
     def feedback(
         self,
@@ -156,14 +155,13 @@ class LiteLLMBase(CodeActModel):
                 "content": feedback,
             }
 
-        return LiteLLMTurn(self._handle(feedback_message, **kwargs))
+        return LiteLLMTurn(self._stream(feedback_message, **kwargs))
 
-    async def _handle(self, input_message: dict[str, Any], **kwargs) -> AsyncIterator[str | LiteLLMResponse]:
+    async def _stream(self, input_message: dict[str, Any], **kwargs) -> AsyncIterator[str | LiteLLMResponse]:
         messages = self.history + [input_message]
         response = LiteLLMResponse(text="", is_error=False)
 
-        result_message: litellm.Message
-        result = await litellm.acompletion(
+        result_stream = await litellm.acompletion(
             model=self.model_name,
             messages=messages,
             stream=True,
@@ -172,13 +170,36 @@ class LiteLLMBase(CodeActModel):
             **(self.completion_kwargs | kwargs),
         )
 
-        async for elem in self._handle_stream_result(result, messages):
-            match elem:
-                case str():
-                    yield elem
-                case litellm.Message():
-                    result_message = elem
+        chunks = []
+        chunk_deltas = []
+        think = False
 
+        async for chunk in result_stream:
+            chunks.append(chunk)
+            chunk_delta = chunk.choices[0].delta
+            chunk_deltas.append(chunk_delta)
+
+            if hasattr(chunk_delta, "reasoning_content") and chunk_delta.reasoning_content:
+                if not think:
+                    think = True
+                    yield "<think>\n"
+                yield chunk_delta.reasoning_content
+
+            if hasattr(chunk_delta, "content") and chunk_delta.content:
+                if think:
+                    think = False
+                    yield "\n</think>\n\n"
+                yield chunk_delta.content
+
+        result = litellm.stream_chunk_builder(chunks, messages=messages)
+        result_message = result.choices[0].message
+
+        # litellm.stream_chunk_builder() does not include the thinking blocks
+        # emitted by Anthropic models so we need to accumulate them here.
+        if thinking_block := self._accumulate_thinking_blocks(chunk_deltas):
+            result_message.thinking_blocks = [thinking_block]
+
+        # message to be added to history ...
         assistant_message: dict[str, Any] = {
             "role": "assistant",
         }
@@ -225,45 +246,19 @@ class LiteLLMBase(CodeActModel):
         if not response.is_error:
             response.code = self.extract_code(response)
 
+        usage = self._extract_usage(result.usage)
+
+        try:
+            usage.cost = litellm.completion_cost(completion_response=result)
+        except Exception:
+            pass
+
+        response.usage = usage
+
         self.history.append(input_message)
         self.history.append(assistant_message)
 
         yield response
-
-    async def _handle_stream_result(
-        self, result: litellm.CustomStreamWrapper, messages
-    ) -> AsyncIterator[str | litellm.Message]:
-        chunks = []
-        chunks_deltas = []
-
-        think = False
-
-        async for chunk in result:
-            chunks.append(chunk)
-            chunk_delta = chunk.choices[0].delta
-            chunks_deltas.append(chunk_delta)
-
-            if hasattr(chunk_delta, "reasoning_content") and chunk_delta.reasoning_content:
-                if not think:
-                    think = True
-                    yield "<think>\n"
-                yield chunk_delta.reasoning_content
-
-            if hasattr(chunk_delta, "content") and chunk_delta.content:
-                if think:
-                    think = False
-                    yield "\n</think>\n\n"
-                yield chunk_delta.content
-
-        result = litellm.stream_chunk_builder(chunks, messages=messages)
-        result_message = result.choices[0].message
-
-        # litellm.stream_chunk_builder() does not include the thinking blocks
-        # emitted by Anthropic models so we need to accumulate them here.
-        if thinking_block := self._accumulate_thinking_blocks(chunks_deltas):
-            result_message.thinking_blocks = [thinking_block]
-
-        yield result_message
 
     def _accumulate_thinking_blocks(self, chunks_deltas) -> dict[str, Any] | None:
         """Accumulates thinking blocks emitted by Anthropic models."""
@@ -306,6 +301,24 @@ class LiteLLMBase(CodeActModel):
         else:
             # Content is an optional string
             return result_message.content
+
+    def _extract_usage(self, usage: litellm.Usage) -> Usage:
+        result = Usage(
+            input_tokens=usage.prompt_tokens,
+            output_tokens=usage.completion_tokens,
+            total_tokens=usage.total_tokens,
+        )
+
+        if cache_write_tokens := usage.get("cache_creation_input_tokens"):
+            result.cache_write_tokens = cache_write_tokens
+        if cache_read_tokens := usage.get("cache_read_input_tokens"):
+            result.cache_read_tokens = cache_read_tokens
+
+        if completion_tokens_details := usage.get("completion_tokens_details"):
+            if thinking_tokens := completion_tokens_details.reasoning_tokens:
+                result.thinking_tokens = thinking_tokens
+
+        return result
 
     @abstractmethod
     def extract_code(self, response: LiteLLMResponse) -> str | None:

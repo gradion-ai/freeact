@@ -5,3 +5,4 @@ from freeact.model.gemini.model.chat import Gemini
 from freeact.model.gemini.model.live import GeminiLive
 from freeact.model.litellm.model import LiteLLM, LiteLLMBase
 from freeact.model.qwen.model import QwenCoder
+from freeact.usage import Usage

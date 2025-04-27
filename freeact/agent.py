@@ -3,6 +3,7 @@ from typing import AsyncIterator
 
 from freeact.executor import CodeExecution, CodeExecutor
 from freeact.model import CodeActModel, CodeActModelResponse, CodeActModelTurn
+from freeact.usage import Usage
 
 
 class MaxStepsReached(Exception):
@@ -21,9 +22,11 @@ class CodeActAgentResponse:
 
     Attributes:
         text: The final response text to present to the user
+        usage: Token usage and costs
     """
 
     text: str
+    usage: Usage
 
 
 class CodeActAgentTurn:
@@ -80,10 +83,14 @@ class CodeActAgentTurn:
             The final `CodeActModelResponse` is not yielded but is stored
             internally and can be accessed via the `response()` method.
         """
+
+        usage = Usage()  # accumulated usage for this turn
+
         async for elem in self._iter:
             match elem:
                 case CodeActModelResponse() as msg:
-                    self._response = CodeActAgentResponse(text=msg.text)
+                    usage.update(msg.usage)
+                    self._response = CodeActAgentResponse(text=msg.text, usage=usage)
                 case _:
                     yield elem
 

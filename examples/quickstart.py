@@ -26,7 +26,7 @@ async def main():
             )
 
             agent = CodeActAgent(model=model, executor=executor)
-            await stream_conversation(agent, console=Console())
+            await stream_conversation(agent, console=Console(), show_token_usage=True)
 
 
 if __name__ == "__main__":
