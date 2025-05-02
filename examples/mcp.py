@@ -2,7 +2,7 @@ import asyncio
 
 from rich.console import Console
 
-from freeact import Claude, CodeActAgent, execution_environment
+from freeact import CodeActAgent, LiteCodeActModel, execution_environment
 from freeact.cli.utils import stream_conversation
 
 server_params = {
@@ -26,9 +26,12 @@ async def main():
             )
 
         async with env.code_executor() as executor:
-            model = Claude(model_name="anthropic/claude-3-7-sonnet-20250219")
+            model = LiteCodeActModel(
+                model_name="anthropic/claude-3-7-sonnet-20250219",
+                skill_sources=skill_sources,
+            )
             agent = CodeActAgent(model=model, executor=executor)
-            await stream_conversation(agent, console=Console(), skill_sources=skill_sources)
+            await stream_conversation(agent, console=Console())
 
 
 if __name__ == "__main__":

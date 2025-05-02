@@ -4,7 +4,7 @@
 
 - [`CodeActAgent`][freeact.agent.CodeActAgent] and [`CodeActAgentTurn`][freeact.agent.CodeActAgentTurn]
 - [`CodeActModel`][freeact.model.CodeActModel] and [`CodeActModelTurn`][freeact.model.CodeActModelTurn]
-- [`CodeExecutor`][freeact.executor.CodeExecutor] and [`CodeExecution`][freeact.agent.CodeExecution]
+- [`CodeExecutor`][freeact.environment.CodeExecutor] and [`CodeExecution`][freeact.agent.CodeExecution]
 
 <figure markdown>
   [![protocol](img/protocol.png){ style="display: block; margin: 0 auto" }](img/protocol.png){target="_blank"}

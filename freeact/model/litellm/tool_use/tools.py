@@ -101,7 +101,10 @@ def code_editor_tool(model_name: str):
         case "anthropic/claude-3-5-sonnet-20241022":
             return code_edit_tool_ref("text_editor_20241022")
         case _:
-            return CODE_EDITOR_TOOL
+            if "gemini" in model_name:
+                return CODE_EDITOR_TOOL["function"]
+            else:
+                return CODE_EDITOR_TOOL
 
 
 def code_edit_tool_ref(editor_type: str):
@@ -111,3 +114,10 @@ def code_edit_tool_ref(editor_type: str):
             "name": "str_replace_editor",
         },
     }
+
+
+def code_executor_tool(model_name: str):
+    if "gemini" in model_name:
+        return CODE_EXECUTOR_TOOL["function"]
+    else:
+        return CODE_EXECUTOR_TOOL

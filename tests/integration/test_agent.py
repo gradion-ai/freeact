@@ -5,9 +5,17 @@ from pathlib import Path
 import pytest
 import pytest_asyncio
 
-from freeact.agent import CodeActAgent, CodeActAgentTurn
-from freeact.executor import CodeExecution, CodeExecutionContainer, CodeExecutionResult, CodeExecutor, CodeProvider
-from freeact.model.base import CodeActModelResponse, CodeActModelTurn
+from freeact import (
+    CodeActAgent,
+    CodeActAgentTurn,
+    CodeActModelResponse,
+    CodeActModelTurn,
+    CodeExecution,
+    CodeExecutionContainer,
+    CodeExecutionResult,
+    CodeExecutor,
+    CodeProvider,
+)
 from tests import TEST_ROOT_PATH
 
 
@@ -59,7 +67,7 @@ async def skill_sources(container):
     params=[
         pytest.param("claude"),
         pytest.param("gemini"),
-        pytest.param("qwen_coder"),
+        pytest.param("qwen"),
     ]
 )
 def agent(request, executor):

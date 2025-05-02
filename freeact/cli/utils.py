@@ -17,8 +17,8 @@ from freeact import (
     CodeActAgent,
     CodeActAgentTurn,
     CodeActModelTurn,
+    CodeActModelUsage,
     CodeExecution,
-    Usage,
 )
 
 
@@ -44,7 +44,7 @@ async def stream_conversation(agent: CodeActAgent, console: Console, show_token_
     )
 
     escape_key = "Option" if platform.system() == "Darwin" else "Alt"
-    usage = Usage()
+    usage = CodeActModelUsage()
 
     while True:
         console.print(Rule("User message", style="dodger_blue1", characters="━"))
@@ -73,7 +73,9 @@ async def stream_conversation(agent: CodeActAgent, console: Console, show_token_
         await stream_turn(agent_turn, console, usage, show_token_usage)
 
 
-async def stream_turn(agent_turn: CodeActAgentTurn, console: Console, usage: Usage, show_token_usage: bool = False):
+async def stream_turn(
+    agent_turn: CodeActAgentTurn, console: Console, usage: CodeActModelUsage, show_token_usage: bool = False
+):
     produced_images: Dict[Path, Image.Image] = {}
 
     async for activity in agent_turn.stream():

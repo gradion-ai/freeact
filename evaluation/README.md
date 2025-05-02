@@ -2,6 +2,7 @@
 
 We evaluated `freeact` with the following models:
 
+- Gemini 2.5 Pro Preview (`gemini-2.5-pro-preview-03-25`, `reasoning_effort=low`)
 - Claude 3.5 Sonnet (`claude-3-5-sonnet-20241022`)
 - Claude 3.5 Haiku (`claude-3-5-haiku-20241022`)
 - Gemini 2.0 Flash (`gemini-2.0-flash-exp`)
@@ -18,14 +19,15 @@ Both datasets were created by the [smolagents](https://github.com/huggingface/sm
 
 [<img src="../docs/eval/eval-plot-line.png" alt="Performance">](../docs/eval/eval-plot-line.png)
 
-| model                        | GAIA (exact_match) | GSM8K (exact_match) | MATH (exact_match) | SimpleQA (exact_match) | SimpleQA (llm_as_judge) |
-|:----------------------------|--------------------:|--------------------:|-------------------:|-----------------------:|------------------------:|
-| claude-3-5-sonnet-20241022  |                53.1 |            **95.7** |           **90.0** |                  57.5  |                **72.5** |
-| claude-3-5-haiku-20241022   |                31.2 |                90.0 |               76.0 |                  52.5  |                   70.0  |
-| gemini-2.0-flash-exp        |                34.4 |            **95.7** |               88.0 |                  50.0  |                   65.0  |
-| qwen2p5-coder-32b-instruct  |                25.0 |            **95.7** |               88.0 |                  52.5  |                   65.0  |
-| deepseek-v3                 |                37.5 |                91.4 |               88.0 |               **60.0** |                   67.5  |
-| deepseek-r1                 |            **65.6** |                     |                    |                        |                         |
+| model                                                   | GAIA (exact_match)  | GSM8K (exact_match) | MATH (exact_match) | SimpleQA (exact_match) | SimpleQA (llm_as_judge) |
+|:--------------------------------------------------------|--------------------:|--------------------:|-------------------:|-----------------------:|------------------------:|
+| gemini-2.5-pro-preview-03-25<br/>(reasoning_effort=low) |                62.5 |                92.9 |           **92.0** |               **65.0** |                **77.5** |
+| claude-3-5-sonnet-20241022                              |                53.1 |            **95.7** |               90.0 |                  57.5  |                   72.5  |
+| claude-3-5-haiku-20241022                               |                31.2 |                90.0 |               76.0 |                  52.5  |                   70.0  |
+| gemini-2.0-flash-exp                                    |                34.4 |            **95.7** |               88.0 |                  50.0  |                   65.0  |
+| qwen2p5-coder-32b-instruct                              |                25.0 |            **95.7** |               88.0 |                  52.5  |                   65.0  |
+| deepseek-v3                                             |                37.5 |                91.4 |               88.0 |                  60.0  |                   67.5  |
+| deepseek-r1                                             |            **65.6** |                     |                    |                        |                         |
 
 When comparing our results with smolagents using `claude-3-5-sonnet-20241022` on [m-ric/agents_medium_benchmark_2](https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2) (only dataset with available smolagents [reference data](https://github.com/huggingface/smolagents/blob/c22fedaee17b8b966e86dc53251f210788ae5c19/examples/benchmark.ipynb)), we observed the following outcomes (comparison executed on 2025-01-07):
 
@@ -75,39 +77,38 @@ Then run the evaluation script for each model:
 
 ```bash
 python evaluation/evaluate.py \
+    --model-name gemini-2.5-pro-preview-03-25 \
+    --run-id gemini-2.5-pro-preview-03-25 \
+    --debug
+
+python evaluation/evaluate.py \
     --model-name claude-3-5-sonnet-20241022 \
     --run-id claude-3-5-sonnet-20241022 \
-    --subset SimpleQA \
     --debug
 
 python evaluation/evaluate.py \
     --model-name claude-3-5-haiku-20241022 \
     --run-id claude-3-5-haiku-20241022 \
-    --subset SimpleQA \
     --debug
 
 python evaluation/evaluate.py \
     --model-name gemini-2.0-flash-exp \
     --run-id gemini-2.0-flash-exp \
-    --subset SimpleQA \
     --debug
 
 python evaluation/evaluate.py \
     --model-name qwen2p5-coder-32b-instruct \
     --run-id qwen2p5-coder-32b-instruct \
-    --subset SimpleQA \
     --debug
 
 python evaluation/evaluate.py \
     --model-name deepseek-v3 \
     --run-id deepseek-v3 \
-    --subset SimpleQA \
     --debug
 
 python evaluation/evaluate.py \
     --model-name deepseek-r1 \
     --run-id deepseek-r1 \
-    --subset SimpleQA \
     --debug
 ```
 
@@ -119,6 +120,7 @@ Score the results:
 
 ```bash
 python evaluation/score.py \
+  --evaluation-dir output/evaluation/gemini-2.5-pro-preview-03-25 \
   --evaluation-dir output/evaluation/claude-3-5-sonnet-20241022 \
   --evaluation-dir output/evaluation/claude-3-5-haiku-20241022 \
   --evaluation-dir output/evaluation/gemini-2.0-flash-exp \

@@ -1,6 +1,6 @@
 from typing import AsyncIterator, List
 
-from freeact.agent import CodeActModel, CodeActModelResponse, CodeActModelTurn
+from freeact import CodeActModel, CodeActModelResponse, CodeActModelTurn
 
 
 class MockModelResponse(CodeActModelResponse):

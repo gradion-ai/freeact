@@ -5,11 +5,11 @@ from dotenv import load_dotenv
 
 from examples.utils import stream_conversation
 from freeact import (
-    Claude,
     CodeActAgent,
     CodeExecutionContainer,
     CodeExecutor,
     CodeProvider,
+    LiteCodeActModel,
 )
 
 
@@ -27,8 +27,9 @@ async def main():
                 module_names=["freeact_skills.search.google.stream.api"],
             )  # (6)!
 
-        model = Claude(
+        model = LiteCodeActModel(
             model_name="anthropic/claude-3-7-sonnet-20250219",
+            skill_sources=skill_sources,
             api_key=os.environ["ANTHROPIC_API_KEY"],
         )
 
@@ -37,7 +38,7 @@ async def main():
             port=container.executor_port,  # (7)!
         ) as executor:
             agent = CodeActAgent(model=model, executor=executor)
-            await stream_conversation(agent, skill_sources=skill_sources)  # (8)!
+            await stream_conversation(agent)  # (8)!
 
 
 if __name__ == "__main__":

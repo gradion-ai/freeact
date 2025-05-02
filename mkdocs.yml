@@ -61,6 +61,7 @@ plugins:
             signature_crossrefs: true
             separate_signature: true
             merge_init_into_class: true
+            members_order: source
           import:
             - url: https://docs.python.org/3/objects.inv
               domains: [py, std]
@@ -102,13 +103,6 @@ nav:
       - Streaming protocol: streaming.md
       - Evaluation results: evaluation.md
   - API Documentation:
+    - Environment: api/environment.md
     - Agent: api/agent.md
-    - Executor: api/executor.md
     - Model: api/model.md
-    - Logger: api/logger.md
-    - Models:
-      - LiteLLM: api/litellm.md
-      - Claude: api/claude.md
-      - Gemini: api/gemini.md
-      - DeepSeek: api/deepseek.md
-      - Qwen: api/qwen.md

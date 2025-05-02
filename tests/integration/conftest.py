@@ -1,10 +1,7 @@
-from unittest.mock import AsyncMock
-
 import pytest
 from dotenv import load_dotenv
 
-from freeact.logger import Logger
-from freeact.model import Claude, Gemini, QwenCoder
+from freeact import LiteCodeActModel
 
 
 @pytest.fixture(autouse=True)
@@ -13,18 +10,15 @@ def load_env():
 
 
 @pytest.fixture
-def logger():
-    return AsyncMock(spec=Logger)
-
-
-@pytest.fixture
 def claude(skill_sources, request):
     use_skill_sources = "skill_sources" in request.node.fixturenames  # check if the test requires skill sources
 
-    return Claude(
+    return LiteCodeActModel(
         model_name="anthropic/claude-3-7-sonnet-20250219",
         skill_sources=skill_sources if use_skill_sources else None,
         prompt_caching=False,
+        temperature=0.0,
+        max_tokens=1024,
     )
 
 
@@ -32,7 +26,7 @@ def claude(skill_sources, request):
 def gemini(skill_sources, request):
     use_skill_sources = "skill_sources" in request.node.fixturenames  # check if the test requires skill sources
 
-    return Gemini(
+    return LiteCodeActModel(
         model_name="gemini/gemini-2.0-flash",
         skill_sources=skill_sources if use_skill_sources else None,
         temperature=0.0,
@@ -41,10 +35,12 @@ def gemini(skill_sources, request):
 
 
 @pytest.fixture
-def qwen_coder(skill_sources, request):
+def qwen(skill_sources, request):
     use_skill_sources = "skill_sources" in request.node.fixturenames  # check if the test requires skill sources
 
-    return QwenCoder(
+    return LiteCodeActModel(
         model_name="fireworks_ai/accounts/fireworks/models/qwen2p5-72b-instruct",
         skill_sources=skill_sources if use_skill_sources else None,
+        temperature=0.0,
+        max_tokens=1024,
     )

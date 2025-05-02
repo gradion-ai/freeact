@@ -2,7 +2,7 @@ import asyncio
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, AsyncIterator, Dict
+from typing import Any, AsyncIterator, Dict, Mapping
 from uuid import uuid4
 
 from dotenv import find_dotenv
@@ -12,15 +12,19 @@ from PIL import Image
 
 
 class Workspace:
-    """A workspace for private and shared agent skills. These are skills that
-    are not pre-installed in the code execution container.
+    """A workspace for private and shared agent skills i.e. Python modules that
+    implement special agent skills. These are skills that are not pre-installed
+    in the code execution container.
 
-    A workspace is bind-mounted into a `CodeExecutionContainer` to share skills between
-    the container and the host machine.
+    A workspace defines paths for private and shared skills, both in the container
+    and on the host machine. Workspace paths on the host machine can be bind-mounted
+    into the container, if desired. This is especially useful when skills are being
+    (inter)actively developed, so that they can be inspected and edited on the host
+    machine while being executed in the container.
 
     Args:
         path: Root path of the workspace directory on the host.
-        key: A key to define
+        key: A key to designate:
 
             - a private skill sub-directory on the host
             - a private image sub-directory on the host
@@ -69,16 +73,17 @@ class Workspace:
 class CodeExecutionContainer(ExecutionContainer):
     """Context manager for managing a code execution container's lifecycle.
 
-    Extends `ipybox`'s `ExecutionContainer` to provide workspace-specific bind mounts for skill directories.
+    Extends [ipybox](https://gradion-ai.github.io/ipybox/)'s `ExecutionContainer`
+    with [workspace][freeact.environment.Workspace]-specific bind mounts of skill directories.
 
     Args:
-        tag: Tag of the `ipybox` Docker image to use
-        env: Optional environment variables to set in the container
-        executor_port: Host port for the container's executor port. A random port is allocated if not specified
-        resource_port: Host port for the container's resource port. A random port is allocated if not specified
+        tag: Name and optionally tag of the `ipybox` Docker image to use (format: `name:tag`)
+        env: Environment variables to set in the container
+        executor_port: Host port for the container's executor port. A random port is allocated if not specified.
+        resource_port: Host port for the container's resource port. A random port is allocated if not specified.
         show_pull_progress: Whether to show progress when pulling the Docker image.
-        workspace_path: Optional path to workspace directory on host, defaults to "workspace"
-        workspace_key: Optional key to define private sub-directories on host
+        workspace_path: Path to workspace directory on host. Defaults to "workspace".
+        workspace_key: Key to designate private sub-directories on host. Defaults to "default".
     """
 
     def __init__(
@@ -91,15 +96,15 @@ class CodeExecutionContainer(ExecutionContainer):
         workspace_path: Path | str | None = None,
         workspace_key: str | None = None,
     ):
-        self.workspace = Workspace(workspace_path, workspace_key)
+        self._workspace = Workspace(workspace_path, workspace_key)
 
         binds = {
-            self.workspace.private_skills_host_path: self.workspace.private_skills_container_path,
-            self.workspace.shared_skills_host_path: self.workspace.shared_skills_container_path,
+            self._workspace.private_skills_host_path: self._workspace.private_skills_container_path,
+            self._workspace.shared_skills_host_path: self._workspace.shared_skills_container_path,
         }
 
         env = (env or {}) | {
-            "PYTHONPATH": f".:/app/{self.workspace.shared_skills_container_path}:/app/{self.workspace.private_skills_container_path}",
+            "PYTHONPATH": f".:/app/{self._workspace.shared_skills_container_path}:/app/{self._workspace.private_skills_container_path}",
         }
 
         super().__init__(
@@ -111,34 +116,35 @@ class CodeExecutionContainer(ExecutionContainer):
             show_pull_progress=show_pull_progress,
         )
 
+    @property
+    def workspace(self) -> Workspace:
+        """The container's workspace."""
+        return self._workspace
+
 
 @dataclass
 class CodeExecutionResult:
-    """Result of executing code in a `CodeExecutor` instance.
-
-    Stores the execution output, any generated images, and error status from
-    running code in the execution environment.
-
-    Args:
-        text: Execution output text or error trace
-        images: Dictionary mapping file paths to generated images
-        is_error: Whether the execution resulted in an error
+    """Result of a [code execution][freeact.environment.CodeExecution]
+    in a [code executor][freeact.environment.CodeExecutor].
     """
 
     text: str
+    """Execution output text or error trace."""
+
     images: Dict[Path, Image.Image]
+    """Images generated during code execution. Keys are image file paths in the
+    [`container.workspace`][freeact.environment.CodeExecutionContainer.workspace],
+    values are pre-loaded images from these files.
+    """
+
     is_error: bool
+    """Whether the execution resulted in an error. If `True`, `text` contains
+    the corresponding error trace.
+    """
 
 
 class CodeExecution:
-    """Represents a code execution in a `CodeExecutor` instance.
-
-    Supports both bulk and streaming access to results generated by the executor.
-
-    Attributes:
-        execution: The underlying `ipybox` execution instance
-        images_dir: Directory where generated images are saved
-    """
+    """A code execution running in a [code executor][freeact.environment.CodeExecutor]."""
 
     def __init__(self, execution: Execution, images_dir: Path):
         self.execution = execution
@@ -146,20 +152,14 @@ class CodeExecution:
         self._result: CodeExecutionResult | None = None
 
     async def result(self, timeout: float = 120) -> CodeExecutionResult:
-        """Get the complete result of the code execution.
-
-        Waits for the execution to finish and returns a `CodeExecutionResult` containing
-        all output, generated images, and error status. The result is cached after
-        the first call.
+        """Retrieve the complete result of this code execution. Blocks until the
+        result is available.
 
         Args:
-            timeout: Maximum time in seconds to wait for execution completion
-
-        Returns:
-            A `CodeExecutionResult` containing the execution output, images, and error status
+            timeout: Maximum time in seconds to wait for the execution result
 
         Raises:
-            TimeoutError: If execution exceeds the specified timeout
+            TimeoutError: If code execution duration exceeds the specified timeout
         """
         if self._result is None:
             async for _ in self.stream(timeout=timeout):
@@ -167,20 +167,18 @@ class CodeExecution:
         return self._result  # type: ignore
 
     async def stream(self, timeout: float = 120) -> AsyncIterator[str]:
-        """Stream the execution output as it becomes available.
+        """Stream the code execution result as it is generated. Once the stream
+        is consumed, a [`result`][freeact.environment.CodeExecution.result] is
+        immediately available without blocking.
 
-        Yields chunks of output text as they are produced by the execution. Generated
-        images are not part of the stream but are stored internally in `CodeExecutionResult`
-        which can be obtained by calling the `result()` method.
+        Generated images are not streamed. They can be obtained from the
+        return value of [`result`][freeact.environment.CodeExecution.result].
 
         Args:
-            timeout: Maximum time in seconds to wait for execution completion
-
-        Yields:
-            Chunks of code execution output text
+            timeout: Maximum time in seconds to wait for the execution result
 
         Raises:
-            TimeoutError: If execution exceeds the specified timeout
+            TimeoutError: If code execution duration exceeds the specified timeout
         """
         images = {}
 
@@ -222,14 +220,17 @@ class CodeExecution:
 
 
 class CodeExecutor:
-    """Context manager for executing code in an IPython kernel running in a `CodeExecutionContainer`.
+    """Context manager for executing code in an IPython kernel running in a
+    [`CodeExecutionContainer`][freeact.environment.CodeExecutionContainer].
+    The kernel is created on entering the context and destroyed on exit.
 
-    Provides stateful code execution within a container, maintaining kernel state between executions.
+    Code execution is stateful for a given `CodeExecutor` instance. Definitions and
+    variables of previous executions are available to subsequent executions.
 
     Args:
-        workspace: a workspace for storing private and shared skills
+        workspace: The workspace of the code execution container
         port: Host port for the container's executor port
-        host: Host of the container
+        host: Hostname or IP address of the container
     """
 
     def __init__(self, workspace: Workspace, port: int, host: str = "localhost"):
@@ -253,29 +254,28 @@ class CodeExecutor:
         await self._client.disconnect()
 
     async def execute(self, code: str, timeout: float = 120) -> CodeExecutionResult:
-        """Executes code and returns the result.
+        """Executes code in this executor's IPython kernel and returns the result.
 
         Args:
             code: Code to execute
-            timeout: Maximum execution time in seconds. Defaults to 120.
-
-        Returns:
-            CodeExecutionResult object
+            timeout: Maximum time in seconds to wait for the execution result
 
         Raises:
-            asyncio.TimeoutError: If execution exceeds timeout duration
+            TimeoutError: If code execution duration exceeds the specified timeout
         """
         code_exec = await self.submit(code)
         return await code_exec.result(timeout=timeout)
 
     async def submit(self, code: str) -> CodeExecution:
-        """Submits code for execution and returns an [CodeExecution][freeact.executor.CodeExecution] object to track it.
+        """Submits code for execution in this executor's IPython kernel and returns
+        a [`CodeExecution`][freeact.environment.CodeExecution] object for consuming the
+        execution result.
 
         Args:
             code: Python code to execute
 
         Returns:
-            An [CodeExecution][freeact.executor.CodeExecution] object to track the code execution
+            An [`CodeExecution`][freeact.environment.CodeExecution] object to track the code execution
         """
         code_exec = await self._client.submit(code)
         return CodeExecution(code_exec, self.workspace.private_images_host_path)
@@ -295,16 +295,21 @@ class CodeExecutor:
             """)
 
 
-# sys.path.extend(["/app/{self.workspace.shared_skills_container_path}", workdir])
-
-
 class CodeProvider:
-    """Context manager for providing module sources and generated MCP client sources from a `CodeExecutionContainer`.
+    """Context manager for
+
+    - loading the source code of Python modules and generated MCP client functions
+      from a [`CodeExecutionContainer`][freeact.environment.CodeExecutionContainer].
+    - registering MCP servers and generating client functions for their tools in a
+      [`CodeExecutionContainer`][freeact.environment.CodeExecutionContainer].
+
+    Source code loaded with this context manager is provided as skill sources
+    to code action models so that they can include them into code actions.
 
     Args:
-        workspace: A workspace for storing private and shared skills
+        workspace: The workspace of the code execution container
         port: Host port for the container's resource port
-        host: Host of the container
+        host: Hostname or IP address of the container
     """
 
     def __init__(self, workspace: Workspace, port: int, host: str = "localhost"):
@@ -319,16 +324,22 @@ class CodeProvider:
         await self._client.disconnect()
 
     async def register_mcp_servers(self, server_params_dict: dict[str, dict[str, Any]]) -> dict[str, list[str]]:
-        """Registers MCP servers and generates Python functions for their tools, to be included into
-        an agent's code actions.
+        """Registers MCP servers and generates Python client functions for their tools. These
+        functions can be included into code actions, and calling them runs the corresponding
+        MCP server tools. This works for both `stdio` and `sse` based MCP servers.
+
+        The source code of generated client functions can be loaded with the
+        [`get_sources`][freeact.environment.CodeProvider.get_sources] method.
 
         Args:
-            server_params_dict: Dictionary of server names and their MCP server parameters. A `stdio`
-              server must at least specify a `command` key, an `sse` server must specify a `url` key.
+            server_params_dict: Dictionary of application-defined server names and their MCP
+                server parameters. `stdio` server parameters must specify at least a `command`
+                key, `sse` server parameters must specify a `url` key. Application-defined
+                server names must be valid Python module names.
 
         Returns:
-            Dictionary of server names and their tool names. Tool names are sanitized to guarantee
-            they can be used as module names.
+            Dictionary of server names and provided tool names. Tool names are sanitized
+            to be valid Python module names.
         """
         result = {}
         for server_name, server_params in server_params_dict.items():
@@ -341,19 +352,52 @@ class CodeProvider:
     async def get_sources(
         self,
         module_names: list[str] | None = None,
-        mcp_tool_names: dict[str, list[str] | None] | None = None,
+        mcp_tool_names: Mapping[str, list[str] | None] | None = None,
     ) -> str:
         """
-        Returns a formatted string of Python source code for given modules and generated tool functions.
-        It can be passed as `skill_sources` to an agent's code action model.
+        Loads the source code of given Python modules and generated MCP client functions
+        and returns them in the following format:
+
+            ```python
+            # Module: {module_name_1}
+            {module_source_1}
+            ```
+
+            ```python
+            # Module: {module_name_2}
+            {module_source_2}
+            ```
+
+            ...
+
+        Module names of generated MCP client functions follow the pattern
+        `mcpgen.{server_name}.{tool_name}`. Hence, calling
+
+        ```python
+        await get_sources(mcp_tool_names={"my_server": ["my_tool"]})
+        ```
+
+        is equivalent to
+
+        ```python
+        await get_sources(module_names=["mcpgen.my_server.my_tool"])
+        ```
+
+        For loading the source code of all generated client functions for an MCP server,
+        use `None` as value in the `mcp_tool_names` dictionary:
+
+        ```python
+        await get_sources(mcp_tool_names={"my_server": None})
+        ```
 
         Args:
             module_names: Names of modules available on the container's Python path
-              mcp_tool_names: Dictionary of server names and their tool names to include in the source code.
-              Values can be `None` to include all tools for a server, or the full or a subset of tool names
-              returned from `register_mcp_servers`.
+            mcp_tool_names: Dictionary of MCP server names and their tool names (as returned by
+                [`register_mcp_servers`][freeact.environment.CodeProvider.register_mcp_servers]).
+                Values can be `None` which means all tool names for a given server name.
+
         Returns:
-            A formatted string of Python source code
+            The formatted source code of all requested Python modules and generated MCP client functions.
         """
         mod_sources = await self._get_module_sources(module_names or [])
         mcp_sources = await self._get_mcp_sources(mcp_tool_names or {})
@@ -365,7 +409,7 @@ class CodeProvider:
             sources |= await self._client.get_module_sources(module_name)
         return sources
 
-    async def _get_mcp_sources(self, mcp_tool_names: dict[str, list[str] | None]) -> dict[str, str]:
+    async def _get_mcp_sources(self, mcp_tool_names: Mapping[str, list[str] | None]) -> dict[str, str]:
         sources: dict[str, str] = {}
         for server_name, tool_names in (mcp_tool_names or {}).items():
             tool_sources = await self._client.get_mcp_sources(self.workspace.private_mcp_container_path, server_name)
@@ -385,20 +429,25 @@ class CodeProvider:
 
 
 class CodeExecutionEnvironment:
-    """Provides the code execution environment of a running [CodeExecutionContainer][freeact.executor.CodeExecutionContainer].
+    """An environment for
+
+    - executing code actions in,
+    - loading source code from,
+    - and registering MCP servers at
+
+    a running [`CodeExecutionContainer`][freeact.environment.CodeExecutionContainer].
 
     Args:
         container: A running code execution container.
-        host: Host of the container.
     """
 
-    def __init__(self, container: CodeExecutionContainer, host: str):
+    def __init__(self, container: CodeExecutionContainer, host: str = "localhost"):
         self.container = container
         self.host = host
 
     @asynccontextmanager
     async def code_executor(self) -> AsyncIterator[CodeExecutor]:
-        """Context manager for a [CodeExecutor][freeact.executor.CodeExecutor] instance for the running `container`."""
+        """Context manager for [`CodeExecutor`][freeact.environment.CodeExecutor]s in this environment."""
         async with CodeExecutor(
             workspace=self.container.workspace,
             port=self.container.executor_port,
@@ -408,7 +457,7 @@ class CodeExecutionEnvironment:
 
     @asynccontextmanager
     async def code_provider(self) -> AsyncIterator[CodeProvider]:
-        """Context manager for a [CodeProvider][freeact.executor.CodeProvider] instance for the running `container`."""
+        """Context manager for [`CodeProvider`][freeact.environment.CodeProvider]s in this environment."""
         async with CodeProvider(
             workspace=self.container.workspace,
             port=self.container.resource_port,
@@ -452,16 +501,17 @@ async def execution_environment(
     resource_port: int | None = None,
     workspace_path: Path | str | None = None,
     workspace_key: str | None = None,
-):
-    """Context manager for a [code execution environment][freeact.executor.CodeExecutionEnvironment].
+) -> AsyncIterator[CodeExecutionEnvironment]:
+    """Context manager providing a [`CodeExecutionEnvironment`][freeact.environment.CodeExecutionEnvironment]. It
+    manages the lifecycle of the environment's [`CodeExecutionContainer`][freeact.environment.CodeExecutionContainer].
 
     Args:
         ipybox_tag: Tag of the `ipybox` Docker image to use
-        env_vars: Environment variables to pass to the container
+        env_vars: Environment variables to set in the container
         executor_port: Host port for the container's executor port. A random port is allocated if not specified
         resource_port: Host port for the container's resource port. A random port is allocated if not specified
-        workspace_path: Path to workspace directory on host machine
-        workspace_key: Key for private workspace directories
+        workspace_path: Path to workspace directory on host. Defaults to "workspace".
+        workspace_key: Key to designate private sub-directories on host. Defaults to "default".
     """
     async with CodeExecutionContainer(
         tag=ipybox_tag,

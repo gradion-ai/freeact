@@ -1,12 +1,12 @@
 import json
+import re
 from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Any, AsyncIterator
 
 import litellm
 
-from freeact.model.base import CodeActModel, CodeActModelResponse, CodeActModelTurn, Usage
-from freeact.model.litellm.utils import code_block, sanitize_tool_name, tool_name
+from freeact.model.base import CodeActModel, CodeActModelResponse, CodeActModelTurn, CodeActModelUsage
 
 
 @dataclass
@@ -50,52 +50,39 @@ class LiteLLMTurn(CodeActModelTurn):
                     self._response = msg
 
 
-Content = str | list[dict[str, Any]]
-
-
 class LiteLLMBase(CodeActModel):
-    """Base class for all code action models in `freeact`.
-
-    It uses [LiteLLM](https://www.litellm.ai/) for model access and cost tracking. It tracks
-    conversation state in the `history` attribute. Subclasses must implement the
-    [extract_code][freeact.model.litellm.model.LiteLLMBase.extract_code] method for extracting
-    code from a [LiteLLMResponse][freeact.model.litellm.model.LiteLLMResponse].
-
-    Args:
-        model_name: The LiteLLM-specific name of the model.
-        system_instruction: A system instruction that guides the model to generate code actions.
-        tools: A list of [tool definitions](https://platform.openai.com/docs/guides/function-calling#defining-functions).
-            Some implementation classes use tools for passing code actions as argument
-            while others include code actions directly in their response text.
-        **kwargs: Default completion kwargs used for
-            [`request`][freeact.model.litellm.model.LiteLLMBase.request] and
-            [`feedback`][freeact.model.litellm.model.LiteLLMBase.feedback] calls.
-            These are merged with `request` and `feedback` specific completion kwargs
-            where the latter have higher priority in case of conflicting keys.
-
-
-    Attributes:
-        history: List of conversation messages. User messages are either actual user queries
-            sent via the `request` method or code execution results sent via the `feedback`
-            method.
-    """
-
     def __init__(
         self,
         model_name: str,
-        system_instruction: Content | None = None,
+        execution_output_template: str,
+        execution_error_template: str,
+        system_instruction: str | None = None,
         tools: list[dict[str, Any]] | None = None,
         **kwargs,
     ):
         self.model_name = model_name
-        self.completion_kwargs = kwargs
+        self.execution_output_template = execution_output_template
+        self.execution_error_template = execution_error_template
 
         self.tools = tools or []
         self.tool_names = [tool_name(tool) for tool in self.tools]
 
+        self.completion_kwargs = kwargs
         self.history: list[dict[str, Any]] = []
 
         if system_instruction:
+            if provider_name(model_name) == "anthropic":
+                if self.completion_kwargs.pop("prompt_caching", True):
+                    system_instruction = [  # type: ignore
+                        {
+                            "type": "text",
+                            "text": system_instruction,
+                            "cache_control": {
+                                "type": "ephemeral",
+                            },
+                        }
+                    ]
+
             self.history.append({"role": "system", "content": system_instruction})
 
     def request(
@@ -104,16 +91,16 @@ class LiteLLMBase(CodeActModel):
         **kwargs,
     ) -> LiteLLMTurn:
         """Constructs a new message with role `user` and content `user_query`
-        and returns a [LiteLLMTurn][freeact.model.litellm.model.LiteLLMTurn].
-        After the turn is consumed, the user message and assistant message are
-        added to the model's conversation `history`.
+        and returns a [LiteLLMTurn][freeact.model.litellm.base.model.LiteLLMTurn].
+        After the turn's stream is consumed by the caller, the user message and
+        assistant message are added to the model's conversation `history`.
 
         Args:
             user_query: The user's input query or request.
             **kwargs: Completion kwargs supported by LiteLLM.
 
         Returns:
-            LiteLLMTurn: Represents a single user interaction.
+            LiteLLMTurn: A turn object representing this interaction.
         """
         user_message = {"role": "user", "content": user_query}
         return LiteLLMTurn(self._stream(user_message, **kwargs))
@@ -128,9 +115,9 @@ class LiteLLMBase(CodeActModel):
     ) -> LiteLLMTurn:
         """Constructs a new message with role `tool` if `tool_use_id` is defined,
         or with role `user` otherwise. Message content is `feedback`. It returns
-        a [LiteLLMTurn][freeact.model.litellm.model.LiteLLMTurn]. After the turn
-        is consumed, the input message and assistant message are added to the model's
-        conversation `history`.
+        a [LiteLLMTurn][freeact.model.litellm.base.model.LiteLLMTurn]. After the turn's
+        stream is consumed by the caller, the input message and assistant message are
+        added to the model's conversation `history`.
 
         Args:
             feedback (str): The feedback text from code execution.
@@ -302,8 +289,8 @@ class LiteLLMBase(CodeActModel):
             # Content is an optional string
             return result_message.content
 
-    def _extract_usage(self, usage: litellm.Usage) -> Usage:
-        result = Usage(
+    def _extract_usage(self, usage: litellm.Usage) -> CodeActModelUsage:
+        result = CodeActModelUsage(
             input_tokens=usage.prompt_tokens,
             output_tokens=usage.completion_tokens,
             total_tokens=usage.total_tokens,
@@ -313,6 +300,10 @@ class LiteLLMBase(CodeActModel):
             result.cache_write_tokens = cache_write_tokens
         if cache_read_tokens := usage.get("cache_read_input_tokens"):
             result.cache_read_tokens = cache_read_tokens
+
+        if prompt_tokens_details := usage.get("prompt_tokens_details"):
+            if cached_tokens := prompt_tokens_details.cached_tokens:
+                result.cache_read_tokens = cached_tokens
 
         if completion_tokens_details := usage.get("completion_tokens_details"):
             if thinking_tokens := completion_tokens_details.reasoning_tokens:
@@ -326,64 +317,25 @@ class LiteLLMBase(CodeActModel):
         pass
 
 
-class LiteLLM(LiteLLMBase):
-    """
-    A default implementation of `LiteLLMBase` that
+def provider_name(model_name: str) -> str:
+    """Extracts the provider name from a model name."""
+    if "/" in model_name:
+        provider, *_ = model_name.split("/")
+        if provider == "openai":
+            return "openai-compat"
+        return provider
+    else:
+        return "openai"
 
-    - formats code execution feedback based on provided output and error templates.
-    - implements [extract_code][freeact.model.litellm.model.LiteLLM.extract_code]
-      by extracting the first Python code block from the response text.
 
-    Args:
-        model_name: The LiteLLM-specific name of the model.
-        execution_output_template: A template for formatting successful code execution output.
-            Must define a`{execution_feedback}` placeholder.
-        execution_error_template: A template for formatting code execution errors.
-            Must define a `{execution_feedback}` placeholder.
-        system_instruction: A system instruction that guides the model to generate code actions.
-        tools: A list of [tool definitions](https://platform.openai.com/docs/guides/function-calling#defining-functions).
-            Some implementation classes use tools for passing code actions as argument
-            while others include code actions directly in their response text.
-        **kwargs: Default completion kwargs used for
-            [`request`][freeact.model.litellm.model.LiteLLMBase.request] and
-            [`feedback`][freeact.model.litellm.model.LiteLLMBase.feedback] calls.
-            These are merged with `request` and `feedback` specific completion kwargs
-            where the latter have higher priority in case of conflicting keys.
-    """
+def tool_name(tool: dict[str, Any]) -> str:
+    """Extracts the tool name from a tool definition."""
+    if "function" in tool:
+        return tool["function"]["name"]
+    else:
+        return tool["name"]  # Gemini models
 
-    def __init__(
-        self,
-        model_name: str,
-        execution_output_template: str,
-        execution_error_template: str,
-        system_instruction: str | list[dict[str, Any]] | None = None,
-        tools: list[dict[str, Any]] | None = None,
-        **kwargs,
-    ):
-        super().__init__(
-            model_name=model_name,
-            system_instruction=system_instruction,
-            tools=tools,
-            **kwargs,
-        )
-        self.execution_output_template = execution_output_template
-        self.execution_error_template = execution_error_template
 
-    def feedback(
-        self,
-        feedback: str,
-        is_error: bool,
-        tool_use_id: str | None,
-        tool_use_name: str | None,
-        **kwargs,
-    ) -> LiteLLMTurn:
-        feedback_template = self.execution_output_template if not is_error else self.execution_error_template
-        feedback_content = feedback_template.format(execution_feedback=feedback)
-        return super().feedback(feedback_content, is_error, tool_use_id, tool_use_name, **kwargs)
-
-    def extract_code(self, response: LiteLLMResponse) -> str | None:
-        """Extracts the first Python code block from `response.text`.
-
-        **Override this method to customize extraction logic.**
-        """
-        return code_block(response.text, 0)
+def sanitize_tool_name(tool_name: str) -> str:
+    """Sanitizes a tool name by replacing non-alphanumeric characters with underscores."""
+    return re.sub(r"[^a-zA-Z0-9_-]", "_", tool_name)

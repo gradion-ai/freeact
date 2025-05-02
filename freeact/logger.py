@@ -68,40 +68,9 @@ class StdoutWriter(Writer):
 
 
 class Logger:
-    """An asynchronous logger supporting contextual logging with configurable output.
-
-    Provides a queue-based logging system that can write to either a file or stdout.
-    Supports contextual logging where entries can be grouped under specific contexts,
-    and includes support for both message and error logging.
-
-    Can be used either as an async context manager or directly:
-
-    - As a context manager:
-        ```python
-        async with Logger("app.log") as logger:
-            await logger.log("message")
-            # Logger automatically closes
-        ```
-
-    - Direct usage:
-        ```python
-        logger = Logger("app.log")
-        await logger.log("message")
-        await logger.aclose()  # Must be explicitly closed
-        ```
-
-    Args:
-        file: Path to the log file. If None, logs will be written to stdout
-    """
-
     def __init__(self, file: str | Path | None = None):
-        """Initialize a new Logger instance.
-
-        Args:
-            file: Path to the log file. If None, logs will be written to stdout.
-        """
         self.writer = FileWriter(file) if file else StdoutWriter()
-        self.var = ContextVar[List[str]]("context", default=[])
+        self.stack = ContextVar[List[str]]("context", default=[])
         self.queue = asyncio.Queue()  # type: ignore
         self.runner = asyncio.create_task(self._run())
 
@@ -112,14 +81,6 @@ class Logger:
         await self.aclose()
 
     async def aclose(self):
-        """Close the logger and process remaining entries.
-
-        This method must be called explicitly when using the `Logger` directly (not as
-        a context manager) to ensure all queued log entries are processed before
-        shutting down.
-
-        When using the `Logger` as a context manager, this method is called automatically.
-        """
         # first process all queued entries
         await self.queue.join()
         # then cancel the queue consumer
@@ -130,10 +91,10 @@ class Logger:
 
         Args:
             message: The message to log
-            metadata: Optional dictionary of additional data to include
+            metadata: Dictionary of additional data to include
         """
         entry = MessageEntry(
-            context=self.var.get(),
+            context=self.stack.get(),
             message=message,
             caller=self._get_caller_module_name(),
             metadata=metadata,
@@ -141,20 +102,20 @@ class Logger:
         await self.queue.put(entry)
 
     async def log_error(self, e: Exception):
-        """Log an exception with its full traceback.
+        """Log an exception with its full stack trace.
 
         Args:
             e: The exception to log.
         """
         entry = ErrorEntry(
-            context=self.var.get(),
+            context=self.stack.get(),
             error=e,
         )
         await self.queue.put(entry)
 
     @asynccontextmanager
     async def context(self, frame: str):
-        """A context manager that adds an additional context frame to the current context.
+        """A context manager that puts an additional context frame onto the current context stack.
 
         Example:
             ```python
@@ -170,17 +131,14 @@ class Logger:
             ```
 
         Args:
-            frame: The context frame name to add
-
-        Yields:
-            The Logger instance.
+            frame: The context frame to add
 
         Raises:
             Exception: Re-raises any exception that occurs within the context after logging it.
         """
-        context = self.var.get().copy()
+        context = self.stack.get().copy()
         context.append(frame)
-        token = self.var.set(context)
+        token = self.stack.set(context)
 
         try:
             yield self
@@ -188,24 +146,15 @@ class Logger:
             await self.log_error(e)
             raise
         finally:
-            self.var.reset(token)
+            self.stack.reset(token)
 
     async def _run(self):
-        """Internal consumer that processes the log entry queue.
-
-        Continuously pulls entries from the queue and writes them using the configured writer.
-        """
         while True:
             entry = await self.queue.get()
             await self.writer.write(entry)
             self.queue.task_done()
 
     def _get_caller_module_name(self):
-        """Get the name of the module that called the logger.
-
-        Returns:
-            The name of the calling module.
-        """
         caller_frame = inspect.stack()[2]
         caller_module = inspect.getmodule(caller_frame[0])
         return caller_module.__name__  # type: ignore

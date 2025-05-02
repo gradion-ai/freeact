@@ -2,20 +2,15 @@ import asyncio
 import json
 from enum import StrEnum
 from pathlib import Path
-from typing import Annotated, Any, Dict, List
+from typing import Annotated, List
 
 import typer
 from dotenv import load_dotenv
 from rich.console import Console
 
 from freeact import (
-    Claude,
     CodeActAgent,
-    CodeActModel,
-    DeepSeekR1,
-    DeepSeekV3,
-    Gemini,
-    QwenCoder,
+    LiteCodeActModel,
     execution_environment,
 )
 from freeact.cli.utils import read_file, stream_conversation
@@ -38,9 +33,9 @@ async def amain(
     workspace_path: Path,
     workspace_key: str,
     skill_modules: List[str] | None,
+    tool_use: bool | None,
     mcp_servers: Path | None,
-    system_extension: Path | None,
-    temperature: float,
+    temperature: float | None,
     max_tokens: int,
     reasoning_effort: ReasoningEffort | None,
     show_token_usage: bool,
@@ -65,59 +60,16 @@ async def amain(
             else:
                 skill_sources = None
 
-        if system_extension:
-            system_extension_str = await read_file(system_extension)
-        else:
-            system_extension_str = None  # noqa: F841
-
-        run_kwargs: Dict[str, Any] = {
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-        }
-        model: CodeActModel
-
-        if "claude" in model_name.lower():
-            model = Claude(
-                model_name=model_name,  # type: ignore
-                skill_sources=skill_sources,
-                reasoning_effort=reasoning_effort,
-                prompt_caching=True,
-                api_key=api_key,
-                base_url=base_url,
-            )
-            if reasoning_effort:
-                run_kwargs["temperature"] = 1.0
-        elif "gemini" in model_name.lower():
-            model = Gemini(
-                model_name=model_name,  # type: ignore
-                skill_sources=skill_sources,
-                api_key=api_key,
-                base_url=base_url,
-            )
-        elif "qwen" in model_name.lower():
-            model = QwenCoder(
-                model_name=model_name,
-                skill_sources=skill_sources,
-                api_key=api_key,
-                base_url=base_url,
-            )
-        elif "deepseek-v3" in model_name.lower():
-            model = DeepSeekV3(
-                model_name=model_name,
-                skill_sources=skill_sources,
-                api_key=api_key,
-                base_url=base_url,
-            )
-        elif "deepseek-r1" in model_name.lower():
-            model = DeepSeekR1(
-                model_name=model_name,
-                skill_sources=skill_sources,
-                api_key=api_key,
-                base_url=base_url,
-            )
-        else:
-            typer.echo(f"Unsupported model: {model_name}", err=True)
-            raise typer.Exit(code=1)
+        model = LiteCodeActModel(
+            model_name=model_name,
+            skill_sources=skill_sources,
+            reasoning_effort=reasoning_effort,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            tool_use=tool_use,
+            api_key=api_key,
+            base_url=base_url,
+        )
 
         if record_conversation:
             console = Console(record=True, width=120, force_terminal=True)
@@ -126,7 +78,7 @@ async def amain(
 
         async with env.code_executor() as executor:
             agent = CodeActAgent(model=model, executor=executor)
-            await stream_conversation(agent, console, **run_kwargs, show_token_usage=show_token_usage)
+            await stream_conversation(agent, console, show_token_usage=show_token_usage)
 
         if record_conversation:
             console.save_svg(str(record_path), title="")
@@ -141,9 +93,9 @@ def main(
     workspace_path: Annotated[Path, typer.Option(help="Path to the workspace directory")] = Path("workspace"),
     workspace_key: Annotated[str, typer.Option(help="Key for private workspace directories")] = "default",
     skill_modules: Annotated[List[str] | None, typer.Option(help="Skill modules to load")] = None,
+    tool_use: Annotated[bool | None, typer.Option(help="Use tools for code action generation")] = None,
     mcp_servers: Annotated[Path | None, typer.Option(help="Path to a MCP servers file")] = None,
-    system_extension: Annotated[Path | None, typer.Option(help="Path to a system extension file")] = None,
-    temperature: Annotated[float, typer.Option(help="Temperature for generating model responses")] = 0.0,
+    temperature: Annotated[float | None, typer.Option(help="Temperature for generating model responses")] = None,
     max_tokens: Annotated[int, typer.Option(help="Maximum number of tokens for each model response")] = 8192,
     reasoning_effort: Annotated[ReasoningEffort | None, typer.Option(help="Reasoning effort for the model")] = None,
     show_token_usage: Annotated[bool, typer.Option(help="Include token usage data in responses")] = True,

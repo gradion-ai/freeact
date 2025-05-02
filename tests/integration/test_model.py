@@ -15,7 +15,7 @@ def skill_sources():
     params=[
         pytest.param("claude"),
         pytest.param("gemini"),
-        pytest.param("qwen_coder"),
+        pytest.param("qwen"),
     ]
 )
 def model(request):

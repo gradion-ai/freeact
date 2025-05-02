@@ -21,7 +21,7 @@ Then build the `ipybox` Docker image referencing the dependencies file:
 python -m ipybox build -t gradion-ai/ipybox:custom -d dependencies.txt
 ```
 
-To use the image, reference it in [`CodeExecutionContainer`][freeact.executor.CodeExecutionContainer] when creating an `ipybox` Docker container. Use the `env` argument to set any API keys required by the pre-installed skills. 
+To use the image, reference it in [`CodeExecutionContainer`][freeact.environment.CodeExecutionContainer] when creating an `ipybox` Docker container. Use the `env` argument to set any API keys required by the pre-installed skills. 
 
 ## Prebuilt Docker images
 
