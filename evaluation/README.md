@@ -112,7 +112,7 @@ python evaluation/evaluate.py \
     --debug
 ```
 
-Results are saved in `output/evaluation/<run-id>`. Pre-generated outputs from our runs are available [here](https://github.com/user-attachments/files/18655103/evaluation-results-agents-5_medium_benchmark_2.zip).
+Results are saved in `output/evaluation/<run-id>`. Pre-generated outputs from our runs are available [here](https://github.com/user-attachments/files/20011272/evaluation-results-agents-6_medium_benchmark_2.zip)
 
 ## Analysis
 
