@@ -29,19 +29,25 @@ async def amain(
     api_key: str | None,
     base_url: str | None,
     model_name: str,
+    tool_use: bool | None,
     ipybox_tag: str,
     workspace_path: Path,
     workspace_key: str,
+    system_template: Path | None,
     skill_modules: List[str] | None,
-    tool_use: bool | None,
+    reasoning_effort: ReasoningEffort | None,
     mcp_servers: Path | None,
     temperature: float | None,
     max_tokens: int,
-    reasoning_effort: ReasoningEffort | None,
     show_token_usage: bool,
     record_conversation: bool,
     record_path: Path,
 ):
+    if system_template:
+        system_template_str = await read_file(system_template)
+    else:
+        system_template_str = None
+
     async with execution_environment(
         ipybox_tag=ipybox_tag,
         workspace_path=workspace_path,
@@ -63,6 +69,7 @@ async def amain(
         model = LiteCodeActModel(
             model_name=model_name,
             skill_sources=skill_sources,
+            system_template=system_template_str,
             reasoning_effort=reasoning_effort,
             temperature=temperature,
             max_tokens=max_tokens,
@@ -86,18 +93,19 @@ async def amain(
 
 @app.command()
 def main(
-    model_name: Annotated[str, typer.Option(help="Name of the model")] = "anthropic/claude-3-5-sonnet-20241022",
+    model_name: Annotated[str, typer.Option(help="Name of the model")] = "anthropic/claude-3-7-sonnet-20250219",
     api_key: Annotated[str | None, typer.Option(help="API key of the model")] = None,
     base_url: Annotated[str | None, typer.Option(help="Base URL of the model")] = None,
+    tool_use: Annotated[bool | None, typer.Option(help="Use tools for code action generation")] = None,
     ipybox_tag: Annotated[str, typer.Option(help="Tag of the ipybox Docker image")] = "ghcr.io/gradion-ai/ipybox:basic",
     workspace_path: Annotated[Path, typer.Option(help="Path to the workspace directory")] = Path("workspace"),
     workspace_key: Annotated[str, typer.Option(help="Key for private workspace directories")] = "default",
+    system_template: Annotated[Path | None, typer.Option(help="Path to a custom system template")] = None,
     skill_modules: Annotated[List[str] | None, typer.Option(help="Skill modules to load")] = None,
-    tool_use: Annotated[bool | None, typer.Option(help="Use tools for code action generation")] = None,
+    reasoning_effort: Annotated[ReasoningEffort | None, typer.Option(help="Reasoning effort for the model")] = None,
     mcp_servers: Annotated[Path | None, typer.Option(help="Path to a MCP servers file")] = None,
     temperature: Annotated[float | None, typer.Option(help="Temperature for generating model responses")] = None,
     max_tokens: Annotated[int, typer.Option(help="Maximum number of tokens for each model response")] = 8192,
-    reasoning_effort: Annotated[ReasoningEffort | None, typer.Option(help="Reasoning effort for the model")] = None,
     show_token_usage: Annotated[bool, typer.Option(help="Include token usage data in responses")] = True,
     record_conversation: Annotated[bool, typer.Option(help="Record conversation as SVG file")] = False,
     record_path: Annotated[Path, typer.Option(help="Path to the SVG file")] = Path("conversation.svg"),
