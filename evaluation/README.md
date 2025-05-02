@@ -17,7 +17,7 @@ The evaluation uses two datasets:
 
 Both datasets were created by the [smolagents](https://github.com/huggingface/smolagents) team at 🤗 Hugging Face and contain curated tasks from GAIA, GSM8K, SimpleQA, and MATH. We selected these datasets primarily for a quick evaluation of relative performance between models in a `freeact` setup, with the additional benefit of enabling comparisons with smolagents. To ensure fair comparisons with [their published results](https://huggingface.co/blog/smolagents#how-strong-are-open-models-for-agentic-workflows), we used identical evaluation protocols and tools (implemented as [skills](skills)).
 
-[<img src="../docs/eval/eval-plot-line.png" alt="Performance">](../docs/eval/eval-plot-line.png)
+[<img src="../docs/eval/eval-plot.png" alt="Performance">](../docs/eval/eval-plot.png)
 
 | model                                                   | GAIA (exact_match)  | GSM8K (exact_match) | MATH (exact_match) | SimpleQA (exact_match) | SimpleQA (llm_as_judge) |
 |:--------------------------------------------------------|--------------------:|--------------------:|-------------------:|-----------------------:|------------------------:|
