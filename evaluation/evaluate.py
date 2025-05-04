@@ -228,6 +228,9 @@ async def run_agent(
         api_key = os.getenv("ANTHROPIC_API_KEY")
         system_template = TOOL_USE_SYSTEM_TEMPLATE
         reasoning_effort = "low"
+    elif model_name == "gpt-4.1":
+        api_key = os.getenv("OPENAI_API_KEY")
+        system_template = TOOL_USE_SYSTEM_TEMPLATE
     elif model_name in ["gemini-2.0-flash-exp", "gemini-2.0-flash"]:
         model_name = f"gemini/{model_name}"
         api_key = os.getenv("GOOGLE_API_KEY")

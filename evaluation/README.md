@@ -2,6 +2,7 @@
 
 We evaluated `freeact` with the following models:
 
+- GPT-4.1 (`gpt-4.1`)
 - Gemini 2.5 Pro Preview (`gemini-2.5-pro-preview-03-25`, `reasoning_effort=low`)
 - Claude 3.5 Sonnet (`claude-3-5-sonnet-20241022`)
 - Claude 3.5 Haiku (`claude-3-5-haiku-20241022`)
@@ -21,7 +22,8 @@ Both datasets were created by the [smolagents](https://github.com/huggingface/sm
 
 | model                                                   | GAIA (exact_match)  | GSM8K (exact_match) | MATH (exact_match) | SimpleQA (exact_match) | SimpleQA (llm_as_judge) |
 |:--------------------------------------------------------|--------------------:|--------------------:|-------------------:|-----------------------:|------------------------:|
-| gemini-2.5-pro-preview-03-25<br/>(reasoning_effort=low) |                62.5 |                92.9 |           **92.0** |               **65.0** |                **77.5** |
+| gpt-4.1                                                 |                40.6 |                92.9 |           **98.0** |                  62.5  |                   65.0  |
+| gemini-2.5-pro-preview-03-25<br/>(reasoning_effort=low) |                62.5 |                92.9 |               92.0 |               **65.0** |                **77.5** |
 | claude-3-5-sonnet-20241022                              |                53.1 |            **95.7** |               90.0 |                  57.5  |                   72.5  |
 | claude-3-5-haiku-20241022                               |                31.2 |                90.0 |               76.0 |                  52.5  |                   70.0  |
 | gemini-2.0-flash-exp                                    |                34.4 |            **95.7** |               88.0 |                  50.0  |                   65.0  |
@@ -77,6 +79,11 @@ Then run the evaluation script for each model:
 
 ```bash
 python evaluation/evaluate.py \
+    --model-name gpt-4.1 \
+    --run-id gpt-4.1 \
+    --debug
+
+python evaluation/evaluate.py \
     --model-name gemini-2.5-pro-preview-03-25 \
     --run-id gemini-2.5-pro-preview-03-25 \
     --debug
@@ -120,6 +127,7 @@ Score the results:
 
 ```bash
 python evaluation/score.py \
+  --evaluation-dir output/evaluation/gpt-4.1 \
   --evaluation-dir output/evaluation/gemini-2.5-pro-preview-03-25 \
   --evaluation-dir output/evaluation/claude-3-5-sonnet-20241022 \
   --evaluation-dir output/evaluation/claude-3-5-haiku-20241022 \

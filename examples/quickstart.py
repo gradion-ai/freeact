@@ -19,7 +19,8 @@ async def main():
 
         async with env.code_executor() as executor:
             model = LiteCodeActModel(
-                model_name="o4-mini",
+                # model_name="o4-mini",
+                model_name="gpt-4.1",
                 # model_name="anthropic/claude-3-7-sonnet-20250219",
                 # model_name="anthropic/claude-3-5-sonnet-20241022",
                 # model_name="gemini/gemini-2.5-flash-preview-04-17",
@@ -31,9 +32,9 @@ async def main():
                 skill_sources=skill_sources,
                 # base_url="http://192.168.94.60:11434",
                 # prompt_caching=False,
-                reasoning_effort="low",
-                # use_executor_tool=False,
-                # use_editor_tool=False,
+                # reasoning_effort="low",
+                # use_executor_tool=True,
+                # use_editor_tool=True,
                 # tool_use=False,
                 max_tokens=8192,
             )

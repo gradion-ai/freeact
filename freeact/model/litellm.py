@@ -150,8 +150,11 @@ class LiteCodeActModel(CodeActModel):
         self.model_name = model_name
         self.completion_kwargs = kwargs
 
-        if system_template is None:
-            system_template = TOOL_USE_SYSTEM_TEMPLATE if use_executor_tool else CODE_TAG_SYSTEM_TEMPLATE
+        if use_executor_tool is None:
+            use_executor_tool = self.provider_name in ["anthropic", "openai"]
+
+        if use_editor_tool is None:
+            use_editor_tool = self.provider_name in ["anthropic", "openai"]
 
         if execution_output_template is None:
             execution_output_template = EXECUTION_OUTPUT_TEMPLATE
@@ -159,11 +162,8 @@ class LiteCodeActModel(CodeActModel):
         if execution_error_template is None:
             execution_error_template = EXECUTION_ERROR_TEMPLATE
 
-        if use_executor_tool is None:
-            use_executor_tool = self.provider_name in ["anthropic", "openai"]
-
-        if use_editor_tool is None:
-            use_editor_tool = self.provider_name in ["anthropic", "openai"]
+        if system_template is None:
+            system_template = TOOL_USE_SYSTEM_TEMPLATE if use_executor_tool else CODE_TAG_SYSTEM_TEMPLATE
 
         self.execution_output_template = execution_output_template
         self.execution_error_template = execution_error_template
