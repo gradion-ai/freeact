@@ -54,6 +54,3 @@ class MockModel(CodeActModel):
         response = self.responses[self.current_response]
         self.current_response += 1
         return MockModelTurn(response)
-
-
-# Only mock model definition at the moment (used by agent tests) ...

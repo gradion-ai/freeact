@@ -21,7 +21,7 @@ from freeact import (
     LiteCodeActModel,
     execution_environment,
 )
-from freeact.model.litellm.api import DEFAULT_CODE_TAG_SYSTEM_TEMPLATE, DEFAULT_TOOL_USE_SYSTEM_TEMPLATE
+from freeact.model import CODE_TAG_SYSTEM_TEMPLATE, TOOL_USE_SYSTEM_TEMPLATE
 
 app = typer.Typer()
 
@@ -216,13 +216,18 @@ async def run_agent(
     normalization_prompt: str,
     debug: bool,
 ) -> tuple[list[str], str]:
-    system_template = DEFAULT_CODE_TAG_SYSTEM_TEMPLATE
+    system_template = CODE_TAG_SYSTEM_TEMPLATE
     reasoning_effort = None
 
     if model_name in ["claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022"]:
         model_name = f"anthropic/{model_name}"
         api_key = os.getenv("ANTHROPIC_API_KEY")
-        system_template = DEFAULT_TOOL_USE_SYSTEM_TEMPLATE
+        system_template = TOOL_USE_SYSTEM_TEMPLATE
+    elif model_name in ["claude-3-7-sonnet-20250219"]:
+        model_name = f"anthropic/{model_name}"
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        system_template = TOOL_USE_SYSTEM_TEMPLATE
+        reasoning_effort = "low"
     elif model_name in ["gemini-2.0-flash-exp", "gemini-2.0-flash"]:
         model_name = f"gemini/{model_name}"
         api_key = os.getenv("GOOGLE_API_KEY")
