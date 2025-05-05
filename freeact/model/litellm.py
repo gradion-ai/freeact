@@ -51,17 +51,12 @@ class LiteLLMResponse(CodeActModelResponse):
         elif self.tool_use_name == tool_name(CODE_EDITOR_TOOL):
             return f"print(file_editor(**{self.tool_use.input}))"  # type: ignore
         else:
-            return self.code_block(0)
+            return self.code_block()
 
-    def code_block(self, index: int, **kwargs) -> str | None:
-        """Finds the `index`-th block matching `pattern` in `text`."""
-        blocks = self.code_blocks(**kwargs)
-        return blocks[index] if blocks else None
-
-    def code_blocks(self, pattern: str = r"```python\n(.*?)```") -> list[str]:
-        """Finds all blocks matching `pattern` in `text`."""
-        blocks = re.findall(pattern, self.text, re.DOTALL)
-        return [block.strip() for block in blocks]
+    def code_block(self) -> str | None:
+        pattern = r"<code-action>\s*```python\s*([\s\S]*?)\s*```\s*</code-action>"
+        match = re.search(pattern, self.text)
+        return match.group(1) if match else None
 
 
 class LiteLLMTurn(CodeActModelTurn):

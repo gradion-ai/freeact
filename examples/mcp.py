@@ -29,9 +29,10 @@ async def main():
             model = LiteCodeActModel(
                 model_name="anthropic/claude-3-7-sonnet-20250219",
                 skill_sources=skill_sources,
+                reasoning_effort="low",
             )
             agent = CodeActAgent(model=model, executor=executor)
-            await stream_conversation(agent, console=Console())
+            await stream_conversation(agent, console=Console(), show_token_usage=True)
 
 
 if __name__ == "__main__":
