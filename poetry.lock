@@ -1031,13 +1031,13 @@ files = [
 
 [[package]]
 name = "ipybox"
-version = "0.4.0"
+version = "0.4.1"
 description = "Python code execution sandbox based on IPython and Docker"
 optional = false
 python-versions = "<3.14,>=3.11"
 files = [
-    {file = "ipybox-0.4.0-py3-none-any.whl", hash = "sha256:fbe0450825deee31664fc41c218c0e819ba17a203d1d890fb07f946b1f13c175"},
-    {file = "ipybox-0.4.0.tar.gz", hash = "sha256:76ec9ad54b0d9b226a567c5252dfb702247d942807e199b7a3cde0c5d7f4cf01"},
+    {file = "ipybox-0.4.1-py3-none-any.whl", hash = "sha256:8cdf7e1dd892930fe4ee7fe4fe5f64953a4e7e643763dcb08b8e3abd32421108"},
+    {file = "ipybox-0.4.1.tar.gz", hash = "sha256:5f5cb8bec3ad093d185ae9fe9dcb8aabbf24a669e55b6c1fc10a7fba3d64d81c"},
 ]
 
 [package.dependencies]
@@ -3572,4 +3572,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11,<3.14"
-content-hash = "7d2aaec0b3a2168bb04b68349164fca491e8307d81a0a05b0d5a031ef3e627ef"
+content-hash = "d742247d0c34e7f09687f3b5c594ab9966c4840898b57841251849f734e4c8df"
