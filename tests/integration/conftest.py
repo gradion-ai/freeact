@@ -27,7 +27,7 @@ def gemini(skill_sources, request):
     use_skill_sources = "skill_sources" in request.node.fixturenames  # check if the test requires skill sources
 
     return LiteCodeActModel(
-        model_name="gemini/gemini-2.0-flash",
+        model_name="gemini/gemini-2.5-flash-preview-04-17",
         skill_sources=skill_sources if use_skill_sources else None,
         temperature=0.0,
         max_tokens=1024,
