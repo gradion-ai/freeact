@@ -87,30 +87,51 @@ CODE_EDITOR_TOOL = {
 }
 
 
+CLAUDE_3_7_SONNET_MODELS = [
+    "anthropic/claude-3-7-sonnet-latest",
+    "anthropic/claude-3-7-sonnet-20250219",
+    "bedrock/anthropic.claude-3-7-sonnet-20250219-v1:0",
+    "vertex_ai/claude-3-7-sonnet@20250219",
+]
+
+CLAUDE_3_5_SONNET_MODELS = [
+    "anthropic/claude-3-5-sonnet-latest",
+    "anthropic/claude-3-5-sonnet-20241022",
+    "bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0",
+    "vertex_ai/claude-3-5-sonnet-v2@20241022",
+]
+
+CLAUDE_3_5_HAIKU_MODELS = [
+    "anthropic/claude-3-5-haiku-latest",
+    "anthropic/claude-3-5-haiku-20241022",
+    "bedrock/anthropic.claude-3-5-haiku-20241022-v1:0",
+    "vertex_ai/claude-3-5-haiku@20241022",
+]
+
+CLAUDE_MODELS = CLAUDE_3_7_SONNET_MODELS + CLAUDE_3_5_SONNET_MODELS + CLAUDE_3_5_HAIKU_MODELS
+
+
 def beta_flag(model_name: str):
-    match model_name:
-        case "anthropic/claude-3-7-sonnet-20250219":
-            return {"anthropic-beta": "computer-use-2025-01-24"}
-        case "anthropic/claude-3-5-sonnet-20241022":
-            return {"anthropic-beta": "computer-use-2024-10-22"}
-        case _:
-            return {}
+    if model_name in CLAUDE_3_7_SONNET_MODELS:
+        return {"anthropic-beta": "computer-use-2025-01-24"}
+    elif model_name in CLAUDE_3_5_SONNET_MODELS:
+        return {"anthropic-beta": "computer-use-2024-10-22"}
+    else:
+        return {}
 
 
 def code_editor_tool(model_name: str):
-    match model_name:
-        case "anthropic/claude-3-7-sonnet-20250219":
-            return code_edit_tool_ref("text_editor_20250124")
-        case "anthropic/claude-3-5-sonnet-20241022":
-            return code_edit_tool_ref("text_editor_20241022")
-        case _:
-            if "gemini" in model_name:
-                return CODE_EDITOR_TOOL["function"]
-            else:
-                return CODE_EDITOR_TOOL
+    if model_name in CLAUDE_3_7_SONNET_MODELS:
+        return code_editor_tool_ref("text_editor_20250124")
+    elif model_name in CLAUDE_3_5_SONNET_MODELS:
+        return code_editor_tool_ref("text_editor_20241022")
+    elif "gemini" in model_name:
+        return CODE_EDITOR_TOOL["function"]
+    else:
+        return CODE_EDITOR_TOOL
 
 
-def code_edit_tool_ref(editor_type: str):
+def code_editor_tool_ref(editor_type: str):
     return {
         "type": f"{editor_type}",
         "function": {
@@ -135,3 +156,11 @@ def tool_name(tool: dict[str, Any]) -> str:
 
 def sanitize_tool_name(tool_name: str) -> str:
     return re.sub(r"[^a-zA-Z0-9_-]", "_", tool_name)
+
+
+def code_editor_tool_use_default(model_name: str, provider_name: str) -> bool:
+    return model_name in CLAUDE_MODELS or provider_name == "openai"
+
+
+def code_executor_tool_use_default(model_name: str, provider_name: str) -> bool:
+    return model_name in CLAUDE_MODELS or provider_name == "openai"
