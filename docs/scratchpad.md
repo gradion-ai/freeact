@@ -1,4 +1,4 @@
-Freeact is a lightweight LLM agent library using Python as common language for describing actions and tools. This enables Freeact agents to reuse actions generated at one step as tools in later steps, so that they can learn from past experiences and compose more complex actions from simpler ones.
+Freeact is a lightweight LLM agent library using Python as the common language for formulating actions and describing tools. This enables Freeact agents to reuse actions generated at one step as tools in later steps, so that they can learn from past experiences and compose more complex actions from simpler ones.
 
 ## Overview
 
@@ -34,7 +34,7 @@ Because of the reusability of code actions as tools and the ability to store cod
 ## MCP integration
 
 To leverage the vast ecosystem of MCP servers and their tools, Freeact automatically generates Python client functions from MCP tool definitions and provides them as *skills* to Freeact agents.
-When Freeact agents use these skills in their code actions, they invoke the corresponding MCP server tool.
+When Freeact agents use these skills in their code actions, they invoke the corresponding MCP server tools.
 `stdio` based MCP servers are executed within the sandboxed environment while `sse` based MCP servers are expected to run elsewhere.
 
 ## Learning by example
