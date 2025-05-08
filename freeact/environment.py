@@ -496,7 +496,7 @@ def dotenv_variables(dotenv_path: Path | None = Path(".env"), export: bool = Tru
 async def execution_environment(
     host: str = "localhost",
     ipybox_tag: str = "ghcr.io/gradion-ai/ipybox:minimal",
-    env_vars: dict[str, str] = dotenv_variables(),
+    ipybox_env: dict[str, str] = dotenv_variables(),
     executor_port: int | None = None,
     resource_port: int | None = None,
     workspace_path: Path | str | None = None,
@@ -506,8 +506,8 @@ async def execution_environment(
     manages the lifecycle of the environment's [`CodeExecutionContainer`][freeact.environment.CodeExecutionContainer].
 
     Args:
-        ipybox_tag: Tag of the `ipybox` Docker image to use
-        env_vars: Environment variables to set in the container
+        ipybox_tag: Name and optionally tag of the `ipybox` Docker image to use (format: `name:tag`)
+        ipybox_env: Environment variables to set in the `ipybox` Docker container
         executor_port: Host port for the container's executor port. A random port is allocated if not specified
         resource_port: Host port for the container's resource port. A random port is allocated if not specified
         workspace_path: Path to workspace directory on host. Defaults to "workspace".
@@ -515,7 +515,7 @@ async def execution_environment(
     """
     async with CodeExecutionContainer(
         tag=ipybox_tag,
-        env=env_vars,
+        env=ipybox_env,
         executor_port=executor_port,
         resource_port=resource_port,
         workspace_path=workspace_path,

@@ -21,6 +21,35 @@ from freeact import (
     CodeExecution,
 )
 
+CONVERSATION_HTML_TEMPLATE = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{title}</title>
+</head>
+<body>
+{svg}
+</body>
+</html>
+"""
+
+
+async def save_conversation(console: Console, record_dir: Path, record_title: str):
+    from freeact.environment import arun
+
+    record_dir.mkdir(parents=True, exist_ok=True)
+
+    record_svg_path = record_dir / "conversation.svg"
+    record_html_path = record_dir / "conversation.html"
+
+    await arun(console.save_svg, str(record_svg_path), title=record_title)
+
+    async with aiofiles.open(record_svg_path, "r") as file:
+        svg = await file.read()
+
+    async with aiofiles.open(record_html_path, "w") as file:
+        await file.write(CONVERSATION_HTML_TEMPLATE.format(title=record_title, svg=svg))
+
 
 async def stream_conversation(agent: CodeActAgent, console: Console, show_token_usage: bool = False, **kwargs):
     "enter"

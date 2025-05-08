@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Annotated, List
 
 import typer
-from dotenv import load_dotenv
 from rich.console import Console
 
 from freeact import (
@@ -13,7 +12,7 @@ from freeact import (
     LiteCodeActModel,
     execution_environment,
 )
-from freeact.cli.utils import read_file, stream_conversation
+from freeact.cli.utils import read_file, save_conversation, stream_conversation
 
 
 class ReasoningEffort(StrEnum):
@@ -42,7 +41,8 @@ async def amain(
     workspace_path: Path,
     workspace_key: str,
     record_conversation: bool,
-    record_path: Path,
+    record_dir: Path,
+    record_title: str,
 ):
     if system_template:
         system_template_str = await read_file(system_template)
@@ -90,7 +90,7 @@ async def amain(
             await stream_conversation(agent, console, show_token_usage=show_token_usage)
 
         if record_conversation:
-            console.save_svg(str(record_path), title="")
+            await save_conversation(console, record_dir=record_dir, record_title=record_title)
 
 
 @app.command()
@@ -111,11 +111,7 @@ def main(
     workspace_path: Annotated[Path, typer.Option(help="Path to the workspace directory")] = Path("workspace"),
     workspace_key: Annotated[str, typer.Option(help="Key for private workspace directories")] = "default",
     record_conversation: Annotated[bool, typer.Option(help="Record conversation as SVG file")] = False,
-    record_path: Annotated[Path, typer.Option(help="Path to the SVG file")] = Path("conversation.svg"),
+    record_dir: Annotated[Path, typer.Option(help="Path to record output dir")] = Path("output"),
+    record_title: Annotated[str, typer.Option(help="Title of the record")] = "Conversation",
 ):
     asyncio.run(amain(**locals()))
-
-
-if __name__ == "__main__":
-    load_dotenv()
-    app()
