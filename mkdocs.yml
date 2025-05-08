@@ -75,6 +75,8 @@ markdown_extensions:
   - pymdownx.snippets:
       dedent_subsections: false
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.details
   - pymdownx.tilde
   - attr_list
@@ -83,6 +85,10 @@ markdown_extensions:
   - footnotes
 
 nav:
+  - User guide revised:
+    - Introduction: revised/introduction.md
+    - Quickstart: revised/quickstart.md
+
   - User guide:
     - Basics:
       - Overview: index.md
