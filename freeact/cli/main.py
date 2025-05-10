@@ -96,22 +96,28 @@ async def amain(
 @app.command()
 def main(
     model_name: Annotated[str, typer.Option(help="Name of the model")] = "anthropic/claude-3-7-sonnet-20250219",
-    api_key: Annotated[str | None, typer.Option(help="API key of the model")] = None,
-    base_url: Annotated[str | None, typer.Option(help="Base URL of the model")] = None,
-    use_executor_tool: Annotated[bool | None, typer.Option(help="Use executor tool for code action generation")] = None,
-    use_editor_tool: Annotated[bool | None, typer.Option(help="Use editor tool for code action editing")] = None,
+    api_key: Annotated[str | None, typer.Option(help="API key for the model")] = None,
+    base_url: Annotated[str | None, typer.Option(help="Base URL of the model provider")] = None,
+    use_executor_tool: Annotated[
+        bool | None, typer.Option(help="Use the builtin executor tool for code action generation")
+    ] = None,
+    use_editor_tool: Annotated[
+        bool | None, typer.Option(help="Use the builtin editor tool for code action editing")
+    ] = None,
     system_template: Annotated[Path | None, typer.Option(help="Path to a custom system template")] = None,
     skill_modules: Annotated[List[str] | None, typer.Option(help="Skill modules to load")] = None,
-    mcp_servers: Annotated[Path | None, typer.Option(help="Path to a MCP servers file")] = None,
-    reasoning_effort: Annotated[ReasoningEffort | None, typer.Option(help="Reasoning effort for the model")] = None,
+    mcp_servers: Annotated[Path | None, typer.Option(help="MCP servers to register")] = None,
+    reasoning_effort: Annotated[ReasoningEffort | None, typer.Option(help="Reasoning effort of the model")] = None,
     temperature: Annotated[float | None, typer.Option(help="Temperature for generating model responses")] = None,
     max_tokens: Annotated[int, typer.Option(help="Maximum number of tokens for each model response")] = 8192,
-    show_token_usage: Annotated[bool, typer.Option(help="Include token usage data in responses")] = True,
-    ipybox_tag: Annotated[str, typer.Option(help="Tag of the ipybox Docker image")] = "ghcr.io/gradion-ai/ipybox:basic",
+    show_token_usage: Annotated[bool, typer.Option(help="Show accumulated token usage and costs")] = True,
+    ipybox_tag: Annotated[
+        str, typer.Option(help="Name and tag of the ipybox Docker image")
+    ] = "ghcr.io/gradion-ai/ipybox:basic",
     workspace_path: Annotated[Path, typer.Option(help="Path to the workspace directory")] = Path("workspace"),
     workspace_key: Annotated[str, typer.Option(help="Key for private workspace directories")] = "default",
-    record_conversation: Annotated[bool, typer.Option(help="Record conversation as SVG file")] = False,
-    record_dir: Annotated[Path, typer.Option(help="Path to record output dir")] = Path("output"),
-    record_title: Annotated[str, typer.Option(help="Title of the record")] = "Conversation",
+    record_conversation: Annotated[bool, typer.Option(help="Record conversation as SVG and HTML files")] = False,
+    record_dir: Annotated[Path, typer.Option(help="Path to the recording output directory")] = Path("output"),
+    record_title: Annotated[str, typer.Option(help="Title of the recording")] = "Conversation",
 ):
     asyncio.run(amain(**locals()))

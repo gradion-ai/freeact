@@ -1,34 +1,28 @@
 import asyncio
+import os
 
-from rich.console import Console
-
+from examples.utils import stream_conversation
 from freeact import CodeActAgent, LiteCodeActModel, execution_environment
-from freeact.cli.utils import stream_conversation
 
 
 async def main():
     async with execution_environment(
         ipybox_tag="ghcr.io/gradion-ai/ipybox:basic",
+        ipybox_env={"GEMINI_API_KEY": os.environ["GEMINI_API_KEY"]},
     ) as env:
         async with env.code_provider() as provider:
-            mcp_tool_names = await provider.register_mcp_servers(
-                {"pubmed": {"command": "uvx", "args": ["--quiet", "pubmedmcp@0.1.3"]}}
-            )
             skill_sources = await provider.get_sources(
                 module_names=["freeact_skills.search.google.stream.api"],
-                mcp_tool_names=mcp_tool_names,
             )
-
         async with env.code_executor() as executor:
             model = LiteCodeActModel(
                 model_name="anthropic/claude-3-7-sonnet-20250219",
                 reasoning_effort="low",
                 skill_sources=skill_sources,
+                api_key=os.environ["ANTHROPIC_API_KEY"],
             )
             agent = CodeActAgent(model=model, executor=executor)
-
-            # provides a terminal user interface for interacting with the agent
-            await stream_conversation(agent, console=Console(), show_token_usage=True)
+            await stream_conversation(agent)  # (1)!
 
 
 if __name__ == "__main__":

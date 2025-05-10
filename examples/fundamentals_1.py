@@ -1,8 +1,6 @@
 import asyncio
 import os
 
-from dotenv import load_dotenv
-
 from examples.utils import stream_conversation
 from freeact import (
     CodeActAgent,
@@ -15,32 +13,31 @@ from freeact import (
 
 async def main():
     async with CodeExecutionContainer(
-        tag="ghcr.io/gradion-ai/ipybox:example",  # (1)!
-        env={"GOOGLE_API_KEY": os.environ["GOOGLE_API_KEY"]},  # (2)!
-        workspace_key="example",  # (3)!
+        tag="ghcr.io/gradion-ai/ipybox:example",
+        env={"GEMINI_API_KEY": os.environ["GEMINI_API_KEY"]},  # (1)!
     ) as container:
         async with CodeProvider(
-            workspace=container.workspace,  # (4)!
-            port=container.resource_port,  # (5)!
+            workspace=container.workspace,
+            port=container.resource_port,
         ) as provider:
             skill_sources = await provider.get_sources(
-                module_names=["freeact_skills.search.google.stream.api"],
-            )  # (6)!
+                module_names=["freeact_skills.search.google.stream.api"],  # (2)!
+            )
 
         model = LiteCodeActModel(
             model_name="anthropic/claude-3-7-sonnet-20250219",
+            reasoning_effort="low",
             skill_sources=skill_sources,
-            api_key=os.environ["ANTHROPIC_API_KEY"],
+            api_key=os.environ["ANTHROPIC_API_KEY"],  # (3)!
         )
 
         async with CodeExecutor(
             workspace=container.workspace,
-            port=container.executor_port,  # (7)!
+            port=container.executor_port,
         ) as executor:
             agent = CodeActAgent(model=model, executor=executor)
-            await stream_conversation(agent)  # (8)!
+            await stream_conversation(agent)  # (4)!
 
 
 if __name__ == "__main__":
-    load_dotenv()
     asyncio.run(main())

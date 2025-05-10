@@ -152,7 +152,7 @@ class CodeExecution:
         self._result: CodeExecutionResult | None = None
 
     async def result(self, timeout: float = 120) -> CodeExecutionResult:
-        """Retrieve the complete result of this code execution. Blocks until the
+        """Retrieve the complete result of this code execution. Waits until the
         result is available.
 
         Args:
@@ -169,7 +169,7 @@ class CodeExecution:
     async def stream(self, timeout: float = 120) -> AsyncIterator[str]:
         """Stream the code execution result as it is generated. Once the stream
         is consumed, a [`result`][freeact.environment.CodeExecution.result] is
-        immediately available without blocking.
+        immediately available without waiting.
 
         Generated images are not streamed. They can be obtained from the
         return value of [`result`][freeact.environment.CodeExecution.result].

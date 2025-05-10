@@ -15,8 +15,8 @@ class CodeActModelUsage:
     cache_read_tokens: int = 0
 
     cost: float | None = None
-    """Cost of code action model usage based on token counts or
-    `None` if cost estimation is not available for the used model.
+    """Cost of code action model usage in `USD` based on token counts
+    or `None` if cost estimation is not available for the used model.
     """
 
     def update(self, other: "CodeActModelUsage"):
@@ -84,7 +84,7 @@ class CodeActModelTurn(ABC):
 
     @abstractmethod
     async def response(self) -> CodeActModelResponse:
-        """Retrieve the complete response from a code action model. Blocks until
+        """Retrieve the complete response from a code action model. Waits until
         the response is available.
         """
 
@@ -92,7 +92,7 @@ class CodeActModelTurn(ABC):
     def stream(self) -> AsyncIterator[str]:
         """Stream the code action model's response as it is generated. Once the
         stream is consumed, [`response`][freeact.model.base.CodeActModelTurn.response]
-        is immediately available without blocking.
+        is immediately available without waiting.
         """
 
 

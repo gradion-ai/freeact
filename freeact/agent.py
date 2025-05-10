@@ -36,7 +36,7 @@ class CodeActAgentTurn:
 
     async def response(self) -> CodeActAgentResponse:
         """Retrieves the final response from the code action agent for this
-        interaction. Blocks until the sequence of model interactions and code
+        interaction. Waits until the sequence of model interactions and code
         executions is complete.
 
         Returns:
@@ -62,7 +62,7 @@ class CodeActAgentTurn:
 
         The sequence continues until the model provides a final response. Once
         the stream is consumed, [`response`][freeact.agent.CodeActAgentTurn.response]
-        is immediately available without blocking and contains the final response
+        is immediately available without waiting and contains the final response
         text and accumulated usage statistics.
 
         Raises:
