@@ -1,8 +1,9 @@
 import asyncio
+import uuid
 
 from rich.console import Console
 
-from freeact import CodeActAgent, LiteCodeActModel, execution_environment
+from freeact import CodeActAgent, LiteCodeActModel, execution_environment, tracing
 from freeact.cli.utils import stream_conversation
 
 
@@ -33,8 +34,10 @@ async def main():
             )
             agent = CodeActAgent(model=model, executor=executor)
 
-            # provides a terminal user interface for interacting with the agent
-            await stream_conversation(agent, console=Console())
+            async with tracing.start():
+                async with tracing.session(str(uuid.uuid4())[:8]):
+                    # provides a terminal user interface for interacting with the agent
+                    await stream_conversation(agent, console=Console())
 
 
 if __name__ == "__main__":

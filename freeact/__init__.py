@@ -1,3 +1,4 @@
+from freeact import tracing
 from freeact.agent import (
     CodeActAgent,
     CodeActAgentResponse,

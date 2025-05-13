@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 from typing import AsyncIterator
 
+import freeact.tracing.context as tracing_context
 from freeact.environment import CodeExecution, CodeExecutor
 from freeact.model import CodeActModel, CodeActModelResponse, CodeActModelTurn, CodeActModelUsage
+from freeact.tracing.base import Trace
 
 
 class MaxStepsReached(Exception):
@@ -30,9 +32,10 @@ class CodeActAgentTurn:
     final response or the maximum number of steps is reached.
     """
 
-    def __init__(self, iter: AsyncIterator[CodeActModelTurn | CodeExecution | CodeActAgentResponse]):
+    def __init__(self, iter: AsyncIterator[CodeActModelTurn | CodeExecution | CodeActAgentResponse], trace: Trace):
         self._iter = iter
         self._response: CodeActAgentResponse | None = None
+        self._trace = trace
 
     async def response(self) -> CodeActAgentResponse:
         """Retrieves the final response from the code action agent for this
@@ -69,13 +72,16 @@ class CodeActAgentTurn:
             MaxStepsReached: If the interaction exceeds the maximum number of
                 steps without completion.
         """
-
-        async for elem in self._iter:
-            match elem:
-                case CodeActAgentResponse() as response:
-                    self._response = response
-                case _:
-                    yield elem
+        try:
+            async for elem in self._iter:
+                match elem:
+                    case CodeActAgentResponse() as response:
+                        self._response = response
+                        self._trace.update(output=response.text)
+                    case _:
+                        yield elem
+        finally:
+            self._trace.end()
 
 
 class CodeActAgent:
@@ -124,58 +130,75 @@ class CodeActAgent:
         Raises:
             MaxStepsReached: If the interaction exceeds `max_steps` without completion.
         """
+        trace = tracing_context.get_tracer_provider().create_trace(
+            name="Agent run",
+            session_id=tracing_context.get_active_tracing_session_id(),
+            input={
+                "user_query": user_query,
+                "max_steps": max_steps,
+                "step_timeout": step_timeout,
+                **kwargs,
+            },
+        )
+
         iter = self._stream(
+            trace=trace,
             user_query=user_query,
             max_steps=max_steps,
             step_timeout=step_timeout,
             **kwargs,
         )
-        return CodeActAgentTurn(iter)
+        return CodeActAgentTurn(iter, trace)
 
     async def _stream(
         self,
+        trace: Trace,
         user_query: str,
         max_steps: int = 30,
         step_timeout: float = 120,
         **kwargs,
     ) -> AsyncIterator[CodeActModelTurn | CodeExecution | CodeActAgentResponse]:
-        # initial model tuinteractionrn with user query
-        model_turn = self.model.request(user_query=user_query, **kwargs)
+        with tracing_context.use_trace(trace):
+            # initial model interaction with user query
+            model_turn = self.model.request(user_query=user_query, **kwargs)
 
-        # accumulated model usage for the current agent run
-        model_usage = CodeActModelUsage()
+            # accumulated model usage for the current agent run
+            model_usage = CodeActModelUsage()
 
-        for _ in range(max_steps):
-            yield model_turn
+            for _ in range(max_steps):
+                yield model_turn
 
-            match await model_turn.response():
-                case CodeActModelResponse(is_error=False, code=None) as response:
-                    model_usage.update(response.usage)
-                    # yield the final model response as a CodeActAgentResponse object
-                    yield CodeActAgentResponse(text=response.text, usage=model_usage)
-                    break
-                case CodeActModelResponse(is_error=False, code=code) as response:
-                    model_usage.update(response.usage)
-                    # model response contains code to execute
-                    code_action = await self.executor.submit(code)  # type: ignore
-                    yield code_action
-                    code_action_result = await code_action.result(timeout=step_timeout)
-                    # follow up model turn with execution feedback
-                    model_turn = self.model.feedback(
-                        feedback=code_action_result.text,
-                        is_error=code_action_result.is_error,
-                        tool_use_id=response.tool_use_id,
-                        tool_use_name=response.tool_use_name,
-                        **kwargs,
-                    )
-                case CodeActModelResponse(is_error=True) as response:
-                    model_usage.update(response.usage)
-                    model_turn = self.model.feedback(
-                        feedback=response.text,
-                        is_error=True,
-                        tool_use_id=response.tool_use_id,
-                        tool_use_name=response.tool_use_name,
-                        **kwargs,
-                    )
-        else:
-            raise MaxStepsReached(f"max_steps ({max_steps}) reached")
+                match await model_turn.response():
+                    case CodeActModelResponse(is_error=False, code=None) as response:
+                        model_usage.update(response.usage)
+                        # yield the final model response as a CodeActAgentResponse object
+                        yield CodeActAgentResponse(text=response.text, usage=model_usage)
+                        break
+                    case CodeActModelResponse(is_error=False, code=code) as response:
+                        model_usage.update(response.usage)
+                        # model response contains code to execute
+                        code_span = trace.span(name="Code execution", input={"code": code})
+                        code_action = await self.executor.submit(code)  # type: ignore
+                        yield code_action
+                        code_action_result = await code_action.result(timeout=step_timeout)
+                        code_span.update(output=code_action_result)
+                        code_span.end()
+                        # follow up model turn with execution feedback
+                        model_turn = self.model.feedback(
+                            feedback=code_action_result.text,
+                            is_error=code_action_result.is_error,
+                            tool_use_id=response.tool_use_id,
+                            tool_use_name=response.tool_use_name,
+                            **kwargs,
+                        )
+                    case CodeActModelResponse(is_error=True) as response:
+                        model_usage.update(response.usage)
+                        model_turn = self.model.feedback(
+                            feedback=response.text,
+                            is_error=True,
+                            tool_use_id=response.tool_use_id,
+                            tool_use_name=response.tool_use_name,
+                            **kwargs,
+                        )
+            else:
+                raise MaxStepsReached(f"max_steps ({max_steps}) reached")
