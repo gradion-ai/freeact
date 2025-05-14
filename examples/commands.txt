@@ -1,57 +1,59 @@
-# --8<-- [start:cli-basics-claude]
-python -m freeact.cli \
-  --model-name=anthropic/claude-3-7-sonnet-20250219 \
-  --ipybox-tag=ghcr.io/gradion-ai/ipybox:example \
-  --workspace-key=example \
-  --skill-modules=freeact_skills.search.google.stream.api
-# --8<-- [end:cli-basics-claude]
-
-# --8<-- [start:cli-basics-gemini]
-python -m freeact.cli \
-  --model-name=gemini/gemini-2.0-flash \
-  --ipybox-tag=ghcr.io/gradion-ai/ipybox:example \
-  --workspace-key=example \
-  --skill-modules=freeact_skills.search.google.stream.api
-# --8<-- [end:cli-basics-gemini]
-
-# --8<-- [start:cli-skills]
-python -m freeact.cli \
-  --model-name=anthropic/claude-3-5-sonnet-20241022 \
-  --ipybox-tag=ghcr.io/gradion-ai/ipybox:example \
-  --workspace-key=example \
-  --skill-modules=freeact_skills.search.google.stream.api \
-  --skill-modules=freeact_skills.zotero.api \
-  --skill-modules=freeact_skills.reader.api
-# --8<-- [end:cli-skills]
-
-# --8<-- [start:cli-skills-weather]
-python -m freeact.cli \
-  --model-name=anthropic/claude-3-5-sonnet-20241022 \
-  --ipybox-tag=ghcr.io/gradion-ai/ipybox:example \
-  --workspace-key=example \
-  --skill-modules=freeact_skills.search.google.stream.api \
-  --skill-modules=freeact_skills.zotero.api \
-  --skill-modules=freeact_skills.reader.api \
-  --skill-modules=weather.weather_report
-# --8<-- [end:cli-skills-weather]
-
-# --8<-- [start:cli-extension]
-python -m freeact.cli \
-  --model-name=anthropic/claude-3-5-sonnet-20241022 \
-  --ipybox-tag=ghcr.io/gradion-ai/ipybox:example \
-  --workspace-key=example \
-  --skill-modules=freeact_skills.search.google.stream.api \
-  --skill-modules=freeact_skills.zotero.api \
-  --skill-modules=freeact_skills.reader.api \
-  --skill-modules=weather.weather_report \
-  --system-extension=extension.txt
-# --8<-- [end:cli-extension]
-
-# --8<-- [start:mcp-server]
-python -m freeact.cli \
-  --model-name=anthropic/claude-3-7-sonnet-20250219 \
+# --8<-- [start:cli-quickstart]
+uvx freeact \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
-  --workspace-key=example \
+  --model-name=anthropic/claude-3-7-sonnet-20250219 \
+  --reasoning-effort=low \
   --skill-modules=freeact_skills.search.google.stream.api \
   --mcp-servers=mcp.json
-# --8<-- [end:mcp-server]
+# --8<-- [end:cli-quickstart]
+
+# --8<-- [start:cli-mcp-integration]
+uvx freeact \
+  --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
+  --model-name=gpt-4.1 \
+  --mcp-servers=mcp.json \
+  --api-key=$OPENAI_API_KEY
+# --8<-- [end:cli-mcp-integration]
+
+# --8<-- [start:cli-custom-template]
+uvx freeact \
+  --ipybox-tag=ghcr.io/gradion-ai/ipybox:example \
+  --model-name=anthropic/claude-3-7-sonnet-20250219 \
+  --reasoning-effort=low \
+  --system-template=custom_template.txt \
+  --api-key=$ANTHROPIC_API_KEY
+# --8<-- [end:cli-custom-template]
+
+# --8<-- [start:cli-skills-internal-knowledge]
+uvx freeact \
+  --ipybox-tag=ghcr.io/gradion-ai/ipybox:example \
+  --model-name=anthropic/claude-3-7-sonnet-20250219 \
+  --reasoning-effort=low \
+  --api-key=$ANTHROPIC_API_KEY
+# --8<-- [end:cli-skills-internal-knowledge]
+
+# --8<-- [start:cli-skills-predefined-skills]
+uvx freeact \
+  --ipybox-tag=ghcr.io/gradion-ai/ipybox:example \
+  --model-name=anthropic/claude-3-7-sonnet-20250219 \
+  --reasoning-effort=low \
+  --skill-modules=freeact_skills.zotero.api \
+  --api-key=$ANTHROPIC_API_KEY
+# --8<-- [end:cli-skills-predefined-skills]
+
+# --8<-- [start:cli-skills-learning-by-example]
+uvx freeact \
+  --ipybox-tag=ghcr.io/gradion-ai/ipybox:example \
+  --model-name=gpt-4.1 \
+  --mcp-servers=mcp.json \
+  --api-key=$OPENAI_API_KEY
+# --8<-- [end:cli-skills-learning-by-example]
+
+# --8<-- [start:cli-skills-collaborative-learning]
+uvx freeact \
+  --ipybox-tag=ghcr.io/gradion-ai/ipybox:example \
+  --model-name=anthropic/claude-3-7-sonnet-20250219 \
+  --reasoning-effort=low \
+  --skill-modules=gp_fit \
+  --api-key=$ANTHROPIC_API_KEY
+# --8<-- [end:cli-cli-skills-collaborative-learning]

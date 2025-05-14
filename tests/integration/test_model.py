@@ -1,7 +1,5 @@
 import pytest
 
-from freeact.model.claude.model import Claude
-
 CUSTOM_SKILL_SOURCES = """
     def custom_pow(base, exponent):
         return base ** exponent
@@ -17,27 +15,16 @@ def skill_sources():
     params=[
         pytest.param("claude"),
         pytest.param("gemini"),
-        pytest.param("qwen_coder"),
+        pytest.param("qwen"),
     ]
 )
 def model(request):
     return request.getfixturevalue(request.param)
 
 
-def create_turn(model, user_query: str, skill_sources: str | None = None):
-    kwargs = {}
-    if isinstance(model, Claude):
-        kwargs["skill_sources"] = skill_sources
-
-    return model.request(
-        user_query=user_query,
-        **kwargs,
-    )
-
-
 @pytest.mark.asyncio(loop_scope="package")
 async def test_model_returns_text_response(model):
-    turn = create_turn(model, "Do not generate any code. Just respond with the text 'Hello, world!'")
+    turn = model.request(user_query="Do not generate any code. Just respond with the text 'Hello, world!'")
     response = await turn.response()
 
     assert response.text.strip() == "Hello, world!"
@@ -47,7 +34,9 @@ async def test_model_returns_text_response(model):
 
 @pytest.mark.asyncio(loop_scope="package")
 async def test_model_returns_code_response(model):
-    turn = create_turn(model, "What is 25 raised to the power of 0.235? Use the math library to solve this problem.")
+    turn = model.request(
+        user_query="What is 25 raised to the power of 0.235? Use the math library to solve this problem."
+    )
     response = await turn.response()
 
     assert response.text is not None
@@ -58,7 +47,9 @@ async def test_model_returns_code_response(model):
 
 @pytest.mark.asyncio(loop_scope="package")
 async def test_model_returns_text_response_on_success_feedback(model):
-    turn_1 = create_turn(model, "What is 25 raised to the power of 0.235? Use the math library to solve this problem.")
+    turn_1 = model.request(
+        user_query="What is 25 raised to the power of 0.235? Use the math library to solve this problem."
+    )
     response_1 = await turn_1.response()
 
     assert response_1.text is not None
@@ -80,7 +71,9 @@ async def test_model_returns_text_response_on_success_feedback(model):
 
 @pytest.mark.asyncio(loop_scope="package")
 async def test_model_returns_code_to_recover_on_error_feedback(model):
-    turn_1 = create_turn(model, "What is 25 raised to the power of 0.235? Use the math library to solve this problem.")
+    turn_1 = model.request(
+        user_query="What is 25 raised to the power of 0.235? Use the math library to solve this problem."
+    )
     response_1 = await turn_1.response()
 
     assert response_1.text is not None
@@ -103,10 +96,8 @@ async def test_model_returns_code_to_recover_on_error_feedback(model):
 
 @pytest.mark.asyncio(loop_scope="package")
 async def test_model_uses_custom_skill_in_code(model, skill_sources):
-    turn = create_turn(
-        model,
-        "What is 25 raised to the power of 0.235? Use one of the custom Python modules to solve this problem. IMPORTANT: If you cannot find a module only print the text 'Module not found' nothing else.",
-        skill_sources,
+    turn = model.request(
+        user_query="What is 25 raised to the power of 0.235? Use one of the custom Python modules to solve this problem. IMPORTANT: If you cannot find a module only print the text 'Module not found' nothing else.",
     )
     response = await turn.response()
 

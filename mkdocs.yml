@@ -4,7 +4,7 @@ site_description: AI agents that use code actions to dynamically interact with a
 repo_name: gradion-ai/freeact
 repo_url: https://github.com/gradion-ai/freeact
 
-copyright: Copyright &copy; 2024 Gradion AI
+copyright: Copyright &copy; 2025 Gradion AI
 
 theme:
   name: material
@@ -61,6 +61,7 @@ plugins:
             signature_crossrefs: true
             separate_signature: true
             merge_init_into_class: true
+            members_order: source
           import:
             - url: https://docs.python.org/3/objects.inv
               domains: [py, std]
@@ -74,6 +75,8 @@ markdown_extensions:
   - pymdownx.snippets:
       dedent_subsections: false
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.details
   - pymdownx.tilde
   - attr_list
@@ -83,32 +86,21 @@ markdown_extensions:
 
 nav:
   - User guide:
-    - Basics:
-      - Overview: index.md
-      - Quickstart: quickstart.md
-      - Installation: installation.md
-      - Building blocks: blocks.md
-      - Command line: cli.md
-      - Supported models: models.md
-    - Tutorials:
-      - Overview: tutorials/index.md
-      - Basic usage: tutorials/basics.md
-      - Skill development: tutorials/skills.md
-      - System extensions: tutorials/extend.md
-      - MCP servers: tutorials/mcp.md
-    - Advanced topics:
-      - Model integration: integration.md
-      - Execution environment: environment.md
-      - Streaming protocol: streaming.md
-      - Evaluation results: evaluation.md
+    - Introduction: introduction.md
+    - Quickstart: quickstart.md
+    - Installation: installation.md
+    - Fundamentals: fundamentals.md
+    - Environment: environment.md
+    - MCP integration: mcp-integration.md
+    - System prompt: system-prompt.md
+    - Evaluation results: https://github.com/gradion-ai/freeact/blob/main/evaluation/README.md
+    - Skills:
+      - Using internal knowledge: skills/internal-knowledge.md
+      - Using predefined skills: skills/predefined-skills.md
+      - Learning skills by example: skills/learning-by-example.md
+      - Collaborative skill learning: skills/collaborative-learning.md
+      - Autonomous skill learning: skills/autonomous-learning.md
   - API Documentation:
+    - Environment: api/environment.md
     - Agent: api/agent.md
-    - Executor: api/executor.md
     - Model: api/model.md
-    - Logger: api/logger.md
-    - Models:
-      - LiteLLM: api/litellm.md
-      - Claude: api/claude.md
-      - Gemini: api/gemini.md
-      - DeepSeek: api/deepseek.md
-      - Qwen: api/qwen.md

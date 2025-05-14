@@ -1,5 +1,10 @@
-from freeact.agent import CodeActAgent, CodeActAgentResponse, CodeActAgentTurn
-from freeact.executor import (
+from freeact.agent import (
+    CodeActAgent,
+    CodeActAgentResponse,
+    CodeActAgentTurn,
+    MaxStepsReached,
+)
+from freeact.environment import (
     CodeExecution,
     CodeExecutionContainer,
     CodeExecutionEnvironment,
@@ -9,15 +14,9 @@ from freeact.executor import (
     execution_environment,
 )
 from freeact.model import (
-    Claude,
     CodeActModel,
     CodeActModelResponse,
     CodeActModelTurn,
-    DeepSeekR1,
-    DeepSeekV3,
-    Gemini,
-    GeminiLive,
-    LiteLLM,
-    LiteLLMBase,
-    QwenCoder,
+    CodeActModelUsage,
+    LiteCodeActModel,
 )

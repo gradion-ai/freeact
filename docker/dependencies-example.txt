@@ -1,4 +1,5 @@
 freeact-skills = {version = "0.0.8", extras = ["all"]}
+scikit-learn = "^1.6"
 matplotlib = "^3.10"
 numpy = "^2.2"
 pandas = "^2.2"

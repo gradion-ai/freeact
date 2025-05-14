@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Dict
 
 import aiofiles
+import prefixed
 import prompt_toolkit
 from PIL import Image
 from prompt_toolkit.key_binding import KeyBindings
@@ -16,11 +17,41 @@ from freeact import (
     CodeActAgent,
     CodeActAgentTurn,
     CodeActModelTurn,
+    CodeActModelUsage,
     CodeExecution,
 )
 
+CONVERSATION_HTML_TEMPLATE = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{title}</title>
+</head>
+<body>
+{svg}
+</body>
+</html>
+"""
 
-async def stream_conversation(agent: CodeActAgent, console: Console, show_token_usage: bool = False, **kwargs):
+
+async def save_conversation(console: Console, record_dir: Path, record_title: str):
+    from freeact.environment import arun
+
+    record_dir.mkdir(parents=True, exist_ok=True)
+
+    record_svg_path = record_dir / "conversation.svg"
+    record_html_path = record_dir / "conversation.html"
+
+    await arun(console.save_svg, str(record_svg_path), title=record_title)
+
+    async with aiofiles.open(record_svg_path, "r") as file:
+        svg = await file.read()
+
+    async with aiofiles.open(record_html_path, "w") as file:
+        await file.write(CONVERSATION_HTML_TEMPLATE.format(title=record_title, svg=svg))
+
+
+async def stream_conversation(agent: CodeActAgent, console: Console, show_token_usage: bool = True, **kwargs):
     "enter"
     empty_input = False
 
@@ -42,6 +73,7 @@ async def stream_conversation(agent: CodeActAgent, console: Console, show_token_
     )
 
     escape_key = "Option" if platform.system() == "Darwin" else "Alt"
+    usage = CodeActModelUsage()
 
     while True:
         console.print(Rule("User message", style="dodger_blue1", characters="━"))
@@ -67,10 +99,12 @@ async def stream_conversation(agent: CodeActAgent, console: Console, show_token_
             break
 
         agent_turn = agent.run(user_message, **kwargs)
-        await stream_turn(agent_turn, console, show_token_usage)
+        await stream_turn(agent_turn, console, usage, show_token_usage)
 
 
-async def stream_turn(agent_turn: CodeActAgentTurn, console: Console, show_token_usage: bool = False):
+async def stream_turn(
+    agent_turn: CodeActAgentTurn, console: Console, usage: CodeActModelUsage, show_token_usage: bool = False
+):
     produced_images: Dict[Path, Image.Image] = {}
 
     async for activity in agent_turn.stream():
@@ -84,6 +118,7 @@ async def stream_turn(agent_turn: CodeActAgentTurn, console: Console, show_token
                     console.print("\n")
 
                 response = await turn.response()
+                usage.update(response.usage)
 
                 if console.record:
                     # needed to wrap text in SVG output
@@ -96,8 +131,19 @@ async def stream_turn(agent_turn: CodeActAgentTurn, console: Console, show_token
                     console.print(panel)
                     console.print()
 
-                if show_token_usage and response.token_usage:
-                    pass  # not supported at the moment
+                if show_token_usage:
+                    token_usage = [
+                        f"input={format_token_count(usage.input_tokens)}",
+                        f"thinking={format_token_count(usage.thinking_tokens)}",
+                        f"output={format_token_count(usage.output_tokens)}",
+                        f"cache_write={format_token_count(usage.cache_write_tokens)}",
+                        f"cache_read={format_token_count(usage.cache_read_tokens)}",
+                    ]
+                    usage_str = f'Accumulated token usage: {", ".join(token_usage)}'
+                    costs_str = f"Accumulated costs: {format_cost(usage.cost)}"
+
+                    console.print()
+                    console.print(f"{usage_str}; {costs_str}", highlight=False, style="grey50")
 
             case CodeExecution() as execution:
                 console.print(Rule("Execution result", style="white", characters="━"))
@@ -120,6 +166,14 @@ async def stream_turn(agent_turn: CodeActAgentTurn, console: Console, show_token
         paths_str = "\n".join(str(path) for path in produced_images.keys())
         panel = Panel(paths_str, title="Produced images", title_align="left", style="magenta")
         console.print(panel)
+
+
+def format_token_count(n: int) -> str:
+    return str(n) if n < 1000 else f"{prefixed.Float(n):.2h}"
+
+
+def format_cost(cost: float | None) -> str:
+    return "unknown" if cost is None else f"{cost:.3f} USD"
 
 
 async def read_file(path: Path | str) -> str:
