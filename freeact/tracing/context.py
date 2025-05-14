@@ -1,4 +1,6 @@
 import contextvars
+from contextlib import asynccontextmanager
+from typing import AsyncIterator
 
 from freeact.tracing.base import Trace, TracerProvider, TracingConfig
 from freeact.tracing.langfuse import LangfuseTracer, LangfuseTracingConfig
@@ -15,6 +17,16 @@ def get_tracer_provider() -> TracerProvider:
 
 
 class TracingContextManager:
+    """Context manager enabling tracing functionality using the supplied [`TracerProvider`][freeact.tracing.base.TracerProvider].
+    It manages the lifecycle of the tracer provider.
+
+    Args:
+        tracer_provider: The tracer provider to use for tracing.
+
+    Returns:
+        The tracer provider.
+    """
+
     def __init__(self, tracer_provider: TracerProvider):
         self._tracer_provider = tracer_provider
         self._token: contextvars.Token | None = None
@@ -41,6 +53,15 @@ def _default_tracing_config() -> TracingConfig:
 def start(
     config: TracingConfig | None = None,
 ) -> TracingContextManager:
+    """Enables tracing functionality by setting up a [`TracerProvider`][freeact.tracing.base.TracerProvider] based on the supplied [`TracingConfig`][freeact.tracing.base.TracingConfig].
+    By default, the [`LangfuseTracingConfig`][freeact.tracing.langfuse.LangfuseTracingConfig] is used, setting up the [`LangfuseTracer`][freeact.tracing.langfuse.LangfuseTracer].
+
+    Args:
+        config: The tracing config to use.
+
+    Returns:
+        The tracing context manager managing the lifecycle of the tracer provider.
+    """
     if config is None:
         config = _default_tracing_config()
 
@@ -61,29 +82,21 @@ def get_active_trace() -> Trace:
     return _tracing_active_trace_context.get() or NoopTrace()
 
 
-class TraceContext:
-    def __init__(self, trace: Trace):
-        self._trace = trace
-        self._token: contextvars.Token | None = None
+@asynccontextmanager
+async def use_trace(trace: Trace) -> AsyncIterator[Trace]:
+    """Context manager setting the active trace in the current context.
 
-    def __enter__(self):
-        self._token = _tracing_active_trace_context.set(self._trace)
-        return self._trace
+    Args:
+        trace: The trace to set as active.
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if self._token:
-            _tracing_active_trace_context.reset(self._token)
-        self._token = None
-
-    async def __aenter__(self):
-        return self.__enter__()
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        return self.__exit__(exc_type, exc_val, exc_tb)
-
-
-def use_trace(trace: Trace) -> TraceContext:
-    return TraceContext(trace)
+    Returns:
+        The active trace.
+    """
+    token = _tracing_active_trace_context.set(trace)
+    try:
+        yield trace
+    finally:
+        _tracing_active_trace_context.reset(token)
 
 
 _tracing_active_session_id_context: contextvars.ContextVar[str | None] = contextvars.ContextVar(
@@ -96,26 +109,18 @@ def get_active_tracing_session_id() -> str | None:
     return _tracing_active_session_id_context.get()
 
 
-class TracingSessionContextManager:
-    def __init__(self, session_id: str):
-        self._session_id = session_id
-        self._token: contextvars.Token[str | None] | None = None
+@asynccontextmanager
+async def session(session_id: str) -> AsyncIterator[str]:
+    """Context manager setting the active tracing session id in the current context.
 
-    def __enter__(self) -> str:
-        self._token = _tracing_active_session_id_context.set(self._session_id)
-        return self._session_id
+    Args:
+        session_id: The session id to set as active.
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
-        if self._token:
-            _tracing_active_session_id_context.reset(self._token)
-        self._token = None
-
-    async def __aenter__(self):
-        return self.__enter__()
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        return self.__exit__(exc_type, exc_val, exc_tb)
-
-
-def session(session_id: str) -> TracingSessionContextManager:
-    return TracingSessionContextManager(session_id=session_id)
+    Returns:
+        The active session id.
+    """
+    token = _tracing_active_session_id_context.set(session_id)
+    try:
+        yield session_id
+    finally:
+        _tracing_active_session_id_context.reset(token)

@@ -195,11 +195,11 @@ async def test_trace_context_manager_nested(trace):
     first_trace.trace_id = "first-trace-id"
     second_trace = trace
 
-    with use_trace(first_trace) as trace1:
+    async with use_trace(first_trace) as trace1:
         assert _tracing_active_trace_context.get() == first_trace
         assert trace1 == first_trace
 
-        with use_trace(second_trace) as trace2:
+        async with use_trace(second_trace) as trace2:
             assert _tracing_active_trace_context.get() == second_trace
             assert trace2 == second_trace
 

@@ -234,7 +234,7 @@ def test_config_from_env():
             "LANGFUSE_PUBLIC_KEY": "env-public-key",
             "LANGFUSE_SECRET_KEY": "env-secret-key",
             "LANGFUSE_HOST": "https://env-host.com",
-            "LANGFUSE_ENVIRONMENT": "test",
+            "LANGFUSE_TRACING_ENVIRONMENT": "test",
             "LANGFUSE_RELEASE": "v1.0.0",
             "LANGFUSE_DEBUG": "true",
             "LANGFUSE_THREADS": "4",

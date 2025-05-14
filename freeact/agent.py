@@ -158,7 +158,7 @@ class CodeActAgent:
         step_timeout: float = 120,
         **kwargs,
     ) -> AsyncIterator[CodeActModelTurn | CodeExecution | CodeActAgentResponse]:
-        with tracing_context.use_trace(trace):
+        async with tracing_context.use_trace(trace):
             # initial model interaction with user query
             model_turn = self.model.request(user_query=user_query, **kwargs)
 
