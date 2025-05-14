@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../fundamentals/">
+        <link rel="prev" href="../mcp-integration/">
       
       
-        <link rel="next" href="../mcp-integration/">
+        <link rel="next" href="../skills/internal-knowledge/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>Environment - freeact</title>
+        <title>System prompt - freeact</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#execution-environment" class="md-skip">
+        <a href="#system-prompt" class="md-skip">
           Skip to content
         </a>
       
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Environment
+              System prompt
             
           </span>
         </div>
@@ -445,31 +445,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Environment
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../environment/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -479,53 +458,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#prebuilt-docker-images" class="md-nav__link">
-    <span class="md-ellipsis">
-      Prebuilt Docker images
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#custom-docker-image" class="md-nav__link">
-    <span class="md-ellipsis">
-      Custom Docker image
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#installing-dependencies-at-runtime" class="md-nav__link">
-    <span class="md-ellipsis">
-      Installing dependencies at runtime
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -557,10 +489,31 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../system-prompt/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    System prompt
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -570,6 +523,44 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#default-templates" class="md-nav__link">
+    <span class="md-ellipsis">
+      Default templates
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom-templates" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom templates
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -907,27 +898,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#prebuilt-docker-images" class="md-nav__link">
+  <a href="#default-templates" class="md-nav__link">
     <span class="md-ellipsis">
-      Prebuilt Docker images
+      Default templates
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#custom-docker-image" class="md-nav__link">
+  <a href="#custom-templates" class="md-nav__link">
     <span class="md-ellipsis">
-      Custom Docker image
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#installing-dependencies-at-runtime" class="md-nav__link">
-    <span class="md-ellipsis">
-      Installing dependencies at runtime
+      Custom templates
     </span>
   </a>
   
@@ -952,91 +934,89 @@
   
 
 
-<h1 id="execution-environment">Execution environment</h1>
-<p><code>freeact</code> uses <a href="https://gradion-ai.github.io/ipybox/"><code>ipybox</code></a> as sandboxed code execution environment, a solution based on <a href="https://ipython.org/">IPython</a> and <a href="https://www.docker.com/">Docker</a>. There are several options for providing dependencies needed by code actions in <code>ipybox</code>:</p>
+<h1 id="system-prompt">System prompt</h1>
+<h2 id="default-templates">Default templates</h2>
+<p><code>freeact</code> uses default system prompt templates for instructing models to generate code actions:</p>
 <ul>
-<li><a href="#prebuilt-docker-images">Use a prebuilt Docker image</a>.</li>
-<li><a href="#custom-docker-image">Build a custom Docker image</a>.</li>
-<li><a href="#installing-dependencies-at-runtime">Install dependencies at runtime</a></li>
+<li><a href="https://github.com/gradion-ai/freeact/blob/main/freeact/model/prompt/system_tag.py"><code>CODE_TAG_SYSTEM_TEMPLATE</code></a> instructs a model to include code actions directly in the response text, enclosed in <code>&lt;code-action&gt;</code> tags.</li>
+<li><a href="https://github.com/gradion-ai/freeact/blob/main/freeact/model/prompt/system_tool.py"><code>TOOL_USE_SYSTEM_TEMPLATE</code></a> instructs a model to use an <code>execute_ipython_cell</code> tool and pass code actions as <code>code</code> argument.</li>
 </ul>
-<h2 id="prebuilt-docker-images">Prebuilt Docker images</h2>
-<p><code>freeact</code> provides prebuilt Docker images in variants <code>minimal</code>, <code>basic</code>, and <code>example</code>. They have the following dependencies pre-installed:</p>
-<ul>
-<li>
-<p><code>ghcr.io/gradion-ai/ipybox:minimal</code>: </p>
-<div class="language-toml highlight"><span class="filename">docker/dependencies-minimal.txt</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">freeact-skills</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">version</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;0.0.8&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">extras</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;search-google&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;search-perplexity&quot;</span><span class="p">]}</span>
-</span></code></pre></div>
-</li>
-<li>
-<p><code>ghcr.io/gradion-ai/ipybox:basic</code>: </p>
-<div class="language-toml highlight"><span class="filename">docker/dependencies-basic.txt</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">freeact-skills</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">version</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;0.0.8&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">extras</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;search-google&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;search-perplexity&quot;</span><span class="p">]}</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">matplotlib</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;^3.10&quot;</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">numpy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;^2.2&quot;</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">pandas</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;^2.2&quot;</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">sympy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;^1.13&quot;</span>
-</span></code></pre></div>
-</li>
-<li>
-<p><code>ghcr.io/gradion-ai/ipybox:example</code>: </p>
-<div class="language-toml highlight"><span class="filename">docker/dependencies-example.txt</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">freeact-skills</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">version</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;0.0.8&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">extras</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;all&quot;</span><span class="p">]}</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">scikit-learn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;^1.6&quot;</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">matplotlib</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;^3.10&quot;</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">numpy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;^2.2&quot;</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">pandas</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;^2.2&quot;</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">pygithub</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;^2.5&quot;</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="n">sympy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;^1.13&quot;</span>
-</span></code></pre></div>
-</li>
-</ul>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The <a href="https://gradion-ai.github.io/freeact-skills/"><code>freeact-skills</code></a> package provides predefined example skills for the <code>freeact</code> agent library.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Prebuilt <code>ipybox</code> images run with root privileges. For non-root execution, build a <a href="#custom-docker-image">custom Docker image</a> (see also <code>ipybox</code>'s <a href="https://gradion-ai.github.io/ipybox/installation/">installation guide</a>).</p>
-</div>
-<h2 id="custom-docker-image">Custom Docker image</h2>
-<p>To build a custom <code>ipybox</code> image, create a <code>dependencies.txt</code> file with your custom dependencies. For example:</p>
-<div class="language-toml highlight"><span class="filename">dependencies.txt</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">freeact-skills</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">version</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;0.0.8&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">extras</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;search-google&quot;</span><span class="p">]}</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">numpy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;^2.2&quot;</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># ...</span>
-</span></code></pre></div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p><code>dependencies.txt</code> must follow the <a href="https://python-poetry.org/docs/dependency-specification/">Poetry dependency specification format</a>.</p>
-</div>
-<p>Then build a custom Docker image with <code>ipybox</code>'s <code>build</code> command:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>-m<span class="w"> </span>ipybox<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>ghcr.io/gradion-ai/ipybox:custom<span class="w"> </span>-d<span class="w"> </span>dependencies.txt
-</span></code></pre></div>
-<p>To use the image, reference it in <a class="autorefs autorefs-internal" href="../api/environment/#freeact.environment.CodeExecutionContainer"><code>CodeExecutionContainer</code></a> with <code>tag="ghcr.io/gradion-ai/ipybox:custom"</code> or in <a class="autorefs autorefs-internal" href="../api/environment/#freeact.environment.execution_environment"><code>execution_environment</code></a> with <code>ipybox_tag="ghcr.io/gradion-ai/ipybox:custom"</code>:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">freeact</span><span class="w"> </span><span class="kn">import</span> <span class="n">execution_environment</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="k">async</span> <span class="k">with</span> <span class="n">execution_environment</span><span class="p">(</span><span class="n">ipybox_tag</span><span class="o">=</span><span class="s2">&quot;ghcr.io/gradion-ai/ipybox:custom&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    <span class="o">...</span>
-</span></code></pre></div>
-<h2 id="installing-dependencies-at-runtime">Installing dependencies at runtime</h2>
-<p>Dependencies can also be installed at runtime with <code>!pip install &lt;package&gt;</code> using a <a class="autorefs autorefs-internal" href="../api/environment/#freeact.environment.CodeExecutor">code executor</a>. When agents require additional Python packages for executing their code actions, they usually install them on demand, either based on prior knowledge or by reacting on code execution errors when an <code>import</code> failed. Alternatively, application code may also install packages at runtime prior to running an agent:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">freeact</span><span class="w"> </span><span class="kn">import</span> <span class="n">execution_environment</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="k">async</span> <span class="k">with</span> <span class="n">execution_environment</span><span class="p">(</span><span class="n">ipybox_tag</span><span class="o">=</span><span class="s2">&quot;ghcr.io/gradion-ai/ipybox:basic&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">env</span><span class="o">.</span><span class="n">code_executor</span><span class="p">()</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>        <span class="c1"># Install the serpapi package prior to running an agent</span>
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>        <span class="k">await</span> <span class="n">executor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;!pip install serpapi&quot;</span><span class="p">)</span>
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
-</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">env</span><span class="o">.</span><span class="n">code_provider</span><span class="p">()</span> <span class="k">as</span> <span class="n">provider</span><span class="p">:</span>
-</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>        <span class="c1"># Load skill modules that depend on serpapi</span>
-</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>        <span class="n">skill_sources</span> <span class="o">=</span> <span class="k">await</span> <span class="n">provider</span><span class="o">.</span><span class="n">get_sources</span><span class="p">(</span>
-</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>            <span class="n">module_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;my_skill_module_1&quot;</span><span class="p">,</span> <span class="s2">&quot;my_skill_module_2&quot;</span><span class="p">],</span>
-</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>        <span class="p">)</span>
-</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>
-</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">env</span><span class="o">.</span><span class="n">code_executor</span><span class="p">()</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
-</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>        <span class="c1"># Initialize and run agent</span>
-</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>        <span class="c1"># ...</span>
-</span></code></pre></div>
+<p>These are chosen by <code>freeact</code> based on the <code>use_executor_tool</code> argument of the <a class="autorefs autorefs-internal" href="../api/model/#freeact.model.litellm.LiteCodeActModel"><code>LiteCodeActModel</code></a> constructor, or the model name and provider if <code>use_executor_tool=None</code>.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>For production use, it's recommended to include frequently used dependencies in a <a href="#custom-docker-image">custom Docker image</a>.</p>
+<p>Default templates cover only generic agent behavior. To adapt an agent to application- and domain-specific requirements, it can be useful to provide <a href="#custom-templates">custom system templates</a>.</p>
+</div>
+<h2 id="custom-templates">Custom templates</h2>
+<p>The following example uses a <a href="https://github.com/gradion-ai/freeact/blob/main/examples/custom_template.py">custom system template</a> that extends the default system template (<a href="../system-prompt-diff.html">diff</a>) with instructions for the agent to:</p>
+<ul>
+<li>create and share a plan before acting</li>
+<li>asking the user for feedback on the plan</li>
+<li>adjust the plan if necessary</li>
+<li>suggest 3 follow-up queries after the final response</li>
+</ul>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Python</label><label for="__tabbed_1_2">CLI</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="language-python highlight"><span class="filename">examples/custom.py</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rich.console</span><span class="w"> </span><span class="kn">import</span> <span class="n">Console</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">examples.custom_template</span><span class="w"> </span><span class="kn">import</span> <span class="n">TOOL_USE_SYSTEM_TEMPLATE</span> <span class="k">as</span> <span class="n">CUSTOM_TEMPLATE</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="kn">from</span><span class="w"> </span><span class="nn">freeact</span><span class="w"> </span><span class="kn">import</span> <span class="n">CodeActAgent</span><span class="p">,</span> <span class="n">LiteCodeActModel</span><span class="p">,</span> <span class="n">execution_environment</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="kn">from</span><span class="w"> </span><span class="nn">freeact.cli.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">stream_conversation</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">execution_environment</span><span class="p">(</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        <span class="n">ipybox_tag</span><span class="o">=</span><span class="s2">&quot;ghcr.io/gradion-ai/ipybox:basic&quot;</span><span class="p">,</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        <span class="n">ipybox_env</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;GEMINI_API_KEY&quot;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;GEMINI_API_KEY&quot;</span><span class="p">]},</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="p">)</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        <span class="k">async</span> <span class="k">with</span> <span class="n">env</span><span class="o">.</span><span class="n">code_provider</span><span class="p">()</span> <span class="k">as</span> <span class="n">provider</span><span class="p">:</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>            <span class="n">skill_sources</span> <span class="o">=</span> <span class="k">await</span> <span class="n">provider</span><span class="o">.</span><span class="n">get_sources</span><span class="p">(</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>                <span class="n">module_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;freeact_skills.search.google.stream.api&quot;</span><span class="p">],</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>            <span class="p">)</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>        <span class="k">async</span> <span class="k">with</span> <span class="n">env</span><span class="o">.</span><span class="n">code_executor</span><span class="p">()</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>            <span class="n">model</span> <span class="o">=</span> <span class="n">LiteCodeActModel</span><span class="p">(</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>                <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;anthropic/claude-3-7-sonnet-20250219&quot;</span><span class="p">,</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>                <span class="n">reasoning_effort</span><span class="o">=</span><span class="s2">&quot;low&quot;</span><span class="p">,</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>                <span class="n">skill_sources</span><span class="o">=</span><span class="n">skill_sources</span><span class="p">,</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>                <span class="n">system_template</span><span class="o">=</span><span class="n">CUSTOM_TEMPLATE</span><span class="p">,</span>  <span class="c1"># (1)!</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>                <span class="n">use_executor_tool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># (2)!</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>                <span class="n">api_key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;ANTHROPIC_API_KEY&quot;</span><span class="p">],</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>            <span class="p">)</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>            <span class="n">agent</span> <span class="o">=</span> <span class="n">CodeActAgent</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">executor</span><span class="o">=</span><span class="n">executor</span><span class="p">)</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>            <span class="k">await</span> <span class="n">stream_conversation</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">console</span><span class="o">=</span><span class="n">Console</span><span class="p">())</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</span></code></pre></div>
+<ol>
+<li>
+<p>Configures the code action model with the custom system template.</p>
+</li>
+<li>
+<p>This is the default for <code>anthropic/claude-3-7-sonnet-20250219</code> but added here for clarity.</p>
+</li>
+</ol>
+</div>
+<div class="tabbed-block">
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl<span class="w"> </span>-o<span class="w"> </span>custom_template.txt<span class="w"> </span>https://raw.githubusercontent.com/gradion-ai/freeact/refs/heads/main/examples/template.txt
+</span></code></pre></div>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>uvx<span class="w"> </span>freeact<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>--ipybox-tag<span class="o">=</span>ghcr.io/gradion-ai/ipybox:example<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>--model-name<span class="o">=</span>anthropic/claude-3-7-sonnet-20250219<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span>--reasoning-effort<span class="o">=</span>low<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span>--system-template<span class="o">=</span>custom_template.txt<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span>--api-key<span class="o">=</span><span class="nv">$ANTHROPIC_API_KEY</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<p><a href="../output/custom/conversation.html" target="_blank"><img alt="output" src="../output/custom/conversation.svg" /></a></p>
 </div>
 
 
