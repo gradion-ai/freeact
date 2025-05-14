@@ -1,61 +1,51 @@
 from dataclasses import dataclass
 from typing import AsyncIterator
 
-from freeact.executor import CodeExecution, CodeExecutor
-from freeact.model import CodeActModel, CodeActModelResponse, CodeActModelTurn
+from freeact.environment import CodeExecution, CodeExecutor
+from freeact.model import CodeActModel, CodeActModelResponse, CodeActModelTurn, CodeActModelUsage
 
 
 class MaxStepsReached(Exception):
-    """Raised when the maximum number of steps per user query is reached.
-
-    This exception indicates that the agent has reached its maximum allowed
-    interaction steps while processing a user query.
+    """Raised when the maximum number of steps per agent
+    [`run`][freeact.agent.CodeActAgent.run] is reached.
     """
-
-    pass
 
 
 @dataclass
 class CodeActAgentResponse:
-    """Final response from the agent to the user for the current turn.
-
-    Attributes:
-        text: The final response text to present to the user
-    """
+    """A response from an single interaction with a code action agent."""
 
     text: str
+    """The final response text to the user."""
+
+    usage: CodeActModelUsage
+    """Accumulated model usage during this interaction."""
 
 
 class CodeActAgentTurn:
-    """Represents a complete interaction turn between the user and agent.
+    """A single interaction with the code action agent.
 
-    A turn consists of a sequence of model interaction turns and code executions, continuing until:
-
-    - The model provides a final response without code
-    - An error occurs
-    - Maximum steps are reached
-
-    The turn can be processed either in bulk via `response()` or incrementally via `stream()`.
+    An interaction consists of a sequence of model interaction and code
+    execution pairs, continuing until the code action model provides a
+    final response or the maximum number of steps is reached.
     """
 
-    def __init__(self, iter: AsyncIterator[CodeActModelTurn | CodeExecution | CodeActModelResponse]):
+    def __init__(self, iter: AsyncIterator[CodeActModelTurn | CodeExecution | CodeActAgentResponse]):
         self._iter = iter
         self._response: CodeActAgentResponse | None = None
 
     async def response(self) -> CodeActAgentResponse:
-        """Get the final response for this interaction turn.
-
-        Waits for the complete interaction sequence to finish, including any
-        intermediate model interaction and code executions. The final response
-        is cached after the first call.
+        """Retrieves the final response from the code action agent for this
+        interaction. Waits until the sequence of model interactions and code
+        executions is complete.
 
         Returns:
-            The final agent response containing the text to present to the user
+            The final response from the code action model as `CodeActAgentResponse`
+                object.
 
-        Note:
-            This method will process the entire interaction sequence if called
-            before streaming is complete. For incremental processing, use the
-            `stream()` method instead.
+        Raises:
+            MaxStepsReached: If the interaction exceeds the maximum number of
+                steps without completion.
         """
         if self._response is None:
             async for _ in self.stream():
@@ -63,27 +53,27 @@ class CodeActAgentTurn:
         return self._response  # type: ignore
 
     async def stream(self) -> AsyncIterator[CodeActModelTurn | CodeExecution]:
-        """Stream the sequence of model turns and code executions.
+        """Stream the sequence of model interaction and code execution pairs
+        as they occur:
 
-        Yields each step in the interaction sequence as it occurs:
+        - `CodeActModelTurn`: The current interaction with the code action model
+        - `CodeExecution`: The current execution of a code action in the code
+          execution environment
 
-        - `CodeActModelTurn`: Model thinking and code action generation steps
-        - `CodeExecution`: Code actions being executed in the execution environment
+        The sequence continues until the model provides a final response. Once
+        the stream is consumed, [`response`][freeact.agent.CodeActAgentTurn.response]
+        is immediately available without waiting and contains the final response
+        text and accumulated usage statistics.
 
-        The sequence continues until the model provides a final response,
-        which is stored internally but not yielded.
-
-        Yields:
-            Individual model turns and code executions in sequence
-
-        Note:
-            The final `CodeActModelResponse` is not yielded but is stored
-            internally and can be accessed via the `response()` method.
+        Raises:
+            MaxStepsReached: If the interaction exceeds the maximum number of
+                steps without completion.
         """
+
         async for elem in self._iter:
             match elem:
-                case CodeActModelResponse() as msg:
-                    self._response = CodeActAgentResponse(text=msg.text)
+                case CodeActAgentResponse() as response:
+                    self._response = response
                 case _:
                     yield elem
 
@@ -93,17 +83,17 @@ class CodeActAgent:
 
     The agent implements a loop that:
 
-    1. Generates code actions using a `CodeActModel`
-    2. Executes the code using a `CodeExecutor`
-    3. Provides execution feedback to the `CodeActModel`
-    4. Continues until the model generates a final response
+    1. Generates code actions using a [`CodeActModel`][freeact.model.base.CodeActModel]
+    2. Executes the code using a [`CodeExecutor`][freeact.environment.CodeExecutor]
+    3. Provides execution feedback to the [`CodeActModel`][freeact.model.base.CodeActModel]
+    4. Continues until the model generates a final response.
 
-    The agent maintains conversational state and can have multiple interaction turns
-    with the user.
+    A single interaction with the agent is initiated with its [`run`][freeact.agent.CodeActAgent.run]
+    method. The agent maintains conversational state and can have multiple interactions with the user.
 
     Args:
         model: Model instance for generating code actions
-        executor: Executor instance for running the generated code
+        executor: Executor instance for executing code actions
     """
 
     def __init__(self, model: CodeActModel, executor: CodeExecutor):
@@ -117,23 +107,22 @@ class CodeActAgent:
         step_timeout: float = 120,
         **kwargs,
     ) -> CodeActAgentTurn:
-        """Process a user query through a sequence of model interactions and code executions.
-
-        Initiates an interaction turn that processes the user query through alternating
-        steps of code action model interactions and code execution until a final response
-        is generated by the model.
+        """Initiates an interaction with the agent from a user query. The query
+        is processed through a sequence of model interaction and code execution
+        steps, driven by interacting with the returned `CodeActAgentTurn` object.
 
         Args:
-            user_query: The input query from the user to process
-            max_steps: Maximum number of interaction steps before raising `MaxStepsReached`
-            step_timeout: Timeout in seconds for each code execution step
+            user_query: The user query (a question, instruction, etc.)
+            max_steps: Maximum number of steps before raising `MaxStepsReached`
+            step_timeout: Timeout in seconds per code execution step
             **kwargs: Additional keyword arguments passed to the model
 
         Returns:
-            A `CodeActAgentTurn` instance representing the complete interaction sequence
+            CodeActAgentTurn: An object for retrieving the agent's processing steps
+                and response.
 
         Raises:
-            MaxStepsReached: If the interaction exceeds max_steps without completion
+            MaxStepsReached: If the interaction exceeds `max_steps` without completion.
         """
         iter = self._stream(
             user_query=user_query,
@@ -149,18 +138,24 @@ class CodeActAgent:
         max_steps: int = 30,
         step_timeout: float = 120,
         **kwargs,
-    ) -> AsyncIterator[CodeActModelTurn | CodeExecution | CodeActModelResponse]:
-        # initial model turn with user query
+    ) -> AsyncIterator[CodeActModelTurn | CodeExecution | CodeActAgentResponse]:
+        # initial model tuinteractionrn with user query
         model_turn = self.model.request(user_query=user_query, **kwargs)
+
+        # accumulated model usage for the current agent run
+        model_usage = CodeActModelUsage()
 
         for _ in range(max_steps):
             yield model_turn
 
             match await model_turn.response():
                 case CodeActModelResponse(is_error=False, code=None) as response:
-                    yield response
+                    model_usage.update(response.usage)
+                    # yield the final model response as a CodeActAgentResponse object
+                    yield CodeActAgentResponse(text=response.text, usage=model_usage)
                     break
                 case CodeActModelResponse(is_error=False, code=code) as response:
+                    model_usage.update(response.usage)
                     # model response contains code to execute
                     code_action = await self.executor.submit(code)  # type: ignore
                     yield code_action
@@ -174,7 +169,7 @@ class CodeActAgent:
                         **kwargs,
                     )
                 case CodeActModelResponse(is_error=True) as response:
-                    yield response
+                    model_usage.update(response.usage)
                     model_turn = self.model.feedback(
                         feedback=response.text,
                         is_error=True,

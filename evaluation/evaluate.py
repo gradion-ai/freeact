@@ -14,18 +14,14 @@ from dotenv import load_dotenv
 from tqdm import tqdm
 
 from freeact import (
-    Claude,
     CodeActAgent,
     CodeActAgentTurn,
-    CodeActModel,
     CodeActModelTurn,
     CodeExecution,
-    DeepSeekR1,
-    DeepSeekV3,
-    Gemini,
-    QwenCoder,
+    LiteCodeActModel,
     execution_environment,
 )
+from freeact.model import CODE_TAG_SYSTEM_TEMPLATE, TOOL_USE_SYSTEM_TEMPLATE
 
 app = typer.Typer()
 
@@ -220,6 +216,40 @@ async def run_agent(
     normalization_prompt: str,
     debug: bool,
 ) -> tuple[list[str], str]:
+    system_template = CODE_TAG_SYSTEM_TEMPLATE
+    reasoning_effort = None
+
+    if model_name in ["claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022"]:
+        model_name = f"anthropic/{model_name}"
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        system_template = TOOL_USE_SYSTEM_TEMPLATE
+    elif model_name in ["claude-3-7-sonnet-20250219"]:
+        model_name = f"anthropic/{model_name}"
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        system_template = TOOL_USE_SYSTEM_TEMPLATE
+        reasoning_effort = "low"
+    elif model_name == "gpt-4.1":
+        api_key = os.getenv("OPENAI_API_KEY")
+        system_template = TOOL_USE_SYSTEM_TEMPLATE
+    elif model_name in ["gemini-2.0-flash-exp", "gemini-2.0-flash"]:
+        model_name = f"gemini/{model_name}"
+        api_key = os.getenv("GOOGLE_API_KEY")
+    elif model_name in ["gemini-2.5-pro-preview-03-25"]:
+        model_name = f"gemini/{model_name}"
+        api_key = os.getenv("GOOGLE_API_KEY")
+        reasoning_effort = "low"
+    elif model_name == "qwen2p5-coder-32b-instruct":
+        model_name = f"fireworks_ai/accounts/fireworks/models/{model_name}"
+        api_key = os.getenv("FIREWORKS_API_KEY")
+    elif model_name == "deepseek-v3":
+        model_name = f"fireworks_ai/accounts/fireworks/models/{model_name}"
+        api_key = os.getenv("FIREWORKS_API_KEY")
+    elif model_name == "deepseek-r1":
+        model_name = f"fireworks_ai/accounts/fireworks/models/{model_name}"
+        api_key = os.getenv("FIREWORKS_API_KEY")
+    else:
+        raise ValueError(f"Unknown model: {model_name}")
+
     async with execution_environment(
         ipybox_tag="ghcr.io/gradion-ai/ipybox:eval",
         workspace_key="agent-evaluation",
@@ -229,48 +259,22 @@ async def run_agent(
                 module_names=["google_search.api", "visit_webpage.api"],
             )
 
-        run_kwargs = {}
-        model: CodeActModel
-
-        if model_name in ["claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022"]:
-            model = Claude(model_name=f"anthropic/{model_name}")
-            run_kwargs["skill_sources"] = skill_sources
-        elif model_name in ["gemini-2.0-flash-exp", "gemini-2.0-flash"]:
-            model = Gemini(
-                model_name=f"gemini/{model_name}",
-                skill_sources=skill_sources,
-                max_tokens=8096,
-            )
-        elif model_name == "qwen2p5-coder-32b-instruct":
-            model = QwenCoder(
-                model_name=f"fireworks_ai/accounts/fireworks/models/{model_name}",
-                skill_sources=skill_sources,
-                api_key=os.getenv("FIREWORKS_API_KEY"),
-            )
-        elif model_name == "deepseek-v3":
-            model = DeepSeekV3(
-                model_name=f"fireworks_ai/accounts/fireworks/models/{model_name}",
-                skill_sources=skill_sources,
-                api_key=os.getenv("FIREWORKS_API_KEY"),
-            )
-        elif model_name == "deepseek-r1":
-            model = DeepSeekR1(
-                model_name=f"fireworks_ai/accounts/fireworks/models/{model_name}",
-                skill_sources=skill_sources,
-                instruction_extension="Important: never pass a PDF file as argument to visit_webpage.",
-                max_tokens=16384,
-                api_key=os.getenv("FIREWORKS_API_KEY"),
-            )
-        else:
-            raise ValueError(f"Unknown model: {model_name}")
-
         async with env.code_executor() as executor:
+            model = LiteCodeActModel(
+                model_name=model_name,
+                skill_sources=skill_sources,
+                max_tokens=8192,
+                api_key=api_key,
+                reasoning_effort=reasoning_effort,
+                system_template=system_template
+                + "\n\n## Important\n\nNever pass a PDF file as argument to visit_webpage.",
+            )
             agent = CodeActAgent(model=model, executor=executor)
 
-            agent_turn = agent.run(question, **run_kwargs)
+            agent_turn = agent.run(question)
             agent_output = await collect_output(agent_turn, debug=debug)
 
-            normalization_turn = agent.run(normalization_prompt, **run_kwargs)
+            normalization_turn = agent.run(normalization_prompt)
             normalization_output = await collect_output(normalization_turn, debug=debug)
 
             normalized_answer = normalization_output[-1].replace("[agent ]", "").strip()

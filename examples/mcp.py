@@ -1,34 +1,44 @@
 import asyncio
+import os
 
 from rich.console import Console
 
-from freeact import Claude, CodeActAgent, execution_environment
+from freeact import CodeActAgent, LiteCodeActModel, execution_environment
 from freeact.cli.utils import stream_conversation
-
-server_params = {
-    "pubmed": {  # (1)!
-        "command": "uvx",
-        "args": ["--quiet", "pubmedmcp@0.1.3"],
-    },
-}
 
 
 async def main():
     async with execution_environment(
         ipybox_tag="ghcr.io/gradion-ai/ipybox:basic",
-        workspace_key="example",
     ) as env:
         async with env.code_provider() as provider:
-            mcp_tool_names = await provider.register_mcp_servers(server_params)  # (2)!
+            tool_names = await provider.register_mcp_servers(  # (1)!
+                {
+                    "firecrawl": {
+                        "command": "npx",
+                        "args": ["-y", "firecrawl-mcp"],
+                        "env": {"FIRECRAWL_API_KEY": os.getenv("FIRECRAWL_API_KEY")},
+                    }
+                }
+            )
+
+            assert "firecrawl_scrape" in tool_names["firecrawl"]
+            assert "firecrawl_extract" in tool_names["firecrawl"]
+
             skill_sources = await provider.get_sources(
-                module_names=["freeact_skills.search.google.stream.api"],
-                mcp_tool_names=mcp_tool_names,  # (3)!
+                mcp_tool_names={
+                    "firecrawl": ["firecrawl_scrape", "firecrawl_extract"],  # (2)!
+                }
             )
 
         async with env.code_executor() as executor:
-            model = Claude(model_name="anthropic/claude-3-7-sonnet-20250219")
+            model = LiteCodeActModel(
+                model_name="gpt-4.1",
+                skill_sources=skill_sources,
+                api_key=os.getenv("OPENAI_API_KEY"),
+            )
             agent = CodeActAgent(model=model, executor=executor)
-            await stream_conversation(agent, console=Console(), skill_sources=skill_sources)
+            await stream_conversation(agent, console=Console())
 
 
 if __name__ == "__main__":

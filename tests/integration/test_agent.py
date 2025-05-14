@@ -1,15 +1,21 @@
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Any
 
 import pytest
 import pytest_asyncio
 
-from freeact.agent import CodeActAgent, CodeActAgentTurn
-from freeact.executor import CodeExecution, CodeExecutionContainer, CodeExecutionResult, CodeExecutor, CodeProvider
-from freeact.model.base import CodeActModelResponse, CodeActModelTurn
-from freeact.model.claude.model import Claude
+from freeact import (
+    CodeActAgent,
+    CodeActAgentTurn,
+    CodeActModelResponse,
+    CodeActModelTurn,
+    CodeExecution,
+    CodeExecutionContainer,
+    CodeExecutionResult,
+    CodeExecutor,
+    CodeProvider,
+)
 from tests import TEST_ROOT_PATH
 
 
@@ -61,20 +67,12 @@ async def skill_sources(container):
     params=[
         pytest.param("claude"),
         pytest.param("gemini"),
-        pytest.param("qwen_coder"),
+        pytest.param("qwen"),
     ]
 )
 def agent(request, executor):
     model = request.getfixturevalue(request.param)
     return CodeActAgent(model=model, executor=executor)
-
-
-def run_agent(agent: CodeActAgent, user_query: str, skill_sources: str | None = None):
-    kwargs: dict[str, Any] = {}
-    if isinstance(agent.model, Claude):
-        kwargs["skill_sources"] = skill_sources
-
-    return agent.run(user_query=user_query, **kwargs)
 
 
 async def collect_output(agent_turn: CodeActAgentTurn) -> list[CodeActModelResponse | CodeExecutionResult]:
@@ -93,7 +91,7 @@ async def collect_output(agent_turn: CodeActAgentTurn) -> list[CodeActModelRespo
 
 @pytest.mark.asyncio(loop_scope="package")
 async def test_agent_returns_text_response(agent):
-    agent_turn = run_agent(agent, "Do not generate any code. Just respond with the text 'Hello, world!'")
+    agent_turn = agent.run(user_query="Do not generate any code. Just respond with the text 'Hello, world!'")
     output = await collect_output(agent_turn)
 
     assert len(output) == 1
@@ -104,8 +102,8 @@ async def test_agent_returns_text_response(agent):
 
 @pytest.mark.asyncio(loop_scope="package")
 async def test_agent_returns_code_response(agent):
-    agent_turn = run_agent(
-        agent, "What is 25 raised to the power of 0.235? Use the math library to solve this problem."
+    agent_turn = agent.run(
+        user_query="What is 25 raised to the power of 0.235? Use the math library to solve this problem."
     )
     output = await collect_output(agent_turn)
 
@@ -125,16 +123,15 @@ async def test_agent_returns_code_response(agent):
 
 @pytest.mark.asyncio(loop_scope="package")
 async def test_agent_returns_follow_up_code_response(agent):
-    agent_turn_1 = run_agent(
-        agent,
-        "What is 25 raised to the power of 0.235? Use the math library to solve this problem and print with 6 digits precision.",
+    agent_turn_1 = agent.run(
+        user_query="What is 25 raised to the power of 0.235? Use the math library to solve this problem and print with 6 digits precision.",
     )
     await collect_output(agent_turn_1)
 
     response_1 = await agent_turn_1.response()
     assert "2.13" in response_1.text
 
-    agent_turn_2 = run_agent(agent, "What is the square root of the result? Print with 6 digits precision.")
+    agent_turn_2 = agent.run(user_query="What is the square root of the result? Print with 6 digits precision.")
     output = await collect_output(agent_turn_2)
 
     assert len(output) == 3
@@ -153,16 +150,16 @@ async def test_agent_returns_follow_up_code_response(agent):
 
 @pytest.mark.asyncio(loop_scope="package")
 async def test_agent_returns_follow_up_text_response(agent):
-    agent_turn_1 = run_agent(
-        agent, "What is 25 raised to the power of 0.235? Use the math library to solve this problem."
+    agent_turn_1 = agent.run(
+        user_query="What is 25 raised to the power of 0.235? Use the math library to solve this problem."
     )
     await collect_output(agent_turn_1)
 
     response_1 = await agent_turn_1.response()
     assert "2.13" in response_1.text
 
-    agent_turn_2 = run_agent(
-        agent, "Show the numerical result again enclosed on backticks. Do not generate any code for this."
+    agent_turn_2 = agent.run(
+        user_query="Show the numerical result again enclosed on backticks. Do not generate any code for this."
     )
     output = await collect_output(agent_turn_2)
 
@@ -176,10 +173,8 @@ async def test_agent_returns_follow_up_text_response(agent):
 
 @pytest.mark.asyncio(loop_scope="package")
 async def test_agent_uses_provided_skills(agent, skill_sources):
-    agent_turn = run_agent(
-        agent,
-        "What is the name of the user with id 'user-123' in the user repository?",
-        skill_sources=skill_sources,
+    agent_turn = agent.run(
+        user_query="What is the name of the user with id 'user-123' in the user repository?",
     )
     await collect_output(agent_turn)
 
@@ -189,10 +184,8 @@ async def test_agent_uses_provided_skills(agent, skill_sources):
 
 @pytest.mark.asyncio(loop_scope="package")
 async def test_agent_recovers_from_skill_error(agent, skill_sources):
-    agent_turn = run_agent(
-        agent,
-        "What is the email address of the user with id 'user-123' in the user repository?",
-        skill_sources=skill_sources,
+    agent_turn = agent.run(
+        user_query="What is the email address of the user with id 'user-123' in the user repository?",
     )
     output = await collect_output(agent_turn)
 

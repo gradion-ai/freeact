@@ -25,7 +25,7 @@ poetry self add "poetry-dynamic-versioning[plugin]"
 Install dependencies with Poetry:
 
 ```bash
-poetry install --with dev --with docs --with eval
+poetry install --with docs --with eval
 ```
 
 Install pre-commit hooks:
@@ -37,14 +37,14 @@ invoke precommit-install
 Create a `.env` file with [Anthropic](https://console.anthropic.com/settings/keys), [Gemini](https://aistudio.google.com/app/apikey) and [Fireworks](https://fireworks.ai/account/api-keys) API keys:
 
 ```env title=".env"
-# Required integration tests with Claude 3.5 Haiku
+# Required for integration tests with Claude
 ANTHROPIC_API_KEY=...
 
-# Required integration tests with Gemini 2. Flash
-GOOGLE_API_KEY=...
+# Required integration tests with Gemini
+GEMINI_API_KEY=...
 
-# Required integration tests with Qwen 2.5 Coder
-QWEN_API_KEY=...
+# Required integration tests with Qwen
+FIREWORKS_API_KEY=...
 ```
 
 Enforce coding conventions (done automatically by pre-commit hooks):

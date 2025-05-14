@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 from ipybox import ExecutionError
 
-from freeact.agent import CodeActAgent, CodeExecution, MaxStepsReached
+from freeact import CodeActAgent, CodeExecution, MaxStepsReached
 from tests.unit.test_model import MockModel, MockModelResponse, MockModelTurn
 
 

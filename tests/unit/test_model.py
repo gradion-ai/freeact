@@ -1,6 +1,6 @@
 from typing import AsyncIterator, List
 
-from freeact.agent import CodeActModel, CodeActModelResponse, CodeActModelTurn
+from freeact import CodeActModel, CodeActModelResponse, CodeActModelTurn
 
 
 class MockModelResponse(CodeActModelResponse):
@@ -54,6 +54,3 @@ class MockModel(CodeActModel):
         response = self.responses[self.current_response]
         self.current_response += 1
         return MockModelTurn(response)
-
-
-# Only mock model definition at the moment (used by agent tests) ...

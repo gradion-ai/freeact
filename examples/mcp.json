@@ -1,8 +1,14 @@
+
+
 {
     "mcpServers": {
-        "pubmed": {
-            "command": "uvx",
-            "args": ["--quiet", "pubmedmcp@0.1.3"]
+        "firecrawl": {
+            "command": "npx",
+            "args": ["-y", "firecrawl-mcp"],
+            "env": {"FIRECRAWL_API_KEY": "your-firecrawl-api-key"}
         }
+    },
+    "mcpTools": {
+        "firecrawl": ["firecrawl_scrape", "firecrawl_extract"]
     }
 }
