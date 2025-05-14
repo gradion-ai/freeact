@@ -7,7 +7,7 @@ A unified code-based approach enables `freeact` agents to reuse actions generate
 This design allows agents to build on their previous work and compose more complex actions from simpler ones.[^1]
 
 <figure markdown>
-  [![introduction](../../img/introduction.png){ align="center" width="80%" }](../../img/introduction.png){target="_blank"}
+  [![introduction](img/introduction.png){ align="center" width="80%" }](img/introduction.png){target="_blank"}
   <figcaption>A unified code-based approach for defining actions and skills.</figcaption>
 </figure>
 

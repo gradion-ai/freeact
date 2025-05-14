@@ -86,7 +86,7 @@ markdown_extensions:
 
 nav:
   - User guide:
-    - Introduction: introduction.md
+    - Introduction: index.md
     - Quickstart: quickstart.md
     - Installation: installation.md
     - Fundamentals: fundamentals.md

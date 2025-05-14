@@ -81,4 +81,4 @@ uvx freeact \
 
 Then have a conversation with the agent:
 
-![output](docs/revised/output/quickstart/conversation.svg)
+![output](docs/output/quickstart/conversation.svg)
