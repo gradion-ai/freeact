@@ -1,7 +1,5 @@
 import asyncio
 import json
-import uuid
-from contextlib import AsyncExitStack
 from enum import StrEnum
 from pathlib import Path
 from typing import Annotated, List
@@ -47,16 +45,14 @@ async def amain(
     record_dir: Path,
     record_title: str,
     enable_tracing: bool,
-    tracing_session_id: str | None,
 ):
+    if enable_tracing:
+        tracing.configure()
+
     if system_template:
         system_template_str = await read_file(system_template)
     else:
         system_template_str = None
-
-    session_id = None
-    if enable_tracing:
-        session_id = tracing_session_id or str(uuid.uuid4())[:8]
 
     async with execution_environment(
         ipybox_tag=ipybox_tag,
@@ -99,12 +95,7 @@ async def amain(
 
         async with env.code_executor() as executor:
             agent = CodeActAgent(model=model, executor=executor)
-
-            async with AsyncExitStack() as stack:
-                if enable_tracing and session_id:
-                    await stack.enter_async_context(tracing.start())
-                    await stack.enter_async_context(tracing.session(session_id))
-                await stream_conversation(agent, console, show_token_usage=show_token_usage)
+            await stream_conversation(agent, console, show_token_usage=show_token_usage)
 
         if record_conversation:
             await save_conversation(console, record_dir=record_dir, record_title=record_title)
@@ -136,7 +127,6 @@ def main(
     record_conversation: Annotated[bool, typer.Option(help="Record conversation as SVG and HTML files")] = False,
     record_dir: Annotated[Path, typer.Option(help="Path to the recording output directory")] = Path("output"),
     record_title: Annotated[str, typer.Option(help="Title of the recording")] = "Conversation",
-    enable_tracing: Annotated[bool, typer.Option(help="Enable tracing for the CLI session")] = False,
-    tracing_session_id: Annotated[str | None, typer.Option(help="Custom session ID for tracing")] = None,
+    enable_tracing: Annotated[bool, typer.Option(help="Enable tracing for the CLI conversation")] = False,
 ):
     asyncio.run(amain(**locals()))

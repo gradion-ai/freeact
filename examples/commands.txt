@@ -57,3 +57,11 @@ uvx freeact \
   --skill-modules=gp_fit \
   --api-key=$ANTHROPIC_API_KEY
 # --8<-- [end:cli-cli-skills-collaborative-learning]
+
+# --8<-- [start:cli-observability]
+uvx freeact \
+  --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
+  --model-name=anthropic/claude-3-7-sonnet-20250219 \
+  --reasoning-effort=low \
+  --enable-tracing
+# --8<-- [end:cli-observability]

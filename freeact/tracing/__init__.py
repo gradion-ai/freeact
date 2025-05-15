@@ -1,1 +1,1 @@
-from freeact.tracing.context import session, start
+from freeact.tracing.context import configure, session

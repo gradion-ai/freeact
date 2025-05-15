@@ -5,8 +5,6 @@ from freeact.tracing.base import Span, Trace, TracerProvider
 
 
 class NoopSpan(Span):
-    """No-operation implementation of the [`Span`][freeact.tracing.base.Span] interface."""
-
     def update(
         self,
         name: str | None = None,
@@ -32,8 +30,6 @@ class NoopSpan(Span):
 
 
 class NoopTrace(Trace):
-    """No-operation implementation of the [`Trace`][freeact.tracing.base.Trace] interface."""
-
     def span(
         self,
         name: str,
@@ -67,8 +63,6 @@ class NoopTrace(Trace):
 
 
 class NoopTracer(TracerProvider):
-    """No-operation implementation of the [`TracerProvider`][freeact.tracing.base.TracerProvider] interface."""
-
     def create_trace(
         self,
         name: str,
@@ -82,5 +76,5 @@ class NoopTracer(TracerProvider):
     ) -> NoopTrace:
         return NoopTrace()
 
-    async def shutdown(self) -> None:
+    def shutdown(self) -> None:
         pass

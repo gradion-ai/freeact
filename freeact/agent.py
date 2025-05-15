@@ -100,11 +100,14 @@ class CodeActAgent:
     Args:
         model: Model instance for generating code actions
         executor: Executor instance for executing code actions
+        session_id: Trace session identifier for grouping related agent turns. If None, a new session ID is generated automatically.
+            The `tracing.session()` context manager takes precedence when active.
     """
 
-    def __init__(self, model: CodeActModel, executor: CodeExecutor):
+    def __init__(self, model: CodeActModel, executor: CodeExecutor, session_id: str | None = None):
         self.model = model
         self.executor = executor
+        self.session_id = session_id or tracing_context.create_session_id()
 
     def run(
         self,
@@ -132,7 +135,7 @@ class CodeActAgent:
         """
         trace = tracing_context.get_tracer_provider().create_trace(
             name="Agent run",
-            session_id=tracing_context.get_active_tracing_session_id(),
+            session_id=tracing_context.get_active_tracing_session_id() or self.session_id,
             input={
                 "user_query": user_query,
                 "max_steps": max_steps,
@@ -158,7 +161,7 @@ class CodeActAgent:
         step_timeout: float = 120,
         **kwargs,
     ) -> AsyncIterator[CodeActModelTurn | CodeExecution | CodeActAgentResponse]:
-        async with tracing_context.use_trace(trace):
+        async with tracing_context.with_trace(trace):
             # initial model interaction with user query
             model_turn = self.model.request(user_query=user_query, **kwargs)
 
