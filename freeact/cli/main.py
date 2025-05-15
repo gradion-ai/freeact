@@ -11,6 +11,7 @@ from freeact import (
     CodeActAgent,
     LiteCodeActModel,
     execution_environment,
+    tracing,
 )
 from freeact.cli.utils import read_file, save_conversation, stream_conversation
 
@@ -43,7 +44,11 @@ async def amain(
     record_conversation: bool,
     record_dir: Path,
     record_title: str,
+    enable_tracing: bool,
 ):
+    if enable_tracing:
+        tracing.configure()
+
     if system_template:
         system_template_str = await read_file(system_template)
     else:
@@ -122,5 +127,6 @@ def main(
     record_conversation: Annotated[bool, typer.Option(help="Record conversation as SVG and HTML files")] = False,
     record_dir: Annotated[Path, typer.Option(help="Path to the recording output directory")] = Path("output"),
     record_title: Annotated[str, typer.Option(help="Title of the recording")] = "Conversation",
+    enable_tracing: Annotated[bool, typer.Option(help="Enable tracing for the CLI conversation")] = False,
 ):
     asyncio.run(amain(**locals()))

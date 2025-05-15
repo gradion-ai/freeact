@@ -94,6 +94,7 @@ nav:
     - MCP integration: mcp-integration.md
     - System prompt: system-prompt.md
     - Evaluation results: https://github.com/gradion-ai/freeact/blob/main/evaluation/README.md
+    - Observability: observability.md
     - Skills:
       - Using internal knowledge: skills/internal-knowledge.md
       - Using predefined skills: skills/predefined-skills.md
@@ -104,3 +105,4 @@ nav:
     - Environment: api/environment.md
     - Agent: api/agent.md
     - Model: api/model.md
+    - Tracing: api/tracing.md

@@ -29,6 +29,7 @@ python = "^3.11,<3.14"
 python-dotenv = "^1.0"
 rich = "^13.9"
 typer = "^0.12.5"
+langfuse = "^2.60.3"
 
 [tool.poetry.group.docs]
 optional = true

@@ -1,3 +1,4 @@
+import datetime as dt
 import json
 import re
 from dataclasses import dataclass
@@ -5,6 +6,7 @@ from typing import Any, AsyncIterator
 
 import litellm
 
+import freeact.tracing.context as tracing_context
 from freeact.model.base import CodeActModel, CodeActModelResponse, CodeActModelTurn, CodeActModelUsage
 from freeact.model.prompt import (
     CODE_TAG_SYSTEM_TEMPLATE,
@@ -23,6 +25,7 @@ from freeact.model.tools import (
     sanitize_tool_name,
     tool_name,
 )
+from freeact.tracing.base import Span
 
 
 @dataclass
@@ -226,7 +229,13 @@ class LiteCodeActModel(CodeActModel):
             CodeActModelTurn: An object for retrieving the model's response.
         """
         user_message = {"role": "user", "content": user_query}
-        return LiteLLMTurn(self._stream(user_message, **kwargs))
+
+        span = tracing_context.get_active_trace().span(
+            name="Model request",
+            input={"user_query": user_query, **kwargs},
+        )
+
+        return LiteLLMTurn(self._stream(user_message, span, **kwargs))
 
     def feedback(
         self,
@@ -269,9 +278,31 @@ class LiteCodeActModel(CodeActModel):
                 "content": content,
             }
 
-        return LiteLLMTurn(self._stream(feedback_message, **kwargs))
+        span = tracing_context.get_active_trace().span(
+            name="Model feedback",
+            input={
+                "feedback": feedback,
+                "is_error": is_error,
+                "tool_use_id": tool_use_id,
+                "tool_use_name": tool_use_name,
+                **kwargs,
+            },
+        )
 
-    async def _stream(self, input_message: dict[str, Any], **kwargs) -> AsyncIterator[str | LiteLLMResponse]:
+        return LiteLLMTurn(self._stream(feedback_message, span, **kwargs))
+
+    async def _stream(
+        self, input_message: dict[str, Any], span: Span, **kwargs
+    ) -> AsyncIterator[str | LiteLLMResponse]:
+        span.update(start_time=dt.datetime.now())
+        if span.trace_id and span.span_id:
+            metadata = {
+                "existing_trace_id": span.trace_id,
+                "parent_observation_id": span.span_id,
+            }
+        else:
+            metadata = {}
+
         messages = self.history + [input_message]
         response = LiteLLMResponse(text="", is_error=False)
 
@@ -282,6 +313,7 @@ class LiteCodeActModel(CodeActModel):
             stream_options={"include_usage": True},
             tools=self.tools or None,
             **(self.completion_kwargs | kwargs),
+            metadata=metadata,
         )
 
         chunks = []
@@ -364,6 +396,16 @@ class LiteCodeActModel(CodeActModel):
 
         self.history.append(input_message)
         self.history.append(assistant_message)
+
+        span.update(
+            output={
+                "text": response.text,
+                "is_error": response.is_error,
+                "code": response.code,
+                "tool_use": response.tool_use,
+            },
+        )
+        span.end()
 
         yield response
 
