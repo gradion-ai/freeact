@@ -2,15 +2,17 @@ import datetime as dt
 from typing import Any
 
 import litellm
+from ipybox.utils import arun
+from langfuse.client import StatefulSpanClient, StatefulTraceClient
 
-from freeact.tracing.base import Span, Trace, TracerProvider
+from freeact.tracing.base import Span, Trace, Tracer
 
 
 class LangfuseSpan(Span):
-    def __init__(self, span):
+    def __init__(self, span: StatefulSpanClient):
         self._span = span
 
-    def update(
+    async def update(
         self,
         name: str | None = None,
         start_time: dt.datetime | None = None,
@@ -20,7 +22,8 @@ class LangfuseSpan(Span):
         output: Any | None = None,
         status_message: str | None = None,
     ) -> None:
-        self._span.update(
+        await arun(
+            self._span.update,
             name=name,
             start_time=start_time,
             end_time=end_time,
@@ -30,8 +33,8 @@ class LangfuseSpan(Span):
             status_message=status_message,
         )
 
-    def end(self) -> None:
-        self._span.end()
+    async def end(self) -> None:
+        await arun(self._span.end)
 
     @property
     def trace_id(self) -> str | None:
@@ -47,10 +50,10 @@ class LangfuseSpan(Span):
 
 
 class LangfuseTrace(Trace):
-    def __init__(self, trace):
+    def __init__(self, trace: StatefulTraceClient):
         self._trace = trace
 
-    def update(
+    async def update(
         self,
         name: str | None = None,
         user_id: str | None = None,
@@ -60,7 +63,8 @@ class LangfuseTrace(Trace):
         metadata: Any | None = None,
         tags: list[str] | None = None,
     ) -> None:
-        self._trace.update(
+        await arun(
+            self._trace.update,
             name=name,
             user_id=user_id,
             session_id=session_id,
@@ -70,7 +74,7 @@ class LangfuseTrace(Trace):
             tags=tags,
         )
 
-    def span(
+    async def span(
         self,
         name: str,
         start_time: dt.datetime | None = None,
@@ -80,7 +84,8 @@ class LangfuseTrace(Trace):
         output: Any | None = None,
         status_message: str | None = None,
     ) -> LangfuseSpan:
-        span_obj = self._trace.span(
+        span = await arun(
+            self._trace.span,
             name=name,
             start_time=start_time,
             end_time=end_time,
@@ -89,9 +94,9 @@ class LangfuseTrace(Trace):
             output=output,
             status_message=status_message,
         )
-        return LangfuseSpan(span_obj)
+        return LangfuseSpan(span)
 
-    def end(self) -> None:
+    async def end(self) -> None:
         pass
 
     @property
@@ -103,7 +108,7 @@ class LangfuseTrace(Trace):
         return self._trace
 
 
-class LangfuseTracer(TracerProvider):
+class LangfuseTracer(Tracer):
     """A [langfuse](https://github.com/langfuse/langfuse)-based tracer provider.
 
     This tracer uses the Langfuse low-level Python SDK (https://langfuse.com/docs/sdk/python/low-level-sdk)
@@ -151,7 +156,7 @@ class LangfuseTracer(TracerProvider):
     def client(self):
         return self._client
 
-    def create_trace(
+    async def trace(
         self,
         name: str,
         user_id: str | None = None,
@@ -162,7 +167,8 @@ class LangfuseTracer(TracerProvider):
         tags: list[str] | None = None,
         start_time: dt.datetime | None = None,
     ) -> LangfuseTrace:
-        trace = self._client.trace(
+        trace = await arun(
+            self._client.trace,
             name=name,
             user_id=user_id,
             session_id=session_id,

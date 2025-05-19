@@ -1,11 +1,11 @@
 import datetime as dt
 from typing import Any
 
-from freeact.tracing.base import Span, Trace, TracerProvider
+from freeact.tracing.base import Span, Trace, Tracer
 
 
 class NoopSpan(Span):
-    def update(
+    async def update(
         self,
         name: str | None = None,
         start_time: dt.datetime | None = None,
@@ -17,7 +17,7 @@ class NoopSpan(Span):
     ) -> None:
         pass
 
-    def end(self) -> None:
+    async def end(self) -> None:
         pass
 
     @property
@@ -30,7 +30,7 @@ class NoopSpan(Span):
 
 
 class NoopTrace(Trace):
-    def span(
+    async def span(
         self,
         name: str,
         start_time: dt.datetime | None = None,
@@ -42,7 +42,7 @@ class NoopTrace(Trace):
     ) -> NoopSpan:
         return NoopSpan()
 
-    def update(
+    async def update(
         self,
         name: str | None = None,
         user_id: str | None = None,
@@ -54,7 +54,7 @@ class NoopTrace(Trace):
     ) -> None:
         pass
 
-    def end(self) -> None:
+    async def end(self) -> None:
         pass
 
     @property
@@ -62,8 +62,8 @@ class NoopTrace(Trace):
         return None
 
 
-class NoopTracer(TracerProvider):
-    def create_trace(
+class NoopTracer(Tracer):
+    async def trace(
         self,
         name: str,
         user_id: str | None = None,

@@ -5,7 +5,7 @@ from typing import Any
 
 class Span(ABC):
     @abstractmethod
-    def update(
+    async def update(
         self,
         name: str | None = None,
         start_time: datetime.datetime | None = None,
@@ -18,7 +18,7 @@ class Span(ABC):
         pass
 
     @abstractmethod
-    def end(self) -> None:
+    async def end(self) -> None:
         pass
 
     @property
@@ -34,7 +34,7 @@ class Span(ABC):
 
 class Trace(ABC):
     @abstractmethod
-    def span(
+    async def span(
         self,
         name: str,
         start_time: datetime.datetime | None = None,
@@ -47,7 +47,7 @@ class Trace(ABC):
         pass
 
     @abstractmethod
-    def update(
+    async def update(
         self,
         name: str | None = None,
         user_id: str | None = None,
@@ -60,7 +60,7 @@ class Trace(ABC):
         pass
 
     @abstractmethod
-    def end(self) -> None:
+    async def end(self) -> None:
         pass
 
     @property
@@ -69,9 +69,9 @@ class Trace(ABC):
         pass
 
 
-class TracerProvider(ABC):
+class Tracer(ABC):
     @abstractmethod
-    def create_trace(
+    async def trace(
         self,
         name: str,
         user_id: str | None = None,

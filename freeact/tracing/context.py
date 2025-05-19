@@ -6,23 +6,31 @@ import signal
 import sys
 import threading
 import uuid
-from contextlib import asynccontextmanager
-from typing import AsyncIterator
+from contextlib import asynccontextmanager, contextmanager
+from typing import Any, AsyncIterator, Iterator
 
-from freeact.tracing.base import Trace, TracerProvider
+from freeact.tracing.base import Span, Trace, Tracer
 from freeact.tracing.langfuse import LangfuseTracer
-from freeact.tracing.noop import NoopTrace, NoopTracer
+from freeact.tracing.noop import NoopSpan, NoopTrace, NoopTracer
 
 logger = logging.getLogger(__name__)
 
-_tracer_provider: TracerProvider | None = None
+_tracer: Tracer | None = None
 _tracing_setup_lock = threading.RLock()
 _tracing_shutdown_lock = threading.RLock()
 
-
-def get_tracer_provider() -> TracerProvider:
-    global _tracer_provider
-    return _tracer_provider or NoopTracer()
+_active_trace_context: contextvars.ContextVar[Trace | None] = contextvars.ContextVar(
+    "tracing_active_trace",
+    default=None,
+)
+_active_span_context: contextvars.ContextVar[Span | None] = contextvars.ContextVar(
+    "tracing_active_span",
+    default=None,
+)
+_active_session_id_context: contextvars.ContextVar[str | None] = contextvars.ContextVar(
+    "tracing_active_session_id",
+    default=None,
+)
 
 
 def configure(
@@ -32,10 +40,10 @@ def configure(
     **kwargs,
 ) -> None:
     """API DOC TODO"""
-    global _tracer_provider
+    global _tracer
 
     with _tracing_setup_lock:
-        if _tracer_provider is not None:
+        if _tracer is not None:
             logger.warning("Tracing is already configured. Call 'tracing.shutdown()' first to reconfigure.")
             return
 
@@ -52,7 +60,7 @@ def configure(
                 "2. Setting the environment variables `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, and `LANGFUSE_HOST`."
             )
 
-        _tracer_provider = LangfuseTracer(
+        _tracer = LangfuseTracer(
             public_key=_public_key,
             secret_key=_secret_key,
             host=_host,
@@ -69,17 +77,21 @@ def configure(
                     pass
 
 
+def shutdown() -> None:
+    _shutdown_tracing()
+
+
 def _shutdown_tracing() -> None:
-    global _tracer_provider
+    global _tracer
 
     with _tracing_shutdown_lock:
-        if _tracer_provider is not None:
+        if _tracer is not None:
             try:
-                _tracer_provider.shutdown()
+                _tracer.shutdown()
             except Exception as e:
                 logger.error(f"Error during tracing shutdown: {e}")
             finally:
-                _tracer_provider = None
+                _tracer = None
 
 
 def _shutdown_signal_handler(signum, frame):
@@ -88,49 +100,68 @@ def _shutdown_signal_handler(signum, frame):
     sys.exit(128 + signum)
 
 
-def shutdown() -> None:
-    _shutdown_tracing()
+@asynccontextmanager
+async def trace(
+    name: str,
+    input: dict[str, Any] | None = None,
+    session_id: str | None = None,
+) -> AsyncIterator[Trace]:
+    """API DOC TODO"""
+    active_trace = await get_tracer().trace(
+        name=name,
+        input=input,
+        session_id=get_active_session_id() or session_id,
+    )
+    token = _active_trace_context.set(active_trace)
+    try:
+        yield active_trace
+    finally:
+        _active_trace_context.reset(token)
 
 
-_active_trace_context: contextvars.ContextVar[Trace | None] = contextvars.ContextVar(
-    "tracing_active_trace",
-    default=None,
-)
+@asynccontextmanager
+async def span(
+    name: str,
+    input: dict[str, Any] | None = None,
+) -> AsyncIterator[Span]:
+    """API DOC TODO"""
+    active_span = await get_active_trace().span(
+        name=name,
+        input=input,
+    )
+    token = _active_span_context.set(active_span)
+    try:
+        yield active_span
+    finally:
+        _active_span_context.reset(token)
+
+
+@contextmanager
+def session_id(value: str | None = None) -> Iterator[str]:
+    """API DOC TODO"""
+    active_session_id = value or create_session_id()
+    token = _active_session_id_context.set(active_session_id)
+    try:
+        yield active_session_id
+    finally:
+        _active_session_id_context.reset(token)
+
+
+def get_tracer() -> Tracer:
+    global _tracer
+    return _tracer or NoopTracer()
 
 
 def get_active_trace() -> Trace:
     return _active_trace_context.get() or NoopTrace()
 
 
-@asynccontextmanager
-async def with_trace(trace: Trace) -> AsyncIterator[Trace]:
-    """API DOC TODO"""
-    token = _active_trace_context.set(trace)
-    try:
-        yield trace
-    finally:
-        _active_trace_context.reset(token)
+def get_active_span() -> Span:
+    return _active_span_context.get() or NoopSpan()
 
 
-_active_session_id_context: contextvars.ContextVar[str | None] = contextvars.ContextVar(
-    "tracing_active_session_id",
-    default=None,
-)
-
-
-def get_active_tracing_session_id() -> str | None:
+def get_active_session_id() -> str | None:
     return _active_session_id_context.get()
-
-
-@asynccontextmanager
-async def session(session_id: str | None = None) -> AsyncIterator[str]:
-    """API DOC TODO"""
-    _session_id = session_id or create_session_id()
-    token = _active_session_id_context.set(_session_id)
-    try:
-        yield _session_id
-    finally:
-        _active_session_id_context.reset(token)
 
 
 def create_session_id() -> str:

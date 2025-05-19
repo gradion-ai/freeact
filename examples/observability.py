@@ -5,8 +5,6 @@ from freeact import CodeActAgent, LiteCodeActModel, execution_environment, traci
 
 
 async def main():
-    tracing.configure()  # (1)!
-
     async with execution_environment(
         ipybox_tag="ghcr.io/gradion-ai/ipybox:basic",
     ) as env:
@@ -22,9 +20,10 @@ async def main():
             )
             agent = CodeActAgent(model=model, executor=executor)
 
-            async with tracing.session("session-123"):  # (2)!
+            with tracing.session_id("session-123"):  # (2)!
                 await stream_conversation(agent)
 
 
 if __name__ == "__main__":
+    tracing.configure()  # (1)!
     asyncio.run(main())
