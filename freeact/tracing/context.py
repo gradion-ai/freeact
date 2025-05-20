@@ -137,9 +137,9 @@ async def span(
 
 
 @contextmanager
-def session_id(value: str | None = None) -> Iterator[str]:
+def session(session_id: str | None = None) -> Iterator[str]:
     """API DOC TODO"""
-    active_session_id = value or create_session_id()
+    active_session_id = session_id or create_session_id()
     token = _active_session_id_context.set(active_session_id)
     try:
         yield active_session_id

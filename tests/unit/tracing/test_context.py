@@ -9,7 +9,7 @@ from freeact.tracing.context import (
     get_active_session_id,
     get_active_trace,
     get_tracer,
-    session_id,
+    session,
     shutdown,
     trace,
 )
@@ -153,7 +153,7 @@ def test_get_tracing_session_id_default():
 def test_session_id_context_manager():
     test_session_id = "test-session-id"
 
-    with session_id(test_session_id) as active_session_id:
+    with session(test_session_id) as active_session_id:
         assert get_active_session_id() == active_session_id
         assert active_session_id == test_session_id
     assert get_active_session_id() is None
@@ -163,8 +163,8 @@ def test_session_id_context_manager_nested():
     test_session_id_1 = "test-session-id-1"
     test_session_id_2 = "test-session-id-2"
 
-    with session_id(test_session_id_1) as result_1:
-        with session_id(test_session_id_2) as result_2:
+    with session(test_session_id_1) as result_1:
+        with session(test_session_id_2) as result_2:
             assert get_active_session_id() == test_session_id_2
             assert result_2 == test_session_id_2
         assert get_active_session_id() == test_session_id_1

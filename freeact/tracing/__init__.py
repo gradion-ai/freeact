@@ -4,7 +4,7 @@ from freeact.tracing.context import (
     get_active_session_id,
     get_active_span,
     get_active_trace,
-    session_id,
+    session,
     shutdown,
     span,
     trace,

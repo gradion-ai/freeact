@@ -5,7 +5,7 @@ import pytest
 
 from freeact import CodeActAgent, CodeExecution
 from freeact.tracing.base import Span, Trace, Tracer
-from freeact.tracing.context import get_active_trace, session_id
+from freeact.tracing.context import get_active_trace, session
 from tests.unit.test_model import MockModel, MockModelResponse, MockModelTurn
 
 
@@ -76,7 +76,7 @@ async def test_agent_creates_trace(tracer, trace, executor):
     model = MockModel([MockModelResponse(text="Hello! I can help you.", code=None)])
     agent = CodeActAgent(model, executor)
 
-    with session_id("test-session-id"):
+    with session("test-session-id"):
         turn = agent.run("Hi there!")
         await turn.response()
 
@@ -109,7 +109,7 @@ async def test_agent_creates_span_for_code_execution(trace, executor, code_execu
 
     agent = CodeActAgent(model, executor)
 
-    with session_id("test-session-id"):
+    with session("test-session-id"):
         turn = agent.run("Run some code")
         await turn.response()
 
@@ -131,7 +131,7 @@ async def test_trace_propagation_to_model(trace, executor, code_execution):
     executor.submit = AsyncMock(return_value=code_execution)
 
     agent = CodeActAgent(model, executor)
-    with session_id("test-session-id"):
+    with session("test-session-id"):
         turn = agent.run("Run some code")
         await turn.response()
 
@@ -160,7 +160,7 @@ async def test_error_scenario_tracing(trace, executor):
     executor.submit = AsyncMock(return_value=execution)
 
     agent = CodeActAgent(model, executor)
-    with session_id("test-session-id"):
+    with session("test-session-id"):
         turn = agent.run("Run some code")
         await turn.response()
 

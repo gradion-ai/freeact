@@ -1,7 +1,11 @@
 import asyncio
 
-from examples.utils import stream_conversation
+from rich.console import Console
+
 from freeact import CodeActAgent, LiteCodeActModel, execution_environment, tracing
+from freeact.cli.utils import stream_conversation
+
+tracing.configure()  # (1)!
 
 
 async def main():
@@ -20,10 +24,9 @@ async def main():
             )
             agent = CodeActAgent(model=model, executor=executor)
 
-            with tracing.session_id("session-123"):  # (2)!
-                await stream_conversation(agent)
+            with tracing.session(session_id="session-123"):  # (2)!
+                await stream_conversation(agent, console=Console())
 
 
 if __name__ == "__main__":
-    tracing.configure()  # (1)!
     asyncio.run(main())

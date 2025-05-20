@@ -11,7 +11,9 @@ from freeact import (
     CodeActAgent,
     LiteCodeActModel,
     execution_environment,
-    tracing,
+)
+from freeact import (
+    tracing as tr,
 )
 from freeact.cli.utils import read_file, save_conversation, stream_conversation
 
@@ -41,13 +43,13 @@ async def amain(
     ipybox_tag: str,
     workspace_path: Path,
     workspace_key: str,
+    tracing: bool,
     record_conversation: bool,
     record_dir: Path,
     record_title: str,
-    enable_tracing: bool,
 ):
-    if enable_tracing:
-        tracing.configure()
+    if tracing:
+        tr.configure()
 
     if system_template:
         system_template_str = await read_file(system_template)
@@ -124,9 +126,9 @@ def main(
     ] = "ghcr.io/gradion-ai/ipybox:basic",
     workspace_path: Annotated[Path, typer.Option(help="Path to the workspace directory")] = Path("workspace"),
     workspace_key: Annotated[str, typer.Option(help="Key for private workspace directories")] = "default",
+    tracing: Annotated[bool, typer.Option(help="Enable tracing of agent activities in Langfuse")] = False,
     record_conversation: Annotated[bool, typer.Option(help="Record conversation as SVG and HTML files")] = False,
     record_dir: Annotated[Path, typer.Option(help="Path to the recording output directory")] = Path("output"),
     record_title: Annotated[str, typer.Option(help="Title of the recording")] = "Conversation",
-    enable_tracing: Annotated[bool, typer.Option(help="Enable tracing for the CLI conversation")] = False,
 ):
     asyncio.run(amain(**locals()))

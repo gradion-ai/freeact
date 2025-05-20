@@ -63,5 +63,6 @@ uvx freeact \
   --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
   --model-name=anthropic/claude-3-7-sonnet-20250219 \
   --reasoning-effort=low \
-  --enable-tracing
+  --skill-modules=freeact_skills.search.google.stream.api \
+  --tracing
 # --8<-- [end:cli-observability]
