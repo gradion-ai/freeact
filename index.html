@@ -933,9 +933,9 @@
 
 
 <h1 id="introduction">Introduction</h1>
-<p><code>freeact</code> is a lightweight AI agent library using Python as the common language to define executable actions and to describe tool capabilities to LLMs.
-This is in contrast to traditional approaches where actions and tool specifications are described with JSON.</p>
-<p>A unified code-based approach enables <code>freeact</code> agents to reuse actions generated in previous steps as tools or <em>skills</em> in later steps. 
+<p><code>freeact</code> is a lightweight AI agent library using Python as the common language to define executable actions and tool interfaces.
+This is in contrast to traditional approaches where actions and tools are described with JSON.</p>
+<p>A unified code-based approach enables <code>freeact</code> agents to reuse actions from earlier steps as tools or <em>skills</em> in later steps. 
 This design allows agents to build on their previous work and compose more complex actions from simpler ones.<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup></p>
 <figure>
 <p><a href="img/introduction.png" target="_blank"><img align="center" alt="introduction" src="img/introduction.png" width="80%" /></a>
@@ -945,14 +945,13 @@ This design allows agents to build on their previous work and compose more compl
 <h2 id="overview">Overview</h2>
 <p><code>freeact</code> agents are LLM agents that:</p>
 <ul>
-<li>generate <em>code actions</em> in Python instead of calling functions via JSON<sup id="fnref:2"><a class="footnote-ref" href="#fn:2">2</a></sup></li>
+<li>generate <em>code actions</em> in Python instead of function calls in JSON<sup id="fnref:2"><a class="footnote-ref" href="#fn:2">2</a></sup></li>
 <li>act by executing these code actions in a <a href="environment/">sandboxed environment</a></li>
 <li>use tools described through code and docstrings rather than JSON</li>
 <li>can use any feature from any Python package as tool definitions</li>
 <li>can store code actions as <a href="skills/collaborative-learning/">reusable skills in long-term memory</a></li>
 <li>can use these skills as tools in code actions and improve on them</li>
 <li>support invocation and composition of <a href="mcp-integration/">MCP tools in code actions</a></li>
-<li>support usage of any LLM from any provider as code action generator</li>
 </ul>
 <div class="admonition info">
 <p class="admonition-title">Supported models</p>
@@ -964,10 +963,10 @@ It is therefore a natural choice to provide agents with tool specifications desc
 This is often source code of modules that provide the interfaces or facades of larger packages, rather than implementation details that aren't relevant for tool usage.
 This code-based approach enables <code>freeact</code> agents to go beyond simple function calling. 
 By formulating actions as code, they can instantiate classes that are part of tool definitions, use their methods for stateful processing, or <a href="skills/predefined-skills/">act on complex result types</a> that not only provide data but also expose behavior via methods on them. </p>
-<p>Because tool definitions and code actions share the same programming language, tools can be natively included and composed into code actions. 
+<p>Because tool interfaces and code actions share the same programming language, tools can be natively included and composed into code actions. 
 Another advantage of this approach is that code actions generated at one step can be reused as tools in later steps.
 This allows <code>freeact</code> agents to learn from past experiences and compose more complex actions from simpler ones.
-We prefer to use the term <em>skills</em> instead of <em>tools</em> throughout our documentation, to convey their greater generality.</p>
+We prefer using the term <em>skills</em> instead of <em>tools</em> throughout our documentation, to convey their greater generality.</p>
 <div class="footnote">
 <hr />
 <ol>
