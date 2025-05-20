@@ -39,7 +39,19 @@ def configure(
     host: str | None = None,
     **kwargs,
 ) -> None:
-    """API DOC TODO"""
+    """Configures agent tracing using a [`Langfuse`](https://langfuse.com) backend. Once configured, all agent activities, code executions and model calls are automatically captured and exported to Langfuse.
+
+    Accepts all [Langfuse configuration options](https://python.reference.langfuse.com/langfuse/decorators#LangfuseDecorator.configure).
+    Configuration options can be provided as parameters to `configure()` or via environment variables.
+
+    Should be called at application startup.
+
+    Args:
+        public_key: Langfuse public API key.
+        secret_key: Langfuse secret API key.
+        host: Langfuse API endpoint.
+        **kwargs: Additional Langfuse configuration parameters.
+    """
     global _tracer
 
     with _tracing_setup_lock:
@@ -78,6 +90,10 @@ def configure(
 
 
 def shutdown() -> None:
+    """Shuts down agent tracing and flushes pending traces to the backend.
+
+    `shutdown()` is called automatically on application exit. For manual control, call this function explicitly.
+    """
     _shutdown_tracing()
 
 
@@ -106,7 +122,23 @@ async def trace(
     input: dict[str, Any] | None = None,
     session_id: str | None = None,
 ) -> AsyncIterator[Trace]:
-    """API DOC TODO"""
+    """Context manager for
+
+    - creating a new [`Trace`][freeact.tracing.base.Trace] using the globally
+      configured [`Tracer`][freeact.tracing.base.Tracer].
+    - setting the trace as the active trace for the scope of the context.
+
+    The trace might be associated with a session according to the following precedence:
+
+    1. Active session from [`session`][freeact.tracing.context.session] context
+    2. Explicitly provided `session_id` parameter
+    3. No session association if neither is available
+
+    Args:
+        name: Name of the trace.
+        input: Input data associated with the trace.
+        session_id: Session id to assign the trace to. Defaults to the active session.
+    """
     active_trace = await get_tracer().trace(
         name=name,
         input=input,
@@ -124,7 +156,15 @@ async def span(
     name: str,
     input: dict[str, Any] | None = None,
 ) -> AsyncIterator[Span]:
-    """API DOC TODO"""
+    """Context manager for
+
+    - creating a new [`Span`][freeact.tracing.base.Span] within the active [`Trace`][freeact.tracing.base.Trace].
+    - setting the span as the active span for the scope of the context.
+
+    Args:
+        name: Name of the span.
+        input: Input data associated with the span.
+    """
     active_span = await get_active_trace().span(
         name=name,
         input=input,
@@ -138,7 +178,13 @@ async def span(
 
 @contextmanager
 def session(session_id: str | None = None) -> Iterator[str]:
-    """API DOC TODO"""
+    """Context manager that creates a session scope for tracing operations.
+
+    All tracing operations within this context are associated with the specified session id.
+
+    Args:
+        session_id: Identifier for the session. A random session id is generated if not specified.
+    """
     active_session_id = session_id or create_session_id()
     token = _active_session_id_context.set(active_session_id)
     try:

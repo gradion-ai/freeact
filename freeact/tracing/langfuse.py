@@ -109,7 +109,7 @@ class LangfuseTrace(Trace):
 
 
 class LangfuseTracer(Tracer):
-    """A [langfuse](https://github.com/langfuse/langfuse)-based tracer provider.
+    """A [langfuse](https://github.com/langfuse/langfuse)-based tracer.
 
     This tracer uses the Langfuse low-level Python SDK (https://langfuse.com/docs/sdk/python/low-level-sdk)
     to create trace data and transmit it to the Langfuse backend.

@@ -5,4 +5,4 @@
       members:
         - configure
         - session
-        
+        - shutdown
