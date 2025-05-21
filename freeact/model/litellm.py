@@ -1,3 +1,4 @@
+import datetime as dt
 import json
 import re
 from dataclasses import dataclass
@@ -5,6 +6,7 @@ from typing import Any, AsyncIterator
 
 import litellm
 
+from freeact import tracing
 from freeact.model.base import CodeActModel, CodeActModelResponse, CodeActModelTurn, CodeActModelUsage
 from freeact.model.prompt import (
     CODE_TAG_SYSTEM_TEMPLATE,
@@ -62,9 +64,11 @@ class LiteLLMResponse(CodeActModelResponse):
 
 
 class LiteLLMTurn(CodeActModelTurn):
-    def __init__(self, iter: AsyncIterator[str | LiteLLMResponse]):
+    def __init__(self, iter: AsyncIterator[str | LiteLLMResponse], span_name: str, span_input: dict[str, Any]):
         self._iter = iter
         self._response: LiteLLMResponse | None = None
+        self._span_name = span_name
+        self._span_input = span_input
 
     async def response(self) -> LiteLLMResponse:
         if self._response is None:
@@ -73,12 +77,25 @@ class LiteLLMTurn(CodeActModelTurn):
         return self._response  # type: ignore
 
     async def stream(self) -> AsyncIterator[str]:
-        async for elem in self._iter:
-            match elem:
-                case str():
-                    yield elem
-                case LiteLLMResponse() as msg:
-                    self._response = msg
+        async with tracing.span(
+            self._span_name,
+            self._span_input,
+        ) as span:
+            await span.update(start_time=dt.datetime.now())
+            async for elem in self._iter:
+                match elem:
+                    case str():
+                        yield elem
+                    case LiteLLMResponse() as msg:
+                        self._response = msg
+                        await span.update(
+                            output={
+                                "text": msg.text,
+                                "is_error": msg.is_error,
+                                "code": msg.code,
+                                "tool_use": msg.tool_use,
+                            },
+                        )
 
 
 class LiteCodeActModel(CodeActModel):
@@ -226,7 +243,11 @@ class LiteCodeActModel(CodeActModel):
             CodeActModelTurn: An object for retrieving the model's response.
         """
         user_message = {"role": "user", "content": user_query}
-        return LiteLLMTurn(self._stream(user_message, **kwargs))
+
+        span_name = "Model request"
+        span_input = {"user_query": user_query, **kwargs}
+
+        return LiteLLMTurn(self._stream(user_message, **kwargs), span_name, span_input)
 
     def feedback(
         self,
@@ -269,9 +290,27 @@ class LiteCodeActModel(CodeActModel):
                 "content": content,
             }
 
-        return LiteLLMTurn(self._stream(feedback_message, **kwargs))
+        span_name = "Model feedback"
+        span_input = {
+            "feedback": feedback,
+            "is_error": is_error,
+            "tool_use_id": tool_use_id,
+            "tool_use_name": tool_use_name,
+            **kwargs,
+        }
+
+        return LiteLLMTurn(self._stream(feedback_message, **kwargs), span_name, span_input)
 
     async def _stream(self, input_message: dict[str, Any], **kwargs) -> AsyncIterator[str | LiteLLMResponse]:
+        span = tracing.get_active_span()
+        if span.trace_id and span.span_id:
+            metadata = {
+                "existing_trace_id": span.trace_id,
+                "parent_observation_id": span.span_id,
+            }
+        else:
+            metadata = {}
+
         messages = self.history + [input_message]
         response = LiteLLMResponse(text="", is_error=False)
 
@@ -282,6 +321,7 @@ class LiteCodeActModel(CodeActModel):
             stream_options={"include_usage": True},
             tools=self.tools or None,
             **(self.completion_kwargs | kwargs),
+            metadata=metadata,
         )
 
         chunks = []

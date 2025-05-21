@@ -91,6 +91,7 @@ nav:
     - Installation: installation.md
     - Fundamentals: fundamentals.md
     - Environment: environment.md
+    - Observability: observability.md
     - MCP integration: mcp-integration.md
     - System prompt: system-prompt.md
     - Evaluation results: https://github.com/gradion-ai/freeact/blob/main/evaluation/README.md
@@ -104,3 +105,4 @@ nav:
     - Environment: api/environment.md
     - Agent: api/agent.md
     - Model: api/model.md
+    - Tracing: api/tracing.md

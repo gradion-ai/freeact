@@ -1,0 +1,572 @@
+<svg class="rich-terminal" viewBox="0 0 1482 3148.7999999999997" xmlns="http://www.w3.org/2000/svg">
+    <!-- Generated with Rich https://www.textualize.io -->
+    <style>
+
+    @font-face {
+        font-family: "Fira Code";
+        src: local("FiraCode-Regular"),
+                url("https://cdnjs.cloudflare.com/ajax/libs/firacode/6.2.0/woff2/FiraCode-Regular.woff2") format("woff2"),
+                url("https://cdnjs.cloudflare.com/ajax/libs/firacode/6.2.0/woff/FiraCode-Regular.woff") format("woff");
+        font-style: normal;
+        font-weight: 400;
+    }
+    @font-face {
+        font-family: "Fira Code";
+        src: local("FiraCode-Bold"),
+                url("https://cdnjs.cloudflare.com/ajax/libs/firacode/6.2.0/woff2/FiraCode-Bold.woff2") format("woff2"),
+                url("https://cdnjs.cloudflare.com/ajax/libs/firacode/6.2.0/woff/FiraCode-Bold.woff") format("woff");
+        font-style: bold;
+        font-weight: 700;
+    }
+
+    .terminal-841879642-matrix {
+        font-family: Fira Code, monospace;
+        font-size: 20px;
+        line-height: 24.4px;
+        font-variant-east-asian: full-width;
+    }
+
+    .terminal-841879642-title {
+        font-size: 18px;
+        font-weight: bold;
+        font-family: arial;
+    }
+
+    .terminal-841879642-r1 { fill: #0087ff }
+.terminal-841879642-r2 { fill: #c5c8c6 }
+.terminal-841879642-r3 { fill: #98a84b }
+.terminal-841879642-r4 { fill: #d0b344 }
+.terminal-841879642-r5 { fill: #e3e3dd;font-weight: bold }
+.terminal-841879642-r6 { fill: #656660 }
+.terminal-841879642-r7 { fill: #ff4689 }
+.terminal-841879642-r8 { fill: #f8f8f2 }
+.terminal-841879642-r9 { fill: #e6db74 }
+.terminal-841879642-r10 { fill: #808080 }
+.terminal-841879642-r11 { fill: #afaf87 }
+    </style>
+
+    <defs>
+    <clipPath id="terminal-841879642-clip-terminal">
+      <rect x="0" y="0" width="1463.0" height="3097.7999999999997" />
+    </clipPath>
+    <clipPath id="terminal-841879642-line-0">
+    <rect x="0" y="1.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-1">
+    <rect x="0" y="25.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-2">
+    <rect x="0" y="50.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-3">
+    <rect x="0" y="74.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-4">
+    <rect x="0" y="99.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-5">
+    <rect x="0" y="123.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-6">
+    <rect x="0" y="147.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-7">
+    <rect x="0" y="172.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-8">
+    <rect x="0" y="196.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-9">
+    <rect x="0" y="221.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-10">
+    <rect x="0" y="245.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-11">
+    <rect x="0" y="269.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-12">
+    <rect x="0" y="294.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-13">
+    <rect x="0" y="318.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-14">
+    <rect x="0" y="343.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-15">
+    <rect x="0" y="367.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-16">
+    <rect x="0" y="391.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-17">
+    <rect x="0" y="416.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-18">
+    <rect x="0" y="440.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-19">
+    <rect x="0" y="465.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-20">
+    <rect x="0" y="489.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-21">
+    <rect x="0" y="513.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-22">
+    <rect x="0" y="538.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-23">
+    <rect x="0" y="562.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-24">
+    <rect x="0" y="587.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-25">
+    <rect x="0" y="611.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-26">
+    <rect x="0" y="635.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-27">
+    <rect x="0" y="660.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-28">
+    <rect x="0" y="684.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-29">
+    <rect x="0" y="709.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-30">
+    <rect x="0" y="733.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-31">
+    <rect x="0" y="757.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-32">
+    <rect x="0" y="782.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-33">
+    <rect x="0" y="806.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-34">
+    <rect x="0" y="831.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-35">
+    <rect x="0" y="855.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-36">
+    <rect x="0" y="879.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-37">
+    <rect x="0" y="904.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-38">
+    <rect x="0" y="928.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-39">
+    <rect x="0" y="953.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-40">
+    <rect x="0" y="977.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-41">
+    <rect x="0" y="1001.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-42">
+    <rect x="0" y="1026.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-43">
+    <rect x="0" y="1050.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-44">
+    <rect x="0" y="1075.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-45">
+    <rect x="0" y="1099.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-46">
+    <rect x="0" y="1123.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-47">
+    <rect x="0" y="1148.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-48">
+    <rect x="0" y="1172.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-49">
+    <rect x="0" y="1197.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-50">
+    <rect x="0" y="1221.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-51">
+    <rect x="0" y="1245.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-52">
+    <rect x="0" y="1270.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-53">
+    <rect x="0" y="1294.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-54">
+    <rect x="0" y="1319.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-55">
+    <rect x="0" y="1343.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-56">
+    <rect x="0" y="1367.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-57">
+    <rect x="0" y="1392.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-58">
+    <rect x="0" y="1416.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-59">
+    <rect x="0" y="1441.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-60">
+    <rect x="0" y="1465.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-61">
+    <rect x="0" y="1489.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-62">
+    <rect x="0" y="1514.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-63">
+    <rect x="0" y="1538.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-64">
+    <rect x="0" y="1563.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-65">
+    <rect x="0" y="1587.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-66">
+    <rect x="0" y="1611.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-67">
+    <rect x="0" y="1636.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-68">
+    <rect x="0" y="1660.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-69">
+    <rect x="0" y="1685.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-70">
+    <rect x="0" y="1709.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-71">
+    <rect x="0" y="1733.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-72">
+    <rect x="0" y="1758.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-73">
+    <rect x="0" y="1782.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-74">
+    <rect x="0" y="1807.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-75">
+    <rect x="0" y="1831.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-76">
+    <rect x="0" y="1855.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-77">
+    <rect x="0" y="1880.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-78">
+    <rect x="0" y="1904.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-79">
+    <rect x="0" y="1929.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-80">
+    <rect x="0" y="1953.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-81">
+    <rect x="0" y="1977.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-82">
+    <rect x="0" y="2002.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-83">
+    <rect x="0" y="2026.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-84">
+    <rect x="0" y="2051.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-85">
+    <rect x="0" y="2075.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-86">
+    <rect x="0" y="2099.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-87">
+    <rect x="0" y="2124.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-88">
+    <rect x="0" y="2148.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-89">
+    <rect x="0" y="2173.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-90">
+    <rect x="0" y="2197.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-91">
+    <rect x="0" y="2221.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-92">
+    <rect x="0" y="2246.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-93">
+    <rect x="0" y="2270.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-94">
+    <rect x="0" y="2295.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-95">
+    <rect x="0" y="2319.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-96">
+    <rect x="0" y="2343.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-97">
+    <rect x="0" y="2368.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-98">
+    <rect x="0" y="2392.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-99">
+    <rect x="0" y="2417.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-100">
+    <rect x="0" y="2441.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-101">
+    <rect x="0" y="2465.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-102">
+    <rect x="0" y="2490.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-103">
+    <rect x="0" y="2514.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-104">
+    <rect x="0" y="2539.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-105">
+    <rect x="0" y="2563.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-106">
+    <rect x="0" y="2587.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-107">
+    <rect x="0" y="2612.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-108">
+    <rect x="0" y="2636.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-109">
+    <rect x="0" y="2661.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-110">
+    <rect x="0" y="2685.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-111">
+    <rect x="0" y="2709.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-112">
+    <rect x="0" y="2734.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-113">
+    <rect x="0" y="2758.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-114">
+    <rect x="0" y="2783.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-115">
+    <rect x="0" y="2807.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-116">
+    <rect x="0" y="2831.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-117">
+    <rect x="0" y="2856.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-118">
+    <rect x="0" y="2880.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-119">
+    <rect x="0" y="2905.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-120">
+    <rect x="0" y="2929.5" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-121">
+    <rect x="0" y="2953.9" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-122">
+    <rect x="0" y="2978.3" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-123">
+    <rect x="0" y="3002.7" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-124">
+    <rect x="0" y="3027.1" width="1464" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-841879642-line-125">
+    <rect x="0" y="3051.5" width="1464" height="24.65"/>
+            </clipPath>
+    </defs>
+
+    <rect fill="#292929" stroke="rgba(255,255,255,0.35)" stroke-width="1" x="1" y="1" width="1480" height="3146.8" rx="8"/><text class="terminal-841879642-title" fill="#c5c8c6" text-anchor="middle" x="740" y="27">Conversation</text>
+            <g transform="translate(26,22)">
+            <circle cx="0" cy="0" r="7" fill="#ff5f57"/>
+            <circle cx="22" cy="0" r="7" fill="#febc2e"/>
+            <circle cx="44" cy="0" r="7" fill="#28c840"/>
+            </g>
+        
+    <g transform="translate(9, 41)" clip-path="url(#terminal-841879642-clip-terminal)">
+    <rect fill="#272822" x="24.4" y="367.5" width="24.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="48.8" y="367.5" width="24.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="73.2" y="367.5" width="48.8" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="122" y="367.5" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="134.2" y="367.5" width="170.8" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="305" y="367.5" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="317.2" y="367.5" width="73.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="390.4" y="367.5" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="402.6" y="367.5" width="73.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="475.8" y="367.5" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="488" y="367.5" width="73.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="561.2" y="367.5" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="573.4" y="367.5" width="36.6" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="610" y="367.5" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="622.2" y="367.5" width="73.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="695.4" y="367.5" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="707.6" y="367.5" width="170.8" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="878.4" y="367.5" width="561.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="24.4" y="391.9" width="24.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="48.8" y="391.9" width="24.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="73.2" y="391.9" width="1366.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="24.4" y="416.3" width="24.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="48.8" y="416.3" width="24.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="73.2" y="416.3" width="73.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="146.4" y="416.3" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="158.6" y="416.3" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="170.8" y="416.3" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="183" y="416.3" width="170.8" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="353.8" y="416.3" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="366" y="416.3" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="378.2" y="416.3" width="1061.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="24.4" y="440.7" width="24.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="48.8" y="440.7" width="24.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="73.2" y="440.7" width="73.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="146.4" y="440.7" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="158.6" y="440.7" width="73.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="231.8" y="440.7" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="244" y="440.7" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="256.2" y="440.7" width="695.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="951.6" y="440.7" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="963.8" y="440.7" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="976" y="440.7" width="463.6" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="24.4" y="1294.7" width="24.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="48.8" y="1294.7" width="24.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="73.2" y="1294.7" width="48.8" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="122" y="1294.7" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="134.2" y="1294.7" width="170.8" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="305" y="1294.7" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="317.2" y="1294.7" width="73.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="390.4" y="1294.7" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="402.6" y="1294.7" width="73.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="475.8" y="1294.7" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="488" y="1294.7" width="73.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="561.2" y="1294.7" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="573.4" y="1294.7" width="36.6" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="610" y="1294.7" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="622.2" y="1294.7" width="73.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="695.4" y="1294.7" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="707.6" y="1294.7" width="170.8" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="878.4" y="1294.7" width="561.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="24.4" y="1319.1" width="24.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="48.8" y="1319.1" width="24.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="73.2" y="1319.1" width="1366.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="24.4" y="1343.5" width="24.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="48.8" y="1343.5" width="24.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="73.2" y="1343.5" width="73.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="146.4" y="1343.5" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="158.6" y="1343.5" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="170.8" y="1343.5" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="183" y="1343.5" width="170.8" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="353.8" y="1343.5" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="366" y="1343.5" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="378.2" y="1343.5" width="1061.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="24.4" y="1367.9" width="24.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="48.8" y="1367.9" width="24.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="73.2" y="1367.9" width="73.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="146.4" y="1367.9" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="158.6" y="1367.9" width="73.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="231.8" y="1367.9" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="244" y="1367.9" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="256.2" y="1367.9" width="951.6" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="1207.8" y="1367.9" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="1220" y="1367.9" width="12.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="1232.2" y="1367.9" width="207.4" height="24.65" shape-rendering="crispEdges"/>
+    <g class="terminal-841879642-matrix">
+    <text class="terminal-841879642-r1" x="0" y="20" textLength="658.8" clip-path="url(#terminal-841879642-line-0)">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━&#160;</text><text class="terminal-841879642-r2" x="658.8" y="20" textLength="146.4" clip-path="url(#terminal-841879642-line-0)">User&#160;message</text><text class="terminal-841879642-r1" x="805.2" y="20" textLength="658.8" clip-path="url(#terminal-841879642-line-0)">&#160;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</text><text class="terminal-841879642-r2" x="1464" y="20" textLength="12.2" clip-path="url(#terminal-841879642-line-0)">
+</text><text class="terminal-841879642-r2" x="0" y="44.4" textLength="353.8" clip-path="url(#terminal-841879642-line-1)">&#x27;q&#x27;:&#160;quit,&#160;Alt+Enter:&#160;newline</text><text class="terminal-841879642-r2" x="1464" y="44.4" textLength="12.2" clip-path="url(#terminal-841879642-line-1)">
+</text><text class="terminal-841879642-r2" x="1464" y="68.8" textLength="12.2" clip-path="url(#terminal-841879642-line-2)">
+</text><text class="terminal-841879642-r2" x="0" y="93.2" textLength="24.4" clip-path="url(#terminal-841879642-line-3)">&gt;&#160;</text><text class="terminal-841879642-r2" x="24.4" y="93.2" textLength="695.4" clip-path="url(#terminal-841879642-line-3)">What&#160;was&#160;the&#160;first&#160;spacecraft&#160;to&#160;successfully&#160;orbit&#160;Mars?</text><text class="terminal-841879642-r2" x="1464" y="93.2" textLength="12.2" clip-path="url(#terminal-841879642-line-3)">
+</text><text class="terminal-841879642-r3" x="0" y="117.6" textLength="646.6" clip-path="url(#terminal-841879642-line-4)">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━&#160;</text><text class="terminal-841879642-r2" x="646.6" y="117.6" textLength="170.8" clip-path="url(#terminal-841879642-line-4)">Model&#160;response</text><text class="terminal-841879642-r3" x="817.4" y="117.6" textLength="646.6" clip-path="url(#terminal-841879642-line-4)">&#160;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</text><text class="terminal-841879642-r2" x="1464" y="117.6" textLength="12.2" clip-path="url(#terminal-841879642-line-4)">
+</text><text class="terminal-841879642-r2" x="0" y="142" textLength="85.4" clip-path="url(#terminal-841879642-line-5)">&lt;think&gt;</text><text class="terminal-841879642-r2" x="1464" y="142" textLength="12.2" clip-path="url(#terminal-841879642-line-5)">
+</text><text class="terminal-841879642-r2" x="0" y="166.4" textLength="1439.6" clip-path="url(#terminal-841879642-line-6)">The&#160;user&#160;is&#160;asking&#160;about&#160;the&#160;first&#160;spacecraft&#160;to&#160;successfully&#160;orbit&#160;Mars.&#160;This&#160;is&#160;a&#160;factual&#160;historical&#160;question&#160;about&#160;</text><text class="terminal-841879642-r2" x="1464" y="166.4" textLength="12.2" clip-path="url(#terminal-841879642-line-6)">
+</text><text class="terminal-841879642-r2" x="0" y="190.8" textLength="1451.8" clip-path="url(#terminal-841879642-line-7)">space&#160;exploration.&#160;I&#x27;ll&#160;use&#160;Python&#160;to&#160;search&#160;for&#160;this&#160;information&#160;using&#160;the&#160;InternetSearch&#160;API&#160;provided&#160;in&#160;the&#160;modules&#160;</text><text class="terminal-841879642-r2" x="1464" y="190.8" textLength="12.2" clip-path="url(#terminal-841879642-line-7)">
+</text><text class="terminal-841879642-r2" x="0" y="215.2" textLength="97.6" clip-path="url(#terminal-841879642-line-8)">section.</text><text class="terminal-841879642-r2" x="1464" y="215.2" textLength="12.2" clip-path="url(#terminal-841879642-line-8)">
+</text><text class="terminal-841879642-r2" x="0" y="239.6" textLength="97.6" clip-path="url(#terminal-841879642-line-9)">&lt;/think&gt;</text><text class="terminal-841879642-r2" x="1464" y="239.6" textLength="12.2" clip-path="url(#terminal-841879642-line-9)">
+</text><text class="terminal-841879642-r2" x="1464" y="264" textLength="12.2" clip-path="url(#terminal-841879642-line-10)">
+</text><text class="terminal-841879642-r2" x="0" y="288.4" textLength="1427.4" clip-path="url(#terminal-841879642-line-11)">To&#160;answer&#160;your&#160;question&#160;about&#160;the&#160;first&#160;spacecraft&#160;to&#160;successfully&#160;orbit&#160;Mars,&#160;I&#x27;ll&#160;search&#160;for&#160;this&#160;historical&#160;space&#160;</text><text class="terminal-841879642-r2" x="1464" y="288.4" textLength="12.2" clip-path="url(#terminal-841879642-line-11)">
+</text><text class="terminal-841879642-r2" x="0" y="312.8" textLength="292.8" clip-path="url(#terminal-841879642-line-12)">exploration&#160;information.</text><text class="terminal-841879642-r2" x="1464" y="312.8" textLength="12.2" clip-path="url(#terminal-841879642-line-12)">
+</text><text class="terminal-841879642-r2" x="1464" y="337.2" textLength="12.2" clip-path="url(#terminal-841879642-line-13)">
+</text><text class="terminal-841879642-r4" x="0" y="361.6" textLength="24.4" clip-path="url(#terminal-841879642-line-14)">╭─</text><text class="terminal-841879642-r2" x="24.4" y="361.6" textLength="158.6" clip-path="url(#terminal-841879642-line-14)">&#160;Code&#160;action&#160;</text><text class="terminal-841879642-r4" x="183" y="361.6" textLength="1256.6" clip-path="url(#terminal-841879642-line-14)">───────────────────────────────────────────────────────────────────────────────────────────────────────</text><text class="terminal-841879642-r4" x="1439.6" y="361.6" textLength="24.4" clip-path="url(#terminal-841879642-line-14)">─╮</text><text class="terminal-841879642-r2" x="1464" y="361.6" textLength="12.2" clip-path="url(#terminal-841879642-line-14)">
+</text><text class="terminal-841879642-r4" x="0" y="386" textLength="12.2" clip-path="url(#terminal-841879642-line-15)">│</text><text class="terminal-841879642-r6" x="48.8" y="386" textLength="24.4" clip-path="url(#terminal-841879642-line-15)">1&#160;</text><text class="terminal-841879642-r7" x="73.2" y="386" textLength="48.8" clip-path="url(#terminal-841879642-line-15)">from</text><text class="terminal-841879642-r8" x="134.2" y="386" textLength="170.8" clip-path="url(#terminal-841879642-line-15)">freeact_skills</text><text class="terminal-841879642-r8" x="305" y="386" textLength="12.2" clip-path="url(#terminal-841879642-line-15)">.</text><text class="terminal-841879642-r8" x="317.2" y="386" textLength="73.2" clip-path="url(#terminal-841879642-line-15)">search</text><text class="terminal-841879642-r8" x="390.4" y="386" textLength="12.2" clip-path="url(#terminal-841879642-line-15)">.</text><text class="terminal-841879642-r8" x="402.6" y="386" textLength="73.2" clip-path="url(#terminal-841879642-line-15)">google</text><text class="terminal-841879642-r8" x="475.8" y="386" textLength="12.2" clip-path="url(#terminal-841879642-line-15)">.</text><text class="terminal-841879642-r8" x="488" y="386" textLength="73.2" clip-path="url(#terminal-841879642-line-15)">stream</text><text class="terminal-841879642-r8" x="561.2" y="386" textLength="12.2" clip-path="url(#terminal-841879642-line-15)">.</text><text class="terminal-841879642-r8" x="573.4" y="386" textLength="36.6" clip-path="url(#terminal-841879642-line-15)">api</text><text class="terminal-841879642-r7" x="622.2" y="386" textLength="73.2" clip-path="url(#terminal-841879642-line-15)">import</text><text class="terminal-841879642-r8" x="707.6" y="386" textLength="170.8" clip-path="url(#terminal-841879642-line-15)">InternetSearch</text><text class="terminal-841879642-r4" x="1451.8" y="386" textLength="12.2" clip-path="url(#terminal-841879642-line-15)">│</text><text class="terminal-841879642-r2" x="1464" y="386" textLength="12.2" clip-path="url(#terminal-841879642-line-15)">
+</text><text class="terminal-841879642-r4" x="0" y="410.4" textLength="12.2" clip-path="url(#terminal-841879642-line-16)">│</text><text class="terminal-841879642-r6" x="48.8" y="410.4" textLength="24.4" clip-path="url(#terminal-841879642-line-16)">2&#160;</text><text class="terminal-841879642-r4" x="1451.8" y="410.4" textLength="12.2" clip-path="url(#terminal-841879642-line-16)">│</text><text class="terminal-841879642-r2" x="1464" y="410.4" textLength="12.2" clip-path="url(#terminal-841879642-line-16)">
+</text><text class="terminal-841879642-r4" x="0" y="434.8" textLength="12.2" clip-path="url(#terminal-841879642-line-17)">│</text><text class="terminal-841879642-r6" x="48.8" y="434.8" textLength="24.4" clip-path="url(#terminal-841879642-line-17)">3&#160;</text><text class="terminal-841879642-r8" x="73.2" y="434.8" textLength="73.2" clip-path="url(#terminal-841879642-line-17)">search</text><text class="terminal-841879642-r7" x="158.6" y="434.8" textLength="12.2" clip-path="url(#terminal-841879642-line-17)">=</text><text class="terminal-841879642-r8" x="183" y="434.8" textLength="170.8" clip-path="url(#terminal-841879642-line-17)">InternetSearch</text><text class="terminal-841879642-r8" x="353.8" y="434.8" textLength="12.2" clip-path="url(#terminal-841879642-line-17)">(</text><text class="terminal-841879642-r8" x="366" y="434.8" textLength="12.2" clip-path="url(#terminal-841879642-line-17)">)</text><text class="terminal-841879642-r4" x="1451.8" y="434.8" textLength="12.2" clip-path="url(#terminal-841879642-line-17)">│</text><text class="terminal-841879642-r2" x="1464" y="434.8" textLength="12.2" clip-path="url(#terminal-841879642-line-17)">
+</text><text class="terminal-841879642-r4" x="0" y="459.2" textLength="12.2" clip-path="url(#terminal-841879642-line-18)">│</text><text class="terminal-841879642-r6" x="48.8" y="459.2" textLength="24.4" clip-path="url(#terminal-841879642-line-18)">4&#160;</text><text class="terminal-841879642-r8" x="73.2" y="459.2" textLength="73.2" clip-path="url(#terminal-841879642-line-18)">search</text><text class="terminal-841879642-r7" x="146.4" y="459.2" textLength="12.2" clip-path="url(#terminal-841879642-line-18)">.</text><text class="terminal-841879642-r8" x="158.6" y="459.2" textLength="73.2" clip-path="url(#terminal-841879642-line-18)">search</text><text class="terminal-841879642-r8" x="231.8" y="459.2" textLength="12.2" clip-path="url(#terminal-841879642-line-18)">(</text><text class="terminal-841879642-r9" x="244" y="459.2" textLength="12.2" clip-path="url(#terminal-841879642-line-18)">&quot;</text><text class="terminal-841879642-r9" x="256.2" y="459.2" textLength="695.4" clip-path="url(#terminal-841879642-line-18)">What&#160;was&#160;the&#160;first&#160;spacecraft&#160;to&#160;successfully&#160;orbit&#160;Mars?</text><text class="terminal-841879642-r9" x="951.6" y="459.2" textLength="12.2" clip-path="url(#terminal-841879642-line-18)">&quot;</text><text class="terminal-841879642-r8" x="963.8" y="459.2" textLength="12.2" clip-path="url(#terminal-841879642-line-18)">)</text><text class="terminal-841879642-r4" x="1451.8" y="459.2" textLength="12.2" clip-path="url(#terminal-841879642-line-18)">│</text><text class="terminal-841879642-r2" x="1464" y="459.2" textLength="12.2" clip-path="url(#terminal-841879642-line-18)">
+</text><text class="terminal-841879642-r4" x="0" y="483.6" textLength="1464" clip-path="url(#terminal-841879642-line-19)">╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯</text><text class="terminal-841879642-r2" x="1464" y="483.6" textLength="12.2" clip-path="url(#terminal-841879642-line-19)">
+</text><text class="terminal-841879642-r2" x="1464" y="508" textLength="12.2" clip-path="url(#terminal-841879642-line-20)">
+</text><text class="terminal-841879642-r2" x="1464" y="532.4" textLength="12.2" clip-path="url(#terminal-841879642-line-21)">
+</text><text class="terminal-841879642-r10" x="0" y="556.8" textLength="1451.8" clip-path="url(#terminal-841879642-line-22)">Accumulated&#160;token&#160;usage:&#160;input=180,&#160;thinking=43,&#160;output=176,&#160;cache_write=2.16k,&#160;cache_read=0;&#160;Accumulated&#160;costs:&#160;0.011&#160;</text><text class="terminal-841879642-r2" x="1464" y="556.8" textLength="12.2" clip-path="url(#terminal-841879642-line-22)">
+</text><text class="terminal-841879642-r10" x="0" y="581.2" textLength="36.6" clip-path="url(#terminal-841879642-line-23)">USD</text><text class="terminal-841879642-r2" x="1464" y="581.2" textLength="12.2" clip-path="url(#terminal-841879642-line-23)">
+</text><text class="terminal-841879642-r2" x="0" y="605.6" textLength="634.4" clip-path="url(#terminal-841879642-line-24)">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━&#160;</text><text class="terminal-841879642-r2" x="634.4" y="605.6" textLength="195.2" clip-path="url(#terminal-841879642-line-24)">Execution&#160;result</text><text class="terminal-841879642-r2" x="829.6" y="605.6" textLength="634.4" clip-path="url(#terminal-841879642-line-24)">&#160;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</text><text class="terminal-841879642-r2" x="1464" y="605.6" textLength="12.2" clip-path="url(#terminal-841879642-line-24)">
+</text><text class="terminal-841879642-r11" x="0" y="630" textLength="1464" clip-path="url(#terminal-841879642-line-25)">The&#160;first&#160;spacecraft&#160;to&#160;successfully&#160;orbit&#160;Mars&#160;was&#160;**Mariner&#160;9**,&#160;a&#160;U.S.&#160;unmanned&#160;space&#160;probe.&#160;It&#160;entered&#160;the&#160;planet&#x27;s&#160;</text><text class="terminal-841879642-r2" x="1464" y="630" textLength="12.2" clip-path="url(#terminal-841879642-line-25)">
+</text><text class="terminal-841879642-r11" x="0" y="654.4" textLength="378.2" clip-path="url(#terminal-841879642-line-26)">orbit&#160;on&#160;**November&#160;13,&#160;1971**.</text><text class="terminal-841879642-r2" x="1464" y="654.4" textLength="12.2" clip-path="url(#terminal-841879642-line-26)">
+</text><text class="terminal-841879642-r2" x="1464" y="678.8" textLength="12.2" clip-path="url(#terminal-841879642-line-27)">
+</text><text class="terminal-841879642-r3" x="0" y="703.2" textLength="646.6" clip-path="url(#terminal-841879642-line-28)">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━&#160;</text><text class="terminal-841879642-r2" x="646.6" y="703.2" textLength="170.8" clip-path="url(#terminal-841879642-line-28)">Model&#160;response</text><text class="terminal-841879642-r3" x="817.4" y="703.2" textLength="646.6" clip-path="url(#terminal-841879642-line-28)">&#160;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</text><text class="terminal-841879642-r2" x="1464" y="703.2" textLength="12.2" clip-path="url(#terminal-841879642-line-28)">
+</text><text class="terminal-841879642-r2" x="0" y="727.6" textLength="1451.8" clip-path="url(#terminal-841879642-line-29)">The&#160;first&#160;spacecraft&#160;to&#160;successfully&#160;orbit&#160;Mars&#160;was&#160;**Mariner&#160;9**,&#160;a&#160;NASA&#160;unmanned&#160;space&#160;probe.&#160;It&#160;entered&#160;Mars&#x27;&#160;orbit&#160;</text><text class="terminal-841879642-r2" x="1464" y="727.6" textLength="12.2" clip-path="url(#terminal-841879642-line-29)">
+</text><text class="terminal-841879642-r2" x="0" y="752" textLength="305" clip-path="url(#terminal-841879642-line-30)">on&#160;**November&#160;13,&#160;1971**.</text><text class="terminal-841879642-r2" x="1464" y="752" textLength="12.2" clip-path="url(#terminal-841879642-line-30)">
+</text><text class="terminal-841879642-r2" x="1464" y="776.4" textLength="12.2" clip-path="url(#terminal-841879642-line-31)">
+</text><text class="terminal-841879642-r2" x="0" y="800.8" textLength="1378.6" clip-path="url(#terminal-841879642-line-32)">Mariner&#160;9&#160;made&#160;history&#160;as&#160;the&#160;first&#160;artificial&#160;satellite&#160;to&#160;orbit&#160;another&#160;planet&#160;besides&#160;Earth.&#160;This&#160;mission&#160;was&#160;</text><text class="terminal-841879642-r2" x="1464" y="800.8" textLength="12.2" clip-path="url(#terminal-841879642-line-32)">
+</text><text class="terminal-841879642-r2" x="0" y="825.2" textLength="1451.8" clip-path="url(#terminal-841879642-line-33)">particularly&#160;significant&#160;because&#160;it&#160;arrived&#160;during&#160;a&#160;global&#160;dust&#160;storm&#160;on&#160;Mars,&#160;and&#160;the&#160;spacecraft&#160;had&#160;to&#160;wait&#160;for&#160;the&#160;</text><text class="terminal-841879642-r2" x="1464" y="825.2" textLength="12.2" clip-path="url(#terminal-841879642-line-33)">
+</text><text class="terminal-841879642-r2" x="0" y="849.6" textLength="1439.6" clip-path="url(#terminal-841879642-line-34)">storm&#160;to&#160;clear&#160;before&#160;it&#160;could&#160;begin&#160;its&#160;mapping&#160;operations.&#160;Once&#160;the&#160;dust&#160;settled,&#160;Mariner&#160;9&#160;mapped&#160;about&#160;85%&#160;of&#160;the&#160;</text><text class="terminal-841879642-r2" x="1464" y="849.6" textLength="12.2" clip-path="url(#terminal-841879642-line-34)">
+</text><text class="terminal-841879642-r2" x="0" y="874" textLength="1451.8" clip-path="url(#terminal-841879642-line-35)">Martian&#160;surface&#160;and&#160;revealed&#160;details&#160;of&#160;Mars&#x27;&#160;varied&#160;geology,&#160;including&#160;its&#160;volcanoes,&#160;canyons,&#160;and&#160;ancient&#160;river&#160;beds.</text><text class="terminal-841879642-r2" x="1464" y="874" textLength="12.2" clip-path="url(#terminal-841879642-line-35)">
+</text><text class="terminal-841879642-r2" x="1464" y="898.4" textLength="12.2" clip-path="url(#terminal-841879642-line-36)">
+</text><text class="terminal-841879642-r2" x="1464" y="922.8" textLength="12.2" clip-path="url(#terminal-841879642-line-37)">
+</text><text class="terminal-841879642-r10" x="0" y="947.2" textLength="1451.8" clip-path="url(#terminal-841879642-line-38)">Accumulated&#160;token&#160;usage:&#160;input=2.83k,&#160;thinking=43,&#160;output=319,&#160;cache_write=2.16k,&#160;cache_read=2.16k;&#160;Accumulated&#160;costs:&#160;</text><text class="terminal-841879642-r2" x="1464" y="947.2" textLength="12.2" clip-path="url(#terminal-841879642-line-38)">
+</text><text class="terminal-841879642-r10" x="0" y="971.6" textLength="109.8" clip-path="url(#terminal-841879642-line-39)">0.021&#160;USD</text><text class="terminal-841879642-r2" x="1464" y="971.6" textLength="12.2" clip-path="url(#terminal-841879642-line-39)">
+</text><text class="terminal-841879642-r1" x="0" y="996" textLength="658.8" clip-path="url(#terminal-841879642-line-40)">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━&#160;</text><text class="terminal-841879642-r2" x="658.8" y="996" textLength="146.4" clip-path="url(#terminal-841879642-line-40)">User&#160;message</text><text class="terminal-841879642-r1" x="805.2" y="996" textLength="658.8" clip-path="url(#terminal-841879642-line-40)">&#160;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</text><text class="terminal-841879642-r2" x="1464" y="996" textLength="12.2" clip-path="url(#terminal-841879642-line-40)">
+</text><text class="terminal-841879642-r2" x="0" y="1020.4" textLength="353.8" clip-path="url(#terminal-841879642-line-41)">&#x27;q&#x27;:&#160;quit,&#160;Alt+Enter:&#160;newline</text><text class="terminal-841879642-r2" x="1464" y="1020.4" textLength="12.2" clip-path="url(#terminal-841879642-line-41)">
+</text><text class="terminal-841879642-r2" x="1464" y="1044.8" textLength="12.2" clip-path="url(#terminal-841879642-line-42)">
+</text><text class="terminal-841879642-r2" x="0" y="1069.2" textLength="24.4" clip-path="url(#terminal-841879642-line-43)">&gt;&#160;</text><text class="terminal-841879642-r2" x="24.4" y="1069.2" textLength="780.8" clip-path="url(#terminal-841879642-line-43)">What&#160;were&#160;the&#160;most&#160;significant&#160;scientific&#160;findings&#160;of&#160;Mariner&#160;9?</text><text class="terminal-841879642-r2" x="1464" y="1069.2" textLength="12.2" clip-path="url(#terminal-841879642-line-43)">
+</text><text class="terminal-841879642-r3" x="0" y="1093.6" textLength="646.6" clip-path="url(#terminal-841879642-line-44)">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━&#160;</text><text class="terminal-841879642-r2" x="646.6" y="1093.6" textLength="170.8" clip-path="url(#terminal-841879642-line-44)">Model&#160;response</text><text class="terminal-841879642-r3" x="817.4" y="1093.6" textLength="646.6" clip-path="url(#terminal-841879642-line-44)">&#160;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</text><text class="terminal-841879642-r2" x="1464" y="1093.6" textLength="12.2" clip-path="url(#terminal-841879642-line-44)">
+</text><text class="terminal-841879642-r2" x="0" y="1118" textLength="85.4" clip-path="url(#terminal-841879642-line-45)">&lt;think&gt;</text><text class="terminal-841879642-r2" x="1464" y="1118" textLength="12.2" clip-path="url(#terminal-841879642-line-45)">
+</text><text class="terminal-841879642-r2" x="0" y="1142.4" textLength="1415.2" clip-path="url(#terminal-841879642-line-46)">I&#x27;ll&#160;search&#160;for&#160;information&#160;about&#160;the&#160;most&#160;significant&#160;scientific&#160;findings&#160;of&#160;the&#160;Mariner&#160;9&#160;Mars&#160;mission.&#160;This&#160;is&#160;a&#160;</text><text class="terminal-841879642-r2" x="1464" y="1142.4" textLength="12.2" clip-path="url(#terminal-841879642-line-46)">
+</text><text class="terminal-841879642-r2" x="0" y="1166.8" textLength="1073.6" clip-path="url(#terminal-841879642-line-47)">specific&#160;historical&#160;space&#160;science&#160;question&#160;that&#160;can&#160;be&#160;well&#160;addressed&#160;by&#160;a&#160;search&#160;query.</text><text class="terminal-841879642-r2" x="1464" y="1166.8" textLength="12.2" clip-path="url(#terminal-841879642-line-47)">
+</text><text class="terminal-841879642-r2" x="0" y="1191.2" textLength="97.6" clip-path="url(#terminal-841879642-line-48)">&lt;/think&gt;</text><text class="terminal-841879642-r2" x="1464" y="1191.2" textLength="12.2" clip-path="url(#terminal-841879642-line-48)">
+</text><text class="terminal-841879642-r2" x="1464" y="1215.6" textLength="12.2" clip-path="url(#terminal-841879642-line-49)">
+</text><text class="terminal-841879642-r2" x="0" y="1240" textLength="1122.4" clip-path="url(#terminal-841879642-line-50)">I&#x27;ll&#160;search&#160;for&#160;the&#160;most&#160;significant&#160;scientific&#160;findings&#160;from&#160;the&#160;Mariner&#160;9&#160;mission&#160;to&#160;Mars.</text><text class="terminal-841879642-r2" x="1464" y="1240" textLength="12.2" clip-path="url(#terminal-841879642-line-50)">
+</text><text class="terminal-841879642-r2" x="1464" y="1264.4" textLength="12.2" clip-path="url(#terminal-841879642-line-51)">
+</text><text class="terminal-841879642-r4" x="0" y="1288.8" textLength="24.4" clip-path="url(#terminal-841879642-line-52)">╭─</text><text class="terminal-841879642-r2" x="24.4" y="1288.8" textLength="158.6" clip-path="url(#terminal-841879642-line-52)">&#160;Code&#160;action&#160;</text><text class="terminal-841879642-r4" x="183" y="1288.8" textLength="1256.6" clip-path="url(#terminal-841879642-line-52)">───────────────────────────────────────────────────────────────────────────────────────────────────────</text><text class="terminal-841879642-r4" x="1439.6" y="1288.8" textLength="24.4" clip-path="url(#terminal-841879642-line-52)">─╮</text><text class="terminal-841879642-r2" x="1464" y="1288.8" textLength="12.2" clip-path="url(#terminal-841879642-line-52)">
+</text><text class="terminal-841879642-r4" x="0" y="1313.2" textLength="12.2" clip-path="url(#terminal-841879642-line-53)">│</text><text class="terminal-841879642-r6" x="48.8" y="1313.2" textLength="24.4" clip-path="url(#terminal-841879642-line-53)">1&#160;</text><text class="terminal-841879642-r7" x="73.2" y="1313.2" textLength="48.8" clip-path="url(#terminal-841879642-line-53)">from</text><text class="terminal-841879642-r8" x="134.2" y="1313.2" textLength="170.8" clip-path="url(#terminal-841879642-line-53)">freeact_skills</text><text class="terminal-841879642-r8" x="305" y="1313.2" textLength="12.2" clip-path="url(#terminal-841879642-line-53)">.</text><text class="terminal-841879642-r8" x="317.2" y="1313.2" textLength="73.2" clip-path="url(#terminal-841879642-line-53)">search</text><text class="terminal-841879642-r8" x="390.4" y="1313.2" textLength="12.2" clip-path="url(#terminal-841879642-line-53)">.</text><text class="terminal-841879642-r8" x="402.6" y="1313.2" textLength="73.2" clip-path="url(#terminal-841879642-line-53)">google</text><text class="terminal-841879642-r8" x="475.8" y="1313.2" textLength="12.2" clip-path="url(#terminal-841879642-line-53)">.</text><text class="terminal-841879642-r8" x="488" y="1313.2" textLength="73.2" clip-path="url(#terminal-841879642-line-53)">stream</text><text class="terminal-841879642-r8" x="561.2" y="1313.2" textLength="12.2" clip-path="url(#terminal-841879642-line-53)">.</text><text class="terminal-841879642-r8" x="573.4" y="1313.2" textLength="36.6" clip-path="url(#terminal-841879642-line-53)">api</text><text class="terminal-841879642-r7" x="622.2" y="1313.2" textLength="73.2" clip-path="url(#terminal-841879642-line-53)">import</text><text class="terminal-841879642-r8" x="707.6" y="1313.2" textLength="170.8" clip-path="url(#terminal-841879642-line-53)">InternetSearch</text><text class="terminal-841879642-r4" x="1451.8" y="1313.2" textLength="12.2" clip-path="url(#terminal-841879642-line-53)">│</text><text class="terminal-841879642-r2" x="1464" y="1313.2" textLength="12.2" clip-path="url(#terminal-841879642-line-53)">
+</text><text class="terminal-841879642-r4" x="0" y="1337.6" textLength="12.2" clip-path="url(#terminal-841879642-line-54)">│</text><text class="terminal-841879642-r6" x="48.8" y="1337.6" textLength="24.4" clip-path="url(#terminal-841879642-line-54)">2&#160;</text><text class="terminal-841879642-r4" x="1451.8" y="1337.6" textLength="12.2" clip-path="url(#terminal-841879642-line-54)">│</text><text class="terminal-841879642-r2" x="1464" y="1337.6" textLength="12.2" clip-path="url(#terminal-841879642-line-54)">
+</text><text class="terminal-841879642-r4" x="0" y="1362" textLength="12.2" clip-path="url(#terminal-841879642-line-55)">│</text><text class="terminal-841879642-r6" x="48.8" y="1362" textLength="24.4" clip-path="url(#terminal-841879642-line-55)">3&#160;</text><text class="terminal-841879642-r8" x="73.2" y="1362" textLength="73.2" clip-path="url(#terminal-841879642-line-55)">search</text><text class="terminal-841879642-r7" x="158.6" y="1362" textLength="12.2" clip-path="url(#terminal-841879642-line-55)">=</text><text class="terminal-841879642-r8" x="183" y="1362" textLength="170.8" clip-path="url(#terminal-841879642-line-55)">InternetSearch</text><text class="terminal-841879642-r8" x="353.8" y="1362" textLength="12.2" clip-path="url(#terminal-841879642-line-55)">(</text><text class="terminal-841879642-r8" x="366" y="1362" textLength="12.2" clip-path="url(#terminal-841879642-line-55)">)</text><text class="terminal-841879642-r4" x="1451.8" y="1362" textLength="12.2" clip-path="url(#terminal-841879642-line-55)">│</text><text class="terminal-841879642-r2" x="1464" y="1362" textLength="12.2" clip-path="url(#terminal-841879642-line-55)">
+</text><text class="terminal-841879642-r4" x="0" y="1386.4" textLength="12.2" clip-path="url(#terminal-841879642-line-56)">│</text><text class="terminal-841879642-r6" x="48.8" y="1386.4" textLength="24.4" clip-path="url(#terminal-841879642-line-56)">4&#160;</text><text class="terminal-841879642-r8" x="73.2" y="1386.4" textLength="73.2" clip-path="url(#terminal-841879642-line-56)">search</text><text class="terminal-841879642-r7" x="146.4" y="1386.4" textLength="12.2" clip-path="url(#terminal-841879642-line-56)">.</text><text class="terminal-841879642-r8" x="158.6" y="1386.4" textLength="73.2" clip-path="url(#terminal-841879642-line-56)">search</text><text class="terminal-841879642-r8" x="231.8" y="1386.4" textLength="12.2" clip-path="url(#terminal-841879642-line-56)">(</text><text class="terminal-841879642-r9" x="244" y="1386.4" textLength="12.2" clip-path="url(#terminal-841879642-line-56)">&quot;</text><text class="terminal-841879642-r9" x="256.2" y="1386.4" textLength="951.6" clip-path="url(#terminal-841879642-line-56)">Most&#160;significant&#160;scientific&#160;findings&#160;and&#160;discoveries&#160;of&#160;Mariner&#160;9&#160;Mars&#160;mission</text><text class="terminal-841879642-r9" x="1207.8" y="1386.4" textLength="12.2" clip-path="url(#terminal-841879642-line-56)">&quot;</text><text class="terminal-841879642-r8" x="1220" y="1386.4" textLength="12.2" clip-path="url(#terminal-841879642-line-56)">)</text><text class="terminal-841879642-r4" x="1451.8" y="1386.4" textLength="12.2" clip-path="url(#terminal-841879642-line-56)">│</text><text class="terminal-841879642-r2" x="1464" y="1386.4" textLength="12.2" clip-path="url(#terminal-841879642-line-56)">
+</text><text class="terminal-841879642-r4" x="0" y="1410.8" textLength="1464" clip-path="url(#terminal-841879642-line-57)">╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯</text><text class="terminal-841879642-r2" x="1464" y="1410.8" textLength="12.2" clip-path="url(#terminal-841879642-line-57)">
+</text><text class="terminal-841879642-r2" x="1464" y="1435.2" textLength="12.2" clip-path="url(#terminal-841879642-line-58)">
+</text><text class="terminal-841879642-r2" x="1464" y="1459.6" textLength="12.2" clip-path="url(#terminal-841879642-line-59)">
+</text><text class="terminal-841879642-r10" x="0" y="1484" textLength="1451.8" clip-path="url(#terminal-841879642-line-60)">Accumulated&#160;token&#160;usage:&#160;input=5.59k,&#160;thinking=81,&#160;output=491,&#160;cache_write=2.16k,&#160;cache_read=4.32k;&#160;Accumulated&#160;costs:&#160;</text><text class="terminal-841879642-r2" x="1464" y="1484" textLength="12.2" clip-path="url(#terminal-841879642-line-60)">
+</text><text class="terminal-841879642-r10" x="0" y="1508.4" textLength="109.8" clip-path="url(#terminal-841879642-line-61)">0.032&#160;USD</text><text class="terminal-841879642-r2" x="1464" y="1508.4" textLength="12.2" clip-path="url(#terminal-841879642-line-61)">
+</text><text class="terminal-841879642-r2" x="0" y="1532.8" textLength="634.4" clip-path="url(#terminal-841879642-line-62)">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━&#160;</text><text class="terminal-841879642-r2" x="634.4" y="1532.8" textLength="195.2" clip-path="url(#terminal-841879642-line-62)">Execution&#160;result</text><text class="terminal-841879642-r2" x="829.6" y="1532.8" textLength="634.4" clip-path="url(#terminal-841879642-line-62)">&#160;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</text><text class="terminal-841879642-r2" x="1464" y="1532.8" textLength="12.2" clip-path="url(#terminal-841879642-line-62)">
+</text><text class="terminal-841879642-r11" x="0" y="1557.2" textLength="1464" clip-path="url(#terminal-841879642-line-63)">The&#160;Mariner&#160;9&#160;mission,&#160;launched&#160;in&#160;1971,&#160;was&#160;the&#160;first&#160;spacecraft&#160;to&#160;orbit&#160;another&#160;planet&#160;and&#160;significantly&#160;changed&#160;our&#160;</text><text class="terminal-841879642-r2" x="1464" y="1557.2" textLength="12.2" clip-path="url(#terminal-841879642-line-63)">
+</text><text class="terminal-841879642-r11" x="0" y="1581.6" textLength="1183.4" clip-path="url(#terminal-841879642-line-64)">understanding&#160;of&#160;Mars.&#160;Here&#160;are&#160;some&#160;of&#160;its&#160;most&#160;significant&#160;scientific&#160;findings&#160;and&#160;discoveries:</text><text class="terminal-841879642-r2" x="1464" y="1581.6" textLength="12.2" clip-path="url(#terminal-841879642-line-64)">
+</text><text class="terminal-841879642-r2" x="1464" y="1606" textLength="12.2" clip-path="url(#terminal-841879642-line-65)">
+</text><text class="terminal-841879642-r11" x="0" y="1630.4" textLength="1451.8" clip-path="url(#terminal-841879642-line-66)">*&#160;&#160;&#160;**First&#160;Detailed&#160;Global&#160;Mapping:**&#160;Mariner&#160;9&#160;mapped&#160;85%&#160;of&#160;the&#160;Martian&#160;surface&#160;with&#160;a&#160;resolution&#160;of&#160;98&#160;meters&#160;(320&#160;</text><text class="terminal-841879642-r2" x="1464" y="1630.4" textLength="12.2" clip-path="url(#terminal-841879642-line-66)">
+</text><text class="terminal-841879642-r11" x="0" y="1654.8" textLength="658.8" clip-path="url(#terminal-841879642-line-67)">ft)&#160;per&#160;pixel,&#160;vastly&#160;improved&#160;from&#160;previous&#160;missions.</text><text class="terminal-841879642-r2" x="1464" y="1654.8" textLength="12.2" clip-path="url(#terminal-841879642-line-67)">
+</text><text class="terminal-841879642-r11" x="0" y="1679.2" textLength="1464" clip-path="url(#terminal-841879642-line-68)">*&#160;&#160;&#160;**Discovery&#160;of&#160;Vast&#160;Canyon&#160;(Valles&#160;Marineris):**&#160;It&#160;revealed&#160;a&#160;massive&#160;canyon&#160;system,&#160;Valles&#160;Marineris,&#160;about&#160;4,020&#160;</text><text class="terminal-841879642-r2" x="1464" y="1679.2" textLength="12.2" clip-path="url(#terminal-841879642-line-68)">
+</text><text class="terminal-841879642-r11" x="0" y="1703.6" textLength="1207.8" clip-path="url(#terminal-841879642-line-69)">kilometers&#160;(2,500&#160;mi)&#160;long&#160;and&#160;up&#160;to&#160;7&#160;km&#160;(4&#160;mi)&#160;deep.&#160;This&#160;canyon&#160;dwarfs&#160;the&#160;Grand&#160;Canyon&#160;in&#160;size.</text><text class="terminal-841879642-r2" x="1464" y="1703.6" textLength="12.2" clip-path="url(#terminal-841879642-line-69)">
+</text><text class="terminal-841879642-r11" x="0" y="1728" textLength="1451.8" clip-path="url(#terminal-841879642-line-70)">*&#160;&#160;&#160;**Identification&#160;of&#160;Massive&#160;Volcanoes:**&#160;The&#160;mission&#160;discovered&#160;massive&#160;extinct&#160;volcanoes,&#160;including&#160;Olympus&#160;Mons,&#160;</text><text class="terminal-841879642-r2" x="1464" y="1728" textLength="12.2" clip-path="url(#terminal-841879642-line-70)">
+</text><text class="terminal-841879642-r11" x="0" y="1752.4" textLength="1464" clip-path="url(#terminal-841879642-line-71)">the&#160;largest&#160;known&#160;volcano&#160;in&#160;the&#160;solar&#160;system.&#160;Mariner&#160;9&#x27;s&#160;data&#160;led&#160;to&#160;its&#160;reclassification&#160;as&#160;a&#160;volcano.&#160;The&#160;spacecraft</text><text class="terminal-841879642-r2" x="1464" y="1752.4" textLength="12.2" clip-path="url(#terminal-841879642-line-71)">
+</text><text class="terminal-841879642-r11" x="0" y="1776.8" textLength="1415.2" clip-path="url(#terminal-841879642-line-72)">showed&#160;that&#160;the&#160;volcanoes&#160;it&#160;spotted&#160;are&#160;likely&#160;dormant,&#160;because&#160;there&#160;were&#160;no&#160;signs&#160;of&#160;eruptions&#160;in&#160;the&#160;atmosphere.</text><text class="terminal-841879642-r2" x="1464" y="1776.8" textLength="12.2" clip-path="url(#terminal-841879642-line-72)">
+</text><text class="terminal-841879642-r11" x="0" y="1801.2" textLength="1366.4" clip-path="url(#terminal-841879642-line-73)">*&#160;&#160;&#160;**Evidence&#160;of&#160;Past&#160;Water&#160;Activity:**&#160;Mariner&#160;9&#160;found&#160;evidence&#160;of&#160;ancient&#160;riverbeds&#160;and&#160;other&#160;flow&#160;features,&#160;</text><text class="terminal-841879642-r2" x="1464" y="1801.2" textLength="12.2" clip-path="url(#terminal-841879642-line-73)">
+</text><text class="terminal-841879642-r11" x="0" y="1825.6" textLength="695.4" clip-path="url(#terminal-841879642-line-74)">suggesting&#160;free-flowing&#160;water&#160;on&#160;the&#160;surface&#160;in&#160;the&#160;past.</text><text class="terminal-841879642-r2" x="1464" y="1825.6" textLength="12.2" clip-path="url(#terminal-841879642-line-74)">
+</text><text class="terminal-841879642-r11" x="0" y="1850" textLength="1415.2" clip-path="url(#terminal-841879642-line-75)">*&#160;&#160;&#160;**Study&#160;of&#160;Martian&#160;Moons:**&#160;The&#160;spacecraft&#160;captured&#160;relatively&#160;close-up&#160;views&#160;of&#160;Mars&#x27;&#160;moons,&#160;Phobos&#160;and&#160;Deimos.</text><text class="terminal-841879642-r2" x="1464" y="1850" textLength="12.2" clip-path="url(#terminal-841879642-line-75)">
+</text><text class="terminal-841879642-r11" x="0" y="1874.4" textLength="1464" clip-path="url(#terminal-841879642-line-76)">*&#160;&#160;&#160;**Atmospheric&#160;Data:**&#160;Mariner&#160;9&#160;gathered&#160;data&#160;on&#160;atmospheric&#160;structure,&#160;composition,&#160;density,&#160;and&#160;pressure.&#160;It&#160;also&#160;</text><text class="terminal-841879642-r2" x="1464" y="1874.4" textLength="12.2" clip-path="url(#terminal-841879642-line-76)">
+</text><text class="terminal-841879642-r11" x="0" y="1898.8" textLength="829.6" clip-path="url(#terminal-841879642-line-77)">measured&#160;components&#160;of&#160;the&#160;atmosphere&#160;such&#160;as&#160;water&#160;vapor&#160;and&#160;ozone.</text><text class="terminal-841879642-r2" x="1464" y="1898.8" textLength="12.2" clip-path="url(#terminal-841879642-line-77)">
+</text><text class="terminal-841879642-r11" x="0" y="1923.2" textLength="1268.8" clip-path="url(#terminal-841879642-line-78)">*&#160;&#160;&#160;**Polar&#160;Ice&#160;Caps:**&#160;Images&#160;revealed&#160;the&#160;north&#160;polar&#160;cap&#160;is&#160;composed&#160;of&#160;water&#160;and&#160;carbon-dioxide&#160;ice.</text><text class="terminal-841879642-r2" x="1464" y="1923.2" textLength="12.2" clip-path="url(#terminal-841879642-line-78)">
+</text><text class="terminal-841879642-r11" x="0" y="1947.6" textLength="1415.2" clip-path="url(#terminal-841879642-line-79)">*&#160;&#160;&#160;**Weather&#160;Phenomena:**&#160;The&#160;mission&#160;observed&#160;weather&#160;fronts,&#160;ice&#160;clouds,&#160;localized&#160;dust&#160;storms,&#160;and&#160;morning&#160;fogs.</text><text class="terminal-841879642-r2" x="1464" y="1947.6" textLength="12.2" clip-path="url(#terminal-841879642-line-79)">
+</text><text class="terminal-841879642-r11" x="0" y="1972" textLength="1451.8" clip-path="url(#terminal-841879642-line-80)">*&#160;&#160;&#160;**Changed&#160;Perceptions&#160;of&#160;Mars:**&#160;Mariner&#160;9&#160;transformed&#160;the&#160;view&#160;of&#160;Mars&#160;from&#160;a&#160;crater-filled,&#160;Moon-like&#160;world&#160;to&#160;a&#160;</text><text class="terminal-841879642-r2" x="1464" y="1972" textLength="12.2" clip-path="url(#terminal-841879642-line-80)">
+</text><text class="terminal-841879642-r11" x="0" y="1996.4" textLength="817.4" clip-path="url(#terminal-841879642-line-81)">planet&#160;with&#160;a&#160;dynamic&#160;climate&#160;and&#160;a&#160;history&#160;of&#160;geological&#160;activity.</text><text class="terminal-841879642-r2" x="1464" y="1996.4" textLength="12.2" clip-path="url(#terminal-841879642-line-81)">
+</text><text class="terminal-841879642-r2" x="1464" y="2020.8" textLength="12.2" clip-path="url(#terminal-841879642-line-82)">
+</text><text class="terminal-841879642-r11" x="0" y="2045.2" textLength="1439.6" clip-path="url(#terminal-841879642-line-83)">Mariner&#160;9&#160;returned&#160;over&#160;7,000&#160;images,&#160;far&#160;exceeding&#160;previous&#160;missions,&#160;and&#160;its&#160;findings&#160;paved&#160;the&#160;way&#160;for&#160;future&#160;Mars&#160;</text><text class="terminal-841879642-r2" x="1464" y="2045.2" textLength="12.2" clip-path="url(#terminal-841879642-line-83)">
+</text><text class="terminal-841879642-r11" x="0" y="2069.6" textLength="561.2" clip-path="url(#terminal-841879642-line-84)">exploration&#160;programs&#160;like&#160;the&#160;Viking&#160;missions.</text><text class="terminal-841879642-r2" x="1464" y="2069.6" textLength="12.2" clip-path="url(#terminal-841879642-line-84)">
+</text><text class="terminal-841879642-r2" x="1464" y="2094" textLength="12.2" clip-path="url(#terminal-841879642-line-85)">
+</text><text class="terminal-841879642-r3" x="0" y="2118.4" textLength="646.6" clip-path="url(#terminal-841879642-line-86)">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━&#160;</text><text class="terminal-841879642-r2" x="646.6" y="2118.4" textLength="170.8" clip-path="url(#terminal-841879642-line-86)">Model&#160;response</text><text class="terminal-841879642-r3" x="817.4" y="2118.4" textLength="646.6" clip-path="url(#terminal-841879642-line-86)">&#160;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</text><text class="terminal-841879642-r2" x="1464" y="2118.4" textLength="12.2" clip-path="url(#terminal-841879642-line-86)">
+</text><text class="terminal-841879642-r2" x="0" y="2142.8" textLength="561.2" clip-path="url(#terminal-841879642-line-87)">#&#160;Significant&#160;Scientific&#160;Findings&#160;of&#160;Mariner&#160;9</text><text class="terminal-841879642-r2" x="1464" y="2142.8" textLength="12.2" clip-path="url(#terminal-841879642-line-87)">
+</text><text class="terminal-841879642-r2" x="1464" y="2167.2" textLength="12.2" clip-path="url(#terminal-841879642-line-88)">
+</text><text class="terminal-841879642-r2" x="0" y="2191.6" textLength="1439.6" clip-path="url(#terminal-841879642-line-89)">Mariner&#160;9,&#160;as&#160;the&#160;first&#160;spacecraft&#160;to&#160;successfully&#160;orbit&#160;another&#160;planet,&#160;made&#160;several&#160;groundbreaking&#160;discoveries&#160;that&#160;</text><text class="terminal-841879642-r2" x="1464" y="2191.6" textLength="12.2" clip-path="url(#terminal-841879642-line-89)">
+</text><text class="terminal-841879642-r2" x="0" y="2216" textLength="500.2" clip-path="url(#terminal-841879642-line-90)">revolutionized&#160;our&#160;understanding&#160;of&#160;Mars:</text><text class="terminal-841879642-r2" x="1464" y="2216" textLength="12.2" clip-path="url(#terminal-841879642-line-90)">
+</text><text class="terminal-841879642-r2" x="1464" y="2240.4" textLength="12.2" clip-path="url(#terminal-841879642-line-91)">
+</text><text class="terminal-841879642-r2" x="0" y="2264.8" textLength="378.2" clip-path="url(#terminal-841879642-line-92)">##&#160;Major&#160;Geological&#160;Discoveries</text><text class="terminal-841879642-r2" x="1464" y="2264.8" textLength="12.2" clip-path="url(#terminal-841879642-line-92)">
+</text><text class="terminal-841879642-r2" x="0" y="2289.2" textLength="1451.8" clip-path="url(#terminal-841879642-line-93)">-&#160;**Valles&#160;Marineris**:&#160;Discovered&#160;an&#160;enormous&#160;canyon&#160;system&#160;stretching&#160;approximately&#160;4,020&#160;km&#160;(2,500&#160;miles)&#160;in&#160;length&#160;</text><text class="terminal-841879642-r2" x="1464" y="2289.2" textLength="12.2" clip-path="url(#terminal-841879642-line-93)">
+</text><text class="terminal-841879642-r2" x="0" y="2313.6" textLength="854" clip-path="url(#terminal-841879642-line-94)">and&#160;up&#160;to&#160;7&#160;km&#160;(4&#160;miles)&#160;deep,&#160;vastly&#160;larger&#160;than&#160;Earth&#x27;s&#160;Grand&#160;Canyon</text><text class="terminal-841879642-r2" x="1464" y="2313.6" textLength="12.2" clip-path="url(#terminal-841879642-line-94)">
+</text><text class="terminal-841879642-r2" x="0" y="2338" textLength="1464" clip-path="url(#terminal-841879642-line-95)">-&#160;**Olympus&#160;Mons**:&#160;Identified&#160;the&#160;largest&#160;known&#160;volcano&#160;in&#160;the&#160;solar&#160;system&#160;and&#160;other&#160;massive&#160;extinct&#160;volcanoes&#160;in&#160;the&#160;</text><text class="terminal-841879642-r2" x="1464" y="2338" textLength="12.2" clip-path="url(#terminal-841879642-line-95)">
+</text><text class="terminal-841879642-r2" x="0" y="2362.4" textLength="170.8" clip-path="url(#terminal-841879642-line-96)">Tharsis&#160;region</text><text class="terminal-841879642-r2" x="1464" y="2362.4" textLength="12.2" clip-path="url(#terminal-841879642-line-96)">
+</text><text class="terminal-841879642-r2" x="0" y="2386.8" textLength="1415.2" clip-path="url(#terminal-841879642-line-97)">-&#160;**Evidence&#160;of&#160;Water**:&#160;Found&#160;ancient&#160;riverbeds&#160;and&#160;erosion&#160;channels&#160;suggesting&#160;Mars&#160;once&#160;had&#160;flowing&#160;water&#160;on&#160;its&#160;</text><text class="terminal-841879642-r2" x="1464" y="2386.8" textLength="12.2" clip-path="url(#terminal-841879642-line-97)">
+</text><text class="terminal-841879642-r2" x="0" y="2411.2" textLength="85.4" clip-path="url(#terminal-841879642-line-98)">surface</text><text class="terminal-841879642-r2" x="1464" y="2411.2" textLength="12.2" clip-path="url(#terminal-841879642-line-98)">
+</text><text class="terminal-841879642-r2" x="1464" y="2435.6" textLength="12.2" clip-path="url(#terminal-841879642-line-99)">
+</text><text class="terminal-841879642-r2" x="0" y="2460" textLength="292.8" clip-path="url(#terminal-841879642-line-100)">##&#160;Comprehensive&#160;Mapping</text><text class="terminal-841879642-r2" x="1464" y="2460" textLength="12.2" clip-path="url(#terminal-841879642-line-100)">
+</text><text class="terminal-841879642-r2" x="0" y="2484.4" textLength="976" clip-path="url(#terminal-841879642-line-101)">-&#160;Mapped&#160;about&#160;85%&#160;of&#160;the&#160;Martian&#160;surface&#160;at&#160;a&#160;resolution&#160;of&#160;98&#160;meters&#160;per&#160;pixel</text><text class="terminal-841879642-r2" x="1464" y="2484.4" textLength="12.2" clip-path="url(#terminal-841879642-line-101)">
+</text><text class="terminal-841879642-r2" x="0" y="2508.8" textLength="1451.8" clip-path="url(#terminal-841879642-line-102)">-&#160;Completely&#160;changed&#160;our&#160;perception&#160;of&#160;Mars&#160;from&#160;a&#160;Moon-like,&#160;crater-filled&#160;world&#160;to&#160;a&#160;planet&#160;with&#160;complex&#160;and&#160;diverse&#160;</text><text class="terminal-841879642-r2" x="1464" y="2508.8" textLength="12.2" clip-path="url(#terminal-841879642-line-102)">
+</text><text class="terminal-841879642-r2" x="0" y="2533.2" textLength="85.4" clip-path="url(#terminal-841879642-line-103)">geology</text><text class="terminal-841879642-r2" x="1464" y="2533.2" textLength="12.2" clip-path="url(#terminal-841879642-line-103)">
+</text><text class="terminal-841879642-r2" x="1464" y="2557.6" textLength="12.2" clip-path="url(#terminal-841879642-line-104)">
+</text><text class="terminal-841879642-r2" x="0" y="2582" textLength="427" clip-path="url(#terminal-841879642-line-105)">##&#160;Atmospheric&#160;and&#160;Climate&#160;Findings</text><text class="terminal-841879642-r2" x="1464" y="2582" textLength="12.2" clip-path="url(#terminal-841879642-line-105)">
+</text><text class="terminal-841879642-r2" x="0" y="2606.4" textLength="902.8" clip-path="url(#terminal-841879642-line-106)">-&#160;Gathered&#160;detailed&#160;data&#160;on&#160;atmospheric&#160;composition,&#160;density,&#160;and&#160;pressure</text><text class="terminal-841879642-r2" x="1464" y="2606.4" textLength="12.2" clip-path="url(#terminal-841879642-line-106)">
+</text><text class="terminal-841879642-r2" x="0" y="2630.8" textLength="1256.6" clip-path="url(#terminal-841879642-line-107)">-&#160;Observed&#160;various&#160;weather&#160;phenomena&#160;including&#160;dust&#160;storms,&#160;ice&#160;clouds,&#160;weather&#160;fronts,&#160;and&#160;morning&#160;fog</text><text class="terminal-841879642-r2" x="1464" y="2630.8" textLength="12.2" clip-path="url(#terminal-841879642-line-107)">
+</text><text class="terminal-841879642-r2" x="0" y="2655.2" textLength="1207.8" clip-path="url(#terminal-841879642-line-108)">-&#160;Studied&#160;the&#160;north&#160;polar&#160;ice&#160;cap,&#160;determining&#160;it&#160;was&#160;composed&#160;of&#160;both&#160;water&#160;and&#160;carbon&#160;dioxide&#160;ice</text><text class="terminal-841879642-r2" x="1464" y="2655.2" textLength="12.2" clip-path="url(#terminal-841879642-line-108)">
+</text><text class="terminal-841879642-r2" x="1464" y="2679.6" textLength="12.2" clip-path="url(#terminal-841879642-line-109)">
+</text><text class="terminal-841879642-r2" x="0" y="2704" textLength="256.2" clip-path="url(#terminal-841879642-line-110)">##&#160;Other&#160;Achievements</text><text class="terminal-841879642-r2" x="1464" y="2704" textLength="12.2" clip-path="url(#terminal-841879642-line-110)">
+</text><text class="terminal-841879642-r2" x="0" y="2728.4" textLength="854" clip-path="url(#terminal-841879642-line-111)">-&#160;Captured&#160;the&#160;first&#160;detailed&#160;images&#160;of&#160;Mars&#x27;&#160;moons,&#160;Phobos&#160;and&#160;Deimos</text><text class="terminal-841879642-r2" x="1464" y="2728.4" textLength="12.2" clip-path="url(#terminal-841879642-line-111)">
+</text><text class="terminal-841879642-r2" x="0" y="2752.8" textLength="744.2" clip-path="url(#terminal-841879642-line-112)">-&#160;Returned&#160;over&#160;7,000&#160;images,&#160;far&#160;exceeding&#160;previous&#160;missions</text><text class="terminal-841879642-r2" x="1464" y="2752.8" textLength="12.2" clip-path="url(#terminal-841879642-line-112)">
+</text><text class="terminal-841879642-r2" x="0" y="2777.2" textLength="1464" clip-path="url(#terminal-841879642-line-113)">-&#160;Successfully&#160;operated&#160;despite&#160;arriving&#160;during&#160;a&#160;global&#160;dust&#160;storm,&#160;which&#160;actually&#160;provided&#160;valuable&#160;data&#160;about&#160;Martian</text><text class="terminal-841879642-r2" x="1464" y="2777.2" textLength="12.2" clip-path="url(#terminal-841879642-line-113)">
+</text><text class="terminal-841879642-r2" x="0" y="2801.6" textLength="244" clip-path="url(#terminal-841879642-line-114)">atmospheric&#160;dynamics</text><text class="terminal-841879642-r2" x="1464" y="2801.6" textLength="12.2" clip-path="url(#terminal-841879642-line-114)">
+</text><text class="terminal-841879642-r2" x="1464" y="2826" textLength="12.2" clip-path="url(#terminal-841879642-line-115)">
+</text><text class="terminal-841879642-r2" x="0" y="2850.4" textLength="1403" clip-path="url(#terminal-841879642-line-116)">These&#160;discoveries&#160;were&#160;crucial&#160;in&#160;laying&#160;the&#160;groundwork&#160;for&#160;future&#160;Mars&#160;exploration&#160;missions,&#160;including&#160;the&#160;Viking&#160;</text><text class="terminal-841879642-r2" x="1464" y="2850.4" textLength="12.2" clip-path="url(#terminal-841879642-line-116)">
+</text><text class="terminal-841879642-r2" x="0" y="2874.8" textLength="1378.6" clip-path="url(#terminal-841879642-line-117)">program&#160;that&#160;followed.&#160;Mariner&#160;9&#160;fundamentally&#160;transformed&#160;our&#160;scientific&#160;understanding&#160;of&#160;the&#160;Red&#160;Planet&#160;from&#160;a&#160;</text><text class="terminal-841879642-r2" x="1464" y="2874.8" textLength="12.2" clip-path="url(#terminal-841879642-line-117)">
+</text><text class="terminal-841879642-r2" x="0" y="2899.2" textLength="1293.2" clip-path="url(#terminal-841879642-line-118)">relatively&#160;static&#160;world&#160;to&#160;one&#160;with&#160;a&#160;dynamic&#160;history&#160;of&#160;geological&#160;and&#160;potentially&#160;hydrological&#160;activity.</text><text class="terminal-841879642-r2" x="1464" y="2899.2" textLength="12.2" clip-path="url(#terminal-841879642-line-118)">
+</text><text class="terminal-841879642-r2" x="1464" y="2923.6" textLength="12.2" clip-path="url(#terminal-841879642-line-119)">
+</text><text class="terminal-841879642-r2" x="1464" y="2948" textLength="12.2" clip-path="url(#terminal-841879642-line-120)">
+</text><text class="terminal-841879642-r10" x="0" y="2972.4" textLength="1451.8" clip-path="url(#terminal-841879642-line-121)">Accumulated&#160;token&#160;usage:&#160;input=9.12k,&#160;thinking=81,&#160;output=909,&#160;cache_write=2.16k,&#160;cache_read=6.47k;&#160;Accumulated&#160;costs:&#160;</text><text class="terminal-841879642-r2" x="1464" y="2972.4" textLength="12.2" clip-path="url(#terminal-841879642-line-121)">
+</text><text class="terminal-841879642-r10" x="0" y="2996.8" textLength="109.8" clip-path="url(#terminal-841879642-line-122)">0.049&#160;USD</text><text class="terminal-841879642-r2" x="1464" y="2996.8" textLength="12.2" clip-path="url(#terminal-841879642-line-122)">
+</text><text class="terminal-841879642-r1" x="0" y="3021.2" textLength="658.8" clip-path="url(#terminal-841879642-line-123)">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━&#160;</text><text class="terminal-841879642-r2" x="658.8" y="3021.2" textLength="146.4" clip-path="url(#terminal-841879642-line-123)">User&#160;message</text><text class="terminal-841879642-r1" x="805.2" y="3021.2" textLength="658.8" clip-path="url(#terminal-841879642-line-123)">&#160;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</text><text class="terminal-841879642-r2" x="1464" y="3021.2" textLength="12.2" clip-path="url(#terminal-841879642-line-123)">
+</text><text class="terminal-841879642-r2" x="0" y="3045.6" textLength="353.8" clip-path="url(#terminal-841879642-line-124)">&#x27;q&#x27;:&#160;quit,&#160;Alt+Enter:&#160;newline</text><text class="terminal-841879642-r2" x="1464" y="3045.6" textLength="12.2" clip-path="url(#terminal-841879642-line-124)">
+</text><text class="terminal-841879642-r2" x="1464" y="3070" textLength="12.2" clip-path="url(#terminal-841879642-line-125)">
+</text><text class="terminal-841879642-r2" x="0" y="3094.4" textLength="24.4" clip-path="url(#terminal-841879642-line-126)">&gt;&#160;</text><text class="terminal-841879642-r2" x="24.4" y="3094.4" textLength="12.2" clip-path="url(#terminal-841879642-line-126)">q</text><text class="terminal-841879642-r2" x="1464" y="3094.4" textLength="12.2" clip-path="url(#terminal-841879642-line-126)">
+</text>
+    </g>
+    </g>
+</svg>

@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-from typing import AsyncIterator
+from typing import Any, AsyncIterator
 
+from freeact import tracing
 from freeact.environment import CodeExecution, CodeExecutor
 from freeact.model import CodeActModel, CodeActModelResponse, CodeActModelTurn, CodeActModelUsage
 
@@ -30,9 +31,18 @@ class CodeActAgentTurn:
     final response or the maximum number of steps is reached.
     """
 
-    def __init__(self, iter: AsyncIterator[CodeActModelTurn | CodeExecution | CodeActAgentResponse]):
+    def __init__(
+        self,
+        iter: AsyncIterator[CodeActModelTurn | CodeExecution | CodeActAgentResponse],
+        trace_name: str,
+        trace_input: dict[str, Any],
+        trace_session_id: str | None = None,
+    ):
         self._iter = iter
         self._response: CodeActAgentResponse | None = None
+        self._trace_name = trace_name
+        self._trace_input = trace_input
+        self._trace_session_id = trace_session_id
 
     async def response(self) -> CodeActAgentResponse:
         """Retrieves the final response from the code action agent for this
@@ -69,13 +79,18 @@ class CodeActAgentTurn:
             MaxStepsReached: If the interaction exceeds the maximum number of
                 steps without completion.
         """
-
-        async for elem in self._iter:
-            match elem:
-                case CodeActAgentResponse() as response:
-                    self._response = response
-                case _:
-                    yield elem
+        async with tracing.trace(
+            name=self._trace_name,
+            input=self._trace_input,
+            session_id=self._trace_session_id,
+        ) as trace:
+            async for elem in self._iter:
+                match elem:
+                    case CodeActAgentResponse() as response:
+                        self._response = response
+                        await trace.update(output=response.text)
+                    case _:
+                        yield elem
 
 
 class CodeActAgent:
@@ -99,6 +114,7 @@ class CodeActAgent:
     def __init__(self, model: CodeActModel, executor: CodeExecutor):
         self.model = model
         self.executor = executor
+        self._trace_session_id = tracing.create_session_id()
 
     def run(
         self,
@@ -124,13 +140,21 @@ class CodeActAgent:
         Raises:
             MaxStepsReached: If the interaction exceeds `max_steps` without completion.
         """
+
+        trace_name = "Agent run"
+        trace_input = {
+            "user_query": user_query,
+            "max_steps": max_steps,
+            "step_timeout": step_timeout,
+            **kwargs,
+        }
         iter = self._stream(
             user_query=user_query,
             max_steps=max_steps,
             step_timeout=step_timeout,
             **kwargs,
         )
-        return CodeActAgentTurn(iter)
+        return CodeActAgentTurn(iter, trace_name, trace_input, self._trace_session_id)
 
     async def _stream(
         self,
@@ -139,7 +163,7 @@ class CodeActAgent:
         step_timeout: float = 120,
         **kwargs,
     ) -> AsyncIterator[CodeActModelTurn | CodeExecution | CodeActAgentResponse]:
-        # initial model tuinteractionrn with user query
+        # initial model interaction with user query
         model_turn = self.model.request(user_query=user_query, **kwargs)
 
         # accumulated model usage for the current agent run
@@ -157,9 +181,12 @@ class CodeActAgent:
                 case CodeActModelResponse(is_error=False, code=code) as response:
                     model_usage.update(response.usage)
                     # model response contains code to execute
+                    code_span = await tracing.get_active_trace().span(name="Code execution", input={"code": code})
                     code_action = await self.executor.submit(code)  # type: ignore
                     yield code_action
                     code_action_result = await code_action.result(timeout=step_timeout)
+                    await code_span.update(output=code_action_result)
+                    await code_span.end()
                     # follow up model turn with execution feedback
                     model_turn = self.model.feedback(
                         feedback=code_action_result.text,
