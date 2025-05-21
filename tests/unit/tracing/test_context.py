@@ -39,11 +39,11 @@ def test_get_tracer_provider_with_default():
     assert isinstance(tracer, NoopTracer)
 
 
-@patch("freeact.tracing.context.LangfuseTracer")
-def test_configure_tracing_with_explicit_parameters(mock_langfuse_tracer):
+@patch("langfuse.Langfuse")
+def test_configure_tracing_with_explicit_parameters(mock_langfuse):
     """Test configure method with explicit parameters."""
-    mock_tracer_instance = Mock(spec=LangfuseTracer)
-    mock_langfuse_tracer.return_value = mock_tracer_instance
+    mock_langfuse_instance = Mock()
+    mock_langfuse.return_value = mock_langfuse_instance
 
     configure(
         public_key="test-public-key",
@@ -52,16 +52,16 @@ def test_configure_tracing_with_explicit_parameters(mock_langfuse_tracer):
         debug=True,
     )
 
-    mock_langfuse_tracer.assert_called_once_with(
+    mock_langfuse.assert_called_once_with(
         public_key="test-public-key",
         secret_key="test-secret-key",
         host="https://test-host.com",
         debug=True,
     )
-    assert get_tracer() == mock_tracer_instance
+    assert isinstance(get_tracer(), LangfuseTracer)
 
 
-@patch("freeact.tracing.context.LangfuseTracer")
+@patch("langfuse.Langfuse")
 @patch.dict(
     "os.environ",
     {
@@ -71,19 +71,48 @@ def test_configure_tracing_with_explicit_parameters(mock_langfuse_tracer):
     },
     clear=True,
 )
-def test_configure_tracing_with_environment_variables(mock_langfuse_tracer):
+def test_configure_tracing_with_environment_variables(mock_langfuse):
     """Test configure method using environment variables."""
-    mock_tracer_instance = Mock(spec=LangfuseTracer)
-    mock_langfuse_tracer.return_value = mock_tracer_instance
+    mock_langfuse_instance = Mock()
+    mock_langfuse.return_value = mock_langfuse_instance
 
     configure()
 
-    mock_langfuse_tracer.assert_called_once_with(
+    mock_langfuse.assert_called_once_with(
         public_key="env-public-key",
         secret_key="env-secret-key",
         host="https://env-host.com",
     )
-    assert get_tracer() == mock_tracer_instance
+    assert isinstance(get_tracer(), LangfuseTracer)
+
+
+@patch("langfuse.Langfuse")
+@patch.dict(
+    "os.environ",
+    {
+        "LANGFUSE_PUBLIC_KEY": "env-public-key",
+        "LANGFUSE_SECRET_KEY": "env-secret-key",
+        "LANGFUSE_HOST": "https://env-host.com",
+    },
+    clear=True,
+)
+def test_configure_tracing_kwargs_take_precedence(mock_langfuse):
+    """Test configure method using environment variables."""
+    mock_langfuse_instance = Mock()
+    mock_langfuse.return_value = mock_langfuse_instance
+
+    configure(
+        public_key="param-public-key",
+        environment="test",
+    )
+
+    mock_langfuse.assert_called_once_with(
+        public_key="param-public-key",
+        secret_key="env-secret-key",
+        host="https://env-host.com",
+        environment="test",
+    )
+    assert isinstance(get_tracer(), LangfuseTracer)
 
 
 @patch("freeact.tracing.context.LangfuseTracer")
@@ -114,7 +143,7 @@ def test_configure_tracing_reconfiguration_attempt(mock_langfuse_tracer):
 @patch.dict("os.environ", {}, clear=True)
 def test_configure_tracing_missing_credentials():
     """Test that configure raises ValueError when credentials are missing."""
-    with pytest.raises(ValueError, match="Langfuse credentials and host are missing"):
+    with pytest.raises(ValueError, match="Langfuse configuration"):
         configure()
 
 

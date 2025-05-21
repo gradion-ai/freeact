@@ -1,7 +1,6 @@
 import atexit
 import contextvars
 import logging
-import os
 import signal
 import sys
 import threading
@@ -33,12 +32,7 @@ _active_session_id_context: contextvars.ContextVar[str | None] = contextvars.Con
 )
 
 
-def configure(
-    public_key: str | None = None,
-    secret_key: str | None = None,
-    host: str | None = None,
-    **kwargs,
-) -> None:
+def configure(**kwargs) -> None:
     """Configures agent tracing using a [`Langfuse`](https://langfuse.com) backend. Once configured, all agent activities, code executions and model calls are automatically captured and exported to Langfuse.
 
     Accepts all [Langfuse configuration options](https://python.reference.langfuse.com/langfuse/decorators#LangfuseDecorator.configure).
@@ -47,10 +41,7 @@ def configure(
     Should be called at application startup.
 
     Args:
-        public_key: Langfuse public API key.
-        secret_key: Langfuse secret API key.
-        host: Langfuse API endpoint.
-        **kwargs: Additional Langfuse configuration parameters.
+        **kwargs: Langfuse configuration parameters.
     """
     global _tracer
 
@@ -59,25 +50,7 @@ def configure(
             logger.warning("Tracing is already configured. Call 'tracing.shutdown()' first to reconfigure.")
             return
 
-        # we explicitly require these variables to be passed or set in the environment, as Langfuse by default
-        # simply logs a warning if the variables are not set.
-        _public_key = public_key or os.getenv("LANGFUSE_PUBLIC_KEY")
-        _secret_key = secret_key or os.getenv("LANGFUSE_SECRET_KEY")
-        _host = host or os.getenv("LANGFUSE_HOST")
-
-        if _public_key is None or _secret_key is None or _host is None:
-            raise ValueError(
-                "Langfuse credentials and host are missing. Please provide them by either:\\n"
-                "1. Passing `public_key`, `secret_key`, and `host` arguments.\\n"
-                "2. Setting the environment variables `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, and `LANGFUSE_HOST`."
-            )
-
-        _tracer = LangfuseTracer(
-            public_key=_public_key,
-            secret_key=_secret_key,
-            host=_host,
-            **kwargs,
-        )
+        _tracer = LangfuseTracer(**kwargs)
 
         atexit.register(_shutdown_tracing)
 
