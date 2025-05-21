@@ -96,7 +96,6 @@ class LiteLLMTurn(CodeActModelTurn):
                                 "tool_use": msg.tool_use,
                             },
                         )
-                        await span.end()
 
 
 class LiteCodeActModel(CodeActModel):

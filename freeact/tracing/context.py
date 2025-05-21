@@ -147,8 +147,13 @@ async def trace(
     token = _active_trace_context.set(active_trace)
     try:
         yield active_trace
-    finally:
+    except Exception:
         _active_trace_context.reset(token)
+        raise
+    else:
+        _active_trace_context.reset(token)
+    finally:
+        await active_trace.end()
 
 
 @asynccontextmanager
@@ -172,8 +177,13 @@ async def span(
     token = _active_span_context.set(active_span)
     try:
         yield active_span
-    finally:
+    except Exception:
         _active_span_context.reset(token)
+        raise
+    else:
+        _active_span_context.reset(token)
+    finally:
+        await active_span.end()
 
 
 @contextmanager

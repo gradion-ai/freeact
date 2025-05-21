@@ -84,16 +84,13 @@ class CodeActAgentTurn:
             input=self._trace_input,
             session_id=self._trace_session_id,
         ) as trace:
-            try:
-                async for elem in self._iter:
-                    match elem:
-                        case CodeActAgentResponse() as response:
-                            self._response = response
-                            await trace.update(output=response.text)
-                        case _:
-                            yield elem
-            finally:
-                await trace.end()
+            async for elem in self._iter:
+                match elem:
+                    case CodeActAgentResponse() as response:
+                        self._response = response
+                        await trace.update(output=response.text)
+                    case _:
+                        yield elem
 
 
 class CodeActAgent:
