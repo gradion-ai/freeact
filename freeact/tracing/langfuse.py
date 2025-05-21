@@ -1,4 +1,5 @@
 import datetime as dt
+import os
 from typing import Any
 
 import litellm
@@ -118,21 +119,36 @@ class LangfuseTracer(Tracer):
 
     Supports grouping of traces using a session identifier.
 
+    Accepts all [Langfuse configuration options](https://python.reference.langfuse.com/langfuse/decorators#LangfuseDecorator.configure).
+    Configuration options can be provided as parameters to `configure()` or via environment variables.
+
     Args:
-        public_key: Public API key of the Langfuse project.
-        secret_key: Secret API key of the Langfuse project.
-        host: Host of the Langfuse API.
-        **kwargs: Additional keyword arguments passed to the Langfuse client.
+        **kwargs: Langfuse configuration parameters.
     """
 
     def __init__(
         self,
-        public_key: str,
-        secret_key: str,
-        host: str,
         **kwargs,
     ):
         from langfuse import Langfuse
+
+        # we explicitly require these configuration parameters to be passed or set in the environment,
+        # as Langfuse by default simply logs a warning if the parameters are not provided.
+        public_key = self._get_config_param(
+            param_name="public_key",
+            param_value=kwargs.pop("public_key", None),
+            env_var_name="LANGFUSE_PUBLIC_KEY",
+        )
+        secret_key = self._get_config_param(
+            param_name="secret_key",
+            param_value=kwargs.pop("secret_key", None),
+            env_var_name="LANGFUSE_SECRET_KEY",
+        )
+        host = self._get_config_param(
+            param_name="host",
+            param_value=kwargs.pop("host", None),
+            env_var_name="LANGFUSE_HOST",
+        )
 
         self._litellm_success_callback_registered = False
         self._litellm_failure_callback_registered = False
@@ -151,6 +167,16 @@ class LangfuseTracer(Tracer):
             host=host,
             **kwargs,
         )
+
+    def _get_config_param(self, param_name: str, param_value: Any | None, env_var_name: str) -> str:
+        value = param_value or os.getenv(env_var_name)
+        if value is None:
+            raise ValueError(
+                f"Langfuse configuration parameter `{param_name}` is missing. Provide it as an argument or set the `{env_var_name}` environment variable."
+            )
+        if not isinstance(value, str):
+            raise ValueError(f"Langfuse configuration parameter `{param_name}` must be a non-empty string.")
+        return value
 
     @property
     def client(self):
