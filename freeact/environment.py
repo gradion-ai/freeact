@@ -71,7 +71,7 @@ class Workspace:
 
 
 class CodeExecutionContainer(ExecutionContainer):
-    """Context manager for managing a code execution container's lifecycle.
+    """Context manager for the lifecycle of a code execution Docker container.
 
     Extends [ipybox](https://gradion-ai.github.io/ipybox/)'s `ExecutionContainer`
     with [workspace][freeact.environment.Workspace]-specific bind mounts of skill directories.
@@ -152,14 +152,14 @@ class CodeExecution:
         self._result: CodeExecutionResult | None = None
 
     async def result(self, timeout: float = 120) -> CodeExecutionResult:
-        """Retrieve the complete result of this code execution. Waits until the
+        """Retrieves the complete result of this code execution. Waits until the
         result is available.
 
         Args:
             timeout: Maximum time in seconds to wait for the execution result
 
         Raises:
-            TimeoutError: If code execution duration exceeds the specified timeout
+            asyncio.TimeoutError: If code execution duration exceeds the specified timeout
         """
         if self._result is None:
             async for _ in self.stream(timeout=timeout):
@@ -167,7 +167,7 @@ class CodeExecution:
         return self._result  # type: ignore
 
     async def stream(self, timeout: float = 120) -> AsyncIterator[str]:
-        """Stream the code execution result as it is generated. Once the stream
+        """Streams the code execution result as it is generated. Once the stream
         is consumed, a [`result`][freeact.environment.CodeExecution.result] is
         immediately available without waiting.
 
@@ -175,10 +175,10 @@ class CodeExecution:
         return value of [`result`][freeact.environment.CodeExecution.result].
 
         Args:
-            timeout: Maximum time in seconds to wait for the execution result
+            timeout: Maximum time in seconds to wait for the complete execution result
 
         Raises:
-            TimeoutError: If code execution duration exceeds the specified timeout
+            asyncio.TimeoutError: If code execution duration exceeds the specified timeout
         """
         images = {}
 
@@ -230,7 +230,7 @@ class CodeExecutor:
     Args:
         workspace: The workspace of the code execution container
         port: Host port for the container's executor port
-        host: Hostname or IP address of the container
+        host: Hostname or IP address of the container's host
     """
 
     def __init__(self, workspace: Workspace, port: int, host: str = "localhost"):
@@ -261,7 +261,7 @@ class CodeExecutor:
             timeout: Maximum time in seconds to wait for the execution result
 
         Raises:
-            TimeoutError: If code execution duration exceeds the specified timeout
+            asyncio.TimeoutError: If code execution duration exceeds the specified timeout
         """
         code_exec = await self.submit(code)
         return await code_exec.result(timeout=timeout)
@@ -275,7 +275,7 @@ class CodeExecutor:
             code: Python code to execute
 
         Returns:
-            An [`CodeExecution`][freeact.environment.CodeExecution] object to track the code execution
+            A [`CodeExecution`][freeact.environment.CodeExecution] object to track the code execution
         """
         code_exec = await self._client.submit(code)
         return CodeExecution(code_exec, self.workspace.private_images_host_path)
@@ -309,7 +309,7 @@ class CodeProvider:
     Args:
         workspace: The workspace of the code execution container
         port: Host port for the container's resource port
-        host: Hostname or IP address of the container
+        host: Hostname or IP address of the container's host
     """
 
     def __init__(self, workspace: Workspace, port: int, host: str = "localhost"):

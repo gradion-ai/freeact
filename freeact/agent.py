@@ -63,7 +63,7 @@ class CodeActAgentTurn:
         return self._response  # type: ignore
 
     async def stream(self) -> AsyncIterator[CodeActModelTurn | CodeExecution]:
-        """Stream the sequence of model interaction and code execution pairs
+        """Streams the sequence of model interaction and code execution pairs
         as they occur:
 
         - `CodeActModelTurn`: The current interaction with the code action model
