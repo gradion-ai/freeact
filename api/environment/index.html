@@ -1834,7 +1834,7 @@ machine while being executed in the container.</p>
               Bases: <code><span title="ipybox.ExecutionContainer">ExecutionContainer</span></code></p>
 
 
-        <p>Context manager for managing a code execution container's lifecycle.</p>
+        <p>Context manager for the lifecycle of a code execution Docker container.</p>
 <p>Extends <a href="https://gradion-ai.github.io/ipybox/">ipybox</a>'s <code>ExecutionContainer</code>
 with <a class="autorefs autorefs-internal" href="#freeact.environment.Workspace">workspace</a>-specific bind mounts of skill directories.</p>
 
@@ -2258,7 +2258,7 @@ the corresponding error trace.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Retrieve the complete result of this code execution. Waits until the
+        <p>Retrieves the complete result of this code execution. Waits until the
 result is available.</p>
 
 
@@ -2304,7 +2304,7 @@ result is available.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#TimeoutError">TimeoutError</a></code>
+                  <code><a class="autorefs autorefs-external" title="asyncio.TimeoutError" href="https://docs.python.org/3/library/asyncio-exceptions.html#asyncio.TimeoutError">TimeoutError</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2331,14 +2331,14 @@ result is available.</p>
 <span class="normal"><a href="#__codelineno-0-165">165</a></span>
 <span class="normal"><a href="#__codelineno-0-166">166</a></span>
 <span class="normal"><a href="#__codelineno-0-167">167</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-154"><a id="__codelineno-0-154" name="__codelineno-0-154"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">120</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CodeExecutionResult</span><span class="p">:</span>
-</span><span id="__span-0-155"><a id="__codelineno-0-155" name="__codelineno-0-155"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieve the complete result of this code execution. Waits until the</span>
+</span><span id="__span-0-155"><a id="__codelineno-0-155" name="__codelineno-0-155"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieves the complete result of this code execution. Waits until the</span>
 </span><span id="__span-0-156"><a id="__codelineno-0-156" name="__codelineno-0-156"></a><span class="sd">    result is available.</span>
 </span><span id="__span-0-157"><a id="__codelineno-0-157" name="__codelineno-0-157"></a>
 </span><span id="__span-0-158"><a id="__codelineno-0-158" name="__codelineno-0-158"></a><span class="sd">    Args:</span>
 </span><span id="__span-0-159"><a id="__codelineno-0-159" name="__codelineno-0-159"></a><span class="sd">        timeout: Maximum time in seconds to wait for the execution result</span>
 </span><span id="__span-0-160"><a id="__codelineno-0-160" name="__codelineno-0-160"></a>
 </span><span id="__span-0-161"><a id="__codelineno-0-161" name="__codelineno-0-161"></a><span class="sd">    Raises:</span>
-</span><span id="__span-0-162"><a id="__codelineno-0-162" name="__codelineno-0-162"></a><span class="sd">        TimeoutError: If code execution duration exceeds the specified timeout</span>
+</span><span id="__span-0-162"><a id="__codelineno-0-162" name="__codelineno-0-162"></a><span class="sd">        asyncio.TimeoutError: If code execution duration exceeds the specified timeout</span>
 </span><span id="__span-0-163"><a id="__codelineno-0-163" name="__codelineno-0-163"></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="__span-0-164"><a id="__codelineno-0-164" name="__codelineno-0-164"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="__span-0-165"><a id="__codelineno-0-165" name="__codelineno-0-165"></a>        <span class="k">async</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">):</span>
@@ -2367,7 +2367,7 @@ result is available.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Stream the code execution result as it is generated. Once the stream
+        <p>Streams the code execution result as it is generated. Once the stream
 is consumed, a <a class="autorefs autorefs-internal" href="#freeact.environment.CodeExecution.result"><code>result</code></a> is
 immediately available without waiting.</p>
 <p>Generated images are not streamed. They can be obtained from the
@@ -2394,7 +2394,7 @@ return value of <a class="autorefs autorefs-internal" href="#freeact.environment
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Maximum time in seconds to wait for the execution result</p>
+                <p>Maximum time in seconds to wait for the complete execution result</p>
               </div>
             </td>
             <td>
@@ -2416,7 +2416,7 @@ return value of <a class="autorefs autorefs-internal" href="#freeact.environment
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#TimeoutError">TimeoutError</a></code>
+                  <code><a class="autorefs autorefs-external" title="asyncio.TimeoutError" href="https://docs.python.org/3/library/asyncio-exceptions.html#asyncio.TimeoutError">TimeoutError</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2474,7 +2474,7 @@ return value of <a class="autorefs autorefs-internal" href="#freeact.environment
 <span class="normal"><a href="#__codelineno-0-211">211</a></span>
 <span class="normal"><a href="#__codelineno-0-212">212</a></span>
 <span class="normal"><a href="#__codelineno-0-213">213</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-169"><a id="__codelineno-0-169" name="__codelineno-0-169"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">120</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AsyncIterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-</span><span id="__span-0-170"><a id="__codelineno-0-170" name="__codelineno-0-170"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Stream the code execution result as it is generated. Once the stream</span>
+</span><span id="__span-0-170"><a id="__codelineno-0-170" name="__codelineno-0-170"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Streams the code execution result as it is generated. Once the stream</span>
 </span><span id="__span-0-171"><a id="__codelineno-0-171" name="__codelineno-0-171"></a><span class="sd">    is consumed, a [`result`][freeact.environment.CodeExecution.result] is</span>
 </span><span id="__span-0-172"><a id="__codelineno-0-172" name="__codelineno-0-172"></a><span class="sd">    immediately available without waiting.</span>
 </span><span id="__span-0-173"><a id="__codelineno-0-173" name="__codelineno-0-173"></a>
@@ -2482,10 +2482,10 @@ return value of <a class="autorefs autorefs-internal" href="#freeact.environment
 </span><span id="__span-0-175"><a id="__codelineno-0-175" name="__codelineno-0-175"></a><span class="sd">    return value of [`result`][freeact.environment.CodeExecution.result].</span>
 </span><span id="__span-0-176"><a id="__codelineno-0-176" name="__codelineno-0-176"></a>
 </span><span id="__span-0-177"><a id="__codelineno-0-177" name="__codelineno-0-177"></a><span class="sd">    Args:</span>
-</span><span id="__span-0-178"><a id="__codelineno-0-178" name="__codelineno-0-178"></a><span class="sd">        timeout: Maximum time in seconds to wait for the execution result</span>
+</span><span id="__span-0-178"><a id="__codelineno-0-178" name="__codelineno-0-178"></a><span class="sd">        timeout: Maximum time in seconds to wait for the complete execution result</span>
 </span><span id="__span-0-179"><a id="__codelineno-0-179" name="__codelineno-0-179"></a>
 </span><span id="__span-0-180"><a id="__codelineno-0-180" name="__codelineno-0-180"></a><span class="sd">    Raises:</span>
-</span><span id="__span-0-181"><a id="__codelineno-0-181" name="__codelineno-0-181"></a><span class="sd">        TimeoutError: If code execution duration exceeds the specified timeout</span>
+</span><span id="__span-0-181"><a id="__codelineno-0-181" name="__codelineno-0-181"></a><span class="sd">        asyncio.TimeoutError: If code execution duration exceeds the specified timeout</span>
 </span><span id="__span-0-182"><a id="__codelineno-0-182" name="__codelineno-0-182"></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="__span-0-183"><a id="__codelineno-0-183" name="__codelineno-0-183"></a>    <span class="n">images</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="__span-0-184"><a id="__codelineno-0-184" name="__codelineno-0-184"></a>
@@ -2606,7 +2606,7 @@ variables of previous executions are available to subsequent executions.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Hostname or IP address of the container</p>
+                <p>Hostname or IP address of the container's host</p>
               </div>
             </td>
             <td>
@@ -2725,7 +2725,7 @@ variables of previous executions are available to subsequent executions.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#TimeoutError">TimeoutError</a></code>
+                  <code><a class="autorefs autorefs-external" title="asyncio.TimeoutError" href="https://docs.python.org/3/library/asyncio-exceptions.html#asyncio.TimeoutError">TimeoutError</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2757,7 +2757,7 @@ variables of previous executions are available to subsequent executions.</p>
 </span><span id="__span-0-261"><a id="__codelineno-0-261" name="__codelineno-0-261"></a><span class="sd">        timeout: Maximum time in seconds to wait for the execution result</span>
 </span><span id="__span-0-262"><a id="__codelineno-0-262" name="__codelineno-0-262"></a>
 </span><span id="__span-0-263"><a id="__codelineno-0-263" name="__codelineno-0-263"></a><span class="sd">    Raises:</span>
-</span><span id="__span-0-264"><a id="__codelineno-0-264" name="__codelineno-0-264"></a><span class="sd">        TimeoutError: If code execution duration exceeds the specified timeout</span>
+</span><span id="__span-0-264"><a id="__codelineno-0-264" name="__codelineno-0-264"></a><span class="sd">        asyncio.TimeoutError: If code execution duration exceeds the specified timeout</span>
 </span><span id="__span-0-265"><a id="__codelineno-0-265" name="__codelineno-0-265"></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="__span-0-266"><a id="__codelineno-0-266" name="__codelineno-0-266"></a>    <span class="n">code_exec</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
 </span><span id="__span-0-267"><a id="__codelineno-0-267" name="__codelineno-0-267"></a>    <span class="k">return</span> <span class="k">await</span> <span class="n">code_exec</span><span class="o">.</span><span class="n">result</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
@@ -2835,7 +2835,7 @@ execution result.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>An <a class="autorefs autorefs-internal" href="#freeact.environment.CodeExecution"><code>CodeExecution</code></a> object to track the code execution</p>
+                <p>A <a class="autorefs autorefs-internal" href="#freeact.environment.CodeExecution"><code>CodeExecution</code></a> object to track the code execution</p>
               </div>
             </td>
           </tr>
@@ -2865,7 +2865,7 @@ execution result.</p>
 </span><span id="__span-0-275"><a id="__codelineno-0-275" name="__codelineno-0-275"></a><span class="sd">        code: Python code to execute</span>
 </span><span id="__span-0-276"><a id="__codelineno-0-276" name="__codelineno-0-276"></a>
 </span><span id="__span-0-277"><a id="__codelineno-0-277" name="__codelineno-0-277"></a><span class="sd">    Returns:</span>
-</span><span id="__span-0-278"><a id="__codelineno-0-278" name="__codelineno-0-278"></a><span class="sd">        An [`CodeExecution`][freeact.environment.CodeExecution] object to track the code execution</span>
+</span><span id="__span-0-278"><a id="__codelineno-0-278" name="__codelineno-0-278"></a><span class="sd">        A [`CodeExecution`][freeact.environment.CodeExecution] object to track the code execution</span>
 </span><span id="__span-0-279"><a id="__codelineno-0-279" name="__codelineno-0-279"></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="__span-0-280"><a id="__codelineno-0-280" name="__codelineno-0-280"></a>    <span class="n">code_exec</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
 </span><span id="__span-0-281"><a id="__codelineno-0-281" name="__codelineno-0-281"></a>    <span class="k">return</span> <span class="n">CodeExecution</span><span class="p">(</span><span class="n">code_exec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">workspace</span><span class="o">.</span><span class="n">private_images_host_path</span><span class="p">)</span>
@@ -2961,7 +2961,7 @@ to code action models so that they can include them into code actions.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Hostname or IP address of the container</p>
+                <p>Hostname or IP address of the container's host</p>
               </div>
             </td>
             <td>
