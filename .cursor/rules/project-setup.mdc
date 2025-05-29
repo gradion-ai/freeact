@@ -1,0 +1,37 @@
+---
+description: Initial project setup
+globs:
+alwaysApply: false
+---
+# Project Setup Guide
+
+Create a new Conda environment and activate it:
+
+```bash
+conda env create -f environment.yml -n gradion-freeact
+conda activate gradion-freeact
+```
+
+Install dependencies with Poetry:
+
+```bash
+poetry install --with docs --with eval
+```
+
+Install pre-commit hooks:
+
+```bash
+invoke precommit-install
+```
+
+Enforce coding conventions (also enforced by pre-commit hooks):
+
+```bash
+invoke cc
+```
+
+Run tests:
+
+```bash
+invoke test
+```

@@ -1,0 +1,27 @@
+---
+description: Run unit or integration tests
+globs:
+alwaysApply: false
+---
+# Instructions for Running Tests
+
+## Running Tests
+
+### General
+- `invoke test` for running all unit and integration tests.
+- `invoke test --cov` for running all unit and integration tests and generating a coverage report.
+
+### Unit Tests
+- `invoke ut` for running unit tests.
+- `invoke ut --cov` for running unit tests and generating a coverage report.
+
+### Integration Tests
+- `invoke it` for running all integration tests.
+- `invoke it --cov` for running all integration tests and generating a coverage report.
+- `pytest -xsv tests/integration/test_[name].py` for running a single integration test file.
+- `pytest -xsv tests/integration/test_[name].py::[test-name]` for running a single integration test.
+
+## Additional Options
+
+All invoke test commands use `-xsv` flags by default for verbose output and stopping on first failure.
+Coverage reports are displayed in the terminal and cover the `freeact` package.
