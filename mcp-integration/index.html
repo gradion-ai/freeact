@@ -898,7 +898,7 @@
 
 <p>To leverage the vast ecosystem of <a href="https://modelcontextprotocol.io/">MCP</a> servers and their tools, <code>freeact</code> generates Python client functions from MCP tool metadata and provides them as <em>skills</em> to <code>freeact</code> agents.
 When <code>freeact</code> agents use these skills in their code actions, they invoke the corresponding MCP server tools.
-<code>stdio</code> based MCP servers are executed within the <a href="../environment/">sandboxed environment</a> while <code>stremable-http</code> or <code>sse</code> based MCP servers are expected to run elsewhere.</p>
+<code>stdio</code> based MCP servers are executed within the <a href="../environment/">sandboxed environment</a> while <code>streamable-http</code> or <code>sse</code> based MCP servers are expected to run elsewhere.</p>
 <p>MCP servers are first registered at the <a href="../environment/">execution environment</a> with <a class="autorefs autorefs-internal" href="../api/environment/#freeact.environment.CodeProvider.register_mcp_servers"><code>register_mcp_servers</code></a>.
 Registration loads the MCP tool metadata from the MCP server and generates Python client functions from it.
 The sources of these functions (or a subset thereof) can then be loaded with <a class="autorefs autorefs-internal" href="../api/environment/#freeact.environment.CodeProvider.get_sources"><code>get_sources</code></a> and provided as skill sources to code action models.
