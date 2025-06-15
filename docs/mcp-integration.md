@@ -1,6 +1,6 @@
 To leverage the vast ecosystem of [MCP](https://modelcontextprotocol.io/) servers and their tools, `freeact` generates Python client functions from MCP tool metadata and provides them as *skills* to `freeact` agents.
 When `freeact` agents use these skills in their code actions, they invoke the corresponding MCP server tools.
-`stdio` based MCP servers are executed within the [sandboxed environment](environment.md) while `sse` based MCP servers are expected to run elsewhere.
+`stdio` based MCP servers are executed within the [sandboxed environment](environment.md) while `stremable-http` or `sse` based MCP servers are expected to run elsewhere.
 
 MCP servers are first registered at the [execution environment](environment.md) with [`register_mcp_servers`][freeact.environment.CodeProvider.register_mcp_servers].
 Registration loads the MCP tool metadata from the MCP server and generates Python client functions from it.
