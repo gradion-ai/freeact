@@ -9,6 +9,8 @@
     <a href="https://pypi.org/project/freeact/"><img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/freeact"></a>
 </p>
 
+[![SPONSORED BY E2B FOR STARTUPS](https://img.shields.io/badge/SPONSORED%20BY-E2B%20FOR%20STARTUPS-ff8800?style=for-the-badge)](https://e2b.dev/startups)
+
 ## Overview
 
 `freeact` is a lightweight AI agent library using Python as the common language to define executable actions and tool interfaces.

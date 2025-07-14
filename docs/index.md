@@ -1,3 +1,6 @@
+!!! Info "Sponsored by"
+    <a href="https://e2b.dev/startups" target="_blank" rel="noopener"><img src="img/sponsor.png" alt="Sponsored by E2B for Startups" width="30%"></a>
+
 # Introduction
 
 `freeact` is a lightweight AI agent library using Python as the common language to define executable actions and tool interfaces.
