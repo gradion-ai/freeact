@@ -27,6 +27,9 @@ This design allows agents to build on their previous work and compose more compl
 
     `freeact` supports usage of any LLM from any provider as code action model via [LiteLLM](https://github.com/BerriAI/litellm).
 
+!!! Info "Sponsored by"
+    <a href="https://e2b.dev/startups" target="_blank" rel="noopener"><img src="img/sponsor.png" alt="Sponsored by E2B for Startups" width="30%"></a>
+
 ## Motivation
 
 Most LLMs today excel at understanding and generating code. 
