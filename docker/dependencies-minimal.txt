@@ -1,1 +1,1 @@
-freeact-skills = {version = "0.0.8", extras = ["search-google", "search-perplexity"]}
+"freeact-skills[search-google,search-perplexity]==0.0.8"

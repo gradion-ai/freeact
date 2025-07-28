@@ -87,6 +87,18 @@ CODE_EDITOR_TOOL = {
 }
 
 
+CLAUDE_OPUS_4_MODELS = [
+    "anthropic/claude-opus-4-20250514",
+    "bedrock/anthropic.claude-opus-4-20250514-v1:0",
+    "vertex_ai/claude-opus-4@20250514",
+]
+
+CLAUDE_SONNET_4_MODELS = [
+    "anthropic/claude-sonnet-4-20250514",
+    "bedrock/anthropic.claude-sonnet-4-20250514-v1:0",
+    "vertex_ai/claude-sonnet-4@20250514",
+]
+
 CLAUDE_3_7_SONNET_MODELS = [
     "anthropic/claude-3-7-sonnet-latest",
     "anthropic/claude-3-7-sonnet-20250219",
@@ -108,23 +120,38 @@ CLAUDE_3_5_HAIKU_MODELS = [
     "vertex_ai/claude-3-5-haiku@20241022",
 ]
 
-CLAUDE_MODELS = CLAUDE_3_7_SONNET_MODELS + CLAUDE_3_5_SONNET_MODELS + CLAUDE_3_5_HAIKU_MODELS
+CLAUDE_MODELS = (
+    CLAUDE_OPUS_4_MODELS
+    + CLAUDE_SONNET_4_MODELS
+    + CLAUDE_3_7_SONNET_MODELS
+    + CLAUDE_3_5_SONNET_MODELS
+    + CLAUDE_3_5_HAIKU_MODELS
+)
 
 
 def beta_flag(model_name: str):
-    if model_name in CLAUDE_3_7_SONNET_MODELS:
-        return {"anthropic-beta": "computer-use-2025-01-24"}
-    elif model_name in CLAUDE_3_5_SONNET_MODELS:
+    if model_name in CLAUDE_3_5_SONNET_MODELS:
         return {"anthropic-beta": "computer-use-2024-10-22"}
     else:
         return {}
 
 
 def code_editor_tool(model_name: str):
-    if model_name in CLAUDE_3_7_SONNET_MODELS:
-        return code_editor_tool_ref("text_editor_20250124")
+    if model_name in CLAUDE_SONNET_4_MODELS + CLAUDE_OPUS_4_MODELS:
+        return {
+            "type": "text_editor_20250429",
+            "name": "str_replace_based_edit_tool",
+        }
+    elif model_name in CLAUDE_3_7_SONNET_MODELS:
+        return {
+            "type": "text_editor_20250124",
+            "name": "str_replace_editor",
+        }
     elif model_name in CLAUDE_3_5_SONNET_MODELS:
-        return code_editor_tool_ref("text_editor_20241022")
+        return {
+            "type": "text_editor_20241022",
+            "name": "str_replace_editor",
+        }
     elif "gemini" in model_name:
         return CODE_EDITOR_TOOL["function"]
     else:
@@ -134,9 +161,9 @@ def code_editor_tool(model_name: str):
 def code_editor_tool_ref(editor_type: str):
     return {
         "type": f"{editor_type}",
-        "function": {
-            "name": "str_replace_editor",
-        },
+        # "function": {
+        #    "name": "str_replace_editor",
+        # },
     }
 
 

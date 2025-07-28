@@ -16,7 +16,7 @@ def claude(skill_sources, request):
     use_skill_sources = "skill_sources" in request.node.fixturenames  # check if the test requires skill sources
 
     return LiteCodeActModel(
-        model_name="anthropic/claude-3-7-sonnet-20250219",
+        model_name="anthropic/claude-sonnet-4-20250514",
         skill_sources=skill_sources if use_skill_sources else None,
         prompt_caching=False,
         temperature=0.0,
@@ -30,7 +30,7 @@ def gemini(skill_sources, request):
     use_skill_sources = "skill_sources" in request.node.fixturenames  # check if the test requires skill sources
 
     return LiteCodeActModel(
-        model_name="gemini/gemini-2.5-flash-preview-04-17",
+        model_name="gemini/gemini-2.5-flash",
         skill_sources=skill_sources if use_skill_sources else None,
         temperature=0.0,
         max_tokens=1024,
@@ -43,7 +43,7 @@ def qwen(skill_sources, request):
     use_skill_sources = "skill_sources" in request.node.fixturenames  # check if the test requires skill sources
 
     return LiteCodeActModel(
-        model_name="fireworks_ai/accounts/fireworks/models/qwen2p5-72b-instruct",
+        model_name="fireworks_ai/accounts/fireworks/models/qwen3-coder-480b-a35b-instruct",
         skill_sources=skill_sources if use_skill_sources else None,
         temperature=0.0,
         max_tokens=1024,

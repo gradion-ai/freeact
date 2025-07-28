@@ -4,6 +4,7 @@ __pycache__
 .pytest_cache
 .cursorignore
 .env
+.venv
 .vscode
 .zotero
 /workspace

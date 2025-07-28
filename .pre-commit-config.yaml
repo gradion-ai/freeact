@@ -21,10 +21,3 @@ repos:
   rev: v1.10.0
   hooks:
     - id: mypy
-
-- repo: https://github.com/python-poetry/poetry
-  rev: 1.8.3
-  hooks:
-    - id: poetry-check
-    - id: poetry-lock
-      args: ["--check"]

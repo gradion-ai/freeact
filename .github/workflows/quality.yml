@@ -17,5 +17,11 @@ jobs:
         with:
           python-version: ${{ vars.CI_PYTHON_VERSION }}
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: ${{ vars.CI_UV_VERSION }}
+          enable-cache: true
+
       - name: Run pre-commit
         uses: pre-commit/action@v3.0.1
