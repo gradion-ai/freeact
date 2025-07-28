@@ -16,23 +16,18 @@ jobs:
         fetch-depth: 0
         fetch-tags: true
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
       with:
-        python-version: ${{ vars.CI_PYTHON_VERSION }}
+        version: ${{ vars.CI_UV_VERSION }}
+        enable-cache: true
 
-    - name: Install Poetry
-      uses: abatilo/actions-poetry@v3
-      with:
-        poetry-version: ${{ vars.CI_POETRY_VERSION }}
-
-    - name: Install Poetry plugins
-      run: |
-        poetry self add "poetry-dynamic-versioning[plugin]"
+    - name: Install Python
+      run: uv python install
 
     - name: Build package
       run: |
-        poetry build
+        uv build
 
     - name: Upload dist artifacts
       uses: actions/upload-artifact@v4

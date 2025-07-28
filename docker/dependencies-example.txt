@@ -1,7 +1,7 @@
-freeact-skills = {version = "0.0.8", extras = ["all"]}
-scikit-learn = "^1.6"
-matplotlib = "^3.10"
-numpy = "^2.2"
-pandas = "^2.2"
-pygithub = "^2.5"
-sympy = "^1.13"
+"freeact-skills[all]==0.0.8",
+"scikit-learn>=1.6,<2",
+"matplotlib>=3.10,<4",
+"numpy>=2.2,<3",
+"pandas>=2.2,<3",
+"pygithub>=2.5,<3",
+"sympy>=1.13,<2"

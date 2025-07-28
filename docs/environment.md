@@ -12,19 +12,19 @@
 
 - `ghcr.io/gradion-ai/ipybox:minimal`: 
 
-    ```toml title="docker/dependencies-minimal.txt"
+    ```txt title="docker/dependencies-minimal.txt"
     --8<-- "docker/dependencies-minimal.txt"
     ```
 
 - `ghcr.io/gradion-ai/ipybox:basic`: 
 
-    ```toml title="docker/dependencies-basic.txt"
+    ```txt title="docker/dependencies-basic.txt"
     --8<-- "docker/dependencies-basic.txt"
     ```
 
 - `ghcr.io/gradion-ai/ipybox:example`: 
 
-    ```toml title="docker/dependencies-example.txt"
+    ```txt title="docker/dependencies-example.txt"
     --8<-- "docker/dependencies-example.txt"
     ```
 
@@ -40,15 +40,15 @@
 
 To build a custom `ipybox` image, create a `dependencies.txt` file with your custom dependencies. For example:
 
-```toml title="dependencies.txt"
-freeact-skills = {version = "0.0.8", extras = ["search-google"]}
-numpy = "^2.2"
+```txt title="dependencies.txt"
+"freeact-skills[search-google]==0.0.8",
+"numpy>=2.2,<3"
 # ...
 ```
 
 !!! Note 
 
-    `dependencies.txt` must follow the [Poetry dependency specification format](https://python-poetry.org/docs/dependency-specification/).
+    `dependencies.txt` must follow the [PEP 631](https://peps.python.org/pep-0631/) dependency specification format.
 
 Then build a custom Docker image with `ipybox`'s `build` command:
 

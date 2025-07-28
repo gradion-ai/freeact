@@ -1,59 +1,76 @@
-[build-system]
-requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
-build-backend = "poetry_dynamic_versioning.backend"
-
-[tool.poetry]
+[project]
 name = "freeact"
-version = "0.0.0"
+dynamic = ["version"]
 description = "A lightweight library for code-action based agents"
-homepage = "https://github.com/gradion-ai/freeact"
 readme = "README.md"
 license = "Apache-2.0"
 authors = [
-    "Martin Krasser <martin@gradion.ai>",
-    "Christoph Stumpf <chris@gradion.ai>",
+    { name = "Martin Krasser", email = "martin@gradion.ai" },
+    { name = "Christoph Stumpf", email = "chris@gradion.ai" },
 ]
-packages = [
-    { include = "freeact" },
+requires-python = ">=3.11,<3.14"
+homepage = "https://github.com/gradion-ai/freeact"
+dependencies = [
+    "aioconsole>=0.8.1,<0.9",
+    "aiofiles>=24.1,<25",
+    "google-genai>=1.2,<2",
+    "ipybox>=0.5.1,<0.6",
+    "litellm>=1.74.8,<1.75",
+    "prefixed>=0.9.0,<0.10",
+    "prompt-toolkit>=3.0,<4",
+    "python-dotenv>=1.0,<2",
+    "rich>=13.9,<14",
+    "typer>=0.12.5,<0.13",
+    "langfuse>=2.60.3,<3",
 ]
 
-[tool.poetry.dependencies]
-aioconsole = "^0.8.1"
-aiofiles = "^24.1"
-google-genai = "^1.2"
-ipybox = "^0.4.5"
-litellm = "1.69.1"
-prefixed = "^0.9.0"
-prompt_toolkit = "^3.0"
-python = "^3.11,<3.14"
-python-dotenv = "^1.0"
-rich = "^13.9"
-typer = "^0.12.5"
-langfuse = "^2.60.3"
+[project.scripts]
+freeact = "freeact.__main__:main"
 
-[tool.poetry.group.docs]
-optional = true
+[dependency-groups]
+docs = [
+    "mkdocs>=1.6.1,<2",
+    "mkdocs-material>=9.5.48,<10",
+    "mkdocstrings-python>=1.12.2,<2",
+]
+eval = [
+    "openai>=1.59.0,<2",
+    "datasets>=3.2.0,<4",
+    "pandas>=2.2.3,<3",
+    "matplotlib>=3.10.0,<4",
+    "seaborn>=0.13.2,<0.14",
+]
+dev = [
+    "pre-commit>=4.0,<5",
+    "invoke>=2.2,<3",
+    "pytest>=8.3,<9",
+    "pytest-asyncio>=0.25.3,<0.26",
+]
 
-[tool.poetry.group.docs.dependencies]
-mkdocs = "^1.6.1"
-mkdocs-material = "^9.5.48"
-mkdocstrings-python = "^1.12.2"
+[tool.uv]
+default-groups = [
+    "docs",
+    "eval",
+    "dev",
+]
 
-[tool.poetry.group.eval]
-optional = true
+[build-system]
+requires = ["hatchling", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
 
-[tool.poetry.group.eval.dependencies]
-openai = "^1.59.0"
-datasets = "^3.2.0"
-pandas = "^2.2.3"
-matplotlib = "^3.10.0"
-seaborn = "^0.13.2"
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
 
-[tool.poetry.group.dev.dependencies]
-pre-commit = "^4.0"
-invoke = "^2.2"
-pytest = "^8.3"
-pytest-asyncio = "^0.25.3"
+[tool.uv-dynamic-versioning]
+vcs = "git"
+pattern = "default-unprefixed"
+style = "pep440"
+
+[tool.hatch.build.targets.sdist]
+include = ["freeact"]
+
+[tool.hatch.build.targets.wheel]
+include = ["freeact"]
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "package"
@@ -80,12 +97,3 @@ module = [
     "yaml"
 ]
 ignore_missing_imports = true
-
-[tool.poetry-dynamic-versioning]
-enable = true
-vcs = "git"
-pattern = "default-unprefixed"
-style = "pep440"
-
-[tool.poetry.scripts]
-freeact = "freeact.__main__:main"

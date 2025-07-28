@@ -18,39 +18,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache conda
-        uses: actions/cache@v4
-        env:
-          CACHE_NUMBER: 0
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
-          path: ~/conda_pkgs_dir
-          key: ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('environment.yml') }}
+          version: ${{ vars.CI_UV_VERSION }}
+          enable-cache: true
 
-      - name: Setup Conda
-        uses: conda-incubator/setup-miniconda@v3
-        with:
-          auto-update-conda: true
-          environment-file: environment.yml
-
-      - name: Install Poetry
-        uses: abatilo/actions-poetry@v3
-        with:
-          poetry-version: ${{ vars.CI_POETRY_VERSION }}
+      - name: Install Python
+        run: uv python install
 
       - name: Install dependencies
-        shell: bash -l {0}
         run: |
-          poetry env info
-          poetry install
-          pip list
+          uv sync --locked --all-extras --dev
+          uv pip list
 
       - name: Run unit tests
-        shell: bash -l {0}
         run: |
-          poetry run pytest tests/unit
+          uv run pytest tests/unit
 
       - name: Run integration tests
-        shell: bash -l {0}
         run: |
           docker pull ghcr.io/gradion-ai/ipybox:basic
-          poetry run pytest tests/integration
+          uv run pytest tests/integration
