@@ -13,8 +13,11 @@
 
 ## Overview
 
-`freeact` is a lightweight AI agent library using Python as the common language to define executable actions and tool interfaces.
-This is in contrast to traditional approaches where actions and tools are described with JSON. A unified code-based approach enables `freeact` agents to reuse actions from earlier steps as tools or *skills* in later steps. This design allows agents to build on their previous work and compose more complex actions from simpler ones.
+`freeact` is a lightweight AI agent library that uses Python code for defining tool interfaces and executable *code actions*.
+This is in contrast to traditional approaches where tool interfaces and actions are defined in JSON.
+
+A unified code-based approach enables `freeact` agents to reuse code actions from earlier steps as tools or *skills* in later steps.
+Agents can build upon their previous work and compose more complex code actions from simpler ones.
 
 <p/>
 <figure style="text-align: center;">
@@ -28,12 +31,10 @@ This is in contrast to traditional approaches where actions and tools are descri
 
 `freeact` agents are LLM agents that:
 
-- generate *code actions* in Python instead of function calls in JSON
-- act by executing these code actions in a sandboxed environment
-- use tools described through code and docstrings rather than JSON
-- can use any feature from any Python package as tool definitions
-- can store code actions as reusable skills in long-term memory
-- can use these skills as tools in code actions and improve on them
+- generate code actions in Python and execute them in a sandboxed environment
+- can use any function or methods from any Python package as tool definition
+- can store generated code actions as skills in long-term memory
+- can reuse these skills as tools in other code actions and improve on them
 - support invocation and composition of MCP tools in code actions
 
 ### Supported models
