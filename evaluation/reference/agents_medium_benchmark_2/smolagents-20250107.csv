@@ -1,7 +1,0 @@
-model_id,source,eval_protocol,correct
-claude-3-5-sonnet-20241022,GAIA,exact_match,43.8
-claude-3-5-sonnet-20241022,GSM8K,exact_match,91.4
-claude-3-5-sonnet-20241022,SimpleQA,exact_match,47.5
-qwen2p5-coder-32b-instruct,GAIA,exact_match,28.1
-qwen2p5-coder-32b-instruct,GSM8K,exact_match,92.9
-qwen2p5-coder-32b-instruct,SimpleQA,exact_match,42.5

@@ -1,46 +1,39 @@
-# Introduction
+# Overview
 
-`freeact` is a lightweight AI agent library that uses Python code for defining tool interfaces and executable *code actions*.
-This is in contrast to traditional approaches where tool interfaces and actions are defined in JSON.[^1]
+Freeact is an [ultra-lightweight](#design-considerations), general-purpose agent that acts via [code actions](https://machinelearning.apple.com/research/codeact) rather than JSON tool calls[^1]. It writes executable Python code that can call multiple tools, process intermediate results, or branch on conditions. Tasks that would otherwise require many inference rounds with JSON tool calling can be completed in a single pass. 
 
-A unified code-based approach enables `freeact` agents to reuse code actions from earlier steps as tools or *skills* in later steps. 
-Agents can build upon their previous work and compose more complex code actions from simpler ones.[^2]
+[^1]: Freeact also supports JSON-based tool calls on MCP servers, but mainly for internal operations. 
 
-<figure markdown>
-  [![introduction](img/introduction.png){ align="center" width="80%" }](img/introduction.png){target="_blank"}
-  <figcaption>A unified code-based approach for defining actions and skills.</figcaption>
-</figure>
+[Beyond executing tools](#beyond-task-execution), freeact can develop new tools from successful code actions, evolving its own tool library over time. All execution happens locally in a secure sandbox via [ipybox](https://gradion-ai.github.io/ipybox/). Tools are stored as Python code that can be refined and extended. Any model can be configured, with `gemini-3-flash-preview` as the current default. 
 
-## Overview
+## Interfaces
 
-`freeact` agents are LLM agents that:
+Freeact provides:
 
-- generate code actions in Python and execute them in a [sandboxed environment](environment.md)
-- can use any function or methods from any Python package as tool definition
-- can store generated code actions as [skills in long-term memory](skills/collaborative-learning.md)
-- can reuse these skills as tools in other code actions and improve on them
-- support invocation and composition of [MCP tools in code actions](mcp-integration.md)
+- a Python API for application integration, and 
+- a CLI and terminal interface for user interactions
 
-!!! Info "Supported models"
+## Features
 
-    `freeact` supports usage of any LLM from any provider as code action model via [LiteLLM](https://github.com/BerriAI/litellm).
+Freeact combines the following elements into a coherent system:
 
-!!! Info "Sponsored by"
-    <a href="https://e2b.dev/startups" target="_blank" rel="noopener"><img src="img/sponsor.png" alt="Sponsored by E2B for Startups" width="30%"></a>
+| Feature | Description |
+|---------|-------------|
+| **Programmatic tool calling on MCP servers** | Auto-generates typed Python modules from MCP tool schemas, enabling agents to call tools programmatically within code actions rather than through JSON structures. LLMs are heavily pretrained on Python code, making this more reliable than JSON tool calling. Agents write code that calls multiple tools, processes intermediate results, and uses loops and conditionals in a single inference pass. |
+| **Reuse of code actions as discoverable tools** | When a code action succeeds, it can be saved as a discoverable tool with a clean interface where function signature, data models and docstrings are separated from implementation. Agents can then use these tools in later code actions, preserving successful behavior as executable tools. The result is tool libraries that evolve as agents work. |
+| **Support for [agentskills.io](https://agentskills.io/) compatible extensions** | [Agent skills](https://agentskills.io/) are filesystem-based capability packages containing instructions, metadata, and optional resources that extend agent behavior for specific domains or workflows. Domain expertise, best practices, and procedural knowledge can be packaged once and reused automatically when relevant. Skills transform general-purpose agents into specialists. |
+| **Progressive disclosure of tools and agent skills** | Tool and skill information is loaded in stages as needed, rather than consuming context upfront. This solves a scaling problem: preloading large collections wastes tokens on capabilities irrelevant for the current task. For tools, only category names are known initially; API definitions load when relevant. For skills, only metadata loads at startup; full instructions load when triggered. |
+| **Sandboxed and stateful local code execution** | Code executes in an [IPython](https://github.com/ipython/ipython) kernel with configurable filesystem and network restrictions via Anthropic's [sandbox-runtime](https://github.com/anthropic-experimental/sandbox-runtime) (`srt`), and optional sandboxing of stdio MCP servers. Sandboxing enables agents to execute arbitrary code within configurable security boundaries, complemented by an approval layer that allows inspection of every MCP tool call before execution. |
+| **Task planning and code action memory management** | Planning and memory management are implemented as specialized agent skills that enable structured planning workflows and persistent memory of previously successful code actions. These skills enable structured task breakdown and cross-session reuse of successful code actions. |
+| **Usage of any Python package within code actions** | Agents can use any Python package available in the sandbox environment, from data processing with `pandas` to visualization with `matplotlib` to HTTP requests with `httpx`. Many capabilities like data transformation, file parsing, or scientific computing don't need to be wrapped as tools when agents can call libraries directly. |
+| **Unified approval of code actions and tool calls** | Code actions, programmatic tool calls within code, and JSON-based MCP tool calls all flow through a unified approval mechanism that yields requests for inspection before proceeding. A single approval flow ensures every action can be inspected and gated regardless of how it originates. |
 
-## Motivation
+## Design considerations
 
-Most LLMs today excel at understanding and generating code. 
-It is therefore a natural choice to provide agents with tool interfaces defined in Python, annotated with docstrings.
-These are often defined in modules that provide the interfaces or facades for larger packages, rather than implementation details that aren't relevant for tool usage.
+Freeact is an experiment to build a highly capable code action agent with minimal framework complexity. A lightweight framework enables rapid experimentation with different code action approaches and makes the system easy to extend. As LLMs become more capable, framework components that compensate for model limitations become obsolete. Lighter frameworks can adapt more easily to this evolution. Freeact aims to find a useful complexity-capability compromise.
 
-A code-based approach enables `freeact` agents to go beyond simple function calling. 
-For example, agents can instantiate classes and use their methods for stateful processing, or [act on complex result types](skills/predefined-skills.md) that not only encapsulate data but also provide result-specific behavior via methods. 
+## Beyond task execution
 
-Because tool definitions and code actions use the same programming language, tools can be natively composed. 
-Another advantage is that code actions generated at one step can be reused as tools in later steps.
-This allows `freeact` agents to learn from past experiences and compose more complex actions from simpler ones.
-We use the term *skills* instead of *tools* throughout our documentation, to convey their greater generality.
+Most agents focus on either software development (coding agents) or on task execution using predefined tools, but not both. Freeact covers a wider range of this spectrum, from task execution to tool development. Its primary function is executing code actions with programmatic tool calling, guided by user instructions and custom skills. 
 
-[^1]: Code actions can significantly outperform JSON-based approaches, showing up to 20% higher success rates as shown in the [CodeAct](https://arxiv.org/abs/2402.01030) paper.
-[^2]: This approach became popular with the [Voyager](https://arxiv.org/abs/2305.16291) paper where it was applied to Minecraft playing agents.
+Beyond task execution, freeact can save successful code actions as reusable tools or enhance existing tools, acting as a toolsmith. For heavier tool engineering like refactoring or reducing tool overlap, freeact is complemented by coding agents like Claude Code, Gemini CLI, etc. Currently the toolsmith role is interactive, with autonomous tool library evolution planned for future versions.

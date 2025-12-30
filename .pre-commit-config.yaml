@@ -1,11 +1,13 @@
 default_language_version:
-  python: python3.11
+  python: python
 
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v2.3.0
+  rev: v5.0.0
   hooks:
     - id: check-yaml
+      args: [--unsafe]
+      exclude: ^mkdocs\.yml$
     - id: end-of-file-fixer
     - id: trailing-whitespace
       exclude: ^docs/
@@ -21,3 +23,12 @@ repos:
   rev: v1.10.0
   hooks:
     - id: mypy
+
+- repo: local
+  hooks:
+    - id: uv-lock-check
+      name: Check uv.lock is up to date
+      entry: uv lock --check
+      language: system
+      files: pyproject.toml
+      pass_filenames: false

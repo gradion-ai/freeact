@@ -1,5 +1,0 @@
-"freeact-skills[search-google,search-perplexity]==0.0.8",
-"matplotlib>=3.10,<4",
-"numpy>=2.2,<3",
-"pandas>=2.2,<3",
-"sympy>=1.13,<2"

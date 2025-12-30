@@ -1,1 +1,0 @@
-"freeact-skills[search-google,search-perplexity]==0.0.8"

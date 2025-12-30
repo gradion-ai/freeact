@@ -1,4 +1,24 @@
-::: freeact.agent
+::: freeact.agent.Agent
     options:
-      show_root_heading: false
-      show_root_toc_entry: false
+      filters:
+        - "!^tool_names$"
+
+::: freeact.agent.ApprovalRequest
+
+::: freeact.agent.Response
+
+::: freeact.agent.ResponseChunk
+
+::: freeact.agent.Thoughts
+
+::: freeact.agent.ThoughtsChunk
+
+::: freeact.agent.CodeExecutionOutput
+    options:
+      filters:
+        - "!^format$"
+        - "!^ptc_rejected$"
+
+::: freeact.agent.CodeExecutionOutputChunk
+
+::: freeact.agent.ToolOutput

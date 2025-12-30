@@ -1,17 +1,25 @@
-name: Tests
+name: Deploy Documentation
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
-  test:
+  deploy-docs:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git credentials
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
 
       - name: Install uv
         uses: astral-sh/setup-uv@v6
@@ -27,10 +35,6 @@ jobs:
           uv sync --locked --all-extras --dev
           uv pip list
 
-      - name: Run unit tests
+      - name: Deploy documentation
         run: |
-          uv run pytest -s tests/unit
-
-      - name: Run integration tests
-        run: |
-          uv run pytest -s tests/integration
+          uv run mkdocs gh-deploy --force

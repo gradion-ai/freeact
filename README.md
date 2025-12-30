@@ -1,88 +1,20 @@
-# `freeact`
+# freeact
 
-<p align="left">
-    <a href="https://gradion-ai.github.io/freeact/"><img alt="Website" src="https://img.shields.io/website?url=https%3A%2F%2Fgradion-ai.github.io%2Ffreeact%2F&up_message=online&down_message=offline&label=docs"></a>
-    <a href="https://pypi.org/project/freeact/"><img alt="PyPI - Version" src="https://img.shields.io/pypi/v/freeact?color=blue"></a>
-    <a href="https://github.com/gradion-ai/freeact/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/gradion-ai/freeact"></a>
-    <a href="https://github.com/gradion-ai/freeact/actions"><img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/gradion-ai/freeact/test.yml"></a>
-    <a href="https://github.com/gradion-ai/freeact/blob/main/LICENSE"><img alt="GitHub License" src="https://img.shields.io/github/license/gradion-ai/freeact?color=blueviolet"></a>
-    <a href="https://pypi.org/project/freeact/"><img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/freeact"></a>
-</p>
+## Introduction
 
-[![SPONSORED BY E2B FOR STARTUPS](https://img.shields.io/badge/SPONSORED%20BY-E2B%20FOR%20STARTUPS-ff8800?style=for-the-badge)](https://e2b.dev/startups)
-
-## Overview
-
-`freeact` is a lightweight AI agent library that uses Python code for defining tool interfaces and executable *code actions*.
-This is in contrast to traditional approaches where tool interfaces and actions are defined in JSON.
-
-A unified code-based approach enables `freeact` agents to reuse code actions from earlier steps as tools or *skills* in later steps.
-Agents can build upon their previous work and compose more complex code actions from simpler ones.
-
-<p/>
-<figure style="text-align: center;">
-  <a href="docs/img/introduction.png" target="_blank">
-    <img src="docs/img/introduction.png" alt="introduction" width="70%">
-  </a>
-  <br>
-  <figcaption><i>A unified code-based approach for defining actions and skills.</i></figcaption>
-</figure>
-<p/>
-
-`freeact` agents are LLM agents that:
-
-- generate code actions in Python and execute them in a sandboxed environment
-- can use any function or methods from any Python package as tool definition
-- can store generated code actions as skills in long-term memory
-- can reuse these skills as tools in other code actions and improve on them
-- support invocation and composition of MCP tools in code actions
-
-### Supported models
-
-`freeact` supports usage of any LLM from any provider as code action model via [LiteLLM](https://github.com/BerriAI/litellm).
+Freeact code action agent.
 
 ## Documentation
 
-- `freeact`: https://gradion-ai.github.io/freeact/
-- `ipybox`: https://gradion-ai.github.io/ipybox/
+- [Overview](https://gradion-ai.github.io/freeact/): Project overview
 
-## Quickstart
+## LLM-Readable Documentation
 
-Place API keys for [Anthropic](https://console.anthropic.com/settings/keys) and [Gemini](https://aistudio.google.com/app/apikey) in a `.env` file:
+For AI assistants and LLM-based tools, optimized documentation formats are available:
 
-```env
-# For Claude 3.7. Sonnet
-ANTHROPIC_API_KEY=...
+- [llms.txt](https://gradion-ai.github.io/freeact/llms.txt): Concise documentation suitable for LLM context windows
+- [llms-full.txt](https://gradion-ai.github.io/freeact/llms-full.txt): Complete documentation with full API details
 
-# For Gemini with search tool
-GEMINI_API_KEY=...
-```
+## Development
 
-Add MCP server data to an `mcp.json` file:
-
-```json
-{
-    "mcpServers": {
-        "pubmed": {
-            "command": "uvx",
-            "args": ["--quiet", "pubmedmcp@0.1.3"],
-            "env": {"UV_PYTHON": "3.12"}
-        }
-    }
-}
-```
-
-Start an agent with [`uvx`](https://docs.astral.sh/uv/) via the `freeact` CLI:
-
-```bash
-uvx freeact \
-  --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
-  --model-name=anthropic/claude-3-7-sonnet-20250219 \
-  --reasoning-effort=low \
-  --skill-modules=freeact_skills.search.google.stream.api \
-  --mcp-servers=mcp.json
-```
-
-Then have a conversation with the agent:
-
-![output](docs/output/quickstart/conversation.svg)
+For development setup, see [DEVELOPMENT.md](DEVELOPMENT.md)

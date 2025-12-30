@@ -1,128 +1,146 @@
-from pathlib import Path
-from unittest.mock import AsyncMock, Mock
+from typing import Any
 
 import pytest
-from ipybox import ExecutionError
 
-from freeact import CodeActAgent, CodeExecution, MaxStepsReached
-from tests.unit.test_model import MockModel, MockModelResponse, MockModelTurn
-
-
-@pytest.fixture
-def mock_executor():
-    executor = Mock()
-    executor.working_dir = Path("/tmp/mock_skills/123")
-    executor.images_dir = Path("/tmp")
-    executor.workspace = Mock()
-    executor.workspace.shared_skills_path = Path("/tmp/mock_skills")
-    return executor
+from freeact.agent import ApprovalRequest, CodeExecutionOutput
+from tests.conftest import (
+    CodeExecFunction,
+    collect_stream,
+    create_stream_function,
+    patched_agent,
+)
 
 
-@pytest.mark.asyncio
-async def test_simple_conversation_no_code(mock_executor):
-    """Test a simple conversation where the model just responds with text."""
-    model = MockModel([MockModelResponse(text="Hello! I can help you.", code=None)])
-    agent = CodeActAgent(model, mock_executor)
+def create_code_exec_function(output_text: str) -> CodeExecFunction:
+    """Returns an execute function that yields a single output element."""
 
-    turn = agent.run("Hi there!")
-    response = await turn.response()
-    assert response.text == "Hello! I can help you."
+    async def execute(self, code: str):
+        yield CodeExecutionOutput(text=output_text, images=[])
+
+    return execute
 
 
-@pytest.mark.asyncio
-async def test_code_execution_success(mock_executor):
-    """Test successful code execution flow."""
-    model = MockModel(
-        [
-            MockModelResponse(text="Let me help", code="print('hello')", tool_use_id="123", tool_use_name="python"),
-            MockModelResponse(text="All done!", code=None),
-        ]
-    )
+def create_code_exec_with_approval_function(
+    tool_name: str, tool_args: dict[str, Any], approved_result: str, rejected_result: str
+) -> CodeExecFunction:
+    """Returns an execute function that simulates a PTC approval flow."""
 
-    async def mock_stream(timeout):
-        yield "hello\n"
+    async def execute(self, code: str):
+        approval = ApprovalRequest(tool_name=tool_name, tool_args=tool_args)
+        yield approval
+        if await approval.approved():
+            yield CodeExecutionOutput(text=approved_result, images=[])
+        else:
+            yield CodeExecutionOutput(text=rejected_result, images=[])
 
-    mock_execution = AsyncMock(spec=CodeExecution)
-    mock_execution.stream = mock_stream
-    mock_execution.result.return_value = Mock(text="hello\n", images=[])
-
-    mock_executor.submit = AsyncMock(return_value=mock_execution)
-
-    agent = CodeActAgent(model, mock_executor)
-    turn = agent.run("Run some code")
-
-    responses = []
-    async for item in turn.stream():
-        responses.append(item)
-
-    assert len(responses) == 3  # Initial ModelTurn, CodeAct, and final ModelTurn
-    assert isinstance(responses[0], MockModelTurn)  # Initial response
-    assert isinstance(responses[1], CodeExecution)  # Code execution
-    assert isinstance(responses[2], MockModelTurn)  # Final "All done!" response
-
-    response = await turn.response()
-    assert response.text == "All done!"
+    return execute
 
 
-@pytest.mark.asyncio
-async def test_max_iterations_reached(mock_executor):
-    """Test that MaxIterationsReached is raised when limit is hit."""
+class TestIpyboxExecution:
+    """Tests for ipybox_execute_ipython_cell tool with mocked code executor."""
 
-    def code_response(i: int) -> MockModelResponse:
-        return MockModelResponse(text=f"Step {i}", code=f"print({i})", tool_use_id=f"{i}", tool_use_name="python")
+    @pytest.mark.asyncio
+    async def test_ipybox_execute_ipython_cell_called(self):
+        """Verify ipybox_execute_ipython_cell is called with specific code."""
+        test_code = "x = 5 * 7\nprint(x)"
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": test_code},
+        )
 
-    responses = [code_response(i) for i in range(3)]
-    responses.append(MockModelResponse(text="Done"))
+        async with patched_agent(stream_function, create_code_exec_function("35")) as agent:
+            results = await collect_stream(agent, "Calculate something")
 
-    model = MockModel(responses)
+            assert len(results.code_outputs) == 1
+            assert results.code_outputs[0].text == "35"
 
-    async def mock_stream(timeout):
-        yield "output\n"
+    @pytest.mark.asyncio
+    async def test_approval_accepted(self):
+        """Verify tool call is executed when approval request is accepted."""
+        test_code = "print('approved execution')"
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": test_code},
+        )
 
-    mock_execution = AsyncMock(spec=CodeExecution)
-    mock_execution.stream = mock_stream
-    mock_execution.result.return_value = Mock(text="output\n", images=[])
+        async with patched_agent(stream_function, create_code_exec_function("approved execution")) as agent:
+            results = await collect_stream(agent, "test prompt")
 
-    mock_executor.submit = AsyncMock(return_value=mock_execution)
+            assert len(results.approvals) == 1
+            assert results.approvals[0].tool_name == "ipybox_execute_ipython_cell"
+            assert results.approvals[0].tool_args == {"code": test_code}
+            assert len(results.code_outputs) == 1
+            assert results.code_outputs[0].text == "approved execution"
 
-    agent = CodeActAgent(model, mock_executor)
-    turn = agent.run("Run code", max_steps=3)
+    @pytest.mark.asyncio
+    async def test_approval_rejected(self):
+        """Verify tool call is not executed when approval request is rejected."""
+        rejected_code = "print('should not run')"
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": rejected_code},
+        )
 
-    with pytest.raises(MaxStepsReached):
-        async for _ in turn.stream():
-            pass
+        async with patched_agent(stream_function, create_code_exec_function("should not be called")) as agent:
+            results = await collect_stream(agent, "test prompt", approve_function=lambda _: False)
 
+            # CodeExecutionResult is not yielded if code execution is rejected
+            assert len(results.code_outputs) == 0
+            # Agent turn ends with rejection response
+            assert any(r.content == "Tool call rejected" for r in results.responses)
 
-@pytest.mark.asyncio
-async def test_code_execution_error(mock_executor):
-    """Test handling of code execution errors."""
-    model = MockModel(
-        [
-            MockModelResponse(text="Let me try", code="invalid code", tool_use_id="123", tool_use_name="python"),
-            MockModelResponse(text="Sorry, that failed", code=None),
-        ]
-    )
+    @pytest.mark.asyncio
+    async def test_ptc_approval_accepted(self):
+        """Verify PTC is executed when approval request is accepted."""
+        test_code = "from test.tool_2 import Params, run; run(Params(s='ptc_approved'))"
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": test_code},
+        )
+        code_exec_function = create_code_exec_with_approval_function(
+            tool_name="test_tool_2",
+            tool_args={"s": "ptc_approved"},
+            approved_result="You passed to tool 2: ptc_approved",
+            rejected_result="Tool call rejected",
+        )
 
-    mock_execution = AsyncMock(spec=CodeExecution)
-    mock_execution.stream.side_effect = ExecutionError("Error message", "Error trace")
+        async with patched_agent(stream_function, code_exec_function) as agent:
+            results = await collect_stream(agent, "test prompt")
 
-    mock_executor.submit = AsyncMock(return_value=mock_execution)
+            assert len(results.approvals) == 2
+            assert results.approvals[0].tool_name == "ipybox_execute_ipython_cell"
+            assert results.approvals[1].tool_name == "test_tool_2"
+            assert len(results.code_outputs) == 1
+            assert results.code_outputs[0].text == "You passed to tool 2: ptc_approved"
 
-    agent = CodeActAgent(model, mock_executor)
-    turn = agent.run("Run some code")
+    @pytest.mark.asyncio
+    async def test_ptc_approval_rejected(self):
+        """Verify PTC is not executed when approval request is rejected."""
+        test_code = "from test.tool_2 import Params, run; run(Params(s='ptc_rejected'))"
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": test_code},
+        )
+        # rejected_result must match the pattern in CodeExecutionOutput.ptc_rejected()
+        code_exec_function = create_code_exec_with_approval_function(
+            tool_name="test_tool_2",
+            tool_args={"s": "ptc_rejected"},
+            approved_result="You passed to tool 2: ptc_rejected",
+            rejected_result="ToolRunnerError: Approval request for test_tool_2 rejected",
+        )
 
-    responses = []
-    async for item in turn.stream():
-        responses.append(item)
+        # Approve code execution, reject PTC
+        def approve_function(req: ApprovalRequest) -> bool:
+            return req.tool_name == "ipybox_execute_ipython_cell"
 
-    assert len(responses) == 3
-    assert isinstance(responses[0], MockModelTurn)  # Initial response
-    assert isinstance(responses[1], CodeExecution)  # Failed code execution
-    assert isinstance(responses[2], MockModelTurn)  # Error feedback response
+        async with patched_agent(stream_function, code_exec_function) as agent:
+            results = await collect_stream(agent, "test prompt", approve_function=approve_function)
 
-    last_model_response = await responses[2].response()
-    assert last_model_response.text == "Sorry, that failed"
-    assert last_model_response.code is None
-
-    agent_response = await turn.response()
-    assert agent_response.text == "Sorry, that failed"
+            assert len(results.approvals) == 2
+            assert results.approvals[0].tool_name == "ipybox_execute_ipython_cell"
+            assert results.approvals[1].tool_name == "test_tool_2"
+            assert len(results.code_outputs) == 1
+            assert results.code_outputs[0].text is not None
+            assert "ToolRunnerError: Approval request for test_tool_2 rejected" in results.code_outputs[0].text
+            # Agent turn ends with rejection response
+            assert any(r.content == "Tool call rejected" for r in results.responses)
