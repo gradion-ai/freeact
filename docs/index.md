@@ -1,6 +1,6 @@
 # Overview
 
-Freeact is an [ultra-lightweight](#design-considerations), general-purpose agent that acts via [code actions](https://machinelearning.apple.com/research/codeact) rather than JSON tool calls[^1]. It writes executable Python code that can call multiple tools, process intermediate results, or branch on conditions. Tasks that would otherwise require many inference rounds with JSON tool calling can be completed in a single pass. 
+Freeact is a [lightweight](#design-considerations), general-purpose agent that acts via [code actions](https://machinelearning.apple.com/research/codeact) rather than JSON tool calls[^1]. It writes executable Python code that can call multiple tools, process intermediate results, or branch on conditions. Tasks that would otherwise require many inference rounds with JSON tool calling can be completed in a single pass. 
 
 [^1]: Freeact also supports JSON-based tool calls on MCP servers, but mainly for internal operations. 
 
@@ -34,6 +34,6 @@ Freeact is an experiment to build a highly capable code action agent with minima
 
 ## Beyond task execution
 
-Most agents focus on either software development (coding agents) or on task execution using predefined tools, but not both. Freeact covers a wider range of this spectrum, from task execution to tool development. Its primary function is executing code actions with programmatic tool calling, guided by user instructions and custom skills. 
+Most agents focus on either software development (coding agents) or on non-coding task execution using predefined tools, but not both. Freeact covers a wider range of this spectrum, from task execution to tool development. Its primary function is executing code actions with programmatic tool calling, guided by user instructions and custom skills. 
 
 Beyond task execution, freeact can save successful code actions as reusable tools or enhance existing tools, acting as a toolsmith. For heavier tool engineering like refactoring or reducing tool overlap, freeact is complemented by coding agents like Claude Code, Gemini CLI, etc. Currently the toolsmith role is interactive, with autonomous tool library evolution planned for future versions.
