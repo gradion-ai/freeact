@@ -32,7 +32,7 @@ from pydantic_ai.tools import ToolDefinition
 
 from freeact.agent.tools.utils import get_tool_definitions, load_ipybox_tool_definitions
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("freeact")
 
 
 @dataclass

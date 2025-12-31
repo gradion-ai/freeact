@@ -6,7 +6,7 @@ import ipybox
 
 from freeact.agent.tools.pytools.categories import Categories, list_categories
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("freeact")
 
 
 async def generate_mcp_sources(config: dict[str, dict[str, Any]]) -> None:

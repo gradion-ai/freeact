@@ -13,12 +13,21 @@ from freeact.agent.tools.pytools.apigen import generate_mcp_sources
 from freeact.terminal import Terminal
 from freeact.terminal.recording import save_conversation
 
+logger = logging.getLogger("freeact")
+
 
 def create_parser() -> argparse.ArgumentParser:
     """Create the argument parser for the freeact CLI."""
     parser = argparse.ArgumentParser(
         prog="freeact",
-        description="Run the freeact code action agent",
+        description="Freeact code action agent",
+    )
+    parser.add_argument(
+        "command",
+        nargs="?",
+        default="run",
+        choices=["run", "init"],
+        help="Command to execute (default: run)",
     )
     parser.add_argument(
         "--sandbox",
@@ -59,14 +68,10 @@ def create_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def parse_args(args: list[str] | None = None) -> argparse.Namespace:
-    """Parse command-line arguments.
-
-    Args:
-        args: Arguments to parse. Uses `sys.argv` if `None`.
-    """
+def parse_args() -> argparse.Namespace:
+    """Parse command-line arguments."""
     parser = create_parser()
-    return parser.parse_args(args)
+    return parser.parse_args()
 
 
 def configure_logging(level: str) -> None:
@@ -133,17 +138,22 @@ async def run(namespace: argparse.Namespace) -> None:
         )
 
 
-def main(args: list[str] | None = None) -> None:
+def main() -> None:
     """CLI entry point.
 
-    Loads environment variables, configures logging, and runs the agent.
-
-    Args:
-        args: CLI arguments. Uses `sys.argv` if `None`.
+    Supports commands:
+    - freeact: Run the agent (default)
+    - freeact init: Initialize .freeact/ configuration directory
     """
     load_dotenv()
-    namespace = parse_args(args)
+    namespace = parse_args()
     configure_logging(namespace.log_level)
+
+    if namespace.command == "init":
+        init_config()
+        logger.info("Initialized .freeact/ configuration directory")
+        return
+
     asyncio.run(run(namespace))
 
 
