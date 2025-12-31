@@ -70,11 +70,33 @@ plugins:
               domains: [py, std]
   - llmstxt:
       markdown_description: |
-        The `freeact` package is a code action agent.
+        Freeact is a lightweight, general-purpose agent that acts via code actions rather than JSON tool calls.
+        It writes executable Python code that can call multiple tools, process intermediate results, and branch
+        on conditions. Tasks that would otherwise require many inference rounds with JSON tool calling can be
+        completed in a single pass.
+
+        The agent auto-generates typed Python modules from MCP tool schemas, enabling programmatic tool calling
+        within code actions. Successful code actions can be saved as discoverable tools with clean interfaces,
+        building tool libraries that evolve as the agent works. Agent skills provide filesystem-based capability
+        packages that extend behavior for specific domains.
+
+        All code executes locally in a sandboxed IPython kernel via ipybox, with configurable filesystem and
+        network restrictions. Tool and skill information loads progressively as needed rather than consuming
+        context upfront. A unified approval mechanism gates all tool executions regardless of origin.
       full_output: llms-full.txt
       sections:
         User Guide:
-          - index.md: Overview
+          - index.md: Overview and features
+          - installation.md: Setup and installation
+        Features:
+          - features/approval.md: Approval mechanism
+        Python API:
+          - python-api.md: Python API introduction and examples
+        API Reference:
+          - api/agent.md: Agent API
+          - api/config.md: Config API
+        Reference:
+          - configuration.md: Configuration reference
 
 markdown_extensions:
   - pymdownx.highlight
@@ -94,6 +116,12 @@ markdown_extensions:
 nav:
   - User Guide:
     - Overview: index.md
+    - Installation: installation.md
+    - Python API: python-api.md
+  - Features:
+    - Approval: features/approval.md
+  - Reference:
+    - Configuration: configuration.md
   - API Reference:
     - Agent: api/agent.md
     - Config: api/config.md

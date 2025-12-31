@@ -39,23 +39,23 @@ examples/
 ## Task Checklist
 
 ### Setup Tasks
-- [ ] Create `docs/features/` directory
-- [ ] Create `docs/recordings/` directory
-- [ ] Create `examples/` directory with `__init__.py`
+- [x] Create `docs/features/` directory
+- [x] Create `docs/recordings/` directory
+- [x] Create `examples/` directory with `__init__.py`
 
 ### Documentation Files
 
 #### Installation (`docs/installation.md`)
-- [ ] Write workspace setup with `uv init --bare --python 3.13`
-- [ ] Document `uv add freeact`
-- [ ] Document `freeact init` for initial configuration
-- [ ] Describe default config: 2 MCP servers for filesystem search, 1 for web search (Gemini)
-- [ ] Mention future extensions (bash tool, web fetch, hybrid search for PTC)
-- [ ] Document sandbox-runtime installation (required for `--sandbox` mode):
-  - [ ] `npm install -g @anthropic-ai/sandbox-runtime@0.0.21` (provides `srt` command)
-  - [ ] macOS: `brew install ripgrep` (uses native `sandbox-exec`)
-  - [ ] Linux: `apt-get install bubblewrap socat ripgrep` (note: Linux sandboxing WIP)
-  - [ ] Reference: https://gradion-ai.github.io/ipybox/installation/index.md
+- [x] Write workspace setup with `uv init --bare --python 3.13`
+- [x] Document `uv add freeact`
+- [x] Document `freeact init` for initial configuration
+- [x] Describe default config: 2 MCP servers for filesystem search, 1 for web search (Gemini)
+- [x] Mention future extensions (bash tool, web fetch, hybrid search for PTC)
+- [x] Document sandbox-runtime installation (required for `--sandbox` mode):
+  - [x] `npm install -g @anthropic-ai/sandbox-runtime@0.0.21` (provides `srt` command)
+  - [x] macOS: `brew install ripgrep` (uses native `sandbox-exec`)
+  - [x] Linux: `apt-get install bubblewrap socat ripgrep` (note: Linux sandboxing WIP)
+  - [x] Reference: https://gradion-ai.github.io/ipybox/installation/index.md
 
 #### Quickstart (`docs/quickstart.md`)
 - [ ] Create minimal terminal session recording
@@ -101,28 +101,28 @@ The documentation pages are still missing.
 - [ ] Include generated image in docs
 
 #### Feature: Unified Approval (`docs/features/approval.md`)
-- [ ] Write explanation of Y/n/a/s options
-- [ ] Document `permissions.json` mechanism and format
-- [ ] Note: No separate recording needed (approvals shown in all other recordings)
+- [x] Write explanation of Y/n/a/s options
+- [x] Document `permissions.json` mechanism and format
+- [x] Note: No separate recording needed (approvals shown in all other recordings)
 
 #### Python API (`docs/python-api.md`)
-- [ ] Write narrative introduction explaining CLI/terminal use Python API internally
-- [ ] Document Config API: loading config, accessing skills_metadata, system_prompt, servers
-- [ ] Document Agent API: async context manager, streaming events, handling ApprovalRequest
-- [ ] Document mcptools generation: `generate_mcp_sources()` for PTC servers
-- [ ] Add cross-references to API reference (api/agent.md, api/config.md)
+- [x] Write narrative introduction explaining CLI/terminal use Python API internally
+- [x] Document Config API: loading config, accessing skills_metadata, system_prompt, servers
+- [x] Document Agent API: async context manager, streaming events, handling ApprovalRequest
+- [x] Document mcptools generation: `generate_mcp_sources()` for PTC servers
+- [x] Add cross-references to API reference (api/agent.md, api/config.md)
 
 #### Configuration Reference (`docs/configuration.md`)
-- [ ] Document `.freeact/` directory structure
-- [ ] Document `servers.json` format (mcp-servers, ptc-servers)
-- [ ] Document `prompts/system.md` placeholders ({working_dir}, {skills})
-- [ ] Document Skills structure (`SKILL.md` format with YAML frontmatter)
-- [ ] Document `permissions.json` format
+- [x] Document `.freeact/` directory structure
+- [x] Document `servers.json` format (mcp-servers, ptc-servers)
+- [x] Document `prompts/system.md` placeholders ({working_dir}, {skills})
+- [x] Document Skills structure (`SKILL.md` format with YAML frontmatter)
+- [x] Document `permissions.json` format
 
 #### Example Files
-- [ ] Create `examples/basic_agent.py`
-- [ ] Create `examples/custom_config.py`
-- [ ] Create `examples/generate_mcptools.py`
+- [x] Create `examples/basic_agent.py`
+- [x] Create `examples/custom_config.py`
+- [x] Create `examples/generate_mcptools.py`
 
 ### Update Existing Files
 
