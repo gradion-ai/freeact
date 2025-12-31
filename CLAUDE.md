@@ -4,20 +4,60 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Freeact is a code action agent library that combines an LLM with sandboxed Python code execution (via ipybox) and MCP tool integration. It supports two modes of tool calling:
+Freeact is a code action agent that acts via Python code execution rather than JSON tool calls. The agent writes executable Python code that calls multiple tools, processes intermediate results, and branches on conditions. Tasks that would require many inference rounds with JSON tool calling can be completed in a single pass. Code executes in a sandboxed IPython kernel via [ipybox](https://gradion-ai.github.io/ipybox/).
 
-- **MCP servers**: Traditional JSON-based tool calls executed directly by the agent
-- **PTC servers** (Programmatic Tool Calling): Python APIs generated from MCP schemas to `mcptools/`, enabling the agent to write Python code that imports and calls tools programmatically
+Key capabilities:
+- **Programmatic Tool Calling (PTC)**: Auto-generates typed Python modules from MCP tool schemas to `mcptools/`, enabling tool calls within code actions
+- **Reusable code actions**: Successful code actions can be saved as discoverable tools in `gentools/`
+- **Agent skills**: Filesystem-based capability packages in `.freeact/skills/` that extend agent behavior
+- **Progressive disclosure**: Tool/skill information loads in stages as needed, not upfront
+
+## Development Commands
+
+```bash
+uv sync                      # Install dependencies
+uv run invoke cc             # Run code checks (auto-fixes formatting, mypy errors need manual fix)
+uv run invoke test           # Run all tests
+uv run invoke ut             # Run unit tests only
+uv run invoke it             # Run integration tests only
+uv run invoke test --cov     # Run tests with coverage
+
+# Single test file
+uv run pytest -xsv tests/integration/test_agent.py
+
+# Single test
+uv run pytest -xsv tests/integration/test_agent.py::test_name
+
+# Documentation
+uv run invoke build-docs     # Build docs
+uv run invoke serve-docs     # Serve docs at localhost:8000
+```
 
 ## Architecture
 
-- `freeact/agent/core.py`: Main `Agent` class - LLM orchestration via pydantic-ai, streaming events, ipybox code execution, JSON and programmatic MCP tool calls, approval gating
-- `freeact/agent/factory.py`: Agent creation factory with config initialization from `.freeact/`
-- `freeact/agent/config/`: Unified `Config` loader - parses `.freeact/` directory (skills, prompts, server configs) into configuration objects
-- `freeact/agent/tools/pytools/`: Generates Python APIs for PTC servers. Tool category discovery from `mcptools/`
-- `freeact/terminal/interface.py`: `Terminal` class - conversation loop, event streaming, approval handling via `PermissionManager`
-- `freeact/terminal/display.py`: Rich-based rendering with prompt_toolkit
-- `freeact/permissions.py`: Tool permission management (always/session-based), persists to `.freeact/permissions.json`
+### Core Components
+
+- `freeact/agent/core.py`: Main `Agent` class - pydantic-ai orchestration, streaming events, ipybox code execution, approval gating. Yields event types: `ResponseChunk`, `Response`, `ApprovalRequest`, `CodeExecutionOutput`, `ToolOutput`, etc.
+- `freeact/agent/config/config.py`: `Config` class - loads `.freeact/` directory (skills metadata, system prompt, server configs)
+- `freeact/agent/config/init.py`: Initializes `.freeact/` from templates on first run
+- `freeact/agent/tools/pytools/apigen.py`: Generates Python APIs for PTC servers using `ipybox.generate_mcp_sources()`
+- `freeact/agent/tools/pytools/categories.py`: Discovers tool categories from `gentools/` and `mcptools/`
+- `freeact/terminal/interface.py`: `Terminal` class - conversation loop, event rendering, approval handling
+- `freeact/permissions.py`: `PermissionManager` - two-tier approval (always/session), persists to `.freeact/permissions.json`
+- `freeact/cli.py`: CLI entry point, loads config, creates agent, runs terminal
+
+### Configuration Directory (`.freeact/`)
+
+- `prompts/system.md`: System prompt template with `{working_dir}` and `{skills}` placeholders
+- `servers.json`: Server configuration with `mcp-servers` (JSON tool calls) and `ptc-servers` (code-based calls)
+- `skills/*`: Agent skill directories
+- `plans/`: Task plan storage
+- `permissions.json`: Persisted tool permissions
+
+### Tool Directories
+
+- `mcptools/<server>/`: Auto-generated Python APIs from PTC server schemas
+- `gentools/<category>/<tool>/api.py`: Python APIs of code actions saved as tools
 
 ### Server Configuration
 
