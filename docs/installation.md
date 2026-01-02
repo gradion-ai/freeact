@@ -4,9 +4,9 @@ This guide covers workspace setup, installation, and configuration of freeact.
 
 ## Prerequisites
 
-- Python 3.13+
+- Python 3.11+
 - [uv](https://docs.astral.sh/uv/) package manager
-- Node.js (for MCP servers)
+- Node.js 20+ (for MCP servers)
 
 ## Workspace Setup
 
@@ -22,6 +22,20 @@ Add freeact to your project:
 
 ```bash
 uv add freeact
+```
+
+## API Keys
+
+Freeact uses `gemini-3-flash-preview` as the default model. Set the API key in your environment:
+
+```bash
+export GEMINI_API_KEY="your-api-key"
+```
+
+Alternatively, place it in a `.env` file in your workspace:
+
+```env title=".env"
+GEMINI_API_KEY=your-api-key
 ```
 
 ## Initialize Configuration
@@ -46,28 +60,17 @@ This creates:
 └── plans/               # Task plan storage
 ```
 
-## Default Configuration
+## Running the Agent
 
-The default configuration includes:
-
-**MCP Servers** (JSON tool calls):
-
-- `pytools` - Tool category listing and search
-- `filesystem` - File operations (read, write, list, search)
-
-**PTC Server** (Programmatic tool calling):
-
-- `google` - Gemini-powered web search (requires `GEMINI_API_KEY`)
-
-Set the required API key in your environment:
+Start the interactive terminal:
 
 ```bash
-export GEMINI_API_KEY="your-api-key"
+uv run freeact
 ```
 
 ## Sandbox Mode (Optional)
 
-For sandboxed code execution, install the sandbox runtime:
+Sandbox mode requires additional dependencies. See [Sandboxing](features/sandbox.md) for configuration details.
 
 ### macOS
 
@@ -88,7 +91,7 @@ apt-get install bubblewrap socat ripgrep
 !!! note
     Linux sandboxing is currently work in progress.
 
-Run freeact with sandbox mode enabled:
+### Running with Sandbox
 
 ```bash
 uv run freeact --sandbox
@@ -98,16 +101,6 @@ For custom sandbox configuration:
 
 ```bash
 uv run freeact --sandbox --sandbox-config sandbox-config.json
-```
-
-See [Sandboxing](features/sandbox.md) for configuration details.
-
-## Running the Agent
-
-Start the interactive terminal:
-
-```bash
-uv run freeact
 ```
 
 ## CLI Options

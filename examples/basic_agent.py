@@ -6,7 +6,7 @@ Demonstrates minimal usage of the Python API with automatic approval.
 import asyncio
 
 # --8<-- [start:example]
-from freeact.agent import Agent, ApprovalRequest, Response
+from freeact.agent import Agent, ApprovalRequest, Response, Thoughts
 from freeact.agent.config import Config, init_config
 
 
@@ -31,6 +31,8 @@ async def main() -> None:
                 case ApprovalRequest() as request:
                     # Auto-approve all code actions and tool calls
                     request.approve(True)
+                case Thoughts(content=content):
+                    print(f"Thinking: {content}")
                 case Response(content=content):
                     print(content)
 

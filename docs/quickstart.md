@@ -12,6 +12,8 @@ Complete the [installation](installation.md) steps first:
 
 ## Running a Task
 
+### Interactive Terminal
+
 Start the interactive terminal:
 
 ```bash
@@ -24,13 +26,13 @@ Enter a task at the prompt. The agent writes Python code to accomplish it, then 
 
 The recording above shows the agent calculating Fibonacci numbers through a code action. Key elements:
 
-- **Code Action**: The agent writes a Python function and executes it
-- **Approval**: Before running code, the agent asks for confirmation (`Y` to approve)
+- **Code Action**: The agent writes a Python code action and executes it
+- **Approval**: Before running code, the agent asks for confirmation (press `Y` or `Enter` to approve)
 - **Output**: Results display directly in the terminal
 
-## Python API
+### Python API
 
-The terminal interface uses the Python API internally. Here's a minimal example that runs the same type of task programmatically:
+The terminal interface uses the Python API internally. Here's a minimal example that runs the same task programmatically:
 
 ```python
 --8<-- "examples/basic_agent.py:example"
@@ -40,12 +42,12 @@ The API provides:
 
 - [`Config`][freeact.agent.config.Config] for loading settings from `.freeact/`
 - [`Agent`][freeact.agent.Agent] as an async context manager for running tasks
-- Event types like [`ApprovalRequest`][freeact.agent.ApprovalRequest] and [`Response`][freeact.agent.Response] for handling the stream
+- Event types like [`ApprovalRequest`][freeact.agent.ApprovalRequest] and [`Response`][freeact.agent.Response]
 
 See [Python API](python-api.md) for detailed usage.
 
 ## Next Steps
 
 - [Programmatic Tool Calling](features/programmatic-tools.md) - Call MCP tools from code actions
-- [Configuration](configuration.md) - Customize servers, skills, and prompts
+- [Configuration](configuration.md) - Customize MCP servers, skills, and prompts
 - [Approval Mechanism](features/approval.md) - Understand the approval flow
