@@ -108,9 +108,10 @@ print(result)
 
 Tool information loads progressively to minimize context usage:
 
-1. **Startup**: Only server names are known (`github`, `google`, etc.)
-2. **Category listing**: Tool names within a category load on demand
-3. **API loading**: Full API definitions load when the agent reads the source file
+1. **Startup**: Only tool locations are known (`mcptools/` and `gentools/`)
+2. **Category listing**: Category names (server names like `github`, `google`) load on demand
+3. **Tool listing**: Tool names within a category load on demand
+4. **API loading**: Full API definitions load when the agent reads the source file
 
 This means an agent with access to dozens of MCP servers only loads the specific tools it needs for the current task.
 

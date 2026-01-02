@@ -104,6 +104,7 @@ plugins:
           - api/config.md: Config API
         Reference:
           - configuration.md: Configuration reference
+          - cli.md: Command-line interface
 
 markdown_extensions:
   - pymdownx.highlight
@@ -126,16 +127,16 @@ nav:
     - Installation: installation.md
     - Quickstart: quickstart.md
     - Python API: python-api.md
-  - Features:
-    - Programmatic Tool Calling: features/programmatic-tools.md
-    - Reusable Code Actions: features/reusable-codeacts.md
-    - Agent Skills: features/agent-skills.md
-    - Sandboxing: features/sandbox.md
-    - Planning: features/planning.md
-    - Python Packages: features/python-packages.md
-    - Approval: features/approval.md
-  - Reference:
     - Configuration: configuration.md
+    - CLI: cli.md
+    - Examples:
+      - Programmatic Tool Calling: features/programmatic-tools.md
+      - Reusable Code Actions: features/reusable-codeacts.md
+      - Agent Skills: features/agent-skills.md
+      - Sandboxing: features/sandbox.md
+      - Planning: features/planning.md
+      - Python Packages: features/python-packages.md
+      - Approval: features/approval.md
   - API Reference:
     - Agent: api/agent.md
     - Config: api/config.md
