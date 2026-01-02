@@ -28,8 +28,9 @@ async def main() -> None:
         system_prompt=config.system_prompt,
         mcp_servers=config.mcp_servers,
     ):
-        # Agent can now use PTC tools in code actions:
-        # from mcptools.google.search import run, Params
+        # Agent can now programmatically call the tools in
+        # code actions:
+        # from mcptools.google.web_search import run, Params
         # result = run(Params(query="..."))
         pass
 

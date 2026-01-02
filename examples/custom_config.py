@@ -11,7 +11,7 @@ from freeact.agent.config import Config, init_config
 # Initialize .freeact/ directory with default templates
 init_config()
 
-# Load configuration from default location (cwd/.freeact/)
+# Load configuration from .freeact/
 config = Config()
 
 # Or specify a custom working directory

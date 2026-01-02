@@ -28,6 +28,7 @@ async def _get_redirect_target(url: str) -> str:
         "idempotentHint": True,
         "openWorldHint": True,
     },
+    structured_output=False,
 )
 async def web_search(
     query: Annotated[

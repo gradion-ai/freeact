@@ -9,6 +9,7 @@ Complete the [installation](installation.md) steps first:
 - Set up a workspace with `uv init --bare --python 3.13`
 - Install freeact with `uv add freeact`
 - Initialize configuration with `uv run freeact init`
+- Set your API key (e.g., `export GEMINI_API_KEY="your-api-key"` or in `.env`)
 
 ## Running a Task
 

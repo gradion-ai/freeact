@@ -1,0 +1,1 @@
+::: freeact.permissions.PermissionManager

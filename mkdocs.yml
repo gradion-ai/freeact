@@ -102,6 +102,8 @@ plugins:
         API Reference:
           - api/agent.md: Agent API
           - api/config.md: Config API
+          - api/generate.md: Generate API
+          - api/permissions.md: Permissions API
         Reference:
           - configuration.md: Configuration reference
           - cli.md: Command-line interface
@@ -140,3 +142,5 @@ nav:
   - API Reference:
     - Agent: api/agent.md
     - Config: api/config.md
+    - Generate: api/generate.md
+    - Permissions: api/permissions.md

@@ -7,8 +7,8 @@ The freeact CLI and terminal interface are built on a Python API that you can us
 The Python API consists of three main components:
 
 - [`Config`][freeact.agent.config.Config] - Load and access configuration from `.freeact/`
-- [`Agent`][freeact.agent.Agent] - Execute code actions and handle tool calls
-- `generate_mcp_sources()` - Generate Python APIs for PTC servers
+- [`Agent`][freeact.agent.Agent] - Generate and execute code actions, call MCP tools
+- [`generate_mcp_sources()`][freeact.agent.tools.pytools.apigen.generate_mcp_sources] - Generate Python APIs for [configured](configuration.md#server-configuration) MCP servers
 
 ## Basic Usage
 
@@ -42,18 +42,18 @@ The [`Agent.stream()`][freeact.agent.Agent.stream] method yields events as they 
 
 | Event | Description |
 |-------|-------------|
-| [`ThoughtsChunk`][freeact.agent.ThoughtsChunk] | Partial model thinking (streaming) |
-| [`Thoughts`][freeact.agent.Thoughts] | Complete model thoughts |
-| [`ResponseChunk`][freeact.agent.ResponseChunk] | Partial model response (streaming) |
+| [`ThoughtsChunk`][freeact.agent.ThoughtsChunk] | Partial model thinking (content streaming) |
+| [`Thoughts`][freeact.agent.Thoughts] | Complete model thoughts at a given step |
+| [`ResponseChunk`][freeact.agent.ResponseChunk] | Partial model response (content streaming) |
 | [`Response`][freeact.agent.Response] | Complete model response |
-| [`ApprovalRequest`][freeact.agent.ApprovalRequest] | Pending tool approval |
-| [`CodeExecutionOutputChunk`][freeact.agent.CodeExecutionOutputChunk] | Partial code output (streaming) |
-| [`CodeExecutionOutput`][freeact.agent.CodeExecutionOutput] | Complete code execution result |
+| [`ApprovalRequest`][freeact.agent.ApprovalRequest] | Pending code action or tool call approval |
+| [`CodeExecutionOutputChunk`][freeact.agent.CodeExecutionOutputChunk] | Partial code execution output (content streaming) |
+| [`CodeExecutionOutput`][freeact.agent.CodeExecutionOutput] | Complete code execution output |
 | [`ToolOutput`][freeact.agent.ToolOutput] | JSON tool call result |
 
 ### Handling Approval Requests
 
-Tool executions require approval. The agent yields an [`ApprovalRequest`][freeact.agent.ApprovalRequest] and suspends until you call `approve()`:
+Code actions, JSON tool calls, and programmatic tool calls all require approval. The agent provides a unified approval mechanism: regardless of the action type, it yields an [`ApprovalRequest`][freeact.agent.ApprovalRequest] and suspends until you call `approve()`:
 
 ```python
 async for event in agent.stream(prompt):
@@ -70,7 +70,11 @@ async for event in agent.stream(prompt):
             print(content)
 ```
 
-For automated approval, use `PermissionManager`:
+!!! note "Code action approval"
+
+    For code actions, `tool_name` is `ipybox_execute_ipython_cell` and `tool_args` contains the `code` to execute.
+
+The agent only yields approval requests without managing permissions. The terminal interface uses [`PermissionManager`][freeact.permissions.PermissionManager] to handle `Y/n/a/s` approval choices, where `a` (always) persists permissions to disk and `s` (session) grants approval for the current session. Minimal usage:
 
 ```python
 from freeact.permissions import PermissionManager
@@ -84,29 +88,39 @@ async for event in agent.stream(prompt):
             if manager.is_allowed(request.tool_name, request.tool_args):
                 request.approve(True)
             else:
-                # Prompt user or auto-reject
-                request.approve(False)
+                choice = input("Allow? [Y/n/a/s]: ")  # prompt user
+                match choice:
+                    case "a":
+                        await manager.allow_always(request.tool_name)
+                        request.approve(True)
+                    case "s":
+                        manager.allow_session(request.tool_name)
+                        request.approve(True)
+                    case "n":
+                        request.approve(False)
+                    case _:
+                        request.approve(True)
 ```
 
 ## Programmatic Tool Calling
 
-For PTC servers configured in `servers.json`, generate Python APIs before starting the agent:
+For MCP servers [configured](configuration.md#server-configuration) as `ptc-servers` in the `servers.json` file, generate Python APIs for their tools before starting the agent:
 
 ```python
 --8<-- "examples/generate_mcptools.py:example"
 ```
 
-After generation, the agent can write code that imports from `mcptools/<server>/`:
+API generation only needs to run once per server configuration. The generated modules are written to `mcptools/` and persist across agent sessions. After generation, the agent can write code that imports from `mcptools/<server>/`:
 
 ```python
-from mcptools.google.search import run, Params
+from mcptools.google.web_search import run, Params
 
 result = run(Params(query="python async tutorial"))
 ```
 
 ## Agent Lifecycle
 
-The agent manages MCP server connections and the IPython kernel. Use it as an async context manager:
+The agent manages MCP server connections and the IPython kernel. On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calls connect. MCP servers configured for [programmatic tool calling](features/programmatic-tools.md) connect lazily on first tool call. Use the agent as an async context manager:
 
 ```python
 async with Agent(...) as agent:
@@ -144,7 +158,12 @@ agent = Agent(
 )
 ```
 
-See [Sandboxing](features/sandbox.md) for configuration options.
+If `sandbox_config` is omitted, the agent runs with the default sandbox configuration:
+
+- **Filesystem**: Read all files except `.env`, write to current directory and subdirectories
+- **Network**: Internet access blocked, local network access to tool execution server permitted
+
+See [Sandboxing](features/sandbox.md) for custom configuration options.
 
 ## API Reference
 
@@ -152,3 +171,5 @@ For complete API documentation:
 
 - [Agent API](api/agent.md) - Agent class and event types
 - [Config API](api/config.md) - Configuration loading and access
+- [Generate API](api/generate.md) - MCP source generation
+- [Permissions API](api/permissions.md) - Permission management

@@ -11,7 +11,7 @@ from freeact.agent.config import Config, init_config
 
 
 async def main() -> None:
-    # Initialize configuration directory if needed
+    # Initialize .freeact/ config directory if needed
     init_config()
 
     # Load configuration from .freeact/
