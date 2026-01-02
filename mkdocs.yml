@@ -130,7 +130,7 @@ nav:
     - Quickstart: quickstart.md
     - Python API: python-api.md
     - Configuration: configuration.md
-    - CLI: cli.md
+    - User interfaces: cli.md
     - Examples:
       - Programmatic Tool Calling: features/programmatic-tools.md
       - Reusable Code Actions: features/reusable-codeacts.md

@@ -1,29 +1,25 @@
-# CLI
+# User Interfaces
 
-The `freeact` command provides a terminal interface for interacting with the agent.
+## CLI
 
-## Commands
+### Commands
 
-### run
-
-Start the interactive terminal (default command).
+Start the terminal interface:
 
 ```bash
 freeact
 freeact run
 ```
 
-### init
-
-Initialize the `.freeact/` configuration directory. Creates default configuration files from templates without overwriting existing files.
+The `.freeact/` configuration directory is created automatically if it does not exist. To initialize it without starting the terminal interface:
 
 ```bash
 freeact init
 ```
 
-See [Configuration](configuration.md) for the directory structure.
+See [Configuration](configuration.md) for details.
 
-## Options
+### Options
 
 | Option | Description |
 |--------|-------------|
@@ -34,15 +30,47 @@ See [Configuration](configuration.md) for the directory structure.
 | `--record-dir PATH` | Output directory for recordings (default: `output`). |
 | `--record-title TEXT` | Title for the recording (default: `Conversation`). |
 
+### Environment Variables
+
+Freeact loads environment variables from a `.env` file in the working directory. Required variables depend on [configured MCP servers](configuration.md#mcp-server-configuration). The default configuration requires:
+
+| Variable | Description |
+|----------|-------------|
+| `GEMINI_API_KEY` | API key for the default Google PTC server |
+
+Server configurations in `.freeact/servers.json` reference environment variables using `${VAR_NAME}` syntax.
+
+### Examples
+
+Start with sandbox mode:
+
+```bash
+freeact --sandbox
+```
+
+Start with custom sandbox configuration:
+
+```bash
+freeact --sandbox --sandbox-config sandbox-config.json
+```
+
+Record a session for documentation:
+
+```bash
+freeact --record --record-dir docs/recordings/demo --record-title "Demo Session"
+```
+
 ## Terminal Interface
 
-The interactive terminal provides a conversation loop with the agent.
+The terminal interface provides interactive conversation with the agent in a terminal window.
 
 ### Input
 
-- **Submit**: Press `Enter` to send your message
-- **Multi-line**: Press `Option+Enter` (macOS) or `Alt+Enter` (Linux/Windows) for a new line
-- **Quit**: Type `q` and press `Enter` to exit
+| Key | Action |
+|-----|--------|
+| `Enter` | Send message |
+| `Option+Enter` (macOS) / `Alt+Enter` (Linux/Windows) | Insert newline |
+| `q` + `Enter` | Quit |
 
 ### Image Attachments
 
@@ -71,46 +99,8 @@ Approve? [Y/n/a/s]:
 | Response | Effect |
 |----------|--------|
 | `Y` or `Enter` | Approve this execution |
-| `n` | Reject this execution |
-| `a` | Always approve this tool (persisted to `.freeact/permissions.json`) |
+| `n` | Reject this execution (ends the current agent turn) |
+| `a` | Always approve this action (persisted to `.freeact/permissions.json`) |
 | `s` | Approve for current session only |
 
 See [Approval](features/approval.md) for details.
-
-## Environment Variables
-
-Freeact loads environment variables from a `.env` file in the working directory.
-
-Required variables depend on configured servers. The default configuration requires:
-
-| Variable | Description |
-|----------|-------------|
-| `GEMINI_API_KEY` | API key for the default Google PTC server |
-
-Server configurations in `.freeact/servers.json` reference environment variables using `${VAR_NAME}` syntax.
-
-## Examples
-
-Start with sandbox mode:
-
-```bash
-freeact --sandbox
-```
-
-Start with custom sandbox configuration:
-
-```bash
-freeact --sandbox --sandbox-config sandbox-config.json
-```
-
-Record a session for documentation:
-
-```bash
-freeact --record --record-dir docs/recordings/demo --record-title "Demo Session"
-```
-
-Enable debug logging:
-
-```bash
-freeact --log-level debug
-```

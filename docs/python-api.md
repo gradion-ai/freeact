@@ -8,7 +8,7 @@ The Python API consists of three main components:
 
 - [`Config`][freeact.agent.config.Config] - Load and access configuration from `.freeact/`
 - [`Agent`][freeact.agent.Agent] - Generate and execute code actions, call MCP tools
-- [`generate_mcp_sources()`][freeact.agent.tools.pytools.apigen.generate_mcp_sources] - Generate Python APIs for [configured](configuration.md#server-configuration) MCP servers
+- [`generate_mcp_sources()`][freeact.agent.tools.pytools.apigen.generate_mcp_sources] - Generate Python APIs for [configured](configuration.md#mcp-server-configuration) MCP servers
 
 ## Basic Usage
 
@@ -104,7 +104,7 @@ async for event in agent.stream(prompt):
 
 ## Programmatic Tool Calling
 
-For MCP servers [configured](configuration.md#server-configuration) as `ptc-servers` in the `servers.json` file, generate Python APIs for their tools before starting the agent:
+For MCP servers [configured](configuration.md#mcp-server-configuration) as `ptc-servers` in the `servers.json` file, generate Python APIs for their tools before starting the agent:
 
 ```python
 --8<-- "examples/generate_mcptools.py:example"
@@ -120,7 +120,7 @@ result = run(Params(query="python async tutorial"))
 
 ## Agent Lifecycle
 
-The agent manages MCP server connections and the IPython kernel. On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calls connect. MCP servers configured for [programmatic tool calling](features/programmatic-tools.md) connect lazily on first tool call. Use the agent as an async context manager:
+The agent manages MCP server connections and the IPython kernel. On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calls connect. MCP servers configured for [programmatic tool calling](#programmatic-tool-calling) connect lazily on first tool call. Use the agent as an async context manager:
 
 ```python
 async with Agent(...) as agent:

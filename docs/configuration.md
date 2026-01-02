@@ -2,6 +2,24 @@
 
 Freeact configuration is stored in the `.freeact/` directory. This guide documents the directory structure and configuration formats.
 
+## Initialization
+
+The `.freeact/` directory is created and populated from bundled templates through three entry points:
+
+| Entry Point | Description |
+|-------------|-------------|
+| `freeact` or `freeact run` | [Interactive terminal](cli.md) - initializes config before starting |
+| `freeact init` | [Explicit initialization](cli.md#init) - creates config without starting the agent |
+| [`init_config()`][freeact.agent.config.init.init_config] | [Python API](python-api.md) - call directly for programmatic control |
+
+All three entry points share the same behavior:
+
+- **Missing files are created** from [default templates](https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates)
+- **Existing files are preserved** and never overwritten
+- **User modifications persist** across restarts and updates
+
+This allows safe customization: edit any configuration file, and your changes remain intact. If you delete a file, it is recreated from the default template on next initialization.
+
 ## Directory Structure
 
 ```
@@ -16,7 +34,7 @@ Freeact configuration is stored in the `.freeact/` directory. This guide documen
 └── permissions.json     # Persisted tool permissions
 ```
 
-## Server Configuration
+## MCP Server Configuration
 
 The `servers.json` file configures two types of MCP servers:
 
@@ -31,15 +49,19 @@ The `servers.json` file configures two types of MCP servers:
 }
 ```
 
-### MCP Servers
+Both sections support stdio servers and streamable HTTP servers.
 
-MCP servers are called directly via JSON tool calls. Configure either stdio or HTTP servers:
+### `mcp-servers`
 
-**Stdio server:**
+These are MCP servers that are called directly via JSON. This section is primarily for freeact-internal servers. The default configuration includes `pytools` (tool discovery) and `filesystem` (file operations):
 
 ```json
 {
   "mcp-servers": {
+    "pytools": {
+      "command": "python",
+      "args": ["-m", "freeact.agent.tools.pytools.search"]
+    },
     "filesystem": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
@@ -48,22 +70,9 @@ MCP servers are called directly via JSON tool calls. Configure either stdio or H
 }
 ```
 
-**HTTP server:**
+### `ptc-servers`
 
-```json
-{
-  "mcp-servers": {
-    "github": {
-      "url": "https://api.githubcopilot.com/mcp/",
-      "headers": {"Authorization": "Bearer ${GITHUB_API_KEY}"}
-    }
-  }
-}
-```
-
-### PTC Servers
-
-PTC (Programmatic Tool Calling) servers have Python APIs auto-generated to `mcptools/<server-name>/`. The agent writes code that imports and calls these typed APIs.
+These are MCP servers called programmatically via Python APIs auto-generated to `mcptools/<server-name>/<tool>.py`. Code actions import and call these APIs. The default configuration includes `google` (web search via Gemini):
 
 ```json
 {
@@ -77,9 +86,15 @@ PTC (Programmatic Tool Calling) servers have Python APIs auto-generated to `mcpt
 }
 ```
 
+Python APIs must be generated for `ptc-servers` before the agent can use them. The [CLI](cli.md) handles this automatically, generating APIs only for servers not yet present in `mcptools/`. When using the [freeact Python API](python-api.md), you must call [`generate_mcp_sources()`][freeact.agent.tools.pytools.apigen.generate_mcp_sources] yourself. See [Programmatic Tool Calling](python-api.md#programmatic-tool-calling) for details.
+
+!!! hint "Custom MCP servers"
+
+    To add your own MCP servers, extend this section.
+
 ### Environment Variables
 
-Use `${VAR_NAME}` syntax to reference environment variables. Missing variables raise an error at startup.
+Use `${VAR_NAME}` syntax to reference environment variables. Missing variables raise an error when loading the configuration via [`Config()`][freeact.agent.config.Config].
 
 ## System Prompt
 
@@ -87,74 +102,30 @@ The system prompt template is stored in `.freeact/prompts/system.md`. It support
 
 | Placeholder | Description |
 |-------------|-------------|
-| `{working_dir}` | Agent's current working directory |
+| `{working_dir}` | The agent's workspace directory |
 | `{skills}` | Rendered list of available skills with descriptions |
 
-Example template:
-
-```markdown
-You are a Python code execution agent.
-
-## Working Directory
-
-The current working directory is `{working_dir}`.
+See the [default template](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/templates/prompts/system.md) for details.
 
 ## Skills
 
-{skills}
-```
-
-## Skills
-
-Skills are filesystem-based capability packages that extend agent behavior. Each skill is a directory containing a `SKILL.md` file with YAML frontmatter.
-
-### Skill Structure
-
-```
-.freeact/skills/<skill-name>/
-├── SKILL.md            # Required: skill definition
-└── <resources>         # Optional: additional files
-```
-
-### SKILL.md Format
-
-```markdown
----
-name: skill-name
-description: Brief description of what the skill does. This appears in the skills list.
----
-
-# Skill Title
-
-Full instructions for the agent when this skill is activated.
-
-## Workflow
-
-1. Step one
-2. Step two
-...
-```
-
-The frontmatter fields:
-
-| Field | Description |
-|-------|-------------|
-| `name` | Skill identifier (matches directory name) |
-| `description` | Brief description shown in the skills listing |
-
-The content after the frontmatter contains full instructions that load when the skill is triggered.
+Skills are filesystem-based capability packages that extend agent behavior. Each skill is a directory containing a `SKILL.md` file with YAML frontmatter. Skills follow the [Agent Skills specification](https://agentskills.io/specification/).
 
 ### Built-in Skills
 
-Freeact includes three default skills:
+Freeact includes three default skills in `.freeact/skills/`:
 
-- **output-parsers** - Generate output parsers for mcptools with unstructured return types
-- **saving-codeacts** - Save executed Python code as reusable tools in gentools
-- **task-planning** - Task planning and breakdown workflows
+| Skill | Description |
+|-------|-------------|
+| [output-parsers](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/templates/skills/output-parsers/SKILL.md) | Generate output parsers for `mcptools/` with unstructured return types |
+| [saving-codeacts](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/templates/skills/saving-codeacts/SKILL.md) | Save generated code actions as reusable tools in `gentools/` |
+| [task-planning](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/templates/skills/task-planning/SKILL.md) | Basic task planning and tracking workflows |
+
+See [Agent Skills](features/agent-skills.md) for usage details.
 
 ## Permissions
 
-Tool permissions are stored in `.freeact/permissions.json`:
+Tool permissions are stored in `.freeact/permissions.json`. The current basic [`PermissionManager`][freeact.permissions.PermissionManager] implementation uses tool name based permissions:
 
 ```json
 {
@@ -165,13 +136,12 @@ Tool permissions are stored in `.freeact/permissions.json`:
 }
 ```
 
-Tools in the `allowed_tools` list execute without prompting for approval. This file is updated when you grant "always allow" permission during interactive use.
+Tools in the `allowed_tools` list execute without prompting for approval in the terminal interface. This file is updated when you grant an *always allow* (`a`) permission.
 
 ### Permission Tiers
 
 1. **Always allowed** - Persisted in `permissions.json`, applies across sessions
 2. **Session allowed** - In-memory only, cleared when the agent stops
-3. **Auto-approved** - Filesystem operations within `.freeact/` are always allowed
 
 See [Approval Mechanism](features/approval.md) for details on the approval flow.
 
@@ -179,9 +149,9 @@ See [Approval Mechanism](features/approval.md) for details on the approval flow.
 
 The agent discovers tools from two directories:
 
-### mcptools/
+### `mcptools/`
 
-Auto-generated Python APIs from PTC server schemas:
+Auto-generated Python APIs from `ptc-servers` schemas:
 
 ```
 mcptools/
@@ -189,7 +159,7 @@ mcptools/
     └── <tool>.py        # Generated tool module
 ```
 
-### gentools/
+### `gentools/`
 
 User-defined tools saved from successful code actions:
 
