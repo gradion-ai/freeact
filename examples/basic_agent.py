@@ -24,12 +24,12 @@ async def main() -> None:
         system_prompt=config.system_prompt,
         mcp_servers=config.mcp_servers,
     ) as agent:
-        prompt = "List the files in the current directory"
+        prompt = "Calculate the first 15 Fibonacci numbers and show them with their indices."
 
         async for event in agent.stream(prompt):
             match event:
                 case ApprovalRequest() as request:
-                    # Auto-approve all tool calls
+                    # Auto-approve all code actions and tool calls
                     request.approve(True)
                 case Response(content=content):
                     print(content)

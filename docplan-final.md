@@ -58,14 +58,14 @@ examples/
   - [x] Reference: https://gradion-ai.github.io/ipybox/installation/index.md
 
 #### Quickstart (`docs/quickstart.md`)
-- [ ] Create minimal terminal session recording
-- [ ] Embed Python API example from `examples/basic_agent.py`
+- [x] Create minimal terminal session recording
+- [x] Embed Python API example from `examples/basic_agent.py`
 
 #### Feature: Programmatic Tool Calling (`docs/features/programmatic-tools.md`)
-- [ ] Write setup instructions for GitHub MCP server in `ptc-servers`
-- [ ] Create terminal recording with query: "get the top 3 github repos of torvalds, sorted by stars desc."
-- [ ] Document `mcptools/` generation
-- [ ] Explain progressive loading and limitations
+- [x] Write setup instructions for GitHub MCP server in `ptc-servers`
+- [x] Create terminal recording with query: "get the top 3 github repos of torvalds, sorted by stars desc."
+- [x] Document `mcptools/` generation
+- [x] Explain progressive loading and limitations
 
 #### Feature: Reusable Code Actions (`docs/features/reusable-codeacts.md`)
 The raw recording for this feature already exists in
@@ -91,9 +91,9 @@ The documentation pages are still missing.
 - [ ] Create terminal recording 2: MCP server sandboxing
 
 #### Feature: Task Planning (`docs/features/planning.md`)
-- [ ] Create terminal recording with query: "what are the latest 3 commit of the top github repo (w.r.t stars) of the author of DeepSeek-R1 agents with code actions? Make a plan"
-- [ ] Describe planning skill and workflow
-- [ ] Reference reusable-codeacts for memory management
+- [x] Create terminal recording with query: "what are the latest 3 commit of the top github repo (w.r.t stars) of the author of DeepSeek-R1 agents with code actions? Make a plan"
+- [x] Describe planning skill and workflow
+- [x] Reference reusable-codeacts for memory management
 
 #### Feature: Python Packages (`docs/features/python-packages.md`)
 - [ ] Document `uv add matplotlib scikit-learn`

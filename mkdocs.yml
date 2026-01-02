@@ -88,7 +88,10 @@ plugins:
         User Guide:
           - index.md: Overview and features
           - installation.md: Setup and installation
+          - quickstart.md: Getting started
         Features:
+          - features/programmatic-tools.md: MCP programmatic tool calling
+          - features/planning.md: Task planning
           - features/approval.md: Approval mechanism
         Python API:
           - python-api.md: Python API introduction and examples
@@ -117,8 +120,11 @@ nav:
   - User Guide:
     - Overview: index.md
     - Installation: installation.md
+    - Quickstart: quickstart.md
     - Python API: python-api.md
   - Features:
+    - Programmatic Tool Calling: features/programmatic-tools.md
+    - Planning: features/planning.md
     - Approval: features/approval.md
   - Reference:
     - Configuration: configuration.md
