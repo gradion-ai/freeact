@@ -1,6 +1,6 @@
 # Python API
 
-The freeact CLI and terminal interface are built on a Python API that you can use directly in your applications. This guide introduces the core components and shows how to integrate freeact programmatically.
+The freeact [CLI and terminal interface](cli.md) are built on a Python API that you can use directly in your applications. This guide introduces the core components and shows how to integrate freeact programmatically.
 
 ## Overview
 
