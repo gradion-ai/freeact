@@ -125,7 +125,7 @@ The raw recording for this feature already exists in
 ### Update Existing Files
 
 #### Update `docs/index.md`
-- [ ] Add links from feature table to corresponding feature pages
+- [x] Add links from feature table to corresponding feature pages
 
 #### Update `mkdocs.yml`
 - [x] Add new pages to navigation
