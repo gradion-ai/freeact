@@ -1,0 +1,12 @@
+{
+  "network": {
+    "allowedDomains": ["example.org"],
+    "deniedDomains": [],
+    "allowLocalBinding": true
+  },
+  "filesystem": {
+    "denyRead": ["sandbox-config.json"],
+    "allowWrite": [".", "~/Library/Jupyter/"],
+    "denyWrite": ["sandbox-config.json"]
+  }
+}

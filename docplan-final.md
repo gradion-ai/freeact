@@ -78,15 +78,15 @@ The raw recording for this feature already exists in
 - [x] Create terminal recording 3: Rerun task showing tool discovery and usage
 
 #### Feature: Agent Skills (`docs/features/agent-skills.md`)
-- [ ] Write shell instructions: clone skills repo, copy pdf skill to `.freeact/skills`, install deps
-- [ ] Create terminal recording: calculation + save as PDF
-- [ ] Document progressive skill loading
+- [x] Write shell instructions: clone skills repo, copy pdf skill to `.freeact/skills`, install deps
+- [x] Create terminal recording: calculation + save as PDF
+- [x] Document progressive skill loading
 
 #### Feature: Sandboxing (`docs/features/sandbox.md`)
-- [ ] Write brief intro to ipybox sandboxing (sandbox-runtime)
-- [ ] Document `--sandbox` and `--sandbox-config` CLI options
-- [ ] Create terminal recording 1: Custom sandbox allowing example.org, blocking others
-- [ ] Create terminal recording 2: MCP server sandboxing
+- [x] Write brief intro to ipybox sandboxing (sandbox-runtime)
+- [x] Document `--sandbox` and `--sandbox-config` CLI options
+- [x] Create terminal recording 1: Custom sandbox allowing example.org, blocking others
+- [x] Create terminal recording 2: MCP server sandboxing (documented with config examples, linked to ipybox docs)
 
 #### Feature: Task Planning (`docs/features/planning.md`)
 - [x] Create terminal recording with query: "what are the latest 3 commit of the top github repo (w.r.t stars) of the author of DeepSeek-R1 agents with code actions? Make a plan"
@@ -94,9 +94,9 @@ The raw recording for this feature already exists in
 - [x] Reference reusable-codeacts for memory management
 
 #### Feature: Python Packages (`docs/features/python-packages.md`)
-- [ ] Document `uv add matplotlib scikit-learn`
-- [ ] Create terminal recording: sine function + GP regressor fitting
-- [ ] Include generated image in docs
+- [x] Document `uv add matplotlib scikit-learn`
+- [x] Create terminal recording: sine function + GP regressor fitting
+- [x] Include generated image in docs
 
 #### Feature: Unified Approval (`docs/features/approval.md`)
 - [x] Write explanation of Y/n/a/s options
@@ -128,8 +128,8 @@ The raw recording for this feature already exists in
 - [ ] Add links from feature table to corresponding feature pages
 
 #### Update `mkdocs.yml`
-- [ ] Add new pages to navigation
-- [ ] Update llmstxt plugin configuration
+- [x] Add new pages to navigation
+- [x] Update llmstxt plugin configuration
 
 ---
 
@@ -217,7 +217,7 @@ Setup:
 ```bash
 git clone https://github.com/anthropics/skills.git /tmp/skills
 cp -r /tmp/skills/skills/pdf .freeact/skills/
-uv add pypdf pdfplumber
+uv pip install pypdf pdfplumber
 ```
 
 Query: Ask for a calculation (e.g., compound interest), generate text around result, save as PDF.
