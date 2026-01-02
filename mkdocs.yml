@@ -91,6 +91,7 @@ plugins:
           - quickstart.md: Getting started
         Features:
           - features/programmatic-tools.md: MCP programmatic tool calling
+          - features/reusable-codeacts.md: Code actions as tools
           - features/planning.md: Task planning
           - features/approval.md: Approval mechanism
         Python API:
@@ -124,6 +125,7 @@ nav:
     - Python API: python-api.md
   - Features:
     - Programmatic Tool Calling: features/programmatic-tools.md
+    - Reusable Code Actions: features/reusable-codeacts.md
     - Planning: features/planning.md
     - Approval: features/approval.md
   - Reference:

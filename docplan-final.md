@@ -73,11 +73,9 @@ The raw recording for this feature already exists in
 - docs/recordings/reusable-codeacts-2/
 - docs/recordings/reusable-codeacts-3/
 
-The documentation pages are still missing.
-
-- [ ] Create terminal recording 1: Generate output parser for search_repositories
-- [ ] Create terminal recording 2: Compose search_repositories + list_commits, save as tool
-- [ ] Create terminal recording 3: Rerun task showing tool discovery and usage
+- [x] Create terminal recording 1: Generate output parser for search_repositories
+- [x] Create terminal recording 2: Compose search_repositories + list_commits, save as tool
+- [x] Create terminal recording 3: Rerun task showing tool discovery and usage
 
 #### Feature: Agent Skills (`docs/features/agent-skills.md`)
 - [ ] Write shell instructions: clone skills repo, copy pdf skill to `.freeact/skills`, install deps
