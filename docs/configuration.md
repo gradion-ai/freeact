@@ -144,8 +144,6 @@ Tools in the `allowed_tools` list execute without prompting for approval in the 
 1. **Always allowed** - Persisted in `permissions.json`, applies across sessions
 2. **Session allowed** - In-memory only, cleared when the agent stops
 
-See [Approval Mechanism](features/approval.md) for details on the approval flow.
-
 ## Tool Directories
 
 The agent discovers tools from two directories:

@@ -82,7 +82,7 @@ plugins:
 
         All code executes locally in a sandboxed IPython kernel via ipybox, with configurable filesystem and
         network restrictions. Tool and skill information loads progressively as needed rather than consuming
-        context upfront. A unified approval mechanism gates all tool executions regardless of origin.
+        context upfront. A unified approval mechanism gates all tool and code executions regardless of origin.
       full_output: llms-full.txt
       sections:
         User Guide:
@@ -91,13 +91,11 @@ plugins:
           - quickstart.md: Getting started
         Features:
           - sandbox.md: Sandbox mode configuration and usage
-          - features/programmatic-tools.md: MCP programmatic tool calling
           - features/reusable-codeacts.md: Code actions as tools
           - features/agent-skills.md: Agent skills extensions
           - features/sandbox.md: Sandboxing example
           - features/planning.md: Task planning
           - features/python-packages.md: Python package usage
-          - features/approval.md: Approval mechanism
         Python API:
           - python-api.md: Python API introduction and examples
         API Reference:
@@ -136,13 +134,11 @@ nav:
     - Command line: cli.md
     - Terminal interface: terminal.md
     - Examples:
-      - Programmatic Tool Calling: features/programmatic-tools.md
       - Reusable Code Actions: features/reusable-codeacts.md
       - Agent Skills: features/agent-skills.md
       - Sandboxing: features/sandbox.md
       - Planning: features/planning.md
       - Python Packages: features/python-packages.md
-      - Approval: features/approval.md
   - API Reference:
     - Agent: api/agent.md
     - Config: api/config.md

@@ -1,5 +1,3 @@
-"""Unified configuration that loads all data on instantiation."""
-
 import json
 import os
 from dataclasses import dataclass
@@ -31,7 +29,7 @@ class SkillMetadata:
 
 
 class Config:
-    """Unified configuration loader for the `.freeact/` directory structure.
+    """Configuration loader for the `.freeact/` directory structure.
 
     Loads and parses all configuration on instantiation: skills metadata,
     system prompts, MCP servers (JSON tool calls), and PTC servers

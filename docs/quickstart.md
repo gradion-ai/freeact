@@ -28,7 +28,7 @@ The recording above shows the agent answering "who is F1 world champion 2025?" u
 
 - **Tool Discovery**: The agent progressively loads tool information: lists categories, lists tools in the `google` category, then reads the `web_search` API to understand its parameters
 - **Code Action**: The agent writes Python code that imports `web_search` from `mcptools.google` and calls it with the user's query, demonstrating programmatic tool calling (PTC)
-- **Dual Approval**: Two approval prompts appear: first for the code action itself, then for the `web_search` tool call made within the code
+- **Approval**: Two approval prompts appear: first for the code action itself, then for the `web_search` tool call made within the code action
 - **Output**: The code execution output shows the search result with source URLs, which the agent then summarizes in its response
 
 !!! note "Pre-approved tool calls"

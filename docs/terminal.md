@@ -43,4 +43,4 @@ Approve? [Y/n/a/s]:
 | `a` | Always approve this action (persisted to `.freeact/permissions.json`) |
 | `s` | Approve for current session only |
 
-See [Approval](features/approval.md) for details.
+See [Permissions](configuration.md#permissions) for details.
