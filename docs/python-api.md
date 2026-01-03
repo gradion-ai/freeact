@@ -111,30 +111,6 @@ async for event in agent.stream(prompt):
                         request.approve(True)
 ```
 
-### Sandbox
-
-The `sandbox` and `sandbox_config` parameters enable sandboxed code execution:
-
-```python
-from pathlib import Path
-
-agent = Agent(
-    model=config.model,
-    model_settings=config.model_settings,
-    system_prompt=config.system_prompt,
-    mcp_servers=config.mcp_servers,
-    sandbox=True,
-    sandbox_config=Path("sandbox-config.json"),
-)
-```
-
-Without `sandbox_config`, the agent runs with default restrictions:
-
-- **Filesystem**: Read all files except `.env`, write to current directory and subdirectories
-- **Network**: Internet access blocked, local network access to tool execution server permitted
-
-See [Sandboxing](features/sandbox.md) for custom configuration options.
-
 ### Lifecycle
 
 The agent manages MCP server connections and an IPython kernel. On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calls connect. MCP servers configured for programmatic tool calling connect lazily on first tool call.

@@ -24,7 +24,7 @@ See [Configuration](configuration.md) for details.
 | Option | Description |
 |--------|-------------|
 | `--sandbox` | Run code execution in sandbox mode using [sandbox-runtime](https://github.com/anthropic-experimental/sandbox-runtime). |
-| `--sandbox-config PATH` | Path to sandbox configuration file. See [Sandboxing](features/sandbox.md). |
+| `--sandbox-config PATH` | Path to sandbox configuration file. See [Sandbox Mode](sandbox.md). |
 | `--log-level LEVEL` | Set logging level: `debug`, `info` (default), `warning`, `error`, `critical`. |
 | `--record` | Record the conversation as SVG and HTML files. |
 | `--record-dir PATH` | Output directory for recordings (default: `output`). |
