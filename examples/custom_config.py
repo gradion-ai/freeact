@@ -32,11 +32,11 @@ for skill in config.skills_metadata:
     print(f"Skill: {skill.name} - {skill.description}")
     print(f"  Path: {skill.path}")
 
-# Access MCP servers (for JSON tool calls)
+# Access MCP servers for JSON tool calling
 for name, server in config.mcp_servers.items():
     print(f"MCP Server: {name}")
 
-# Access PTC servers (for programmatic tool calling)
+# Access MCP servers for programmatic tool calling
 for name, params in config.ptc_servers.items():
     print(f"PTC Server: {name}")
 # --8<-- [end:access]
