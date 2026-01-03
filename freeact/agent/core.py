@@ -270,15 +270,8 @@ class Agent:
         Args:
             prompt: User message as text or multimodal content sequence.
 
-        Yields:
-            [`ThoughtsChunk`][freeact.agent.core.ThoughtsChunk]: Partial model thinking.
-            [`Thoughts`][freeact.agent.core.Thoughts]: Complete model thoughts.
-            [`ResponseChunk`][freeact.agent.core.ResponseChunk]: Partial model response.
-            [`Response`][freeact.agent.core.Response]: Complete model response.
-            [`ApprovalRequest`][freeact.agent.core.ApprovalRequest]: Pending tool approval.
-            [`CodeExecutionOutputChunk`][freeact.agent.core.CodeExecutionOutputChunk]: Partial code execution output.
-            [`CodeExecutionOutput`][freeact.agent.core.CodeExecutionOutput]: Complete code execution output.
-            [`ToolOutput`][freeact.agent.core.ToolOutput]: Result from a JSON-based MCP tool call..
+        Returns:
+            An async event iterator.
         """
         request = self._create_model_request(prompt)
         request_params = ModelRequestParameters(function_tools=self._tool_definitions)

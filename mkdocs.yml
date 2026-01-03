@@ -128,8 +128,8 @@ nav:
     - Overview: index.md
     - Installation: installation.md
     - Quickstart: quickstart.md
-    - Python API: python-api.md
     - Configuration: configuration.md
+    - Python API: python-api.md
     - User interfaces: cli.md
     - Examples:
       - Programmatic Tool Calling: features/programmatic-tools.md

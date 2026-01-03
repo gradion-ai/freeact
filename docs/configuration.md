@@ -1,6 +1,6 @@
 # Configuration
 
-Freeact configuration is stored in the `.freeact/` directory. This guide documents the directory structure and configuration formats.
+Freeact configuration is stored in the `.freeact/` directory. This page describes the directory structure and configuration formats.
 
 ## Initialization
 
@@ -8,9 +8,9 @@ The `.freeact/` directory is created and populated from bundled templates throug
 
 | Entry Point | Description |
 |-------------|-------------|
-| `freeact` or `freeact run` | [Interactive terminal](cli.md) - initializes config before starting |
+| `freeact` or `freeact run` | [Terminal interface](cli.md) - initializes config before starting |
 | `freeact init` | [Explicit initialization](cli.md#init) - creates config without starting the agent |
-| [`init_config()`][freeact.agent.config.init.init_config] | [Python API](python-api.md) - call directly for programmatic control |
+| [`init_config()`][freeact.agent.config.init.init_config] | [Python SDK](python-api.md) - call directly for programmatic control |
 
 All three entry points share the same behavior:
 
@@ -29,7 +29,8 @@ This allows safe customization: edit any configuration file, and your changes re
 ├── servers.json         # MCP server configurations
 ├── skills/              # Agent skills
 │   └── <skill-name>/
-│       └── SKILL.md     # Skill definition
+│       ├── SKILL.md     # Skill metadata and instructions
+│       └── ...          # Further skill resources
 ├── plans/               # Task plan storage
 └── permissions.json     # Persisted tool permissions
 ```
@@ -86,7 +87,7 @@ These are MCP servers called programmatically via Python APIs auto-generated to 
 }
 ```
 
-Python APIs must be generated for `ptc-servers` before the agent can use them. The [CLI](cli.md) handles this automatically, generating APIs only for servers not yet present in `mcptools/`. When using the [freeact Python API](python-api.md), you must call [`generate_mcp_sources()`][freeact.agent.tools.pytools.apigen.generate_mcp_sources] yourself. See [Programmatic Tool Calling](python-api.md#programmatic-tool-calling) for details.
+Python APIs must be generated for `ptc-servers` before the agent can use them. The [CLI](cli.md) handles this automatically, generating APIs only for servers not yet present in `mcptools/`. When using the [Python SDK](python-api.md), you must call [`generate_mcp_sources()`][freeact.agent.tools.pytools.apigen.generate_mcp_sources] yourself. See [Programmatic Tool Calling](python-api.md#programmatic-tool-calling) for details.
 
 !!! hint "Custom MCP servers"
 

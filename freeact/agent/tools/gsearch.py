@@ -47,6 +47,7 @@ async def web_search(
     config = types.GenerateContentConfig(
         tools=[types.Tool(google_search=types.GoogleSearch())],
         thinking_config=types.ThinkingConfig(thinking_level=_thinking_level),
+        system_instruction="Answer as concisely as possible.",
     )
 
     response = await client.aio.models.generate_content(

@@ -1,10 +1,10 @@
-# Python API
+# Python SDK
 
-The freeact [CLI and terminal interface](cli.md) are built on a Python API that you can use directly in your applications. This guide introduces the core components and shows how to integrate freeact programmatically.
+The freeact [CLI and terminal interface](cli.md) are built on a Python SDK that you can use directly in your applications. This guide introduces the core components and shows how to integrate freeact programmatically.
 
 ## Overview
 
-The Python API consists of three main components:
+The Python SDK consists of three main components:
 
 - [`Config`][freeact.agent.config.Config] - Load and access configuration from `.freeact/`
 - [`Agent`][freeact.agent.Agent] - Generate and execute code actions, call MCP tools
