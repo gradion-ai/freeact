@@ -107,7 +107,8 @@ plugins:
           - api/permissions.md: Permissions API
         Reference:
           - configuration.md: Configuration reference
-          - cli.md: Command-line interface
+          - cli.md: Command line
+          - terminal.md: Terminal interface
 
 markdown_extensions:
   - pymdownx.highlight
@@ -132,7 +133,8 @@ nav:
     - Configuration: configuration.md
     - Python API: python-api.md
     - Sandbox Mode: sandbox.md
-    - User interfaces: cli.md
+    - Command line: cli.md
+    - Terminal interface: terminal.md
     - Examples:
       - Programmatic Tool Calling: features/programmatic-tools.md
       - Reusable Code Actions: features/reusable-codeacts.md
