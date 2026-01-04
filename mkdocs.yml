@@ -130,7 +130,7 @@ nav:
     - Quickstart: quickstart.md
     - Configuration: configuration.md
     - Python SDK: python-sdk.md
-    - CLI tool: cli.md
+    - CLI Tool: cli.md
     - Sandbox: sandbox.md
     - Terminal interface: terminal.md
     - Examples:
