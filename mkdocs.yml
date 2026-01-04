@@ -106,7 +106,6 @@ plugins:
         Reference:
           - configuration.md: Configuration reference
           - cli.md: Command line
-          - terminal.md: Terminal interface
 
 markdown_extensions:
   - pymdownx.highlight
@@ -132,7 +131,6 @@ nav:
     - Python SDK: python-sdk.md
     - CLI Tool: cli.md
     - Sandbox: sandbox.md
-    - Terminal interface: terminal.md
     - Examples:
       - Reusable Code Actions: features/reusable-codeacts.md
       - Agent Skills: features/agent-skills.md

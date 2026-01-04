@@ -8,7 +8,7 @@ The essential pattern: iterate with the user on the plan, updating the persisted
 
 The following recording shows the agent creating and executing a plan to find repository commits:
 
-[![Terminal session](../recordings/planning/conversation.svg)](../recordings/planning/conversation.html){target="_blank"}
+[![Interactive mode](../recordings/planning/conversation.svg)](../recordings/planning/conversation.html){target="_blank"}
 
 Key elements:
 

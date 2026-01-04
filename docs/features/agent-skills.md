@@ -19,6 +19,6 @@ uv pip install reportlab
 
 The following recording shows the agent using the PDF skill to perform a calculation and save the result as a PDF document:
 
-[![Terminal session](../recordings/agent-skills/conversation.svg)](../recordings/agent-skills/conversation.html){target="_blank"}
+[![Interactive mode](../recordings/agent-skills/conversation.svg)](../recordings/agent-skills/conversation.html){target="_blank"}
 
 The agent identifies the PDF skill as relevant, performs the calculation, and generates a PDF using the skill's instructions.

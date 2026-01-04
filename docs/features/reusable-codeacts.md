@@ -16,18 +16,18 @@ Once a code action works, it can be saved as a discoverable tool. Freeact provid
 
 ### Generate Output Parser
 
-[![Terminal session](../recordings/reusable-codeacts-1/conversation.svg)](../recordings/reusable-codeacts-1/conversation.html){target="_blank"}
+[![Interactive mode](../recordings/reusable-codeacts-1/conversation.svg)](../recordings/reusable-codeacts-1/conversation.html){target="_blank"}
 
 The agent examines tool output, creates a `run_parsed()` function returning typed results, and saves it for reuse.
 
 ### Compose and Save Tool
 
-[![Terminal session](../recordings/reusable-codeacts-2/conversation.svg)](../recordings/reusable-codeacts-2/conversation.html){target="_blank"}
+[![Interactive mode](../recordings/reusable-codeacts-2/conversation.svg)](../recordings/reusable-codeacts-2/conversation.html){target="_blank"}
 
 The agent chains `search_repositories` with `list_commits`, parameterizes the workflow, and saves it to `gentools/`.
 
 ### Discover and Reuse
 
-[![Terminal session](../recordings/reusable-codeacts-3/conversation.svg)](../recordings/reusable-codeacts-3/conversation.html){target="_blank"}
+[![Interactive mode](../recordings/reusable-codeacts-3/conversation.svg)](../recordings/reusable-codeacts-3/conversation.html){target="_blank"}
 
 The agent finds the previously saved tool, reads its interface, and uses it like any other MCP tool.

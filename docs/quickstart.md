@@ -34,7 +34,7 @@ With this setup and a question like
 
 the CLI tool should generate an output similar to the following:
 
-[![Terminal session](recordings/quickstart/conversation.svg)](recordings/quickstart/conversation.html){target="_blank"}
+[![Interactive mode](recordings/quickstart/conversation.svg)](recordings/quickstart/conversation.html){target="_blank"}
 
 The recorded session demonstrates:
 

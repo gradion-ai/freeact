@@ -6,7 +6,7 @@ This example demonstrates custom sandbox configuration. See [Sandbox Mode](../sa
 
 The following recording demonstrates sandboxing with custom network restrictions. The configuration allows access to `example.org` while blocking all other external domains:
 
-[![Terminal session](../recordings/sandbox-custom/conversation.svg)](../recordings/sandbox-custom/conversation.html){target="_blank"}
+[![Interactive mode](../recordings/sandbox-custom/conversation.svg)](../recordings/sandbox-custom/conversation.html){target="_blank"}
 
 Key steps in the recording:
 
