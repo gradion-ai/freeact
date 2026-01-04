@@ -24,10 +24,10 @@ Enter a task at the prompt. The example below asks "who is F1 world champion 202
 
 [![Terminal session](recordings/quickstart/conversation.svg)](recordings/quickstart/conversation.html){target="_blank"}
 
-The recording above shows the agent answering "who is F1 world champion 2025?" using programmatic tool calling. Key elements:
+The recording above shows the agent answering "who is F1 world champion 2025?" using programmatic tool calling (PTC). Key elements:
 
 - **Tool Discovery**: The agent progressively loads tool information: lists categories, lists tools in the `google` category, then reads the `web_search` API to understand its parameters
-- **Code Action**: The agent writes Python code that imports `web_search` from `mcptools.google` and calls it with the user's query, demonstrating programmatic tool calling (PTC)
+- **Code Action**: The agent writes Python code that imports the `web_search` tool from `mcptools.google` and calls it programmatically with the user's query
 - **Approval**: Two approval prompts appear: first for the code action itself, then for the `web_search` tool call made within the code action
 - **Output**: The code execution output shows the search result with source URLs, which the agent then summarizes in its response
 

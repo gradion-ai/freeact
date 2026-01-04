@@ -129,9 +129,9 @@ nav:
     - Installation: installation.md
     - Quickstart: quickstart.md
     - Configuration: configuration.md
-    - Python API: python-api.md
-    - Sandbox Mode: sandbox.md
-    - Command line: cli.md
+    - Python SDK: python-api.md
+    - CLI tool: cli.md
+    - Sandbox: sandbox.md
     - Terminal interface: terminal.md
     - Examples:
       - Reusable Code Actions: features/reusable-codeacts.md

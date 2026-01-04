@@ -1,4 +1,4 @@
-# Sandbox Mode
+# Sandbox
 
 Freeact can restrict filesystem and network access for code execution and MCP servers using Anthropic's [sandbox-runtime](https://github.com/anthropic-experimental/sandbox-runtime) via [ipybox](https://gradion-ai.github.io/ipybox/). See [Installation](installation.md#sandbox-dependencies) for prerequisites.
 
