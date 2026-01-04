@@ -53,7 +53,7 @@ Alternatively, place it in a `.env` file in the workspace directory:
 GEMINI_API_KEY=your-api-key
 ```
 
-## Sandbox Prerequisites
+## Sandbox Mode Prerequisites
 
 For running freeact in sandbox mode, install Anthropic's [sandbox-runtime](https://github.com/anthropics/anthropic-sandbox):
 
