@@ -2,45 +2,62 @@
 
 This guide shows how to run your first task with freeact.
 
-## Prerequisites
+## CLI Tool
 
-Complete the [installation](installation.md) steps first:
+Freeact provides a [CLI tool](cli.md) for running the agent in a terminal. 
 
-- Set up a workspace with `uv init --bare --python 3.13`
-- Install freeact with `uv add freeact`
-- Set your API key with `export GEMINI_API_KEY="your-api-key"` or in `.env`
+### Starting Freeact
 
-## Running a Task
-
-### Terminal Interface
-
-Start the terminal interface:
+Create a workspace directory, set your API key, and start the agent:
 
 ```bash
-uv run freeact
+mkdir my-workspace && cd my-workspace
+echo "GEMINI_API_KEY=your-api-key" > .env
+uvx freeact
 ```
 
-Enter a task at the prompt. The example below asks "who is F1 world champion 2025?" The agent generates code that calls a web search tool, with approval required before execution.
+See [Installation](installation.md) for alternative setup options and sandbox prerequisites.
+
+### Generating MCP Tool APIs
+
+On first start, the CLI tool auto-generates Python APIs for tools of [configured](configuration.md#ptc-servers) MCP servers. For example, it creates `mcptools/google/web_search.py` for the `web_search` tool of the bundled `google` MCP server. With the generated Python API, the agent can import and call this tool programmatically. 
+
+!!! tip "Custom MCP servers"
+
+    For calling the tools of your own MCP servers programmatically, add them to the `ptc-servers` section in `.freeact/servers.json`. Freeact auto-generates a Python API for them when the CLI tool starts.
+
+### Running a Task
+
+With this setup and a question like 
+
+> who is F1 world champion 2025? 
+
+the CLI tool should generate an output similar to the following:
 
 [![Terminal session](recordings/quickstart/conversation.svg)](recordings/quickstart/conversation.html){target="_blank"}
 
-The recording above shows the agent answering "who is F1 world champion 2025?" using programmatic tool calling (PTC). Key elements:
+The recorded session demonstrates:
 
-- **Tool Discovery**: The agent progressively loads tool information: lists categories, lists tools in the `google` category, then reads the `web_search` API to understand its parameters
-- **Code Action**: The agent writes Python code that imports the `web_search` tool from `mcptools.google` and calls it programmatically with the user's query
-- **Approval**: Two approval prompts appear: first for the code action itself, then for the `web_search` tool call made within the code action
-- **Output**: The code execution output shows the search result with source URLs, which the agent then summarizes in its response
+- **Progressive tool loading**: The agent progressively loads tool information: lists categories, lists tools in the `google` category, then reads the `web_search` API to understand its parameters.
+- **Programmatic tool calling**: The agent writes Python code that imports the `web_search` tool from `mcptools.google` and calls it programmatically with the user's query.
+- **Action approval**: The code action and the programmatic `web_search` tool call were explicitly approved by the user, other tool calls were [pre-approved](configuration.md#permissions) for this example.
 
-!!! note "Pre-approved tool calls"
+The code execution output shows the search result with source URLs. The agent response is a summary of it.
 
-    Other tool calls (`pytools_*` and `filesystem_*`) have been [pre-approved](configuration.md#permissions) for this example (not shown).
+## Python SDK
 
-### Python SDK
-
-The terminal interface uses the freeact [Python SDK](python-api.md) internally. Here's a minimal example that runs the same task programmatically:
+The CLI tool uses the freeact [Python SDK](python-api.md) internally. Here's a minimal example that runs the same task programmatically:
 
 ```python
 --8<-- "examples/basic_agent.py:example"
 ```
 
-See [Python SDK](python-api.md) for detailed usage.
+### Output Content Streaming
+
+You can also handle output content streams by matching `ResponseChunk`, `ThoughtsChunk`, and `CodeExecutionOutputChunk`. These events provide output increments as they are generated. See [`Agent.stream()`][freeact.agent.Agent.stream] for details.
+
+### Unified Approval Mechanism
+
+The agent provides a unified approval mechanism. It yields [`ApprovalRequest`][freeact.agent.ApprovalRequest] for all code actions, programmatic tool calls, and JSON tool calls. Execution is suspended until `approve()` is called.
+
+Saving approval decisions is handled by a [`PermissionManager`][freeact.permissions.PermissionManager] that is integrated into the CLI tool but skipped in this code example for brevity. The agent itself does not save approval decisions.

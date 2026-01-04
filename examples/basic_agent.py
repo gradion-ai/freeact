@@ -43,15 +43,19 @@ async def main() -> None:
 
         async for event in agent.stream(prompt):
             match event:
-                case ApprovalRequest() as request:
-                    # Auto-approve all code actions and tool calls
+                case ApprovalRequest(tool_name="ipybox_execute_ipython_cell", tool_args=args) as request:
+                    print(f"Code action:\n{args['code']}")
+                    request.approve(True)
+                case ApprovalRequest(tool_name=name, tool_args=args) as request:
+                    print(f"Tool: {name}")
+                    print(f"Args: {args}")
                     request.approve(True)
                 case Thoughts(content=content):
                     print(f"Thinking: {content}")
                 case CodeExecutionOutput(text=text):
                     print(f"Code execution output: {text}")
                 case ToolOutput(content=content):
-                    print(f"Tool call output: {content}")
+                    print(f"Tool call result: {content}")
                 case Response(content=content):
                     print(content)
 
