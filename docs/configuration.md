@@ -87,7 +87,7 @@ These are MCP servers called programmatically via Python APIs auto-generated to 
 }
 ```
 
-Python APIs must be generated for `ptc-servers` before the agent can use them. The [CLI](cli.md) handles this automatically, generating APIs only for servers not yet present in `mcptools/`. When using the [Python SDK](python-sdk.md), you must call [`generate_mcp_sources()`][freeact.agent.tools.pytools.apigen.generate_mcp_sources] yourself. See [API generation](python-sdk.md#api-generation) for details.
+Python APIs must be generated for `ptc-servers` before the agent can use them. The [CLI](cli.md) handles this automatically, generating APIs only for servers not yet present in `mcptools/`. When using the [Python SDK](python-sdk.md), you must call [`generate_mcp_sources()`][freeact.agent.tools.pytools.apigen.generate_mcp_sources] yourself. See [Generate](python-sdk.md#generate) for details.
 
 !!! hint "Custom MCP servers"
 

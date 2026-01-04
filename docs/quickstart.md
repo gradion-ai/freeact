@@ -46,25 +46,9 @@ The code execution output shows the search result with source URLs. The agent re
 
 ## Python SDK
 
-The CLI tool uses the freeact [Python SDK](python-sdk.md) internally. Here's a minimal example that runs the same task programmatically:
+
+The CLI tool is built on a [Python SDK](python-sdk.md) that you can use directly in your applications. The following minimal example shows how to run the same task programmatically, with code actions and tool calls auto-approved:
 
 ```python
---8<-- "examples/basic_agent.py:example"
+--8<-- "examples/basic_agent.py"
 ```
-
-### Output Content Streaming
-
-You can also handle output content streams by matching `ResponseChunk`, `ThoughtsChunk`, and `CodeExecutionOutputChunk`. These events provide output increments as they are generated. See [`Agent.stream()`][freeact.agent.Agent.stream] for details.
-
-### Unified Approval Mechanism
-
-The agent provides a unified approval mechanism. It yields [`ApprovalRequest`][freeact.agent.ApprovalRequest] for all code actions, programmatic tool calls, and JSON tool calls. Execution is suspended until `approve()` is called.
-
-Saving approval decisions is handled by a [`PermissionManager`][freeact.permissions.PermissionManager] that is integrated into the CLI tool but skipped in this code example for brevity. The agent itself does not save approval decisions.
-
-### SDK Reference
-
-- [Agent API](api/agent.md) - Agent class and event types
-- [Config API](api/config.md) - Configuration loading and access
-- [Generate API](api/generate.md) - MCP source generation
-- [Permissions API](api/permissions.md) - Permission management
