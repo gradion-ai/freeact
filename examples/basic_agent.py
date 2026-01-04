@@ -1,8 +1,3 @@
-"""Basic freeact agent example.
-
-Demonstrates minimal usage of the Python API with automatic approval.
-"""
-
 import asyncio
 
 # --8<-- [start:example]

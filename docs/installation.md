@@ -81,7 +81,3 @@ apt-get install bubblewrap socat ripgrep
 
 !!! note
     Linux sandboxing is currently work in progress.
-
-## Next Steps
-
-See the [Quickstart](quickstart.md) to run freeact and start your first conversation.

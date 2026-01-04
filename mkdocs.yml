@@ -97,7 +97,7 @@ plugins:
           - features/planning.md: Task planning
           - features/python-packages.md: Python package usage
         Python API:
-          - python-api.md: Python API introduction and examples
+          - python-sdk.md: Python SDK introduction and examples
         API Reference:
           - api/agent.md: Agent API
           - api/config.md: Config API
@@ -129,7 +129,7 @@ nav:
     - Installation: installation.md
     - Quickstart: quickstart.md
     - Configuration: configuration.md
-    - Python SDK: python-api.md
+    - Python SDK: python-sdk.md
     - CLI tool: cli.md
     - Sandbox: sandbox.md
     - Terminal interface: terminal.md

@@ -10,7 +10,7 @@ Freeact is a lightweight, general-purpose agent that acts via [*code actions*](h
 
 ## Interfaces
 
-Freeact provides a [Python SDK](python-api.md) for application integration, and a [CLI tool](cli.md) for running the agent in a terminal.
+Freeact provides a [Python SDK](python-sdk.md) for application integration, and a [CLI tool](cli.md) for running the agent in a terminal.
 
 ## Features
 
