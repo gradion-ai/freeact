@@ -10,17 +10,18 @@
 
 This example uses the PDF skill from the [Anthropic skills repository](https://github.com/anthropics/skills), a collection of production-quality skills maintained by Anthropic.
 
+Create a [workspace with a virtual environment](../installation.md#option-2-with-virtual-environment) and install the required dependencies for this example:
+
+```bash
+uv pip install reportlab
+```
+
 Install the PDF skill:
 
 ```bash
 git clone https://github.com/anthropics/skills.git /tmp/skills
+mkdir -p .freeact/skills
 cp -r /tmp/skills/skills/pdf .freeact/skills/
-```
-
-Install the required dependencies for this example:
-
-```bash
-uv pip install reportlab
 ```
 
 Start the [CLI tool](../cli.md):

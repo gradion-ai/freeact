@@ -95,7 +95,6 @@ plugins:
           - features/saving-codeacts.md: Code actions as tools
           - features/agent-skills.md: Agent skills extensions
           - features/sandbox-mode.md: Sandboxing example
-          - features/planning.md: Task planning
           - features/python-packages.md: Python package usage
         Python API:
           - python-sdk.md: Python SDK introduction and examples
@@ -137,7 +136,7 @@ nav:
       - Code Action Reuse: features/saving-codeacts.md
       - Custom Agent Skills: features/agent-skills.md
       - Sandbox Mode: features/sandbox-mode.md
-      - Python Packages: features/python-packages.md
+      - Data Analysis: features/python-packages.md
   - API Reference:
     - Agent: api/agent.md
     - Config: api/config.md

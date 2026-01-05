@@ -19,7 +19,7 @@ It allows network access only to `example.org` and protects the sandbox config f
 Start the CLI with the custom configuration:
 
 ```bash
-freeact --sandbox --sandbox-config sandbox-config.json
+uv run freeact --sandbox --sandbox-config sandbox-config.json
 ```
 
 The recording [below](#recording) demonstrates the sandbox in action. First, the agent can access the allowed domain:
