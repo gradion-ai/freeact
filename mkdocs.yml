@@ -135,7 +135,7 @@ nav:
     - Examples:
       - Enhancing Tools: features/output-parser.md
       - Code Action Reuse: features/saving-codeacts.md
-      - Agent Skills: features/agent-skills.md
+      - Custom Agent Skills: features/agent-skills.md
       - Sandboxing: features/sandbox.md
       - Planning: features/planning.md
       - Python Packages: features/python-packages.md

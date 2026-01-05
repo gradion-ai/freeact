@@ -46,6 +46,10 @@ gentools/
 
 ## Discover and Reuse
 
+!!! hint "Recorded session"
+
+    A [recorded session](../recordings/reusable-codeacts-3/conversation.html) of this example is appended [below](#recording-reuse).
+
 In a new session, the saved tool is discovered like any other Python tool. During discovery, only the API is inspected, not the implementation. When asked to
 
 > get the latest 3 commits of the 2 github repos of torvalds with the most stars. For each repo, output name, stars and the first line of commit messages, and the link to the commit

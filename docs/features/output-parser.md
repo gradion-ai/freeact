@@ -11,7 +11,7 @@ Output parsers solve this by augmenting tool APIs with a structured output type 
 
 Freeact provides the [`output-parsers`](https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates/skills/output-parsers) skill for augmenting existing tools with typed output models. This is an example of the agent acting as a [toolsmith](../index.md#beyond-task-execution), enhancing its own tool library rather than just executing tasks.
 
-## Example
+## Output Parser Generation
 
 !!! hint "Recorded session"
 
