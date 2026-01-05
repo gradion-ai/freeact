@@ -73,7 +73,7 @@ These are MCP servers that are called directly via JSON. This section is primari
 
 ### `ptc-servers`
 
-These are MCP servers called programmatically via Python APIs. Python APIs must be generated from `ptc-servers` to `mcptools/<server-name>/<tool>.py` before the agent can use them. The [CLI tool](cli.md) handles this automatically. When using the [Python SDK](python-sdk.md), call [`generate_mcp_sources()`][freeact.agent.tools.pytools.apigen.generate_mcp_sources] explicitly. Code actions can then import and call the generated APIs.
+These are MCP servers called programmatically via Python APIs. Python APIs must be generated from `ptc-servers` to `mcptools/<server-name>/<tool>.py` before the agent can use them. The [CLI tool](cli.md) handles this automatically. When using the [Python SDK](sdk.md), call [`generate_mcp_sources()`][freeact.agent.tools.pytools.apigen.generate_mcp_sources] explicitly. Code actions can then import and call the generated APIs.
 
 The default configuration includes the bundled `google` MCP server (web search via Gemini):
 
@@ -129,7 +129,7 @@ Freeact contributes three skills to `.freeact/skills/`:
 
 ## Permissions
 
-[Tool permissions](python-sdk.md#permissions-api) are stored in `.freeact/permissions.json` based on tool name:
+[Tool permissions](sdk.md#permissions-api) are stored in `.freeact/permissions.json` based on tool name:
 
 ```json
 {

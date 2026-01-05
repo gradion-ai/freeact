@@ -47,7 +47,7 @@ The code execution output shows the search result with source URLs. The agent re
 ## Python SDK
 
 
-The CLI tool is built on a [Python SDK](python-sdk.md) that you can use directly in your applications. The following minimal example shows how to run the same task programmatically, with code actions and tool calls auto-approved:
+The CLI tool is built on a [Python SDK](sdk.md) that you can use directly in your applications. The following minimal example shows how to run the same task programmatically, with code actions and tool calls auto-approved:
 
 ```python
 --8<-- "examples/basic_agent.py"

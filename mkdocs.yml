@@ -71,41 +71,34 @@ plugins:
   - llmstxt:
       markdown_description: |
         Freeact is a lightweight, general-purpose agent that acts via code actions rather than JSON tool calls.
-        It writes executable Python code that can call multiple tools, process intermediate results, and branch
-        on conditions. Tasks that would otherwise require many inference rounds with JSON tool calling can be
-        completed in a single pass.
+        It writes executable Python code that can call multiple tools programmatically, process intermediate
+        results, and use loops and conditionals in a single pass. Tasks that would otherwise require many
+        inference rounds with JSON tool calling can be completed in one code action.
 
         The agent auto-generates typed Python modules from MCP tool schemas, enabling programmatic tool calling
-        within code actions. Successful code actions can be saved as discoverable tools with clean interfaces,
-        building tool libraries that evolve as the agent works. Agent skills provide filesystem-based capability
-        packages that extend behavior for specific domains.
+        within code actions. Beyond task execution, freeact can save successful code actions as discoverable
+        tools and enhance existing tools with output parsers, acting as a toolsmith in its workspace. Agent
+        skills provide filesystem-based capability packages that extend behavior for specific domains.
 
-        All code executes locally in a sandboxed IPython kernel via ipybox, with configurable filesystem and
-        network restrictions. Tool and skill information loads progressively as needed rather than consuming
-        context upfront. A unified approval mechanism gates all tool and code executions regardless of origin.
+        All code executes locally in a sandboxed IPython kernel via ipybox. An optional sandbox mode restricts
+        filesystem and network access for executed code. Tool and skill information loads progressively as
+        needed rather than consuming context upfront. A unified approval mechanism gates all code actions,
+        programmatic tool calls, and JSON tool calls.
       full_output: llms-full.txt
       sections:
         User Guide:
-          - index.md: Overview and features
-          - installation.md: Setup and installation
-          - quickstart.md: Getting started
-        Features:
-          - sandbox.md: Sandbox mode configuration and usage
-          - features/output-parser.md: Output parser generation
-          - features/saving-codeacts.md: Code actions as tools
-          - features/agent-skills.md: Agent skills extensions
-          - features/sandbox-mode.md: Sandboxing example
-          - features/python-packages.md: Python package usage
-        Python API:
-          - python-sdk.md: Python SDK introduction and examples
+          - index.md: Overview, features, and toolsmith capabilities
+          - installation.md: Setup and installation instructions
+          - quickstart.md: Getting started with code actions and MCP tools
+          - configuration.md: Configuration directory structure and MCP server setup
+          - sandbox.md: Sandbox mode for code execution and MCP servers
+          - sdk.md: Python SDK for agent integration
+          - cli.md: CLI tool and interactive mode
         API Reference:
-          - api/agent.md: Agent API
-          - api/config.md: Config API
-          - api/generate.md: Generate API
-          - api/permissions.md: Permissions API
-        Reference:
-          - configuration.md: Configuration reference
-          - cli.md: Command line
+          - api/agent.md: Agent class, events, and approval workflow
+          - api/config.md: Configuration initialization and loading
+          - api/generate.md: MCP tool API generation
+          - api/permissions.md: Permission management for tool approvals
 
 markdown_extensions:
   - pymdownx.highlight
@@ -129,14 +122,14 @@ nav:
     - Quickstart: quickstart.md
     - Configuration: configuration.md
     - Sandbox Mode: sandbox.md
-    - Python SDK: python-sdk.md
+    - Python SDK: sdk.md
     - CLI Tool: cli.md
     - Examples:
-      - Enhancing Tools: features/output-parser.md
-      - Code Action Reuse: features/saving-codeacts.md
-      - Custom Agent Skills: features/agent-skills.md
-      - Sandbox Mode: features/sandbox-mode.md
-      - Data Analysis: features/python-packages.md
+      - Enhancing Tools: examples/output-parser.md
+      - Code Action Reuse: examples/saving-codeacts.md
+      - Custom Agent Skills: examples/agent-skills.md
+      - Sandbox Mode: examples/sandbox-mode.md
+      - Data Analysis: examples/python-packages.md
   - API Reference:
     - Agent: api/agent.md
     - Config: api/config.md

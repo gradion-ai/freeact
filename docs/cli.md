@@ -88,4 +88,4 @@ Approve? [Y/n/a/s]:
 | `a` | Approve always (persists to `.freeact/permissions.json`) |
 | `s` | Approve for current session |
 
-See [Permissions API](python-sdk.md#permissions-api) for details.
+See [Permissions API](sdk.md#permissions-api) for details.
