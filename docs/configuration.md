@@ -120,9 +120,9 @@ Freeact contributes three skills to `.freeact/skills/`:
 
 | Skill | Description |
 |-------|-------------|
-| [output-parsers](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/templates/skills/output-parsers/) | Generate output parsers for `mcptools/` with unstructured return types |
-| [saving-codeacts](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/templates/skills/saving-codeacts/) | Save generated code actions as reusable tools in `gentools/` |
-| [task-planning](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/templates/skills/task-planning/) | Basic task planning and tracking workflows |
+| [output-parsers](https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates/skills/output-parsers) | Generate output parsers for `mcptools/` with unstructured return types |
+| [saving-codeacts](https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates/skills/saving-codeacts) | Save generated code actions as reusable tools in `gentools/` |
+| [task-planning](https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates/skills/task-planning) | Basic task planning and tracking workflows |
 
 !!! tip "Custom agent skills"
     Custom skills can be added as needed to specialize agent behavior for specific applications.

@@ -91,7 +91,8 @@ plugins:
           - quickstart.md: Getting started
         Features:
           - sandbox.md: Sandbox mode configuration and usage
-          - features/reusable-codeacts.md: Code actions as tools
+          - features/output-parser.md: Output parser generation
+          - features/saving-codeacts.md: Code actions as tools
           - features/agent-skills.md: Agent skills extensions
           - features/sandbox.md: Sandboxing example
           - features/planning.md: Task planning
@@ -132,7 +133,8 @@ nav:
     - CLI Tool: cli.md
     - Sandbox: sandbox.md
     - Examples:
-      - Reusable Code Actions: features/reusable-codeacts.md
+      - Enhancing Tools: features/output-parser.md
+      - Code Action Reuse: features/saving-codeacts.md
       - Agent Skills: features/agent-skills.md
       - Sandboxing: features/sandbox.md
       - Planning: features/planning.md
