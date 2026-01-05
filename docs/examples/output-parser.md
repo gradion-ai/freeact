@@ -15,7 +15,7 @@ Freeact provides the [`output-parsers`](https://github.com/gradion-ai/freeact/tr
 
 !!! hint "Recorded session"
 
-    A [recorded session](../recordings/reusable-codeacts-1/conversation.html) of this example is appended [below](#recording).
+    A [recorded session](../recordings/output-parser/conversation.html) of this example is appended [below](#recording).
 
 
 This example uses the [GitHub MCP server](https://github.com/github/github-mcp-server). Add it to [`ptc-servers`](../configuration.md#ptc-servers) in `.freeact/servers.json`:
@@ -45,6 +45,6 @@ the agent, guided by the `output-parsers` skill:
 4. Creates a `run_parsed()` function that returns structured results
 5. Saves the parser implementation to a separate `mcpparse/` module
 
-[![Interactive mode](../recordings/reusable-codeacts-1/conversation.svg)](../recordings/reusable-codeacts-1/conversation.html){target="_blank" #recording}
+[![Interactive mode](../recordings/output-parser/conversation.svg)](../recordings/output-parser/conversation.html){target="_blank" #recording}
 
 The enhanced tool can now be composed with other tools in a single code action, with full type information available for processing intermediate results.

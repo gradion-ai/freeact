@@ -47,7 +47,7 @@ freeact --record --record-dir docs/recordings/demo --record-title "Demo Session"
 
 The interactive mode provides a conversation interface with the agent in a terminal window.
 
-[![Interactive mode](recordings/terminal/conversation.svg)](recordings/terminal/conversation.html){target="_blank"}
+[![Interactive mode](recordings/cli/conversation.svg)](recordings/cli/conversation.html){target="_blank"}
 
 ### User messages
 

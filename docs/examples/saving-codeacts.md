@@ -12,7 +12,7 @@ The following example shows how to [compose and save](#compose-and-save) a code 
 
 !!! hint "Recorded session"
 
-    A [recorded session](../recordings/reusable-codeacts-2/conversation.html) of this example is appended [below](#recording-compose).
+    A [recorded session](../recordings/saving-codeacts-1/conversation.html) of this example is appended [below](#recording-compose).
 
 This example continues from [output parser generation](output-parser.md), where `search_repositories` was augmented with a `run_parsed()` function returning typed `Repository` objects. When asked to
 
@@ -42,13 +42,13 @@ gentools/
         └── impl.py      # Implementation
 ```
 
-[![Interactive mode](../recordings/reusable-codeacts-2/conversation.svg)](../recordings/reusable-codeacts-2/conversation.html){target="_blank" #recording-compose}
+[![Interactive mode](../recordings/saving-codeacts-1/conversation.svg)](../recordings/saving-codeacts-1/conversation.html){target="_blank" #recording-compose}
 
 ## Discover and Reuse
 
 !!! hint "Recorded session"
 
-    A [recorded session](../recordings/reusable-codeacts-3/conversation.html) of this example is appended [below](#recording-reuse).
+    A [recorded session](../recordings/saving-codeacts-2/conversation.html) of this example is appended [below](#recording-reuse).
 
 In a new session, the saved tool is discovered like any other Python tool. During discovery, only the API is inspected, not the implementation. When asked to
 
@@ -56,4 +56,4 @@ In a new session, the saved tool is discovered like any other Python tool. Durin
 
 the agent discovers the previously saved tool, inspects its API, and calls it with different parameters (`top_n_repos=2`, `top_n_commits=3`).
 
-[![Interactive mode](../recordings/reusable-codeacts-3/conversation.svg)](../recordings/reusable-codeacts-3/conversation.html){target="_blank" #recording-reuse}
+[![Interactive mode](../recordings/saving-codeacts-2/conversation.svg)](../recordings/saving-codeacts-2/conversation.html){target="_blank" #recording-reuse}
