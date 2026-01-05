@@ -6,13 +6,11 @@ The `freeact` or `freeact run` command starts the [interactive mode](#interactiv
 freeact
 ```
 
-A `.freeact/` configuration directory is created automatically if it does not exist. The `init` subcommand initializes the configuration directory without starting the interactive mode:
+A `.freeact/` [configuration](configuration.md) directory is created automatically if it does not exist yet. The `init` subcommand initializes the configuration directory without starting the interactive mode:
 
 ```bash
 freeact init
 ```
-
-See [Configuration](configuration.md) for details.
 
 ## Options
 
@@ -27,13 +25,13 @@ See [Configuration](configuration.md) for details.
 
 ## Examples
 
-Running code execution in sandbox mode:
+Running code execution in [sandbox mode](sandbox.md):
 
 ```bash
 freeact --sandbox
 ```
 
-Running with a custom sandbox configuration:
+Running with a [custom sandbox configuration](sandbox.md#custom-configuration):
 
 ```bash
 freeact --sandbox --sandbox-config sandbox-config.json
@@ -77,7 +75,7 @@ Images are automatically downscaled if larger than 1024 pixels in either dimensi
 
 ### Approval Prompt
 
-Before executing tool calls or code actions, the agent requests approval:
+Before executing code actions or tool calls, the agent requests approval:
 
 ```
 Approve? [Y/n/a/s]:
@@ -85,9 +83,9 @@ Approve? [Y/n/a/s]:
 
 | Response | Effect |
 |----------|--------|
-| `Y` or `Enter` | Approve this execution |
-| `n` | Reject this execution (ends the current agent turn) |
-| `a` | Always approve this action (persisted to `.freeact/permissions.json`) |
-| `s` | Approve for current session only |
+| `Y` or `Enter` | Approve once |
+| `n` | Reject once (ends the current agent turn) |
+| `a` | Approve always (persists to `.freeact/permissions.json`) |
+| `s` | Approve for current session |
 
-See [Permissions](configuration.md#permissions) for details.
+See [Permissions API](python-sdk.md#permissions-api) for details.

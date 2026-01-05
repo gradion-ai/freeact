@@ -63,7 +63,7 @@ npm install -g @anthropic-ai/sandbox-runtime@0.0.21
 
 Higher versions should also work, but 0.0.21 is the version used in current tests. 
 
-This requires further OS-level packages:
+Required OS-level packages are:
 
 ### macOS
 
@@ -80,4 +80,4 @@ apt-get install bubblewrap socat ripgrep
 ```
 
 !!! note
-    Linux sandboxing is currently work in progress.
+    Sandboxing on Linux is currently work in progress.

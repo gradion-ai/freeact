@@ -1,14 +1,10 @@
 # Sandbox Mode
 
-Freeact can restrict filesystem and network access for code execution and MCP servers using [ipybox](https://gradion-ai.github.io/ipybox/) and Anthropic's [sandbox-runtime](https://github.com/anthropic-experimental/sandbox-runtime).
+Freeact can restrict filesystem and network access for code execution and MCP servers using [ipybox sandbox](https://gradion-ai.github.io/ipybox/sandbox/) and Anthropic's [sandbox-runtime](https://github.com/anthropic-experimental/sandbox-runtime).
 
 !!! hint "Prerequisites"
 
     Check the installation instructions for [sandbox mode prerequisites](installation.md#sandbox-mode-prerequisites).
-
-!!! tip "References"
-
-    The [ipybox sandbox documentation](https://gradion-ai.github.io/ipybox/sandbox/) and [sandbox-runtime](https://github.com/anthropic-experimental/sandbox-runtime) provide reference documentation for all configuration options.
 
 ## Code Execution
 
@@ -77,7 +73,7 @@ This example shows a sandboxed [filesystem MCP server](https://github.com/modelc
 }
 ```
 
-This sandbox configuration blocks `.env` reads and allows network access to the npm registry, which is required for `npx` to download the server package:
+The sandbox configuration blocks `.env` reads and allows network access to the npm registry, which is required for `npx` to download the server package:
 
 ```json title="sandbox-filesystem-mcp.json"
 {
@@ -119,7 +115,7 @@ Then add it to the `ptc-servers` section:
 }
 ```
 
-This sandbox configuration blocks `.env` reads and restricts the MCP server to fetch only from `example.com`. Access to the npm registry is required for the MCP server's internal operations:
+The sandbox configuration blocks `.env` reads and restricts the MCP server to fetch only from `example.com`. Access to the npm registry is required for the server's internal operations:
 
 ```json title="sandbox-fetch-mcp.json"
 {

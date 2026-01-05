@@ -5,7 +5,7 @@ site_url: https://gradion-ai.github.io/freeact/
 repo_name: gradion-ai/freeact
 repo_url: https://github.com/gradion-ai/freeact
 
-copyright: Copyright &copy; 2025 Example
+copyright: Copyright &copy; 2025-2026 Gradion AI
 
 theme:
   name: material

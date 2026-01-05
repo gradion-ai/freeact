@@ -16,15 +16,15 @@ echo "GEMINI_API_KEY=your-api-key" > .env
 uvx freeact
 ```
 
-See [Installation](installation.md) for alternative setup options and sandbox prerequisites.
+See [Installation](installation.md) for alternative setup options and sandbox mode prerequisites.
 
 ### Generating MCP Tool APIs
 
-On first start, the CLI tool auto-generates Python APIs for tools of [configured](configuration.md#ptc-servers) MCP servers. For example, it creates `mcptools/google/web_search.py` for the `web_search` tool of the bundled `google` MCP server. With the generated Python API, the agent can import and call this tool programmatically. 
+On first start, the CLI tool auto-generates Python APIs for [configured](configuration.md#ptc-servers) MCP servers. For example, it creates `mcptools/google/web_search.py` for the `web_search` tool of the bundled `google` MCP server. With the generated Python API, the agent can import and call this tool programmatically. 
 
 !!! tip "Custom MCP servers"
 
-    For calling the tools of your own MCP servers programmatically, add them to the `ptc-servers` section in `.freeact/servers.json`. Freeact auto-generates a Python API for them when the CLI tool starts.
+    For calling the tools of your own MCP servers programmatically, add them to the [`ptc-servers`](configuration.md#ptc-servers) section in `.freeact/servers.json`. Freeact auto-generates a Python API for them when the CLI tool starts.
 
 ### Running a Task
 
@@ -40,7 +40,7 @@ The recorded session demonstrates:
 
 - **Progressive tool loading**: The agent progressively loads tool information: lists categories, lists tools in the `google` category, then reads the `web_search` API to understand its parameters.
 - **Programmatic tool calling**: The agent writes Python code that imports the `web_search` tool from `mcptools.google` and calls it programmatically with the user's query.
-- **Action approval**: The code action and the programmatic `web_search` tool call were explicitly approved by the user, other tool calls were [pre-approved](configuration.md#permissions) for this example.
+- **Action approval**: The code action and the programmatic `web_search` tool call are explicitly approved by the user, other tool calls were [pre-approved](configuration.md#permissions) for this example.
 
 The code execution output shows the search result with source URLs. The agent response is a summary of it.
 

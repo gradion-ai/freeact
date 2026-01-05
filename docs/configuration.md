@@ -8,9 +8,9 @@ The `.freeact/` directory is created and populated from bundled templates throug
 
 | Entry Point | Description |
 |-------------|-------------|
-| `freeact` or<br/> `freeact run` | Create config with [CLI tool](cli.md) before starting the agent |
-| `freeact init` | Create config with [CLI tool](cli.md) without starting the agent |
-| [`init_config()`][freeact.agent.config.init.init_config] | Create config programmatically without starting the agent |
+| `freeact` or<br/> `freeact run` | Creates config with [CLI tool](cli.md) before starting the agent |
+| `freeact init` | Creates config with [CLI tool](cli.md) without starting the agent |
+| [`init_config()`][freeact.agent.config.init.init_config] | Creates config programmatically without starting the agent |
 
 All three entry points share the same behavior:
 
@@ -108,11 +108,11 @@ The system prompt template is stored in `.freeact/prompts/system.md`. The templa
 See the [default template](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/templates/prompts/system.md) for details.
 
 !!! tip "Custom system prompt"
-    The system prompt can be extended or modified to specialize agent behavior for specific applications. Changes persist across restarts. The file is only recreated from the default template if deleted.
+    The system prompt can be extended or modified to specialize agent behavior for specific applications.
 
 ## Skills
 
-Skills are filesystem-based capability packages that specialize agent behavior. A skill is a directory containing a `SKILL.md` file with metadata in YAML frontmatter and optionally further skill resources. Skills follow the [agentskills.io](https://agentskills.io/specification/) specification.
+Skills are filesystem-based capability packages that specialize agent behavior. A skill is a directory containing a `SKILL.md` file with metadata in YAML frontmatter, and optionally further skill resources. Skills follow the [agentskills.io](https://agentskills.io/specification/) specification.
 
 ### Bundled Skills
 
@@ -129,7 +129,7 @@ Freeact contributes three skills to `.freeact/skills/`:
 
 ## Permissions
 
-Tool permissions are stored in `.freeact/permissions.json`. The current [`PermissionManager`][freeact.permissions.PermissionManager] implementation uses tool name based permissions:
+[Tool permissions](python-sdk.md#permissions-api) are stored in `.freeact/permissions.json` based on tool name:
 
 ```json
 {
