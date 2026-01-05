@@ -10,4 +10,4 @@ The following recording demonstrates using matplotlib and scikit-learn to fit a 
 
 The agent generates samples, fits a model, and creates a visualization with uncertainty bounds:
 
-![Gaussian Process Regression on Noisy Sine Wave](../images/gp-sine-regression.png)
+![Gaussian Process Regression on Noisy Sine Wave](../images/gpr_sine.png)

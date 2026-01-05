@@ -94,7 +94,7 @@ plugins:
           - features/output-parser.md: Output parser generation
           - features/saving-codeacts.md: Code actions as tools
           - features/agent-skills.md: Agent skills extensions
-          - features/sandbox.md: Sandboxing example
+          - features/sandbox-mode.md: Sandboxing example
           - features/planning.md: Task planning
           - features/python-packages.md: Python package usage
         Python API:
@@ -129,15 +129,14 @@ nav:
     - Installation: installation.md
     - Quickstart: quickstart.md
     - Configuration: configuration.md
+    - Sandbox Mode: sandbox.md
     - Python SDK: python-sdk.md
     - CLI Tool: cli.md
-    - Sandbox: sandbox.md
     - Examples:
       - Enhancing Tools: features/output-parser.md
       - Code Action Reuse: features/saving-codeacts.md
       - Custom Agent Skills: features/agent-skills.md
-      - Sandboxing: features/sandbox.md
-      - Planning: features/planning.md
+      - Sandbox Mode: features/sandbox-mode.md
       - Python Packages: features/python-packages.md
   - API Reference:
     - Agent: api/agent.md
