@@ -49,7 +49,7 @@ Without a custom configuration file, sandbox mode applies these defaults:
 --8<-- "examples/sandbox-config.json"
 ```
 
-This macOS-specific example configuration allows additional network access to `example.org`. Filesystem settings permit writes to  `~/Library/Jupyter/` and `~/.ipython/`, which is required for running a sandboxed IPython kernel. The sandbox configuration file itself is protected from reads and writes.
+This macOS-specific example configuration allows additional network access to `example.org`. Filesystem settings permit writes to `~/Library/Jupyter/` and `~/.ipython/`, which is required for running a sandboxed IPython kernel. The sandbox configuration file itself is protected from reads and writes.
 
 ## MCP Servers
 

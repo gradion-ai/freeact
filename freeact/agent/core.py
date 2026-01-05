@@ -178,7 +178,7 @@ class Agent:
             system_prompt: Instructions defining agent behavior.
             mcp_servers: Named MCP servers for JSON-based tool calls.
             kernel_env: Environment variables passed to the IPython kernel.
-            sandbox: Run the kernel in a sandboxed container.
+            sandbox: Run the kernel in sandbox mode.
             sandbox_config: Path to custom sandbox configuration.
             images_dir: Directory for saving generated images.
         """

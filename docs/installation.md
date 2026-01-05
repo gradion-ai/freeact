@@ -55,7 +55,7 @@ GEMINI_API_KEY=your-api-key
 
 ## Sandbox Mode Prerequisites
 
-For running freeact in sandbox mode, install Anthropic's [sandbox-runtime](https://github.com/anthropics/anthropic-sandbox):
+For running freeact in sandbox mode, install Anthropic's [sandbox-runtime](https://github.com/anthropic-experimental/sandbox-runtime):
 
 ```bash
 npm install -g @anthropic-ai/sandbox-runtime@0.0.21
