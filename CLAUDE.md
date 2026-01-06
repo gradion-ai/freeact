@@ -4,13 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Freeact is a code action agent that acts via Python code execution rather than JSON tool calls. The agent writes executable Python code that calls multiple tools, processes intermediate results, and branches on conditions. Tasks that would require many inference rounds with JSON tool calling can be completed in a single pass. Code executes in a sandboxed IPython kernel via [ipybox](https://gradion-ai.github.io/ipybox/).
+Freeact is a lightweight, general-purpose agent that acts via [code actions](https://machinelearning.apple.com/research/codeact) rather than JSON tool calls. It writes executable Python code that can call multiple tools programmatically, process intermediate results, and use loops and conditionals in a single pass - tasks that would otherwise require many inference rounds with JSON tool calling.
+
+Beyond executing tools, freeact can develop new tools from successful code actions, evolving its own tool library over time. Tools are defined via Python interfaces, progressively discovered and loaded from the agent's workspace rather than consuming context upfront. All execution happens locally in a secure sandbox via [ipybox](https://gradion-ai.github.io/ipybox/).
 
 Key capabilities:
-- **Programmatic Tool Calling (PTC)**: Auto-generates typed Python modules from MCP tool schemas to `mcptools/`, enabling tool calls within code actions
-- **Reusable code actions**: Successful code actions can be saved as discoverable tools in `gentools/`
-- **Agent skills**: Filesystem-based capability packages in `.freeact/skills/` that extend agent behavior
-- **Progressive disclosure**: Tool/skill information loads in stages as needed, not upfront
+- **Programmatic tool calling**: Generates typed Python APIs from MCP tool schemas to `mcptools/`, enabling tool calls within code actions
+- **Reusable code actions**: Successful code actions can be saved as discoverable tools in `gentools/` with clean interfaces
+- **Agent skills**: Supports the [agentskills.io](https://agentskills.io/) specification for extending agent capabilities with specialized knowledge and workflows
+- **Progressive loading**: Tool/skill information loads in stages as needed, not upfront
+- **Unified approval**: Code actions, programmatic tool calls, and JSON-based tool calls all require approval before proceeding
 
 ## Development Commands
 
