@@ -1,6 +1,6 @@
 # Custom Agent Skills
 
-[Agent skills](https://agentskills.io/) extend freeact with specialized knowledge and workflows for specific domains. Skills that guide code execution are particularly well-suited for freeact's code action approach. Skills are loaded on demand: only metadata is in context initially, full instructions load when relevant.  
+Freeact supports the [agentskills.io](https://agentskills.io/) specification, a lightweight format for extending agent capabilities with specialized knowledge and workflows. Skills that guide code execution are particularly well-suited for freeact's code action approach. Skills are loaded on demand: only metadata is in context initially, full instructions load when relevant.  
 
 ## PDF Generation
 

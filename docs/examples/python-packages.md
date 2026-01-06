@@ -4,9 +4,7 @@
 
     A [recorded session](../recordings/python-packages/conversation.html) of this example is appended [below](#recording).
 
-Freeact can use any Python package available in the sandbox environment. This example demonstrates using scikit-learn and matplotlib directly in code actions to fit a Gaussian Process Regressor to noisy sine wave data and visualize the results with uncertainty bounds.
-
-## Setup
+Freeact can use any Python package available in the execution environment. This example demonstrates using scikit-learn and matplotlib directly in code actions to fit a Gaussian Process Regressor to noisy sine wave data and visualize the results with uncertainty bounds.
 
 Create a [workspace with a virtual environment](../installation.md#option-2-with-virtual-environment) and install the required dependencies:
 
@@ -14,13 +12,11 @@ Create a [workspace with a virtual environment](../installation.md#option-2-with
 uv pip install scikit-learn matplotlib
 ```
 
-Start the CLI:
+Start the [CLI tool](../cli.md):
 
 ```bash
 uv run freeact
 ```
-
-## Usage
 
 In the recording [below](#recording), the agent performs Gaussian Process Regression in response to a single prompt:
 
@@ -32,7 +28,7 @@ A follow-up prompt asks for model statistics:
 
 > print the stats
 
-The agent prints the log-marginal-likelihood and other metrics from the fitted model.
+The agent prints the log-marginal-likelihood and other attributes from the fitted model.
 
 [![Interactive mode](../recordings/python-packages/conversation.svg)](../recordings/python-packages/conversation.html){target="_blank" #recording}
 
