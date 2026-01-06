@@ -1,10 +1,11 @@
 site_name: freeact
-site_description: AI agents that use code actions to dynamically interact with and adapt to their environment
+site_description: Freeact code action agent
+site_url: https://gradion-ai.github.io/freeact/
 
 repo_name: gradion-ai/freeact
 repo_url: https://github.com/gradion-ai/freeact
 
-copyright: Copyright &copy; 2025 Gradion AI
+copyright: Copyright &copy; 2025-2026 Gradion AI
 
 theme:
   name: material
@@ -47,7 +48,6 @@ theme:
     - content.code.copy
     - content.code.select
     - content.code.annotate
-    - content.footnote.tooltips
 
 plugins:
   - search
@@ -57,52 +57,84 @@ plugins:
         python:
           paths: [freeact]
           options:
+            show_root_heading: true
+            show_source: false
             show_signature_annotations: true
             signature_crossrefs: true
             separate_signature: true
             merge_init_into_class: true
-            members_order: source
-          import:
+            extensions:
+              - griffe_pydantic
+          inventories:
             - url: https://docs.python.org/3/objects.inv
               domains: [py, std]
+  - llmstxt:
+      markdown_description: |
+        Freeact is a lightweight, general-purpose agent that acts via code actions rather than JSON tool calls.
+        It writes executable Python code that can call multiple tools programmatically, process intermediate
+        results, and use loops and conditionals in a single pass. Tasks that would otherwise require many
+        inference rounds with JSON tool calling can be completed in one code action.
+
+        The agent auto-generates typed Python modules from MCP tool schemas, enabling programmatic tool calling
+        within code actions. Beyond task execution, freeact can save successful code actions as discoverable
+        tools and enhance existing tools with output parsers, acting as a toolsmith in its workspace. Agent
+        skills provide filesystem-based capability packages that extend behavior for specific domains.
+
+        All code executes locally in a sandboxed IPython kernel via ipybox. An optional sandbox mode restricts
+        filesystem and network access for executed code. Tool and skill information loads progressively as
+        needed rather than consuming context upfront. A unified approval mechanism gates all code actions,
+        programmatic tool calls, and JSON tool calls.
+      full_output: llms-full.txt
+      sections:
+        User Guide:
+          - index.md: Overview, features, and toolsmith capabilities
+          - installation.md: Setup and installation instructions
+          - quickstart.md: Getting started with code actions and MCP tools
+          - configuration.md: Configuration directory structure and MCP server setup
+          - sandbox.md: Sandbox mode for code execution and MCP servers
+          - sdk.md: Python SDK for agent integration
+          - cli.md: CLI tool and interactive mode
+        API Reference:
+          - api/agent.md: Agent class, events, and approval workflow
+          - api/config.md: Configuration initialization and loading
+          - api/generate.md: MCP tool API generation
+          - api/permissions.md: Permission management for tool approvals
 
 markdown_extensions:
-  - pymdownx.highlight:
-      anchor_linenums: true
-      line_spans: __span
-      pygments_lang_class: true
+  - pymdownx.highlight
   - pymdownx.inlinehilite
   - pymdownx.snippets:
-      dedent_subsections: false
+      dedent_subsections: true
   - pymdownx.superfences
-  - pymdownx.tabbed:
-      alternate_style: true
   - pymdownx.details
-  - pymdownx.tilde
+  - footnotes
   - attr_list
   - md_in_html
   - admonition
-  - footnotes
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 nav:
-  - User guide:
-    - Introduction: index.md
-    - Quickstart: quickstart.md
+  - User Guide:
+    - Overview: index.md
     - Installation: installation.md
-    - Fundamentals: fundamentals.md
-    - Environment: environment.md
-    - Observability: observability.md
-    - MCP integration: mcp-integration.md
-    - System prompt: system-prompt.md
-    - Evaluation results: https://github.com/gradion-ai/freeact/blob/main/evaluation/README.md
-    - Skills:
-      - Using internal knowledge: skills/internal-knowledge.md
-      - Using predefined skills: skills/predefined-skills.md
-      - Learning skills by example: skills/learning-by-example.md
-      - Collaborative skill learning: skills/collaborative-learning.md
-      - Autonomous skill learning: skills/autonomous-learning.md
-  - API Documentation:
-    - Environment: api/environment.md
+    - Quickstart: quickstart.md
+    - Configuration: configuration.md
+    - Sandbox Mode: sandbox.md
+    - Python SDK: sdk.md
+    - CLI Tool: cli.md
+    - Examples:
+      - Enhancing Tools: examples/output-parser.md
+      - Code Action Reuse: examples/saving-codeacts.md
+      - Custom Agent Skills: examples/agent-skills.md
+      - Sandbox Mode: examples/sandbox-mode.md
+      - Data Analysis: examples/python-packages.md
+    - LLM readable:
+      - llms.txt: llms.txt
+      - llms-full.txt: llms-full.txt
+  - API Reference:
     - Agent: api/agent.md
-    - Model: api/model.md
-    - Tracing: api/tracing.md
+    - Config: api/config.md
+    - Generate: api/generate.md
+    - Permissions: api/permissions.md

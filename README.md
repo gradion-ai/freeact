@@ -1,4 +1,4 @@
-# `freeact`
+# freeact
 
 <p align="left">
     <a href="https://gradion-ai.github.io/freeact/"><img alt="Website" src="https://img.shields.io/website?url=https%3A%2F%2Fgradion-ai.github.io%2Ffreeact%2F&up_message=online&down_message=offline&label=docs"></a>
@@ -6,83 +6,51 @@
     <a href="https://github.com/gradion-ai/freeact/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/gradion-ai/freeact"></a>
     <a href="https://github.com/gradion-ai/freeact/actions"><img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/gradion-ai/freeact/test.yml"></a>
     <a href="https://github.com/gradion-ai/freeact/blob/main/LICENSE"><img alt="GitHub License" src="https://img.shields.io/github/license/gradion-ai/freeact?color=blueviolet"></a>
-    <a href="https://pypi.org/project/freeact/"><img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/freeact"></a>
 </p>
 
-[![SPONSORED BY E2B FOR STARTUPS](https://img.shields.io/badge/SPONSORED%20BY-E2B%20FOR%20STARTUPS-ff8800?style=for-the-badge)](https://e2b.dev/startups)
+> [!NOTE]
+> **Next generation freeact**
+>
+> This is the next generation of freeact, a complete rewrite. Older versions are maintained on the [0.6.x branch](https://github.com/gradion-ai/freeact/tree/0.6.x) and can be obtained with `pip install freeact<0.7`.
 
-## Overview
+Freeact is a lightweight, general-purpose agent that acts via [*code actions*](https://machinelearning.apple.com/research/codeact) rather than JSON tool calls<sup>1)</sup>. It writes executable Python code that can call multiple tools programmatically, process intermediate results, and use loops and conditionals in a single pass, which would otherwise require many inference rounds with JSON tool calling.
 
-`freeact` is a lightweight AI agent library that uses Python code for defining tool interfaces and executable *code actions*.
-This is in contrast to traditional approaches where tool interfaces and actions are defined in JSON.
+[Beyond executing tools](#beyond-task-execution), freeact can develop new tools from successful code actions, evolving its own tool library over time. Tools are defined via Python interfaces, progressively discovered and loaded from the agent's *workspace*<sup>2)</sup> rather than consuming context upfront. All execution happens locally in a secure sandbox via [ipybox](https://gradion-ai.github.io/ipybox/) and [sandbox-runtime](https://github.com/anthropic-experimental/sandbox-runtime).
 
-A unified code-based approach enables `freeact` agents to reuse code actions from earlier steps as tools or *skills* in later steps.
-Agents can build upon their previous work and compose more complex code actions from simpler ones.
-
-<p/>
-<figure style="text-align: center;">
-  <a href="docs/img/introduction.png" target="_blank">
-    <img src="docs/img/introduction.png" alt="introduction" width="70%">
-  </a>
-  <br>
-  <figcaption><i>A unified code-based approach for defining actions and skills.</i></figcaption>
-</figure>
-<p/>
-
-`freeact` agents are LLM agents that:
-
-- generate code actions in Python and execute them in a sandboxed environment
-- can use any function or methods from any Python package as tool definition
-- can store generated code actions as skills in long-term memory
-- can reuse these skills as tools in other code actions and improve on them
-- support invocation and composition of MCP tools in code actions
-
-### Supported models
-
-`freeact` supports usage of any LLM from any provider as code action model via [LiteLLM](https://github.com/BerriAI/litellm).
+**Supported models**: Freeact supports models compatible with [Pydantic AI](https://ai.pydantic.dev/), with `gemini-3-flash-preview` as the current default.
 
 ## Documentation
 
-- `freeact`: https://gradion-ai.github.io/freeact/
-- `ipybox`: https://gradion-ai.github.io/ipybox/
+- 📚 [Documentation](https://gradion-ai.github.io/freeact/)
+- 🚀 [Quickstart](https://gradion-ai.github.io/freeact/quickstart/)
+- 🤖 [llms.txt](https://gradion-ai.github.io/freeact/llms.txt)
+- 🤖 [llms-full.txt](https://gradion-ai.github.io/freeact/llms-full.txt)
 
-## Quickstart
+## Interfaces
 
-Place API keys for [Anthropic](https://console.anthropic.com/settings/keys) and [Gemini](https://aistudio.google.com/app/apikey) in a `.env` file:
+Freeact provides a [Python SDK](https://gradion-ai.github.io/freeact/sdk/) for application integration, and a [CLI tool](https://gradion-ai.github.io/freeact/cli/) for running the agent in a terminal.
 
-```env
-# For Claude 3.7. Sonnet
-ANTHROPIC_API_KEY=...
+## Features
 
-# For Gemini with search tool
-GEMINI_API_KEY=...
-```
+Freeact combines the following elements into a coherent system:
 
-Add MCP server data to an `mcp.json` file:
+| Feature | Description |
+|---------|-------------|
+| **Programmatic tool calling** | Agents [call tools programmatically](https://gradion-ai.github.io/freeact/quickstart/#running-a-task) within code actions rather than through JSON structures. Freeact [generates typed Python APIs](https://gradion-ai.github.io/freeact/quickstart/#generating-mcp-tool-apis) from MCP tool schemas to enable this. LLMs are heavily pretrained on Python code, making this more reliable than JSON tool calling. |
+| **Reusable code actions** | Successful code actions can be [saved as discoverable tools](https://gradion-ai.github.io/freeact/examples/saving-codeacts/) with clean interfaces where function signature, data models and docstrings are separated from implementation. Agents can then use these tools in later code actions, preserving behavior as executable tools. The result is tool libraries that evolve as agents work. |
+| **Agent skills** | Freeact supports the [agentskills.io](https://agentskills.io/) specification, a lightweight format for [extending agent capabilities](https://gradion-ai.github.io/freeact/examples/agent-skills/) with specialized knowledge and workflows. Freeact [provides skills](https://gradion-ai.github.io/freeact/configuration/#bundled-skills) for saving code actions as tools, enhancing existing tools, and structured task planning. |
+| **Progressive loading** | Tool and skill information is [loaded in stages as needed](https://gradion-ai.github.io/freeact/quickstart/#running-a-task), rather than consuming context upfront. For tools: category names, tool names, and API definitions load progressively as needed. For skills: metadata loads at startup; full instructions load when triggered. |
+| **Sandbox mode** | Code actions execute locally in a stateful IPython kernel via ipybox. [Sandbox mode](https://gradion-ai.github.io/freeact/sandbox/) restricts filesystem and network access for executed code ([example](https://gradion-ai.github.io/freeact/examples/sandbox-mode/)). Stdio MCP servers can be sandboxed independently. |
+| **Unified approval** | Code actions, programmatic tool calls, and JSON-based tool calls all require approval before proceeding. [Unified approval](https://gradion-ai.github.io/freeact/sdk/#approval) ensures every action can be inspected and gated with a uniform interface regardless of how it originates. |
+| **Python ecosystem** | Agents can use any Python package available in the execution environment, from data processing with `pandas` to visualization with `matplotlib` to HTTP requests with `httpx`. Many capabilities like data transformation or scientific computing don't need to be wrapped as tools when agents can [call libraries directly](https://gradion-ai.github.io/freeact/examples/python-packages/). |
 
-```json
-{
-    "mcpServers": {
-        "pubmed": {
-            "command": "uvx",
-            "args": ["--quiet", "pubmedmcp@0.1.3"],
-            "env": {"UV_PYTHON": "3.12"}
-        }
-    }
-}
-```
+## Beyond task execution
 
-Start an agent with [`uvx`](https://docs.astral.sh/uv/) via the `freeact` CLI:
+Most agents focus on either software development (coding agents) or on non-coding task execution using predefined tools, but not both. Freeact covers a wider range of this spectrum, from task execution to tool development. Its primary function is executing code actions with programmatic tool calling, guided by user instructions and custom skills.
 
-```bash
-uvx freeact \
-  --ipybox-tag=ghcr.io/gradion-ai/ipybox:basic \
-  --model-name=anthropic/claude-3-7-sonnet-20250219 \
-  --reasoning-effort=low \
-  --skill-modules=freeact_skills.search.google.stream.api \
-  --mcp-servers=mcp.json
-```
+Beyond task execution, freeact can save successful [code actions as reusable tools](https://gradion-ai.github.io/freeact/examples/saving-codeacts/) or [enhance existing tools](https://gradion-ai.github.io/freeact/examples/output-parser/), acting as a toolsmith in its *workspace*<sup>2)</sup>. For heavier tool engineering like refactoring or reducing tool overlap, freeact is complemented by coding agents like Claude Code, Gemini CLI, etc. Currently the toolsmith role is interactive, with autonomous tool library evolution planned for future versions.
 
-Then have a conversation with the agent:
+---
 
-![output](docs/output/quickstart/conversation.svg)
+<sup>1)</sup> Freeact also supports JSON-based tool calls on MCP servers, but mainly for internal operations.<br>
+<sup>2)</sup> A workspace is an agent's working directory where it manages tools, skills, configuration and other resources.

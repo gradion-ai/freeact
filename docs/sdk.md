@@ -1,0 +1,139 @@
+# Python SDK
+
+The Python SDK provides four main APIs:
+
+- [Configuration API](api/config.md) for initializing and loading configuration from `.freeact/`
+- [Generation API](api/generate.md) for generating Python APIs for MCP server tools
+- [Agent API](api/agent.md) for running the agentic code action loop
+- [Permissions API](api/permissions.md) for managing approval decisions
+
+## Configuration API
+
+Use [`init_config()`][freeact.agent.config.init_config] to initialize the `.freeact/` directory from default templates. The [`Config()`][freeact.agent.config.Config] constructor loads all configuration from it:
+
+```python
+--8<-- "examples/basic_agent.py:config-imports"
+--8<-- "examples/basic_agent.py:config"
+```
+
+See the [Configuration](configuration.md) reference for details on the `.freeact/` directory structure.
+
+## Generation API
+
+MCP servers [configured](configuration.md#mcp-server-configuration) as `ptc-servers` in `servers.json` require Python API generation with [`generate_mcp_sources()`][freeact.agent.tools.pytools.apigen.generate_mcp_sources] before the agent can call their tools programmatically:
+
+```python
+--8<-- "examples/basic_agent.py:apigen-imports"
+--8<-- "examples/basic_agent.py:apigen"
+```
+
+Generated APIs are stored as `mcptools/<server_name>/<tool>.py` modules and persist across agent sessions. After generation, the agent can import them for programmatic tool calling:
+
+```python
+from mcptools.google.web_search import run, Params
+
+result = run(Params(query="python async tutorial"))
+```
+
+## Agent API
+
+The [`Agent`][freeact.agent.Agent] class implements the agentic code action loop, handling code action generation, code execution, tool calls, and the approval workflow. Each [`stream()`][freeact.agent.Agent.stream] call runs a single agent turn, with the agent managing conversation history across calls. Use `stream()` to iterate over [events](#events) and handle them with pattern matching:
+
+```python
+--8<-- "examples/basic_agent.py:agent-imports"
+--8<-- "examples/basic_agent.py:agent"
+```
+
+For processing output incrementally, match the `*Chunk` event variants listed below.
+
+### Events
+
+The [`Agent.stream()`][freeact.agent.Agent.stream] method yields events as they occur:
+
+| Event | Description |
+|-------|-------------|
+| [`ThoughtsChunk`][freeact.agent.ThoughtsChunk] | Partial model thoughts (content streaming) |
+| [`Thoughts`][freeact.agent.Thoughts] | Complete model thoughts at a given step |
+| [`ResponseChunk`][freeact.agent.ResponseChunk] | Partial model response (content streaming) |
+| [`Response`][freeact.agent.Response] | Complete model response |
+| [`ApprovalRequest`][freeact.agent.ApprovalRequest] | Pending code action or tool call approval |
+| [`CodeExecutionOutputChunk`][freeact.agent.CodeExecutionOutputChunk] | Partial code execution output (content streaming) |
+| [`CodeExecutionOutput`][freeact.agent.CodeExecutionOutput] | Complete code execution output |
+| [`ToolOutput`][freeact.agent.ToolOutput] | JSON tool call output |
+
+### Approval
+
+The agent provides a unified approval mechanism. It yields [`ApprovalRequest`][freeact.agent.ApprovalRequest] for all code actions, programmatic tool calls, and JSON tool calls. Execution is suspended until `approve()` is called. Calling `approve(True)` executes the code action or tool call; `approve(False)` rejects it and ends the current agent turn.
+
+```python
+async for event in agent.stream(prompt):
+    match event:
+        case ApprovalRequest() as request:
+            # Inspect the pending action
+            print(f"Tool: {request.tool_name}")
+            print(f"Args: {request.tool_args}")
+
+            # Approve or reject
+            request.approve(True)
+
+        case Response(content=content):
+            print(content)
+```
+
+!!! note "Code action approval"
+
+    For code actions, `tool_name` is `ipybox_execute_ipython_cell` and `tool_args` contains the `code` to execute.
+
+### Lifecycle
+
+The agent manages MCP server connections and an IPython kernel via [ipybox](https://gradion-ai.github.io/ipybox/). On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calling connect. MCP servers configured for programmatic tool calling connect lazily on first tool call.
+
+```python
+async with Agent(...) as agent:
+    async for event in agent.stream(prompt):
+        ...
+# Connections closed, kernel stopped
+```
+
+Without using the async context manager:
+
+```python
+agent = Agent(...)
+await agent.start()
+try:
+    async for event in agent.stream(prompt):
+        ...
+finally:
+    await agent.stop()
+```
+
+## Permissions API
+
+The agent requests approval for each code action and tool call but doesn't remember past decisions. [`PermissionManager`][freeact.permissions.PermissionManager] adds memory: `allow_always()` persists to `.freeact/permissions.json`, while `allow_session()` stores in-memory until the session ends:
+
+```python
+from freeact.permissions import PermissionManager
+from ipybox.utils import arun
+
+manager = PermissionManager()
+await manager.load()
+
+async for event in agent.stream(prompt):
+    match event:
+        case ApprovalRequest() as request:
+            if manager.is_allowed(request.tool_name, request.tool_args):
+                request.approve(True)
+            else:
+                choice = await arun(input, "Allow? [Y/n/a/s]: ")
+                match choice:
+                    case "a":
+                        await manager.allow_always(request.tool_name)
+                        request.approve(True)
+                    case "s":
+                        manager.allow_session(request.tool_name)
+                        request.approve(True)
+                    case "n":
+                        request.approve(False)
+                    case _:
+                        request.approve(True)
+```

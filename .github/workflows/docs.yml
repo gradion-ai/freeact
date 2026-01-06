@@ -1,0 +1,40 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy-docs:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git credentials
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: ${{ vars.CI_UV_VERSION }}
+          enable-cache: true
+
+      - name: Install Python
+        run: uv python install
+
+      - name: Install dependencies
+        run: |
+          uv sync --locked --all-extras --dev
+          uv pip list
+
+      - name: Deploy documentation
+        run: |
+          uv run mkdocs gh-deploy --force

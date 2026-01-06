@@ -1,57 +1,52 @@
 [project]
 name = "freeact"
 dynamic = ["version"]
-description = "A lightweight library for code-action based agents"
-readme = "README.md"
-license = "Apache-2.0"
+description = "Freeact code action agent"
 authors = [
     { name = "Martin Krasser", email = "martin@gradion.ai" },
-    { name = "Christoph Stumpf", email = "chris@gradion.ai" },
 ]
-requires-python = ">=3.11,<3.14"
-homepage = "https://github.com/gradion-ai/freeact"
+requires-python = ">=3.11,<3.15"
+readme = "README.md"
+license = "Apache-2.0"
 dependencies = [
-    "aioconsole>=0.8.1,<0.9",
-    "aiofiles>=24.1,<25",
-    "google-genai>=1.2,<2",
-    "ipybox>=0.5.1,<0.6",
-    "litellm>=1.74.8,<1.75",
-    "prefixed>=0.9.0,<0.10",
-    "prompt-toolkit>=3.0,<4",
-    "python-dotenv>=1.0,<2",
-    "rich>=13.9,<14",
-    "typer>=0.12.5,<0.13",
-    "langfuse>=2.60.3,<3",
+    "aiofiles>=25.1.0",
+    "aiostream>=0.7.1",
+    "google-genai>=1.56.0",
+    "pydantic-ai>=1.36.0",
+    "prompt-toolkit>=3.0.0",
+    "python-dotenv>=1.0.0",
+    "pillow>=12.0.0",
+    "pyyaml>=6.0.3",
+    "rich>=14.2.0",
+    "ipybox>=0.7.2",
 ]
 
 [project.scripts]
-freeact = "freeact.__main__:main"
-
-[dependency-groups]
-docs = [
-    "mkdocs>=1.6.1,<2",
-    "mkdocs-material>=9.5.48,<10",
-    "mkdocstrings-python>=1.12.2,<2",
-]
-eval = [
-    "openai>=1.59.0,<2",
-    "datasets>=3.2.0,<4",
-    "pandas>=2.2.3,<3",
-    "matplotlib>=3.10.0,<4",
-    "seaborn>=0.13.2,<0.14",
-]
-dev = [
-    "pre-commit>=4.0,<5",
-    "invoke>=2.2,<3",
-    "pytest>=8.3,<9",
-    "pytest-asyncio>=0.25.3,<0.26",
-]
+freeact = "freeact.cli:main"
 
 [tool.uv]
 default-groups = [
     "docs",
-    "eval",
     "dev",
+]
+
+[dependency-groups]
+docs = [
+    "griffe-pydantic>=1.1.8",
+    "mkdocs>=1.6.1,<2",
+    "mkdocs-material>=9.5.48,<10",
+    "mkdocstrings-python>=1.12.2,<2",
+    "mkdocs-llmstxt>=0.4.0",
+    "click<=8.2.1",
+]
+dev = [
+    "invoke>=2.2,<3",
+    "pre-commit>=4.3.0,<5",
+    "pytest>=8.4.2,<9",
+    "pytest-asyncio>=1.2.0,<2",
+    "pytest-cov>=4.1.0,<5",
+    "types-aiofiles>=25.1.0.20251011,<26",
+    "types-pyyaml>=6.0.12.20250915",
 ]
 
 [build-system]
@@ -72,9 +67,6 @@ include = ["freeact"]
 [tool.hatch.build.targets.wheel]
 include = ["freeact"]
 
-[tool.pytest.ini_options]
-asyncio_default_fixture_loop_scope = "package"
-
 [tool.ruff]
 line-length = 120
 
@@ -82,18 +74,12 @@ line-length = 120
 "**/__init__.py" = ["F401"]
 
 [tool.mypy]
-python_version = 3.11
 check_untyped_defs = true
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = [
-    "aiofiles",
-    "aiofiles.os",
-    "dateutil.relativedelta",
-    "dateutil.parser",
-    "requests",
-    "requests.exceptions",
-    "yaml"
+    "aiofiles.*",
+    "yaml.*"
 ]
 ignore_missing_imports = true
