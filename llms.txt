@@ -4,18 +4,13 @@
 
 Freeact is a lightweight, general-purpose agent that acts via code actions rather than JSON tool calls.
 It writes executable Python code that can call multiple tools programmatically, process intermediate
-results, and use loops and conditionals in a single pass. Tasks that would otherwise require many
-inference rounds with JSON tool calling can be completed in one code action.
+results, and use loops and conditionals in a single pass, which would otherwise require many inference
+rounds with JSON tool calling.
 
-The agent auto-generates typed Python modules from MCP tool schemas, enabling programmatic tool calling
-within code actions. Beyond task execution, freeact can save successful code actions as discoverable
-tools and enhance existing tools with output parsers, acting as a toolsmith in its workspace. Agent
-skills provide filesystem-based capability packages that extend behavior for specific domains.
-
-All code executes locally in a sandboxed IPython kernel via ipybox. An optional sandbox mode restricts
-filesystem and network access for executed code. Tool and skill information loads progressively as
-needed rather than consuming context upfront. A unified approval mechanism gates all code actions,
-programmatic tool calls, and JSON tool calls.
+Beyond executing tools, freeact can develop new tools from successful code actions, evolving its own
+tool library over time. Tools are defined via Python interfaces, progressively discovered and loaded
+from the agent's workspace rather than consuming context upfront. All execution happens locally in a
+secure sandbox via ipybox.
 
 
 ## User Guide
