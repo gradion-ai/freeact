@@ -32,5 +32,7 @@ Most agents focus on either software development (coding agents) or on non-codin
 
 Beyond task execution, freeact can save successful [code actions as reusable tools](examples/saving-codeacts.md) or [enhance existing tools](examples/output-parser.md), acting as a toolsmith in its *workspace*[^2]. For heavier tool engineering like refactoring or reducing tool overlap, freeact is complemented by coding agents like Claude Code, Gemini CLI, etc. Currently the toolsmith role is interactive, with autonomous tool library evolution planned for future versions.
 
+## LLM-friendly documentation
+
 [^1]: Freeact also supports JSON-based tool calls on MCP servers, but mainly for internal operations.
 [^2]: A workspace is an agent's working directory where it manages tools, skills, configuration and other resources.

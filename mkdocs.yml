@@ -130,6 +130,9 @@ nav:
       - Custom Agent Skills: examples/agent-skills.md
       - Sandbox Mode: examples/sandbox-mode.md
       - Data Analysis: examples/python-packages.md
+    - LLM readable:
+      - llms.txt: llms.txt
+      - llms-full.txt: llms-full.txt
   - API Reference:
     - Agent: api/agent.md
     - Config: api/config.md
