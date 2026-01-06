@@ -1,15 +1,12 @@
 # Enhancing Tools
 
-When freeact [generates Python APIs](../quickstart.md#generating-mcp-tool-apis) from MCP tool schemas, tools that provide output schemas get a generated `Result` class with typed fields. This enables agents to chain tools in a single code action because they know the structure of intermediate results up-front.
+Many MCP servers lack output schemas. For example, all tools of the [GitHub MCP server](https://github.com/github/github-mcp-server) return a JSON string without defining an output schema. Without an output schema, the `run()` function of the [generated tool API](../quickstart.md#generating-mcp-tool-apis) returns a plain string instead of a structured `Result` type.
 
-Many MCP servers lack output schemas though. For example, the tools of the [GitHub MCP server](https://github.com/github/github-mcp-server), like `search_repositories`, `list_commits`, etc. return a JSON string without defining an output schema. 
-When an MCP tool lacks an output schema, the generated Python API returns an unstructured string. 
+Without knowing output structure beforehand, an agent cannot reliably write code that processes tool output inside a code action. It must retrieve raw results into context for inspection, then write processing logic in another inference round.
 
-Without knowing output structure beforehand, an agent cannot reliably write code that processes outputs inside a code action. It must retrieve raw results into context for inspection, then write processing logic in another inference round.
+Freeact's bundled [`output-parsers`](https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates/skills/output-parsers) skill solves this by generating output parsers that enhance tool APIs with a `run_parsed()` function that returns a structured output type. With output types known, the agent can generate processing logic in a single inference round. 
 
-Output parsers solve this by augmenting tool APIs with a structured output type plus a `run_parsed()` function. With typed output information available, the agent can chain tools in a single code action because it knows the structure of intermediate results up-front. Generating an output parser must be done only once per tool, the enhancement persists across sessions.
-
-Freeact provides the [`output-parsers`](https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates/skills/output-parsers) skill for augmenting existing tools with typed output models. This is an example of the agent acting as a [toolsmith](../index.md#beyond-task-execution), enhancing its own tool library rather than just executing tasks.
+This tool enhancement persists across sessions and is an example of the agent acting as a [toolsmith](../index.md#beyond-task-execution), enhancing its own tool library rather than just executing tasks.
 
 ## Output Parser Generation
 
@@ -17,8 +14,14 @@ Freeact provides the [`output-parsers`](https://github.com/gradion-ai/freeact/tr
 
     A [recorded session](../recordings/output-parser/conversation.html) of this example is appended [below](#recording).
 
+Create a [workspace](../installation.md#option-1-minimal) and initialize the configuration directory:
 
-This example uses the [GitHub MCP server](https://github.com/github/github-mcp-server). Add it to [`ptc-servers`](../configuration.md#ptc-servers) in `.freeact/servers.json`:
+```bash
+mkdir my-workspace && cd my-workspace
+uvx freeact init
+```
+
+Add the [GitHub MCP server](https://github.com/github/github-mcp-server) to [`ptc-servers`](../configuration.md#ptc-servers) in `.freeact/servers.json`:
 
 ```json
 {
@@ -31,20 +34,27 @@ This example uses the [GitHub MCP server](https://github.com/github/github-mcp-s
 }
 ```
 
-Set your GitHub personal access token (PAT) as the `GITHUB_API_KEY` environment variable or add it to `.env`.
+Set your GitHub personal access token (PAT) as the `GITHUB_API_KEY` environment variable or add it to `.env`. 
 
-When starting the [CLI tool](../cli.md), Python APIs are automatically generated to `mcptools/github/`. When asked to 
+Then start the [CLI tool](../cli.md) to automatically generate Python APIs to `mcptools/github/`:
+
+```bash
+uvx freeact
+```
+
+When asked to 
 
 > create an output parser for search_repositories
 
-the agent, guided by the `output-parsers` skill:
+the agent 
 
-1. Runs the tool with example inputs to observe output structure
-2. Identifies parseable JSON with fields like `name`, `description`, `stargazers_count`
-3. Adds a `ParseResult` model with typed `Repository` objects to the tool module
-4. Creates a `run_parsed()` function that returns structured results
-5. Saves the parser implementation to a separate `mcpparse/` module
+1. Loads the `output-parsers` skill and the [generated](https://github.com/gradion-ai/ipybox/blob/main/docs/generated/mcptools/github/search_repositories_orig.py) `search_repositories.py` tool API
+2. Calls the `search_repositories.run()` function with example inputs to observe outputs
+3. Identifies parseable JSON with fields like `name`, `description`, `stargazers_count`, etc.
+4. Creates an [enhanced](https://github.com/gradion-ai/ipybox/blob/main/docs/generated/mcptools/github/search_repositories.py) tool API with `ParseResult`, `Repository` and `run_parsed()`
+5. Saves the [parser](https://github.com/gradion-ai/ipybox/blob/main/docs/generated/mcpparse/github/search_repositories.py) to a separate `mcpparse/github/search_repositories.py`
+6. Resets the IPython kernel to re-import the tool for testing `run_parsed()`
 
 [![Interactive mode](../recordings/output-parser/conversation.svg)](../recordings/output-parser/conversation.html){target="_blank" #recording}
 
-The enhanced tool can now be composed with other tools in a single code action, with full type information available for processing intermediate results.
+The enhanced tool can now be [composed with other tools](saving-codeacts.md#compose-and-save) in a single code action, with full type information available for processing intermediate results.
