@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://gradion-ai.github.io/freeact/quickstart/">
+        <link rel="canonical" href="https://gradion-ai.github.io/freeact/cli/">
       
       
-        <link rel="prev" href="../installation/">
+        <link rel="prev" href="../sdk/">
       
       
-        <link rel="next" href="../configuration/">
+        <link rel="next" href="../examples/output-parser/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Quickstart - freeact</title>
+        <title>CLI Tool - freeact</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#quickstart" class="md-skip">
+        <a href="#cli-tool" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Quickstart
+              CLI Tool
             
           </span>
         </div>
@@ -435,37 +435,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Quickstart
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
         
   
   
@@ -481,87 +454,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#cli-tool" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        CLI Tool
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="CLI Tool">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#starting-freeact" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Starting Freeact
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#generating-mcp-tool-apis" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Generating MCP Tool APIs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#running-a-task" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Running a Task
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#python-sdk" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Python SDK
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -655,10 +547,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../cli/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Tool
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -674,6 +593,98 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interactive-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interactive Mode
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interactive Mode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#user-messages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User messages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#image-attachments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Image Attachments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#approval-prompt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Approval Prompt
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1206,22 +1217,44 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#cli-tool" class="md-nav__link">
+  <a href="#options" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CLI Tool
+        Options
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="CLI Tool">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interactive-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interactive Mode
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interactive Mode">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#starting-freeact" class="md-nav__link">
+  <a href="#user-messages" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Starting Freeact
+        User messages
       
     </span>
   </a>
@@ -1229,10 +1262,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#generating-mcp-tool-apis" class="md-nav__link">
+  <a href="#image-attachments" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Generating MCP Tool APIs
+        Image Attachments
       
     </span>
   </a>
@@ -1240,10 +1273,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#running-a-task" class="md-nav__link">
+  <a href="#approval-prompt" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Running a Task
+        Approval Prompt
       
     </span>
   </a>
@@ -1252,17 +1285,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#python-sdk" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Python SDK
-      
-    </span>
-  </a>
   
 </li>
       
@@ -1286,99 +1308,127 @@
   
 
 
-<h1 id="quickstart">Quickstart</h1>
-<p>This guide shows how to run your first task with freeact.</p>
-<h2 id="cli-tool">CLI Tool</h2>
-<p>Freeact provides a <a href="../cli/">CLI tool</a> for running the agent in a terminal. </p>
-<h3 id="starting-freeact">Starting Freeact</h3>
-<p>Create a workspace directory, set your API key, and start the agent:</p>
-<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>my-workspace<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>my-workspace
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;GEMINI_API_KEY=your-api-key&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>.env
-uvx<span class="w"> </span>freeact
+<h1 id="cli-tool">CLI tool</h1>
+<p>The <code>freeact</code> or <code>freeact run</code> command starts the <a href="#interactive-mode">interactive mode</a>:</p>
+<div class="highlight"><pre><span></span><code>freeact
 </code></pre></div>
-<p>See <a href="../installation/">Installation</a> for alternative setup options and sandbox mode prerequisites.</p>
-<h3 id="generating-mcp-tool-apis">Generating MCP Tool APIs</h3>
-<p>On first start, the CLI tool auto-generates Python APIs for <a href="../configuration/#ptc-servers">configured</a> MCP servers. For example, it creates <code>mcptools/google/web_search.py</code> for the <code>web_search</code> tool of the bundled <code>google</code> MCP server. With the generated Python API, the agent can import and call this tool programmatically. </p>
-<div class="admonition tip">
-<p class="admonition-title">Custom MCP servers</p>
-<p>For calling the tools of your own MCP servers programmatically, add them to the <a href="../configuration/#ptc-servers"><code>ptc-servers</code></a> section in <code>.freeact/servers.json</code>. Freeact auto-generates a Python API for them when the CLI tool starts.</p>
-</div>
-<h3 id="running-a-task">Running a Task</h3>
-<p>With this setup and a question like </p>
-<blockquote>
-<p>who is F1 world champion 2025? </p>
-</blockquote>
-<p>the CLI tool should generate an output similar to the following:</p>
-<p><a href="../recordings/quickstart/conversation.html" target="_blank"><img alt="Interactive mode" src="../recordings/quickstart/conversation.svg" /></a></p>
-<p>The recorded session demonstrates:</p>
+<p>A <code>.freeact/</code> <a href="../configuration/">configuration</a> directory is created automatically if it does not exist yet. The <code>init</code> subcommand initializes the configuration directory without starting the interactive mode:</p>
+<div class="highlight"><pre><span></span><code>freeact<span class="w"> </span>init
+</code></pre></div>
+<h2 id="options">Options</h2>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--sandbox</code></td>
+<td>Run code execution in <a href="../sandbox/">sandbox mode</a>.</td>
+</tr>
+<tr>
+<td><code>--sandbox-config PATH</code></td>
+<td>Path to sandbox configuration file.</td>
+</tr>
+<tr>
+<td><code>--log-level LEVEL</code></td>
+<td>Set logging level: <code>debug</code>, <code>info</code> (default), <code>warning</code>, <code>error</code>, <code>critical</code>.</td>
+</tr>
+<tr>
+<td><code>--record</code></td>
+<td>Record the conversation as SVG and HTML files.</td>
+</tr>
+<tr>
+<td><code>--record-dir PATH</code></td>
+<td>Output directory for recordings (default: <code>output</code>).</td>
+</tr>
+<tr>
+<td><code>--record-title TEXT</code></td>
+<td>Title for the recording (default: <code>Conversation</code>).</td>
+</tr>
+</tbody>
+</table>
+<h2 id="examples">Examples</h2>
+<p>Running code execution in <a href="../sandbox/">sandbox mode</a>:</p>
+<div class="highlight"><pre><span></span><code>freeact<span class="w"> </span>--sandbox
+</code></pre></div>
+<p>Running with a <a href="../sandbox/#custom-configuration">custom sandbox configuration</a>:</p>
+<div class="highlight"><pre><span></span><code>freeact<span class="w"> </span>--sandbox<span class="w"> </span>--sandbox-config<span class="w"> </span>sandbox-config.json
+</code></pre></div>
+<p>Recording a session for documentation:</p>
+<div class="highlight"><pre><span></span><code>freeact<span class="w"> </span>--record<span class="w"> </span>--record-dir<span class="w"> </span>docs/recordings/demo<span class="w"> </span>--record-title<span class="w"> </span><span class="s2">&quot;Demo Session&quot;</span>
+</code></pre></div>
+<h2 id="interactive-mode">Interactive Mode</h2>
+<p>The interactive mode provides a conversation interface with the agent in a terminal window.</p>
+<p><a href="../recordings/cli/conversation.html" target="_blank"><img alt="Interactive mode" src="../recordings/cli/conversation.svg" /></a></p>
+<h3 id="user-messages">User messages</h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Enter</code></td>
+<td>Send message</td>
+</tr>
+<tr>
+<td><code>Option+Enter</code> (macOS)<br/><code>Alt+Enter</code> (Linux/Windows)</td>
+<td>Insert newline</td>
+</tr>
+<tr>
+<td><code>q</code> + <code>Enter</code></td>
+<td>Quit</td>
+</tr>
+</tbody>
+</table>
+<h3 id="image-attachments">Image Attachments</h3>
+<p>Reference images using <code>@path</code> syntax:</p>
+<div class="highlight"><pre><span></span><code>@screenshot.png What does this show?
+@images/ Describe these images
+</code></pre></div>
 <ul>
-<li><strong>Progressive tool loading</strong>: The agent progressively loads tool information: lists categories, lists tools in the <code>google</code> category, then reads the <code>web_search</code> API to understand its parameters.</li>
-<li><strong>Programmatic tool calling</strong>: The agent writes Python code that imports the <code>web_search</code> tool from <code>mcptools.google</code> and calls it programmatically with the user's query.</li>
-<li><strong>Action approval</strong>: The code action and the programmatic <code>web_search</code> tool call are explicitly approved by the user, other tool calls were <a href="../configuration/#permissions">pre-approved</a> for this example.</li>
+<li>Single file: <code>@path/to/image.png</code></li>
+<li>Directory: <code>@path/to/dir/</code> includes all images in directory, non-recursive</li>
+<li>Supported formats: PNG, JPG, JPEG, GIF, WEBP</li>
+<li>Tab completion available for paths</li>
 </ul>
-<p>The code execution output shows the search result with source URLs. The agent response is a summary of it.</p>
-<h2 id="python-sdk">Python SDK</h2>
-<p>The CLI tool is built on a <a href="../sdk/">Python SDK</a> that you can use directly in your applications. The following minimal example shows how to run the same task programmatically, with code actions and tool calls auto-approved:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">Agent</span><span class="p">,</span>
-    <span class="n">ApprovalRequest</span><span class="p">,</span>
-    <span class="n">CodeExecutionOutput</span><span class="p">,</span>
-    <span class="n">Response</span><span class="p">,</span>
-    <span class="n">Thoughts</span><span class="p">,</span>
-    <span class="n">ToolOutput</span><span class="p">,</span>
-<span class="p">)</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span><span class="p">,</span> <span class="n">init_config</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent.tools.pytools.apigen</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_mcp_sources</span>
-
-
-
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="c1"># Initialize .freeact/ config directory if needed</span>
-    <span class="n">init_config</span><span class="p">()</span>
-
-    <span class="c1"># Load configuration from .freeact/</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
-
-    <span class="c1"># Generate Python APIs for MCP servers in ptc_servers</span>
-    <span class="k">for</span> <span class="n">server_name</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">ptc_servers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;mcptools/</span><span class="si">{</span><span class="n">server_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-            <span class="k">await</span> <span class="n">generate_mcp_sources</span><span class="p">({</span><span class="n">server_name</span><span class="p">:</span> <span class="n">params</span><span class="p">})</span>
-
-    <span class="k">async</span> <span class="k">with</span> <span class="n">Agent</span><span class="p">(</span>
-        <span class="n">model</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
-        <span class="n">model_settings</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">model_settings</span><span class="p">,</span>
-        <span class="n">system_prompt</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">system_prompt</span><span class="p">,</span>
-        <span class="n">mcp_servers</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">mcp_servers</span><span class="p">,</span>
-    <span class="p">)</span> <span class="k">as</span> <span class="n">agent</span><span class="p">:</span>
-        <span class="n">prompt</span> <span class="o">=</span> <span class="s2">&quot;Who is the F1 world champion 2025?&quot;</span>
-
-        <span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">prompt</span><span class="p">):</span>
-            <span class="k">match</span> <span class="n">event</span><span class="p">:</span>
-                <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">(</span><span class="n">tool_name</span><span class="o">=</span><span class="s2">&quot;ipybox_execute_ipython_cell&quot;</span><span class="p">,</span> <span class="n">tool_args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Code action:</span><span class="se">\n</span><span class="si">{</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;code&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-                <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">(</span><span class="n">tool_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">tool_args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tool: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Args: </span><span class="si">{</span><span class="n">args</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-                <span class="k">case</span> <span class="n">Thoughts</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">):</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Thinking: </span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="k">case</span> <span class="n">CodeExecutionOutput</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">):</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Code execution output: </span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="k">case</span> <span class="n">ToolOutput</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">):</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tool call result: </span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="k">case</span> <span class="n">Response</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">):</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+<p>Images are automatically downscaled if larger than 1024 pixels in either dimension.</p>
+<h3 id="approval-prompt">Approval Prompt</h3>
+<p>Before executing code actions or tool calls, the agent requests approval:</p>
+<div class="highlight"><pre><span></span><code>Approve? [Y/n/a/s]:
 </code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Response</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Y</code> or <code>Enter</code></td>
+<td>Approve once</td>
+</tr>
+<tr>
+<td><code>n</code></td>
+<td>Reject once (ends the current agent turn)</td>
+</tr>
+<tr>
+<td><code>a</code></td>
+<td>Approve always (persists to <code>.freeact/permissions.json</code>)</td>
+</tr>
+<tr>
+<td><code>s</code></td>
+<td>Approve for current session</td>
+</tr>
+</tbody>
+</table>
+<p>See <a href="../sdk/#permissions-api">Permissions API</a> for details.</p>
 
 
 

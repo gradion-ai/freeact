@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://gradion-ai.github.io/freeact/quickstart/">
+        <link rel="canonical" href="https://gradion-ai.github.io/freeact/sdk/">
       
       
-        <link rel="prev" href="../installation/">
+        <link rel="prev" href="../sandbox/">
       
       
-        <link rel="next" href="../configuration/">
+        <link rel="next" href="../cli/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Quickstart - freeact</title>
+        <title>Python SDK - freeact</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#quickstart" class="md-skip">
+        <a href="#python-sdk" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Quickstart
+              Python SDK
             
           </span>
         </div>
@@ -435,37 +435,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Quickstart
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
         
   
   
@@ -481,87 +454,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#cli-tool" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        CLI Tool
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="CLI Tool">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#starting-freeact" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Starting Freeact
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#generating-mcp-tool-apis" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Generating MCP Tool APIs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#running-a-task" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Running a Task
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#python-sdk" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Python SDK
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -627,10 +519,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../sdk/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python SDK
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -646,6 +565,109 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generation-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generation API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#agent-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Agent API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#approval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Approval
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lifecycle
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#permissions-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Permissions API
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1206,22 +1228,44 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#cli-tool" class="md-nav__link">
+  <a href="#configuration-api" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CLI Tool
+        Configuration API
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="CLI Tool">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generation-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generation API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#agent-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Agent API">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#starting-freeact" class="md-nav__link">
+  <a href="#events" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Starting Freeact
+        Events
       
     </span>
   </a>
@@ -1229,10 +1273,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#generating-mcp-tool-apis" class="md-nav__link">
+  <a href="#approval" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Generating MCP Tool APIs
+        Approval
       
     </span>
   </a>
@@ -1240,10 +1284,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#running-a-task" class="md-nav__link">
+  <a href="#lifecycle" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Running a Task
+        Lifecycle
       
     </span>
   </a>
@@ -1256,10 +1300,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#python-sdk" class="md-nav__link">
+  <a href="#permissions-api" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Python SDK
+        Permissions API
       
     </span>
   </a>
@@ -1286,43 +1330,42 @@
   
 
 
-<h1 id="quickstart">Quickstart</h1>
-<p>This guide shows how to run your first task with freeact.</p>
-<h2 id="cli-tool">CLI Tool</h2>
-<p>Freeact provides a <a href="../cli/">CLI tool</a> for running the agent in a terminal. </p>
-<h3 id="starting-freeact">Starting Freeact</h3>
-<p>Create a workspace directory, set your API key, and start the agent:</p>
-<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>my-workspace<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>my-workspace
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;GEMINI_API_KEY=your-api-key&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>.env
-uvx<span class="w"> </span>freeact
-</code></pre></div>
-<p>See <a href="../installation/">Installation</a> for alternative setup options and sandbox mode prerequisites.</p>
-<h3 id="generating-mcp-tool-apis">Generating MCP Tool APIs</h3>
-<p>On first start, the CLI tool auto-generates Python APIs for <a href="../configuration/#ptc-servers">configured</a> MCP servers. For example, it creates <code>mcptools/google/web_search.py</code> for the <code>web_search</code> tool of the bundled <code>google</code> MCP server. With the generated Python API, the agent can import and call this tool programmatically. </p>
-<div class="admonition tip">
-<p class="admonition-title">Custom MCP servers</p>
-<p>For calling the tools of your own MCP servers programmatically, add them to the <a href="../configuration/#ptc-servers"><code>ptc-servers</code></a> section in <code>.freeact/servers.json</code>. Freeact auto-generates a Python API for them when the CLI tool starts.</p>
-</div>
-<h3 id="running-a-task">Running a Task</h3>
-<p>With this setup and a question like </p>
-<blockquote>
-<p>who is F1 world champion 2025? </p>
-</blockquote>
-<p>the CLI tool should generate an output similar to the following:</p>
-<p><a href="../recordings/quickstart/conversation.html" target="_blank"><img alt="Interactive mode" src="../recordings/quickstart/conversation.svg" /></a></p>
-<p>The recorded session demonstrates:</p>
+<h1 id="python-sdk">Python SDK</h1>
+<p>The Python SDK provides four main APIs:</p>
 <ul>
-<li><strong>Progressive tool loading</strong>: The agent progressively loads tool information: lists categories, lists tools in the <code>google</code> category, then reads the <code>web_search</code> API to understand its parameters.</li>
-<li><strong>Programmatic tool calling</strong>: The agent writes Python code that imports the <code>web_search</code> tool from <code>mcptools.google</code> and calls it programmatically with the user's query.</li>
-<li><strong>Action approval</strong>: The code action and the programmatic <code>web_search</code> tool call are explicitly approved by the user, other tool calls were <a href="../configuration/#permissions">pre-approved</a> for this example.</li>
+<li><a href="../api/config/">Configuration API</a> for initializing and loading configuration from <code>.freeact/</code></li>
+<li><a href="../api/generate/">Generation API</a> for generating Python APIs for MCP server tools</li>
+<li><a href="../api/agent/">Agent API</a> for running the agentic code action loop</li>
+<li><a href="../api/permissions/">Permissions API</a> for managing approval decisions</li>
 </ul>
-<p>The code execution output shows the search result with source URLs. The agent response is a summary of it.</p>
-<h2 id="python-sdk">Python SDK</h2>
-<p>The CLI tool is built on a <a href="../sdk/">Python SDK</a> that you can use directly in your applications. The following minimal example shows how to run the same task programmatically, with code actions and tool calls auto-approved:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<h2 id="configuration-api">Configuration API</h2>
+<p>Use <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.init_config"><code>init_config()</code></a> to initialize the <code>.freeact/</code> directory from default templates. The <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config"><code>Config()</code></a> constructor loads all configuration from it:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span><span class="p">,</span> <span class="n">init_config</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<span class="c1"># Initialize .freeact/ config directory if needed</span>
+<span class="n">init_config</span><span class="p">()</span>
+
+<span class="c1"># Load configuration from .freeact/</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
+</code></pre></div>
+<p>See the <a href="../configuration/">Configuration</a> reference for details on the <code>.freeact/</code> directory structure.</p>
+<h2 id="generation-api">Generation API</h2>
+<p>MCP servers <a href="../configuration/#mcp-server-configuration">configured</a> as <code>ptc-servers</code> in <code>servers.json</code> require Python API generation with <a class="autorefs autorefs-internal" href="../api/generate/#freeact.agent.tools.pytools.apigen.generate_mcp_sources"><code>generate_mcp_sources()</code></a> before the agent can call their tools programmatically:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent.tools.pytools.apigen</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_mcp_sources</span>
+
+<span class="c1"># Generate Python APIs for MCP servers in ptc_servers</span>
+<span class="k">for</span> <span class="n">server_name</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">ptc_servers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;mcptools/</span><span class="si">{</span><span class="n">server_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">await</span> <span class="n">generate_mcp_sources</span><span class="p">({</span><span class="n">server_name</span><span class="p">:</span> <span class="n">params</span><span class="p">})</span>
+</code></pre></div>
+<p>Generated APIs are stored as <code>mcptools/&lt;server_name&gt;/&lt;tool&gt;.py</code> modules and persist across agent sessions. After generation, the agent can import them for programmatic tool calling:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mcptools.google.web_search</span><span class="w"> </span><span class="kn">import</span> <span class="n">run</span><span class="p">,</span> <span class="n">Params</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span><span class="n">Params</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">&quot;python async tutorial&quot;</span><span class="p">))</span>
+</code></pre></div>
+<h2 id="agent-api">Agent API</h2>
+<p>The <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.Agent"><code>Agent</code></a> class implements the agentic code action loop, handling code action generation, code execution, tool calls, and the approval workflow. Each <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.Agent.stream"><code>stream()</code></a> call runs a single agent turn, with the agent managing conversation history across calls. Use <code>stream()</code> to iterate over <a href="#events">events</a> and handle them with pattern matching:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">Agent</span><span class="p">,</span>
     <span class="n">ApprovalRequest</span><span class="p">,</span>
     <span class="n">CodeExecutionOutput</span><span class="p">,</span>
@@ -1331,53 +1374,138 @@ uvx<span class="w"> </span>freeact
     <span class="n">ToolOutput</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span><span class="p">,</span> <span class="n">init_config</span>
+<span class="k">async</span> <span class="k">with</span> <span class="n">Agent</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
+    <span class="n">model_settings</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">model_settings</span><span class="p">,</span>
+    <span class="n">system_prompt</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">system_prompt</span><span class="p">,</span>
+    <span class="n">mcp_servers</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">mcp_servers</span><span class="p">,</span>
+<span class="p">)</span> <span class="k">as</span> <span class="n">agent</span><span class="p">:</span>
+    <span class="n">prompt</span> <span class="o">=</span> <span class="s2">&quot;Who is the F1 world champion 2025?&quot;</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent.tools.pytools.apigen</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_mcp_sources</span>
+    <span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">prompt</span><span class="p">):</span>
+        <span class="k">match</span> <span class="n">event</span><span class="p">:</span>
+            <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">(</span><span class="n">tool_name</span><span class="o">=</span><span class="s2">&quot;ipybox_execute_ipython_cell&quot;</span><span class="p">,</span> <span class="n">tool_args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Code action:</span><span class="se">\n</span><span class="si">{</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;code&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">(</span><span class="n">tool_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">tool_args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tool: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Args: </span><span class="si">{</span><span class="n">args</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">case</span> <span class="n">Thoughts</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Thinking: </span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">case</span> <span class="n">CodeExecutionOutput</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Code execution output: </span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">case</span> <span class="n">ToolOutput</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tool call result: </span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">case</span> <span class="n">Response</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+</code></pre></div>
+<p>For processing output incrementally, match the <code>*Chunk</code> event variants listed below.</p>
+<h3 id="events">Events</h3>
+<p>The <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.Agent.stream"><code>Agent.stream()</code></a> method yields events as they occur:</p>
+<table>
+<thead>
+<tr>
+<th>Event</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.ThoughtsChunk"><code>ThoughtsChunk</code></a></td>
+<td>Partial model thoughts (content streaming)</td>
+</tr>
+<tr>
+<td><a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.Thoughts"><code>Thoughts</code></a></td>
+<td>Complete model thoughts at a given step</td>
+</tr>
+<tr>
+<td><a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.ResponseChunk"><code>ResponseChunk</code></a></td>
+<td>Partial model response (content streaming)</td>
+</tr>
+<tr>
+<td><a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.Response"><code>Response</code></a></td>
+<td>Complete model response</td>
+</tr>
+<tr>
+<td><a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.ApprovalRequest"><code>ApprovalRequest</code></a></td>
+<td>Pending code action or tool call approval</td>
+</tr>
+<tr>
+<td><a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.CodeExecutionOutputChunk"><code>CodeExecutionOutputChunk</code></a></td>
+<td>Partial code execution output (content streaming)</td>
+</tr>
+<tr>
+<td><a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.CodeExecutionOutput"><code>CodeExecutionOutput</code></a></td>
+<td>Complete code execution output</td>
+</tr>
+<tr>
+<td><a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.ToolOutput"><code>ToolOutput</code></a></td>
+<td>JSON tool call output</td>
+</tr>
+</tbody>
+</table>
+<h3 id="approval">Approval</h3>
+<p>The agent provides a unified approval mechanism. It yields <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.ApprovalRequest"><code>ApprovalRequest</code></a> for all code actions, programmatic tool calls, and JSON tool calls. Execution is suspended until <code>approve()</code> is called. Calling <code>approve(True)</code> executes the code action or tool call; <code>approve(False)</code> rejects it and ends the current agent turn.</p>
+<div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">prompt</span><span class="p">):</span>
+    <span class="k">match</span> <span class="n">event</span><span class="p">:</span>
+        <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">()</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
+            <span class="c1"># Inspect the pending action</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tool: </span><span class="si">{</span><span class="n">request</span><span class="o">.</span><span class="n">tool_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Args: </span><span class="si">{</span><span class="n">request</span><span class="o">.</span><span class="n">tool_args</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
+            <span class="c1"># Approve or reject</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 
+        <span class="k">case</span> <span class="n">Response</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Code action approval</p>
+<p>For code actions, <code>tool_name</code> is <code>ipybox_execute_ipython_cell</code> and <code>tool_args</code> contains the <code>code</code> to execute.</p>
+</div>
+<h3 id="lifecycle">Lifecycle</h3>
+<p>The agent manages MCP server connections and an IPython kernel via <a href="https://gradion-ai.github.io/ipybox/">ipybox</a>. On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calling connect. MCP servers configured for programmatic tool calling connect lazily on first tool call.</p>
+<div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">with</span> <span class="n">Agent</span><span class="p">(</span><span class="o">...</span><span class="p">)</span> <span class="k">as</span> <span class="n">agent</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">prompt</span><span class="p">):</span>
+        <span class="o">...</span>
+<span class="c1"># Connections closed, kernel stopped</span>
+</code></pre></div>
+<p>Without using the async context manager:</p>
+<div class="highlight"><pre><span></span><code><span class="n">agent</span> <span class="o">=</span> <span class="n">Agent</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="k">await</span> <span class="n">agent</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">prompt</span><span class="p">):</span>
+        <span class="o">...</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">agent</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+</code></pre></div>
+<h2 id="permissions-api">Permissions API</h2>
+<p>The agent requests approval for each code action and tool call but doesn't remember past decisions. <a class="autorefs autorefs-internal" href="../api/permissions/#freeact.permissions.PermissionManager"><code>PermissionManager</code></a> adds memory: <code>allow_always()</code> persists to <code>.freeact/permissions.json</code>, while <code>allow_session()</code> stores in-memory until the session ends:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">freeact.permissions</span><span class="w"> </span><span class="kn">import</span> <span class="n">PermissionManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ipybox.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">arun</span>
 
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="c1"># Initialize .freeact/ config directory if needed</span>
-    <span class="n">init_config</span><span class="p">()</span>
+<span class="n">manager</span> <span class="o">=</span> <span class="n">PermissionManager</span><span class="p">()</span>
+<span class="k">await</span> <span class="n">manager</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
 
-    <span class="c1"># Load configuration from .freeact/</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
-
-    <span class="c1"># Generate Python APIs for MCP servers in ptc_servers</span>
-    <span class="k">for</span> <span class="n">server_name</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">ptc_servers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;mcptools/</span><span class="si">{</span><span class="n">server_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-            <span class="k">await</span> <span class="n">generate_mcp_sources</span><span class="p">({</span><span class="n">server_name</span><span class="p">:</span> <span class="n">params</span><span class="p">})</span>
-
-    <span class="k">async</span> <span class="k">with</span> <span class="n">Agent</span><span class="p">(</span>
-        <span class="n">model</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
-        <span class="n">model_settings</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">model_settings</span><span class="p">,</span>
-        <span class="n">system_prompt</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">system_prompt</span><span class="p">,</span>
-        <span class="n">mcp_servers</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">mcp_servers</span><span class="p">,</span>
-    <span class="p">)</span> <span class="k">as</span> <span class="n">agent</span><span class="p">:</span>
-        <span class="n">prompt</span> <span class="o">=</span> <span class="s2">&quot;Who is the F1 world champion 2025?&quot;</span>
-
-        <span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">prompt</span><span class="p">):</span>
-            <span class="k">match</span> <span class="n">event</span><span class="p">:</span>
-                <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">(</span><span class="n">tool_name</span><span class="o">=</span><span class="s2">&quot;ipybox_execute_ipython_cell&quot;</span><span class="p">,</span> <span class="n">tool_args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Code action:</span><span class="se">\n</span><span class="si">{</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;code&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-                <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">(</span><span class="n">tool_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">tool_args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tool: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Args: </span><span class="si">{</span><span class="n">args</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-                <span class="k">case</span> <span class="n">Thoughts</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">):</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Thinking: </span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="k">case</span> <span class="n">CodeExecutionOutput</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">):</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Code execution output: </span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="k">case</span> <span class="n">ToolOutput</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">):</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tool call result: </span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="k">case</span> <span class="n">Response</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">):</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+<span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">prompt</span><span class="p">):</span>
+    <span class="k">match</span> <span class="n">event</span><span class="p">:</span>
+        <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">()</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">manager</span><span class="o">.</span><span class="n">is_allowed</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">tool_name</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">tool_args</span><span class="p">):</span>
+                <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">choice</span> <span class="o">=</span> <span class="k">await</span> <span class="n">arun</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="s2">&quot;Allow? [Y/n/a/s]: &quot;</span><span class="p">)</span>
+                <span class="k">match</span> <span class="n">choice</span><span class="p">:</span>
+                    <span class="k">case</span> <span class="s2">&quot;a&quot;</span><span class="p">:</span>
+                        <span class="k">await</span> <span class="n">manager</span><span class="o">.</span><span class="n">allow_always</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">tool_name</span><span class="p">)</span>
+                        <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="k">case</span> <span class="s2">&quot;s&quot;</span><span class="p">:</span>
+                        <span class="n">manager</span><span class="o">.</span><span class="n">allow_session</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">tool_name</span><span class="p">)</span>
+                        <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="k">case</span> <span class="s2">&quot;n&quot;</span><span class="p">:</span>
+                        <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+                    <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
+                        <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 
 

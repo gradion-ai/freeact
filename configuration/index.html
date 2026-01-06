@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://gradion-ai.github.io/freeact/quickstart/">
+        <link rel="canonical" href="https://gradion-ai.github.io/freeact/configuration/">
       
       
-        <link rel="prev" href="../installation/">
+        <link rel="prev" href="../quickstart/">
       
       
-        <link rel="next" href="../configuration/">
+        <link rel="next" href="../sandbox/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Quickstart - freeact</title>
+        <title>Configuration - freeact</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#quickstart" class="md-skip">
+        <a href="#configuration" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Quickstart
+              Configuration
             
           </span>
         </div>
@@ -435,6 +435,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -454,7 +482,7 @@
   <span class="md-ellipsis">
     
   
-    Quickstart
+    Configuration
   
 
     
@@ -472,7 +500,7 @@
   <span class="md-ellipsis">
     
   
-    Quickstart
+    Configuration
   
 
     
@@ -498,22 +526,44 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#cli-tool" class="md-nav__link">
+  <a href="#initialization" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CLI Tool
+        Initialization
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="CLI Tool">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#directory-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Directory Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mcp-server-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MCP Server Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MCP Server Configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#starting-freeact" class="md-nav__link">
+  <a href="#mcp-servers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Starting Freeact
+        mcp-servers
       
     </span>
   </a>
@@ -521,10 +571,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#generating-mcp-tool-apis" class="md-nav__link">
+  <a href="#ptc-servers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Generating MCP Tool APIs
+        ptc-servers
       
     </span>
   </a>
@@ -532,10 +582,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#running-a-task" class="md-nav__link">
+  <a href="#environment-variables" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Running a Task
+        Environment Variables
       
     </span>
   </a>
@@ -548,13 +598,91 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#python-sdk" class="md-nav__link">
+  <a href="#system-prompt" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Python SDK
+        System Prompt
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#skills" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Skills
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Skills">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bundled-skills" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bundled Skills
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Permissions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-directories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Directories
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Directories">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mcptools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mcptools/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gentools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        gentools/
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -562,34 +690,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../configuration/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Configuration
-  
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -1206,22 +1306,44 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#cli-tool" class="md-nav__link">
+  <a href="#initialization" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CLI Tool
+        Initialization
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="CLI Tool">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#directory-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Directory Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mcp-server-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MCP Server Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MCP Server Configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#starting-freeact" class="md-nav__link">
+  <a href="#mcp-servers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Starting Freeact
+        mcp-servers
       
     </span>
   </a>
@@ -1229,10 +1351,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#generating-mcp-tool-apis" class="md-nav__link">
+  <a href="#ptc-servers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Generating MCP Tool APIs
+        ptc-servers
       
     </span>
   </a>
@@ -1240,10 +1362,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#running-a-task" class="md-nav__link">
+  <a href="#environment-variables" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Running a Task
+        Environment Variables
       
     </span>
   </a>
@@ -1256,13 +1378,91 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#python-sdk" class="md-nav__link">
+  <a href="#system-prompt" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Python SDK
+        System Prompt
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#skills" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Skills
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Skills">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bundled-skills" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bundled Skills
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Permissions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-directories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Directories
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Directories">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mcptools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mcptools/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gentools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        gentools/
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1286,98 +1486,178 @@
   
 
 
-<h1 id="quickstart">Quickstart</h1>
-<p>This guide shows how to run your first task with freeact.</p>
-<h2 id="cli-tool">CLI Tool</h2>
-<p>Freeact provides a <a href="../cli/">CLI tool</a> for running the agent in a terminal. </p>
-<h3 id="starting-freeact">Starting Freeact</h3>
-<p>Create a workspace directory, set your API key, and start the agent:</p>
-<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>my-workspace<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>my-workspace
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;GEMINI_API_KEY=your-api-key&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>.env
-uvx<span class="w"> </span>freeact
+<h1 id="configuration">Configuration</h1>
+<p>Freeact configuration is stored in the <code>.freeact/</code> directory. This page describes the directory structure and configuration formats. It also describes the structure of <a href="#tool-directories">tool directories</a>.</p>
+<h2 id="initialization">Initialization</h2>
+<p>The <code>.freeact/</code> directory is created and populated from bundled templates through three entry points:</p>
+<table>
+<thead>
+<tr>
+<th>Entry Point</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>freeact</code> or<br/> <code>freeact run</code></td>
+<td>Creates config with <a href="../cli/">CLI tool</a> before starting the agent</td>
+</tr>
+<tr>
+<td><code>freeact init</code></td>
+<td>Creates config with <a href="../cli/">CLI tool</a> without starting the agent</td>
+</tr>
+<tr>
+<td><a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.init_config"><code>init_config()</code></a></td>
+<td>Creates config programmatically without starting the agent</td>
+</tr>
+</tbody>
+</table>
+<p>All three entry points share the same behavior:</p>
+<ul>
+<li><strong>Missing files are created</strong> from <a href="https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates">default templates</a></li>
+<li><strong>Existing files are preserved</strong> and never overwritten</li>
+<li><strong>User modifications persist</strong> across restarts and updates</li>
+</ul>
+<p>This allows safe customization: edit any configuration file, and your changes remain intact. If you delete a file, it is recreated from the default template on next initialization.</p>
+<h2 id="directory-structure">Directory Structure</h2>
+<div class="highlight"><pre><span></span><code>.freeact/
+├── prompts/
+│   └── system.md        # System prompt template
+├── servers.json         # MCP server configurations
+├── skills/              # Agent skills
+│   └── &lt;skill-name&gt;/
+│       ├── SKILL.md     # Skill metadata and instructions
+│       └── ...          # Further skill resources
+├── plans/               # Task plan storage
+└── permissions.json     # Persisted approval decisions
 </code></pre></div>
-<p>See <a href="../installation/">Installation</a> for alternative setup options and sandbox mode prerequisites.</p>
-<h3 id="generating-mcp-tool-apis">Generating MCP Tool APIs</h3>
-<p>On first start, the CLI tool auto-generates Python APIs for <a href="../configuration/#ptc-servers">configured</a> MCP servers. For example, it creates <code>mcptools/google/web_search.py</code> for the <code>web_search</code> tool of the bundled <code>google</code> MCP server. With the generated Python API, the agent can import and call this tool programmatically. </p>
+<h2 id="mcp-server-configuration">MCP Server Configuration</h2>
+<p>The <code>servers.json</code> file configures two types of MCP servers:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;mcp-servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;server-name&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;ptc-servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;server-name&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Both sections support stdio servers and streamable HTTP servers.</p>
+<h3 id="mcp-servers"><code>mcp-servers</code></h3>
+<p>These are MCP servers that are called directly via JSON. This section is primarily for freeact-internal servers. The default configuration includes the bundled <code>pytools</code> MCP server (for tool discovery) and the <code>filesystem</code> MCP server:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;mcp-servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;pytools&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;python&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;freeact.agent.tools.pytools.search&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;filesystem&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;npx&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;-y&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;@modelcontextprotocol/server-filesystem&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;.&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="ptc-servers"><code>ptc-servers</code></h3>
+<p>These are MCP servers called programmatically via Python APIs. Python APIs must be generated from <code>ptc-servers</code> to <code>mcptools/&lt;server-name&gt;/&lt;tool&gt;.py</code> before the agent can use them. The <a href="../cli/">CLI tool</a> handles this automatically. When using the <a href="../sdk/">Python SDK</a>, call <a class="autorefs autorefs-internal" href="../api/generate/#freeact.agent.tools.pytools.apigen.generate_mcp_sources"><code>generate_mcp_sources()</code></a> explicitly. Code actions can then import and call the generated APIs.</p>
+<p>The default configuration includes the bundled <code>google</code> MCP server (web search via Gemini):</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;ptc-servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;google&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;python&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;freeact.agent.tools.gsearch&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--thinking-level&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;medium&quot;</span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;GEMINI_API_KEY&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${GEMINI_API_KEY}&quot;</span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
 <div class="admonition tip">
 <p class="admonition-title">Custom MCP servers</p>
-<p>For calling the tools of your own MCP servers programmatically, add them to the <a href="../configuration/#ptc-servers"><code>ptc-servers</code></a> section in <code>.freeact/servers.json</code>. Freeact auto-generates a Python API for them when the CLI tool starts.</p>
+<p>Application-specific MCP servers can be added as needed to <code>ptc-servers</code> for programmatic tool calling.</p>
 </div>
-<h3 id="running-a-task">Running a Task</h3>
-<p>With this setup and a question like </p>
-<blockquote>
-<p>who is F1 world champion 2025? </p>
-</blockquote>
-<p>the CLI tool should generate an output similar to the following:</p>
-<p><a href="../recordings/quickstart/conversation.html" target="_blank"><img alt="Interactive mode" src="../recordings/quickstart/conversation.svg" /></a></p>
-<p>The recorded session demonstrates:</p>
-<ul>
-<li><strong>Progressive tool loading</strong>: The agent progressively loads tool information: lists categories, lists tools in the <code>google</code> category, then reads the <code>web_search</code> API to understand its parameters.</li>
-<li><strong>Programmatic tool calling</strong>: The agent writes Python code that imports the <code>web_search</code> tool from <code>mcptools.google</code> and calls it programmatically with the user's query.</li>
-<li><strong>Action approval</strong>: The code action and the programmatic <code>web_search</code> tool call are explicitly approved by the user, other tool calls were <a href="../configuration/#permissions">pre-approved</a> for this example.</li>
-</ul>
-<p>The code execution output shows the search result with source URLs. The agent response is a summary of it.</p>
-<h2 id="python-sdk">Python SDK</h2>
-<p>The CLI tool is built on a <a href="../sdk/">Python SDK</a> that you can use directly in your applications. The following minimal example shows how to run the same task programmatically, with code actions and tool calls auto-approved:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">Agent</span><span class="p">,</span>
-    <span class="n">ApprovalRequest</span><span class="p">,</span>
-    <span class="n">CodeExecutionOutput</span><span class="p">,</span>
-    <span class="n">Response</span><span class="p">,</span>
-    <span class="n">Thoughts</span><span class="p">,</span>
-    <span class="n">ToolOutput</span><span class="p">,</span>
-<span class="p">)</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span><span class="p">,</span> <span class="n">init_config</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent.tools.pytools.apigen</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_mcp_sources</span>
-
-
-
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="c1"># Initialize .freeact/ config directory if needed</span>
-    <span class="n">init_config</span><span class="p">()</span>
-
-    <span class="c1"># Load configuration from .freeact/</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
-
-    <span class="c1"># Generate Python APIs for MCP servers in ptc_servers</span>
-    <span class="k">for</span> <span class="n">server_name</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">ptc_servers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;mcptools/</span><span class="si">{</span><span class="n">server_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-            <span class="k">await</span> <span class="n">generate_mcp_sources</span><span class="p">({</span><span class="n">server_name</span><span class="p">:</span> <span class="n">params</span><span class="p">})</span>
-
-    <span class="k">async</span> <span class="k">with</span> <span class="n">Agent</span><span class="p">(</span>
-        <span class="n">model</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
-        <span class="n">model_settings</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">model_settings</span><span class="p">,</span>
-        <span class="n">system_prompt</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">system_prompt</span><span class="p">,</span>
-        <span class="n">mcp_servers</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">mcp_servers</span><span class="p">,</span>
-    <span class="p">)</span> <span class="k">as</span> <span class="n">agent</span><span class="p">:</span>
-        <span class="n">prompt</span> <span class="o">=</span> <span class="s2">&quot;Who is the F1 world champion 2025?&quot;</span>
-
-        <span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">prompt</span><span class="p">):</span>
-            <span class="k">match</span> <span class="n">event</span><span class="p">:</span>
-                <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">(</span><span class="n">tool_name</span><span class="o">=</span><span class="s2">&quot;ipybox_execute_ipython_cell&quot;</span><span class="p">,</span> <span class="n">tool_args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Code action:</span><span class="se">\n</span><span class="si">{</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;code&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-                <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">(</span><span class="n">tool_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">tool_args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tool: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Args: </span><span class="si">{</span><span class="n">args</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-                <span class="k">case</span> <span class="n">Thoughts</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">):</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Thinking: </span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="k">case</span> <span class="n">CodeExecutionOutput</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">):</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Code execution output: </span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="k">case</span> <span class="n">ToolOutput</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">):</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tool call result: </span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="k">case</span> <span class="n">Response</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">):</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+<h3 id="environment-variables">Environment Variables</h3>
+<p>Server configurations support environment variable references using <code>${VAR_NAME}</code> syntax. <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config"><code>Config()</code></a> validates that all referenced variables are set. If a variable is missing, loading fails with an error.</p>
+<h2 id="system-prompt">System Prompt</h2>
+<p>The system prompt template is stored in <code>.freeact/prompts/system.md</code>. The template supports placeholders:</p>
+<table>
+<thead>
+<tr>
+<th>Placeholder</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{working_dir}</code></td>
+<td>The agent's workspace directory</td>
+</tr>
+<tr>
+<td><code>{skills}</code></td>
+<td>Rendered metadata from skills in <code>.freeact/skills/</code></td>
+</tr>
+</tbody>
+</table>
+<p>See the <a href="https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/templates/prompts/system.md">default template</a> for details.</p>
+<div class="admonition tip">
+<p class="admonition-title">Custom system prompt</p>
+<p>The system prompt can be extended or modified to specialize agent behavior for specific applications.</p>
+</div>
+<h2 id="skills">Skills</h2>
+<p>Skills are filesystem-based capability packages that specialize agent behavior. A skill is a directory containing a <code>SKILL.md</code> file with metadata in YAML frontmatter, and optionally further skill resources. Skills follow the <a href="https://agentskills.io/specification/">agentskills.io</a> specification.</p>
+<h3 id="bundled-skills">Bundled Skills</h3>
+<p>Freeact contributes three skills to <code>.freeact/skills/</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Skill</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates/skills/output-parsers">output-parsers</a></td>
+<td>Generate output parsers for <code>mcptools/</code> with unstructured return types</td>
+</tr>
+<tr>
+<td><a href="https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates/skills/saving-codeacts">saving-codeacts</a></td>
+<td>Save generated code actions as reusable tools in <code>gentools/</code></td>
+</tr>
+<tr>
+<td><a href="https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates/skills/task-planning">task-planning</a></td>
+<td>Basic task planning and tracking workflows</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Custom agent skills</p>
+<p>Custom skills can be added as needed to specialize agent behavior for specific applications.</p>
+</div>
+<h2 id="permissions">Permissions</h2>
+<p><a href="../sdk/#permissions-api">Tool permissions</a> are stored in <code>.freeact/permissions.json</code> based on tool name:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;allowed_tools&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="s2">&quot;tool_name_1&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;tool_name_2&quot;</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Tools in <code>allowed_tools</code> are auto-approved by the <a href="../cli/">CLI tool</a> without prompting. Selecting <code>"a"</code> at the approval prompt adds the tool to this list.</p>
+<h2 id="tool-directories">Tool Directories</h2>
+<p>The agent discovers tools from two directories:</p>
+<h3 id="mcptools"><code>mcptools/</code></h3>
+<p>Generated Python APIs from <code>ptc-servers</code> schemas:</p>
+<div class="highlight"><pre><span></span><code>mcptools/
+└── &lt;server-name&gt;/
+    └── &lt;tool&gt;.py        # Generated tool module
+</code></pre></div>
+<h3 id="gentools"><code>gentools/</code></h3>
+<p>User-defined tools saved from successful code actions:</p>
+<div class="highlight"><pre><span></span><code>gentools/
+└── &lt;category&gt;/
+    └── &lt;tool&gt;/
+        ├── __init__.py
+        ├── api.py       # Public interface
+        └── impl.py      # Implementation
 </code></pre></div>
 
 
