@@ -1,0 +1,192 @@
+/* ============================================
+   Gradion AI Visual Style for Material MkDocs
+   ============================================ */
+
+/* CSS Custom Properties */
+:root {
+  /* Accent colors */
+  --gd-cyan-light: #7DD3FC;
+  --gd-sky-blue: #38BDF8;
+  --gd-violet: #A78BFA;
+  --gd-purple: #8B5CF6;
+
+  /* Backgrounds */
+  --gd-bg-deep: #0A0A0F;
+  --gd-bg: #111118;
+  --gd-surface: #1A1A24;
+  --gd-surface-light: #242432;
+
+  /* Text */
+  --gd-text-primary: #F8FAFC;
+  --gd-text-secondary: #94A3B8;
+  --gd-text-muted: #64748B;
+
+  /* Border */
+  --gd-border: rgba(148, 163, 184, 0.08);
+  --gd-border-strong: rgba(148, 163, 184, 0.15);
+
+  /* Code */
+  --gd-code-fg: #C9D1D9;
+  --gd-code-muted: #9CA3AF;
+}
+
+/* Material Theme Overrides for Slate Scheme */
+[data-md-color-scheme="slate"] {
+  /* Primary/Accent colors */
+  --md-primary-fg-color: var(--gd-cyan-light);
+  --md-primary-fg-color--light: var(--gd-sky-blue);
+  --md-primary-fg-color--dark: var(--gd-violet);
+  --md-accent-fg-color: var(--gd-sky-blue);
+  --md-accent-fg-color--transparent: rgba(56, 189, 248, 0.1);
+
+  /* Background colors */
+  --md-default-bg-color: var(--gd-bg-deep);
+  --md-default-fg-color: #A8B5C4;
+  --md-default-fg-color--light: var(--gd-text-muted);
+  --md-default-fg-color--lighter: rgba(100, 116, 139, 0.7);
+  --md-default-fg-color--lightest: var(--gd-border);
+
+  /* Code blocks */
+  --md-code-bg-color: var(--gd-surface);
+  --md-code-fg-color: var(--gd-code-fg);    /* slightly muted - matches inline code */
+  --md-code-hl-color: rgba(125, 211, 252, 0.1);
+
+  /* Syntax highlighting - solarized-dark inspired */
+  --md-code-hl-number-color: #d33682;       /* magenta */
+  --md-code-hl-special-color: #d33682;      /* magenta */
+  --md-code-hl-function-color: #268bd2;     /* blue */
+  --md-code-hl-constant-color: #859900;     /* green */
+  --md-code-hl-keyword-color: #8e6cb4;      /* purple */
+  --md-code-hl-string-color: #2aa198;       /* cyan */
+  --md-code-hl-name-color: var(--gd-code-fg);     /* slightly muted */
+  --md-code-hl-operator-color: var(--gd-code-muted);  /* muted */
+  --md-code-hl-punctuation-color: #93a1a1;        /* base1 */
+  --md-code-hl-comment-color: #586e75;            /* base01 */
+  --md-code-hl-generic-color: var(--gd-code-fg);  /* slightly muted */
+  --md-code-hl-variable-color: var(--gd-code-fg); /* slightly muted */
+
+  /* Typeset */
+  --md-typeset-a-color: var(--gd-sky-blue);
+
+  /* Footer */
+  --md-footer-bg-color: var(--gd-bg);
+  --md-footer-bg-color--dark: var(--gd-bg-deep);
+}
+
+/* Header styling */
+[data-md-color-scheme="slate"] .md-header {
+  background-color: var(--gd-bg);
+  border-bottom: 1px solid var(--gd-border);
+}
+
+/* Navigation tabs */
+[data-md-color-scheme="slate"] .md-tabs {
+  background-color: var(--gd-bg);
+  border-bottom: 1px solid var(--gd-border);
+}
+
+/* Sidebar */
+[data-md-color-scheme="slate"] .md-sidebar {
+  background-color: var(--gd-bg-deep);
+}
+
+[data-md-color-scheme="slate"] .md-nav__link:hover {
+  color: var(--gd-text-primary);
+}
+
+[data-md-color-scheme="slate"] .md-nav__link--active {
+  color: var(--gd-cyan-light);
+}
+
+/* Inline code - neutral, distinct from links */
+[data-md-color-scheme="slate"] .md-typeset code:not(.highlight code) {
+  background-color: var(--gd-surface);
+  color: var(--gd-code-fg);
+  border: 1px solid var(--gd-border-strong);
+}
+
+/* Linked inline code inherits link color */
+[data-md-color-scheme="slate"] .md-typeset a code:not(.highlight code) {
+  color: var(--gd-sky-blue);
+}
+
+[data-md-color-scheme="slate"] .md-typeset a:hover code:not(.highlight code) {
+  color: var(--gd-cyan-light);
+}
+
+/* Code blocks */
+[data-md-color-scheme="slate"] .md-typeset pre {
+  background-color: var(--gd-surface);
+  border: 1px solid var(--gd-border);
+}
+
+/* Links */
+[data-md-color-scheme="slate"] .md-typeset a {
+  color: var(--gd-sky-blue);
+}
+
+[data-md-color-scheme="slate"] .md-typeset a:hover {
+  color: var(--gd-cyan-light);
+}
+
+/* Tables */
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) {
+  border: 1px solid var(--gd-border);
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) th {
+  background-color: rgba(56, 189, 248, 0.1);
+  color: var(--gd-text-secondary);
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) td {
+  border-top: 1px solid var(--gd-border);
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) tr:hover {
+  background-color: var(--gd-surface);
+}
+
+/* Search */
+[data-md-color-scheme="slate"] .md-search__form {
+  background-color: var(--gd-surface);
+}
+
+[data-md-color-scheme="slate"] .md-search__input {
+  color: var(--gd-text-primary);
+}
+
+/* Content area */
+[data-md-color-scheme="slate"] .md-content {
+  background-color: var(--gd-bg-deep);
+}
+
+/* Focus states */
+[data-md-color-scheme="slate"] :focus-visible {
+  outline: 2px solid var(--gd-cyan-light);
+  outline-offset: 2px;
+}
+
+/* Typography refinements */
+.md-typeset {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+/* Headings use brighter text */
+[data-md-color-scheme="slate"] .md-typeset h1,
+[data-md-color-scheme="slate"] .md-typeset h2,
+[data-md-color-scheme="slate"] .md-typeset h3,
+[data-md-color-scheme="slate"] .md-typeset h4 {
+  color: var(--gd-text-primary);
+}
+
+.md-typeset h1 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.md-typeset h2,
+.md-typeset h3 {
+  font-weight: 500;
+}
