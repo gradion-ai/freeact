@@ -36,6 +36,8 @@ uv run invoke build-docs     # Build docs
 uv run invoke serve-docs     # Serve docs at localhost:8000
 ```
 
+**Note:** `invoke cc` only checks files under version control. Run `git add` on new files first.
+
 ## Architecture
 
 ### Core Components
