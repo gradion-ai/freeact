@@ -19,7 +19,6 @@ Key capabilities:
 
 ```bash
 uv sync                      # Install dependencies
-uv run invoke precommit-install  # Set up pre-commit hooks (once, after initial sync)
 uv run invoke cc             # Run code checks (auto-fixes formatting, mypy errors need manual fix)
 uv run invoke test           # Run all tests
 uv run invoke ut             # Run unit tests only
