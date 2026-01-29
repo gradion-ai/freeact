@@ -1,15 +1,21 @@
+import json
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 import ipybox
 import pytest
 import pytest_asyncio
 from pydantic_ai.mcp import MCPServerStdio
-from pydantic_ai.models.function import FunctionModel
+from pydantic_ai.messages import ModelMessage
+from pydantic_ai.models.function import AgentInfo, DeltaThinkingPart, DeltaToolCall, FunctionModel
 
 from freeact.agent import Agent, ApprovalRequest
 from tests.conftest import (
+    DeltaThinkingCalls,
+    DeltaToolCalls,
     collect_stream,
     create_stream_function,
+    get_tool_return_parts,
     patched_agent,
 )
 from tests.integration.mcp_server import STDIO_SERVER_PATH
@@ -169,3 +175,182 @@ class TestMcpToolExecution:
             assert len(results.tool_outputs) == 0
             # Agent turn ends with rejection response
             assert any(r.content == "Tool call rejected" for r in results.responses)
+
+
+class TestUnknownTool:
+    """Tests for unknown tool handling."""
+
+    @pytest.mark.asyncio
+    async def test_unknown_tool_returns_error_without_approval(self):
+        """Unknown tool name returns error without approval request."""
+
+        async def stream_function(messages: list[ModelMessage], info: AgentInfo) -> AsyncIterator[str | DeltaToolCalls]:
+            if get_tool_return_parts(messages):
+                yield "Done"
+            else:
+                yield {
+                    0: DeltaToolCall(
+                        name="nonexistent_tool",
+                        json_args=json.dumps({"arg": "value"}),
+                        tool_call_id="call_unknown",
+                    )
+                }
+
+        async with patched_agent(stream_function) as agent:
+            results = await collect_stream(agent, "test")
+
+            # No approval request for unknown tool
+            assert len(results.approvals) == 0
+            # Should still get a final response
+            assert len(results.responses) > 0
+
+
+class TestIpyboxReset:
+    """Tests for ipybox_reset tool."""
+
+    @pytest.mark.asyncio
+    async def test_ipybox_reset_success(self):
+        """ipybox_reset tool resets the kernel successfully."""
+        stream_function = create_stream_function(
+            tool_name="ipybox_reset",
+            tool_args={},
+        )
+
+        async with unpatched_agent(stream_function) as agent:
+            results = await collect_stream(agent, "reset kernel")
+
+            # Should have approval request for reset
+            assert len(results.approvals) == 1
+            assert results.approvals[0].tool_name == "ipybox_reset"
+            # Should have tool output with success message
+            assert len(results.tool_outputs) == 1
+            assert "reset successfully" in str(results.tool_outputs[0].content).lower()
+
+    @pytest.mark.asyncio
+    async def test_ipybox_reset_exception(self):
+        """ipybox_reset returns error message when reset fails."""
+        stream_function = create_stream_function(
+            tool_name="ipybox_reset",
+            tool_args={},
+        )
+
+        async with unpatched_agent(stream_function) as agent:
+            # Mock reset to raise an exception
+            async def failing_reset():
+                raise RuntimeError("Kernel crashed")
+
+            agent._code_executor.reset = failing_reset
+
+            results = await collect_stream(agent, "reset kernel")
+
+            assert len(results.tool_outputs) == 1
+            assert "Kernel reset failed" in str(results.tool_outputs[0].content)
+            assert "Kernel crashed" in str(results.tool_outputs[0].content)
+
+
+class TestMcpToolException:
+    """Tests for MCP tool call exception handling."""
+
+    @pytest.fixture
+    def mcp_servers(self):
+        return {"test": MCPServerStdio("python", args=[str(STDIO_SERVER_PATH)])}
+
+    @pytest.mark.asyncio
+    async def test_mcp_tool_exception_returns_error(self, mcp_servers):
+        """MCP tool exception returns error message."""
+        stream_function = create_stream_function(
+            tool_name="test_tool_2",
+            tool_args={"s": "test"},
+        )
+
+        async with patched_agent(stream_function, mcp_servers=mcp_servers) as agent:
+            # Mock direct_call_tool to raise an exception
+            async def failing_call(*args, **kwargs):
+                raise RuntimeError("Connection failed")
+
+            agent._tool_servers["test_tool_2"].direct_call_tool = failing_call
+
+            results = await collect_stream(agent, "test")
+
+            assert len(results.tool_outputs) == 1
+            assert "MCP tool call failed" in str(results.tool_outputs[0].content)
+            assert "Connection failed" in str(results.tool_outputs[0].content)
+
+
+class TestCodeExecutionException:
+    """Tests for code execution exception handling."""
+
+    @pytest.mark.asyncio
+    async def test_code_execution_exception_yields_error(self):
+        """Code executor exception yields error output."""
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": "x = 1"},
+        )
+
+        async with unpatched_agent(stream_function) as agent:
+            # Mock the stream method to raise an exception
+            async def failing_stream(code, chunks=False):
+                raise RuntimeError("Kernel crashed unexpectedly")
+                yield  # Make it an async generator
+
+            agent._code_executor.stream = failing_stream
+
+            results = await collect_stream(agent, "test")
+
+            assert len(results.code_outputs) == 1
+            assert "Kernel crashed unexpectedly" in str(results.code_outputs[0].text)
+
+
+class TestExtendedThinking:
+    """Tests for extended thinking (ThinkingPart/ThinkingPartDelta) handling."""
+
+    @pytest.mark.asyncio
+    async def test_thinking_parts_yielded(self):
+        """ThinkingPart events are captured and yielded as ThoughtsChunk/Thoughts."""
+
+        async def stream_function_with_thinking(
+            messages: list[ModelMessage], info: AgentInfo
+        ) -> AsyncIterator[str | DeltaToolCalls | DeltaThinkingCalls]:
+            # Yield thinking parts
+            yield {0: DeltaThinkingPart(content="Let me think")}
+            yield {0: DeltaThinkingPart(content=" about this.")}
+            # Then yield text response
+            yield "Here is my answer."
+
+        async with patched_agent(stream_function_with_thinking) as agent:
+            results = await collect_stream(agent, "test")
+
+            # Should have thinking chunks
+            assert len(results.thoughts_chunks) >= 1
+            # Should have final thoughts
+            assert len(results.thoughts) == 1
+            assert "think" in results.thoughts[0].content.lower()
+            # Should have response
+            assert len(results.responses) == 1
+            assert "answer" in results.responses[0].content
+
+
+class TestStreamingDeltas:
+    """Tests for text streaming deltas (TextPartDelta) handling."""
+
+    @pytest.mark.asyncio
+    async def test_text_deltas_yielded(self):
+        """Multiple text yields produce ResponseChunk events."""
+
+        async def stream_function_with_deltas(
+            messages: list[ModelMessage], info: AgentInfo
+        ) -> AsyncIterator[str | DeltaToolCalls]:
+            # Yield text in chunks
+            yield "Hello"
+            yield " world"
+            yield "!"
+
+        async with patched_agent(stream_function_with_deltas) as agent:
+            results = await collect_stream(agent, "test")
+
+            # Should have multiple response chunks
+            assert len(results.response_chunks) >= 1
+            # Should have final response with combined text
+            assert len(results.responses) == 1
+            assert results.responses[0].content == "Hello world!"

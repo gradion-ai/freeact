@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -9,6 +10,79 @@ from tests.conftest import (
     create_stream_function,
     patched_agent,
 )
+
+
+class TestCodeExecutionOutput:
+    """Tests for CodeExecutionOutput dataclass methods."""
+
+    def test_ptc_rejected_returns_false_when_text_is_none(self):
+        """ptc_rejected() returns False when text is None."""
+        output = CodeExecutionOutput(text=None, images=[])
+        assert output.ptc_rejected() is False
+
+    def test_ptc_rejected_detects_rejection_pattern(self):
+        """ptc_rejected() detects ToolRunnerError pattern."""
+        output = CodeExecutionOutput(
+            text="ToolRunnerError: Approval request for my_tool rejected",
+            images=[],
+        )
+        assert output.ptc_rejected() is True
+
+    def test_ptc_rejected_returns_false_for_normal_output(self):
+        """ptc_rejected() returns False for normal output."""
+        output = CodeExecutionOutput(text="Normal output", images=[])
+        assert output.ptc_rejected() is False
+
+    def test_format_returns_full_content_when_under_limit(self):
+        """format() returns full content when under max_chars."""
+        output = CodeExecutionOutput(text="Short text", images=[])
+        assert output.format(max_chars=100) == "Short text"
+
+    def test_format_truncates_long_output(self):
+        """format() truncates output exceeding max_chars with 80/20 split."""
+        long_text = "x" * 1000
+        output = CodeExecutionOutput(text=long_text, images=[])
+        result = output.format(max_chars=100)
+        assert len(result) == 100
+        assert result.startswith("x" * 80)
+        assert "..." in result
+        # 20% of 100 = 20, minus 3 for "..." = 17
+        assert result.endswith("x" * 17)
+
+    def test_format_includes_image_markdown(self):
+        """format() appends image markdown links."""
+        output = CodeExecutionOutput(
+            text="Output",
+            images=[Path("/tmp/img1.png"), Path("/tmp/img2.png")],
+        )
+        result = output.format()
+        assert "![Image](/tmp/img1.png)" in result
+        assert "![Image](/tmp/img2.png)" in result
+
+    def test_format_returns_empty_when_no_content(self):
+        """format() returns empty string when no text or images."""
+        output = CodeExecutionOutput(text=None, images=[])
+        assert output.format() == ""
+
+    def test_format_with_only_images(self):
+        """format() works with only images and no text."""
+        output = CodeExecutionOutput(
+            text=None,
+            images=[Path("/tmp/image.png")],
+        )
+        result = output.format()
+        assert result == "![Image](/tmp/image.png)"
+
+    def test_format_truncates_with_images(self):
+        """format() truncates when text plus image markdown exceeds limit."""
+        output = CodeExecutionOutput(
+            text="x" * 100,
+            images=[Path("/tmp/image.png")],
+        )
+        # Text is 100 chars, image markdown is ~24 chars, total ~125
+        result = output.format(max_chars=50)
+        assert len(result) == 50
+        assert "..." in result
 
 
 def create_code_exec_function(output_text: str) -> CodeExecFunction:

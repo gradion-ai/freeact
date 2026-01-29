@@ -9,6 +9,7 @@ __pycache__
 .venv/
 site/
 .env
+.coverage
 /sandbox.*
 /gentools/
 /mcptools/

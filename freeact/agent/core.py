@@ -346,13 +346,14 @@ class Agent:
         tool_name = call.tool_name
         tool_args = call.args_as_dict()
 
+        rejected = False
+
         if tool_name not in self.tool_names:
             content = f"Unknown tool name: {tool_name}"
         else:
             approval = ApprovalRequest(tool_name=tool_name, tool_args=tool_args)
             yield approval
 
-            rejected = False
             if not await approval.approved():
                 content = "Tool call rejected"
                 rejected = True

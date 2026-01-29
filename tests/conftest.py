@@ -10,11 +10,13 @@ from pydantic_ai.messages import (
     ModelRequest,
     ToolReturnPart,
 )
-from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
+from pydantic_ai.models.function import AgentInfo, DeltaThinkingPart, DeltaToolCall, FunctionModel
 
 from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput, Response, ToolOutput
+from freeact.agent.core import ResponseChunk, Thoughts, ThoughtsChunk
 
 DeltaToolCalls = dict[int, DeltaToolCall]
+DeltaThinkingCalls = dict[int, DeltaThinkingPart]
 CodeExecFunction = Callable[..., AsyncIterator[ApprovalRequest | CodeExecutionOutput]]
 
 
@@ -95,6 +97,9 @@ class StreamResults:
     code_outputs: list[CodeExecutionOutput] = field(default_factory=list)
     tool_outputs: list[ToolOutput] = field(default_factory=list)
     responses: list[Response] = field(default_factory=list)
+    response_chunks: list[ResponseChunk] = field(default_factory=list)
+    thoughts: list[Thoughts] = field(default_factory=list)
+    thoughts_chunks: list[ThoughtsChunk] = field(default_factory=list)
 
 
 async def collect_stream(
@@ -115,4 +120,10 @@ async def collect_stream(
                 results.tool_outputs.append(out)
             case Response() as resp:
                 results.responses.append(resp)
+            case ResponseChunk() as chunk:
+                results.response_chunks.append(chunk)
+            case Thoughts() as thought:
+                results.thoughts.append(thought)
+            case ThoughtsChunk() as chunk:
+                results.thoughts_chunks.append(chunk)
     return results
