@@ -47,6 +47,7 @@ uv run invoke serve-docs     # Serve docs at localhost:8000
 - `freeact/agent/config/init.py`: Initializes `.freeact/` from templates on first run
 - `freeact/agent/tools/pytools/apigen.py`: Generates Python APIs for PTC servers using `ipybox.generate_mcp_sources()`
 - `freeact/agent/tools/pytools/categories.py`: Discovers tool categories from `gentools/` and `mcptools/`
+- `freeact/media/`: Reusable media handling - `parse_prompt()` for `@file` reference extraction, image loading/downscaling
 - `freeact/terminal/interface.py`: `Terminal` class - conversation loop, event rendering, approval handling
 - `freeact/permissions.py`: `PermissionManager` - two-tier approval (always/session), persists to `.freeact/permissions.json`
 - `freeact/cli.py`: CLI entry point, loads config, creates agent, runs terminal

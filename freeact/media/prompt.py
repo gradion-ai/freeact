@@ -6,7 +6,7 @@ from pathlib import Path
 
 from pydantic_ai import UserContent
 
-from freeact.terminal.images import collect_images, load_image
+from freeact.media.images import collect_images, load_image
 
 _AT_FILE_PATTERN = re.compile(r"@(\S+)")
 

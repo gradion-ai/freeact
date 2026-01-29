@@ -15,9 +15,9 @@ from freeact.agent import (
     ThoughtsChunk,
     ToolOutput,
 )
+from freeact.media import parse_prompt
 from freeact.permissions import PermissionManager
 from freeact.terminal.display import Display
-from freeact.terminal.prompt import parse_prompt
 
 
 class Terminal:
