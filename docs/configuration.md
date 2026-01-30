@@ -61,7 +61,7 @@ These are MCP servers that are called directly via JSON. This section is primari
   "mcp-servers": {
     "pytools": {
       "command": "python",
-      "args": ["-m", "freeact.agent.tools.pytools.search"]
+      "args": ["-m", "freeact.agent.tools.pytools.search.basic"]
     },
     "filesystem": {
       "command": "npx",
