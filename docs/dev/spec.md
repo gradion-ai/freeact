@@ -248,19 +248,21 @@ With hybrid search, the agent's tool discovery workflow changes:
 ### Basic Mode (Current)
 
 1. Call `pytools_list_categories` to enumerate categories
-2. Call `pytools_list_tools` with relevant categories
-3. Read tool source files to understand interfaces
-4. Generate code using selected tools
+2. Call `pytools_list_tools` with relevant categories (returns tool names)
 
 ### Hybrid Mode
 
 1. Generate focused search query from user request
-2. Call `pytools_search_tools` with query
-3. Review ranked results with descriptions
-4. Read tool source files if more detail needed
-5. Generate code using selected tools
+2. Call `pytools_search_tools` with query (returns tool names + descriptions)
 
-### Parallel Search Strategy
+### Common to Both Workflows
+
+After obtaining search/listing results:
+
+1. **Selection**: If results are sufficient to choose tools, select. Otherwise, inspect code of candidate tools to make the selection.
+2. **Usage**: Inspect code of selected tool (if not already done) to understand the API, then generate the code action.
+
+### Parallel Search Strategy (Hybrid)
 
 For complex requests requiring multiple tools, the agent can:
 
