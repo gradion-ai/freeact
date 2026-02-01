@@ -42,7 +42,7 @@ Preservation rules when extending tool modules:
 Docstring guidelines:
 - Derive docstrings from the original `run()` function docstring
 - `ParseResult` docstring should describe the parsed data structure
-- `run_parsed()` docstring should be as descriptive as `run()`, adapted for structured output
+- `run_parsed()` docstring must be exactly the same as the `run()` docstring
 - Field descriptions should explain what each field contains
 
 Add to `mcptools/<category>/<tool>.py`:
@@ -63,14 +63,7 @@ class ParseResult(BaseModel):
 
 ```python
 def run_parsed(params: Params) -> ParseResult:
-    """<Adapt run() docstring, noting structured data is returned>.
-
-    Args:
-        params: <Brief description based on Params class purpose>
-
-    Returns:
-        ParseResult with <key structured fields>
-    """
+    """<Copy exact docstring from run() function>."""
     from mcpparse.<category>.<tool> import parse
 
     result = run(params)
