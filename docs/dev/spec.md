@@ -260,16 +260,9 @@ For complex requests requiring multiple tools, the agent can:
 
 ## Database Schema
 
-### Tables
+The database uses a simplified 2-table design (consolidated from 3 tables):
 
-**tools** (metadata and change detection):
-```sql
-CREATE TABLE tools (
-    id TEXT PRIMARY KEY,      -- "source:category:tool_name"
-    description TEXT NOT NULL,
-    file_hash TEXT NOT NULL   -- SHA256 of source file
-);
-```
+### Tables
 
 **entries_vec** (sqlite-vec virtual table):
 ```sql
@@ -279,13 +272,18 @@ CREATE VIRTUAL TABLE entries_vec USING vec0(
 );
 ```
 
-**entries_fts** (FTS5 virtual table):
+**entries_fts** (FTS5 virtual table with consolidated metadata):
 ```sql
 CREATE VIRTUAL TABLE entries_fts USING fts5(
-    id UNINDEXED,
-    text  -- "tool_name: description"
+    id,                    -- indexed for tool name/category matching
+    file_hash UNINDEXED,   -- for change detection
+    description            -- indexed for content matching
 );
 ```
+
+### Embedding Text
+
+The Index Manager computes embedding text as `"{id}: {description}"` for embedding generation. This text is not stored in the database.
 
 ### ID Format
 
@@ -323,6 +321,6 @@ _None at this time._
 
 ## References
 
-- Prototype implementation: `/Users/martin/Development/sandbox/toolsearch/`
+- Prototype implementation: `/Users/martin/Development/sandbox/toolsearch/` (implementation hints only; this spec takes priority over prototype details)
 - Research notes: `/Users/martin/Development/resources/notes/freeact/tool-search/`
 - Existing basic search: `freeact/agent/tools/pytools/search/basic.py`

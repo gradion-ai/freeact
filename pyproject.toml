@@ -19,6 +19,7 @@ dependencies = [
     "pyyaml>=6.0.3",
     "rich>=14.2.0",
     "ipybox>=0.7.2",
+    "sqlite-vec>=0.1.0",
 ]
 
 [project.scripts]

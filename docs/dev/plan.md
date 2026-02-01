@@ -6,9 +6,9 @@ This plan breaks down the implementation of the hybrid tool search feature into 
 
 | Step | Description | Status | Notes |
 |------|-------------|--------|-------|
-| 1 | Database Module | Not Started | |
-| 2 | Docstring Extraction | Not Started | |
-| 3 | Search Engine | Not Started | |
+| 1 | Database Module | Done | |
+| 2 | Docstring Extraction | Done | |
+| 3 | Search Engine | Done | |
 | 4 | Embedder Integration | Not Started | |
 | 5 | Index Manager | Not Started | |
 | 6 | File Watcher | Not Started | |
