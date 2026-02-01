@@ -69,6 +69,17 @@ This specification defines a hybrid BM25/vector search capability for freeact's 
 4. **Sync**: On file change, re-index affected tool(s) immediately
 5. **Search**: Agent queries trigger hybrid search, returning ranked results
 
+### Concurrency Model
+
+Freeact uses asyncio throughout. All public async APIs must avoid blocking the event loop:
+
+- **Database operations**: Wrap SQLite calls (blocking I/O) in `ipybox.utils.arun()` to run in a thread pool
+- **File system operations**: Synchronous helpers (e.g., `scan_tools`, `extract_docstring`) should be called via `arun()` from async contexts
+- **Embedding generation**: Use async pydantic-ai embedder APIs
+- **File watching**: Use `watchfiles` which provides async iteration
+
+Pure CPU operations (string manipulation, RRF score computation) on small data are acceptable inline without offloading.
+
 ## MCP Server Interface
 
 ### Server Name

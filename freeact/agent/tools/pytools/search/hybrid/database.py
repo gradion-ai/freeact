@@ -5,6 +5,8 @@ from __future__ import annotations
 import asyncio
 import sqlite3
 import struct
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from types import TracebackType
@@ -44,39 +46,42 @@ class Database:
         self._dimensions = dimensions
         self._write_lock = asyncio.Lock()
 
-    def _get_connection(self) -> sqlite3.Connection:
-        """Create a new connection with sqlite-vec loaded."""
+    @contextmanager
+    def _connection(self) -> Iterator[sqlite3.Connection]:
+        """Create a connection with sqlite-vec loaded, ensuring cleanup."""
         conn = sqlite3.connect(self._path, check_same_thread=False)
         conn.enable_load_extension(True)
         sqlite_vec.load(conn)
         conn.enable_load_extension(False)
-        return conn
+        try:
+            yield conn
+        finally:
+            conn.close()
 
     async def initialize(self) -> None:
         """Create tables if they don't exist."""
 
         def _init() -> None:
-            conn = self._get_connection()
-            conn.execute("PRAGMA journal_mode=WAL")
-            conn.execute(
-                f"""
-                CREATE VIRTUAL TABLE IF NOT EXISTS entries_vec USING vec0(
-                    id TEXT PRIMARY KEY,
-                    embedding float[{self._dimensions}]
+            with self._connection() as conn:
+                conn.execute("PRAGMA journal_mode=WAL")
+                conn.execute(
+                    f"""
+                    CREATE VIRTUAL TABLE IF NOT EXISTS entries_vec USING vec0(
+                        id TEXT PRIMARY KEY,
+                        embedding float[{self._dimensions}]
+                    )
+                    """
                 )
-                """
-            )
-            conn.execute(
-                """
-                CREATE VIRTUAL TABLE IF NOT EXISTS entries_fts USING fts5(
-                    id,
-                    file_hash UNINDEXED,
-                    description
+                conn.execute(
+                    """
+                    CREATE VIRTUAL TABLE IF NOT EXISTS entries_fts USING fts5(
+                        id,
+                        file_hash UNINDEXED,
+                        description
+                    )
+                    """
                 )
-                """
-            )
-            conn.commit()
-            conn.close()
+                conn.commit()
 
         await arun(_init)
 
@@ -84,28 +89,7 @@ class Database:
         """Add a tool entry to both tables."""
 
         def _add() -> None:
-            conn = self._get_connection()
-            embedding_bytes = struct.pack(f"{len(entry.embedding)}f", *entry.embedding)
-            conn.execute(
-                "INSERT INTO entries_vec (id, embedding) VALUES (?, ?)",
-                (entry.id, embedding_bytes),
-            )
-            conn.execute(
-                "INSERT INTO entries_fts (id, file_hash, description) VALUES (?, ?, ?)",
-                (entry.id, entry.file_hash, entry.description),
-            )
-            conn.commit()
-            conn.close()
-
-        async with self._write_lock:
-            await arun(_add)
-
-    async def add_batch(self, entries: list[ToolEntry]) -> None:
-        """Add multiple tool entries in a single transaction."""
-
-        def _add_batch() -> None:
-            conn = self._get_connection()
-            for entry in entries:
+            with self._connection() as conn:
                 embedding_bytes = struct.pack(f"{len(entry.embedding)}f", *entry.embedding)
                 conn.execute(
                     "INSERT INTO entries_vec (id, embedding) VALUES (?, ?)",
@@ -115,8 +99,27 @@ class Database:
                     "INSERT INTO entries_fts (id, file_hash, description) VALUES (?, ?, ?)",
                     (entry.id, entry.file_hash, entry.description),
                 )
-            conn.commit()
-            conn.close()
+                conn.commit()
+
+        async with self._write_lock:
+            await arun(_add)
+
+    async def add_batch(self, entries: list[ToolEntry]) -> None:
+        """Add multiple tool entries in a single transaction."""
+
+        def _add_batch() -> None:
+            with self._connection() as conn:
+                for entry in entries:
+                    embedding_bytes = struct.pack(f"{len(entry.embedding)}f", *entry.embedding)
+                    conn.execute(
+                        "INSERT INTO entries_vec (id, embedding) VALUES (?, ?)",
+                        (entry.id, embedding_bytes),
+                    )
+                    conn.execute(
+                        "INSERT INTO entries_fts (id, file_hash, description) VALUES (?, ?, ?)",
+                        (entry.id, entry.file_hash, entry.description),
+                    )
+                conn.commit()
 
         async with self._write_lock:
             await arun(_add_batch)
@@ -125,22 +128,21 @@ class Database:
         """Update an existing tool entry in both tables."""
 
         def _update() -> None:
-            conn = self._get_connection()
-            embedding_bytes = struct.pack(f"{len(entry.embedding)}f", *entry.embedding)
-            # For vec0 tables, delete and re-insert
-            conn.execute("DELETE FROM entries_vec WHERE id = ?", (entry.id,))
-            conn.execute(
-                "INSERT INTO entries_vec (id, embedding) VALUES (?, ?)",
-                (entry.id, embedding_bytes),
-            )
-            # For FTS5 tables, delete and re-insert
-            conn.execute("DELETE FROM entries_fts WHERE id = ?", (entry.id,))
-            conn.execute(
-                "INSERT INTO entries_fts (id, file_hash, description) VALUES (?, ?, ?)",
-                (entry.id, entry.file_hash, entry.description),
-            )
-            conn.commit()
-            conn.close()
+            with self._connection() as conn:
+                embedding_bytes = struct.pack(f"{len(entry.embedding)}f", *entry.embedding)
+                # For vec0 tables, delete and re-insert
+                conn.execute("DELETE FROM entries_vec WHERE id = ?", (entry.id,))
+                conn.execute(
+                    "INSERT INTO entries_vec (id, embedding) VALUES (?, ?)",
+                    (entry.id, embedding_bytes),
+                )
+                # For FTS5 tables, delete and re-insert
+                conn.execute("DELETE FROM entries_fts WHERE id = ?", (entry.id,))
+                conn.execute(
+                    "INSERT INTO entries_fts (id, file_hash, description) VALUES (?, ?, ?)",
+                    (entry.id, entry.file_hash, entry.description),
+                )
+                conn.commit()
 
         async with self._write_lock:
             await arun(_update)
@@ -149,11 +151,10 @@ class Database:
         """Delete a tool entry from both tables."""
 
         def _delete() -> None:
-            conn = self._get_connection()
-            conn.execute("DELETE FROM entries_vec WHERE id = ?", (id,))
-            conn.execute("DELETE FROM entries_fts WHERE id = ?", (id,))
-            conn.commit()
-            conn.close()
+            with self._connection() as conn:
+                conn.execute("DELETE FROM entries_vec WHERE id = ?", (id,))
+                conn.execute("DELETE FROM entries_fts WHERE id = ?", (id,))
+                conn.commit()
 
         async with self._write_lock:
             await arun(_delete)
@@ -162,18 +163,17 @@ class Database:
         """Get a tool entry by ID."""
 
         def _get() -> ToolEntry | None:
-            conn = self._get_connection()
-            vec_row = conn.execute("SELECT embedding FROM entries_vec WHERE id = ?", (id,)).fetchone()
-            fts_row = conn.execute("SELECT file_hash, description FROM entries_fts WHERE id = ?", (id,)).fetchone()
-            conn.close()
+            with self._connection() as conn:
+                vec_row = conn.execute("SELECT embedding FROM entries_vec WHERE id = ?", (id,)).fetchone()
+                fts_row = conn.execute("SELECT file_hash, description FROM entries_fts WHERE id = ?", (id,)).fetchone()
 
-            if vec_row is None or fts_row is None:
-                return None
+                if vec_row is None or fts_row is None:
+                    return None
 
-            embedding_bytes = vec_row[0]
-            n = len(embedding_bytes) // 4
-            embedding = list(struct.unpack(f"{n}f", embedding_bytes))
-            return ToolEntry(id=id, description=fts_row[1], file_hash=fts_row[0], embedding=embedding)
+                embedding_bytes = vec_row[0]
+                n = len(embedding_bytes) // 4
+                embedding = list(struct.unpack(f"{n}f", embedding_bytes))
+                return ToolEntry(id=id, description=fts_row[1], file_hash=fts_row[0], embedding=embedding)
 
         result = await arun(_get)
         return result  # type: ignore[return-value]
@@ -182,10 +182,9 @@ class Database:
         """Get the file hash for a tool entry (for change detection)."""
 
         def _get_hash() -> str | None:
-            conn = self._get_connection()
-            row = conn.execute("SELECT file_hash FROM entries_fts WHERE id = ?", (id,)).fetchone()
-            conn.close()
-            return row[0] if row else None
+            with self._connection() as conn:
+                row = conn.execute("SELECT file_hash FROM entries_fts WHERE id = ?", (id,)).fetchone()
+                return row[0] if row else None
 
         result = await arun(_get_hash)
         return result  # type: ignore[return-value]
@@ -194,10 +193,9 @@ class Database:
         """Check if a tool entry exists."""
 
         def _exists() -> bool:
-            conn = self._get_connection()
-            row = conn.execute("SELECT 1 FROM entries_fts WHERE id = ?", (id,)).fetchone()
-            conn.close()
-            return row is not None
+            with self._connection() as conn:
+                row = conn.execute("SELECT 1 FROM entries_fts WHERE id = ?", (id,)).fetchone()
+                return row is not None
 
         result = await arun(_exists)
         return result  # type: ignore[return-value]
@@ -206,10 +204,9 @@ class Database:
         """List all tool entry IDs."""
 
         def _list_ids() -> list[str]:
-            conn = self._get_connection()
-            rows = conn.execute("SELECT id FROM entries_fts").fetchall()
-            conn.close()
-            return [row[0] for row in rows]
+            with self._connection() as conn:
+                rows = conn.execute("SELECT id FROM entries_fts").fetchall()
+                return [row[0] for row in rows]
 
         result = await arun(_list_ids)
         return result  # type: ignore[return-value]
@@ -225,21 +222,20 @@ class Database:
         """Search using BM25 ranking on id and description columns."""
 
         def _search() -> list[SearchResult]:
-            conn = self._get_connection()
-            fts_query = self._prepare_fts_query(query)
-            rows = conn.execute(
-                """
-                SELECT id, bm25(entries_fts)
-                FROM entries_fts
-                WHERE entries_fts MATCH ?
-                ORDER BY bm25(entries_fts)
-                LIMIT ?
-                """,
-                (fts_query, limit),
-            ).fetchall()
-            conn.close()
-            # BM25 returns negative scores (lower is better), negate for consistency
-            return [SearchResult(id=row[0], score=-row[1]) for row in rows]
+            with self._connection() as conn:
+                fts_query = self._prepare_fts_query(query)
+                rows = conn.execute(
+                    """
+                    SELECT id, bm25(entries_fts)
+                    FROM entries_fts
+                    WHERE entries_fts MATCH ?
+                    ORDER BY bm25(entries_fts)
+                    LIMIT ?
+                    """,
+                    (fts_query, limit),
+                ).fetchall()
+                # BM25 returns negative scores (lower is better), negate for consistency
+                return [SearchResult(id=row[0], score=-row[1]) for row in rows]
 
         result = await arun(_search)
         return result  # type: ignore[return-value]
@@ -248,21 +244,20 @@ class Database:
         """Search using vector similarity."""
 
         def _search() -> list[SearchResult]:
-            conn = self._get_connection()
-            embedding_bytes = struct.pack(f"{len(embedding)}f", *embedding)
-            rows = conn.execute(
-                """
-                SELECT id, distance
-                FROM entries_vec
-                WHERE embedding MATCH ?
-                ORDER BY distance
-                LIMIT ?
-                """,
-                (embedding_bytes, limit),
-            ).fetchall()
-            conn.close()
-            # Distance is lower-is-better, convert to higher-is-better score
-            return [SearchResult(id=row[0], score=1.0 - row[1]) for row in rows]
+            with self._connection() as conn:
+                embedding_bytes = struct.pack(f"{len(embedding)}f", *embedding)
+                rows = conn.execute(
+                    """
+                    SELECT id, distance
+                    FROM entries_vec
+                    WHERE embedding MATCH ?
+                    ORDER BY distance
+                    LIMIT ?
+                    """,
+                    (embedding_bytes, limit),
+                ).fetchall()
+                # Distance is lower-is-better, convert to higher-is-better score
+                return [SearchResult(id=row[0], score=1.0 - row[1]) for row in rows]
 
         result = await arun(_search)
         return result  # type: ignore[return-value]
