@@ -1,6 +1,7 @@
 """Hybrid BM25/vector search for tool discovery."""
 
 from freeact.agent.tools.pytools.search.hybrid.database import Database, SearchResult, ToolEntry
+from freeact.agent.tools.pytools.search.hybrid.embed import ToolEmbedder
 from freeact.agent.tools.pytools.search.hybrid.extract import (
     ToolInfo,
     extract_docstring,
@@ -15,6 +16,7 @@ __all__ = [
     "SearchConfig",
     "SearchEngine",
     "SearchResult",
+    "ToolEmbedder",
     "ToolEntry",
     "ToolInfo",
     "extract_docstring",

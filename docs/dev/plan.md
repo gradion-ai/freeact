@@ -9,7 +9,7 @@ This plan breaks down the implementation of the hybrid tool search feature into 
 | 1 | Database Module | Done | |
 | 2 | Docstring Extraction | Done | |
 | 3 | Search Engine | Done | |
-| 4 | Embedder Integration | Not Started | |
+| 4 | Embedder Integration | Done | Upgraded pydantic-ai to >=1.51.0 |
 | 5 | Index Manager | Not Started | |
 | 6 | File Watcher | Not Started | |
 | 7 | Server Implementation | Not Started | |
@@ -86,15 +86,14 @@ This plan breaks down the implementation of the hybrid tool search feature into 
 
 **Deliverables**:
 - `freeact/agent/tools/pytools/search/hybrid/embed.py`
-- `embed_query(embedder, text) -> list[float]` - query embedding (asymmetric)
-- `embed_documents(embedder, texts) -> list[list[float]]` - batch document embedding
-- Configurable model and dimensions
+- `ToolEmbedder` class wrapping pydantic-ai's `Embedder`
+- `embed_query(text) -> list[float]` - query embedding (asymmetric)
+- `embed_documents(texts) -> list[list[float]]` - batch document embedding
+- Configurable model and dimensions via constructor
 
 **Tests**:
 - `tests/unit/tools/pytools/search/hybrid/test_embed.py` (mocked embedder)
 - `tests/integration/tools/pytools/search/hybrid/test_embed.py` (real API, optional)
-
-**Reference**: Prototype `toolsearch/embeddings_generic.py`
 
 ---
 
