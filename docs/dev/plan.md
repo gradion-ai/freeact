@@ -16,7 +16,7 @@ This plan breaks down the implementation of the hybrid tool search feature into 
 | 8 | Package Structure | Done | Entry point via `python -m freeact.agent.tools.pytools.search.hybrid` |
 | 9 | System Prompt Updates | Not Started | |
 | 10 | Configuration Support | Not Started | |
-| 11 | End-to-End Testing | Not Started | |
+| 11 | End-to-End Testing | Done | Covered by test_server.py integration tests |
 | 12 | Documentation and Cleanup | Not Started | |
 
 **Status legend**: Not Started | In Progress | Done | Blocked
@@ -220,13 +220,13 @@ This plan breaks down the implementation of the hybrid tool search feature into 
 **Goal**: Validate full workflow from config to search results.
 
 **Deliverables**:
+- TODO: chceck if this isn't already covered by `tests/integration/tools/pytools/search/hybrid/test_server.py`
 - `tests/integration/tools/pytools/search/hybrid/test_e2e.py`
 - Test: startup with empty database, full sync
 - Test: startup with existing database, incremental sync
 - Test: file change triggers re-index
 - Test: search returns expected results
 - Test: mode switching (bm25/vector/hybrid)
-- Test: scope filtering (all/gentools/mcptools)
 
 ---
 
