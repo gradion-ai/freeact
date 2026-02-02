@@ -11,7 +11,7 @@ This plan breaks down the implementation of the hybrid tool search feature into 
 | 3 | Search Engine | Done | |
 | 4 | Embedder Integration | Done | Upgraded pydantic-ai to >=1.51.0 |
 | 5 | Indexer | Done | Renamed from IndexManager; added tool_info_from_path utility |
-| 6 | File Watcher | Not Started | |
+| 6 | File Watcher | Done | ToolWatcher class with 300ms debounce; .py-only filtering |
 | 7 | Server Implementation | Not Started | |
 | 8 | Package Structure | Not Started | |
 | 9 | System Prompt Updates | Not Started | |

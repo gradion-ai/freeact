@@ -17,6 +17,7 @@ from freeact.agent.tools.pytools.search.hybrid.extract import (
     tool_id_from_path,
     tool_info_from_path,
 )
+from freeact.agent.tools.pytools.search.hybrid.watch import ToolWatcher
 
 
 @dataclass
@@ -94,7 +95,7 @@ class Indexer:
         self._embedder = embedder
         self._base_dir = base_dir
         self._watching = watching
-        self._watcher_task: object | None = None  # Will be asyncio.Task in Step 6
+        self._watcher: ToolWatcher | None = None
 
     async def start(self) -> SyncResult:
         """Start the indexer: sync database and optionally start file watcher.
@@ -105,15 +106,20 @@ class Indexer:
         result = await self._sync()
 
         if self._watching:
-            # File watcher will be implemented in Step 6
-            pass
+            self._watcher = ToolWatcher(
+                base_dir=self._base_dir,
+                on_change=self.handle_file_change,
+                on_delete=self.handle_file_delete,
+            )
+            await self._watcher.start()
 
         return result
 
     async def stop(self) -> None:
         """Stop the indexer and file watcher if running."""
-        # File watcher cleanup will be implemented in Step 6
-        self._watcher_task = None
+        if self._watcher is not None:
+            await self._watcher.stop()
+            self._watcher = None
 
     async def _sync(self) -> SyncResult:
         """Perform incremental sync of tool files to database.

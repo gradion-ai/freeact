@@ -1,4 +1,4 @@
-"""Unit tests for the Indexer module."""
+"""Integration tests for the Indexer module."""
 
 from __future__ import annotations
 
@@ -26,8 +26,10 @@ def dimensions() -> int:
 
 @pytest.fixture
 def fixtures_dir() -> Path:
-    """Path to test fixtures directory."""
-    return Path(__file__).parent / "fixtures"
+    """Path to test fixtures directory (in unit tests)."""
+    # Fixtures are shared with unit tests
+    tests_root = Path(__file__).parent.parent.parent.parent.parent.parent
+    return tests_root / "unit" / "tools" / "pytools" / "search" / "hybrid" / "fixtures"
 
 
 @pytest.fixture
@@ -382,7 +384,54 @@ class TestIndexerWatchingFlag:
             indexer = Indexer(db, mock_embedder, base_dir, watching=False)
             await indexer.start()
 
-            # Watcher task should be None
-            assert indexer._watcher_task is None
+            # Watcher should be None
+            assert indexer._watcher is None
 
             await indexer.stop()
+
+    @pytest.mark.asyncio
+    async def test_watching_true_starts_watcher(
+        self, db_path: Path, dimensions: int, mock_embedder: ToolEmbedder, tmp_path: Path
+    ) -> None:
+        """Test watching=True starts file watcher."""
+        base_dir = tmp_path / "workspace"
+        (base_dir / "mcptools").mkdir(parents=True)
+
+        async with Database(db_path, dimensions) as db:
+            indexer = Indexer(db, mock_embedder, base_dir, watching=True)
+            await indexer.start()
+
+            # Watcher should be created and running
+            assert indexer._watcher is not None
+            assert indexer._watcher.is_running is True
+
+            await indexer.stop()
+
+            # Watcher should be stopped and cleared
+            assert indexer._watcher is None
+
+    @pytest.mark.asyncio
+    async def test_watcher_indexes_new_file(
+        self, db_path: Path, dimensions: int, mock_embedder: ToolEmbedder, tmp_path: Path
+    ) -> None:
+        """Test file watcher triggers indexing of new files."""
+        import asyncio
+
+        base_dir = tmp_path / "workspace"
+        mcptools = base_dir / "mcptools" / "cat"
+        mcptools.mkdir(parents=True)
+
+        async with Database(db_path, dimensions) as db:
+            async with Indexer(db, mock_embedder, base_dir, watching=True):
+                # Create a new tool file
+                tool_file = mcptools / "new_tool.py"
+                tool_file.write_text('def run():\n    """A brand new tool."""\n    pass\n')
+
+                # Wait for debounce + processing
+                await asyncio.sleep(0.5)
+
+                # Tool should be indexed
+                assert await db.exists("mcptools:cat:new_tool")
+                entry = await db.get("mcptools:cat:new_tool")
+                assert entry is not None
+                assert "brand new" in entry.description
