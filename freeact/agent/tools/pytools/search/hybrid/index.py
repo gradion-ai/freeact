@@ -60,27 +60,28 @@ def _make_embedding_text(tool_info: ToolInfo) -> str:
 class Indexer:
     """Keeps the search database in sync with tool files.
 
-    Coordinates database, embedder, file scanning, and (optionally) file watching
+    Coordinates database, embedder, file scanning, and file watching
     to maintain an up-to-date search index.
 
-    On start:
-    1. Scans mcptools/ and gentools/ for tools
-    2. Compares file hashes to detect new/changed/deleted tools
-    3. Indexes new and changed tools (generates embeddings, stores in database)
-    4. Removes deleted tools from the database
-    5. If watching=True, starts file watcher for ongoing updates (Step 6)
+    Provides two orthogonal operations:
+    - sync(): One-time reconciliation of filesystem with database
+    - watch()/unwatch(): Continuous file monitoring for live updates
 
     Args:
         database: Database instance for storing tool entries.
         embedder: Embedder for generating tool embeddings.
         base_dir: Base directory containing mcptools/ and gentools/.
-        watching: Whether to watch for file changes after initial sync.
 
     Example:
         ```python
+        # Standalone sync (no watching)
+        indexer = Indexer(database, embedder, base_dir)
+        result = await indexer.sync()
+
+        # Watch with explicit sync
         async with Indexer(database, embedder, base_dir) as indexer:
-            # Database is synced and watcher is running
-            ...
+            result = await indexer.sync()
+            # Watcher now running for live updates
         ```
     """
 
@@ -89,39 +90,32 @@ class Indexer:
         database: Database,
         embedder: ToolEmbedder,
         base_dir: Path,
-        watching: bool = True,
     ) -> None:
         self._database = database
         self._embedder = embedder
         self._base_dir = base_dir
-        self._watching = watching
         self._watcher: ToolWatcher | None = None
 
-    async def start(self) -> SyncResult:
-        """Start the indexer: sync database and optionally start file watcher.
+    async def watch(self) -> None:
+        """Start file watcher for live updates.
 
-        Returns:
-            SyncResult with counts of added, updated, and deleted tools.
+        The watcher monitors mcptools/ and gentools/ for file changes
+        and automatically indexes new/modified tools or removes deleted ones.
         """
-        result = await self._sync()
+        self._watcher = ToolWatcher(
+            base_dir=self._base_dir,
+            on_change=self.handle_file_change,
+            on_delete=self.handle_file_delete,
+        )
+        await self._watcher.start()
 
-        if self._watching:
-            self._watcher = ToolWatcher(
-                base_dir=self._base_dir,
-                on_change=self.handle_file_change,
-                on_delete=self.handle_file_delete,
-            )
-            await self._watcher.start()
-
-        return result
-
-    async def stop(self) -> None:
-        """Stop the indexer and file watcher if running."""
+    async def unwatch(self) -> None:
+        """Stop the file watcher if running."""
         if self._watcher is not None:
             await self._watcher.stop()
             self._watcher = None
 
-    async def _sync(self) -> SyncResult:
+    async def sync(self) -> SyncResult:
         """Perform incremental sync of tool files to database.
 
         Scans all tool files, compares hashes, and updates the database:
@@ -260,8 +254,8 @@ class Indexer:
             await self._remove_tool(tool_id)
 
     async def __aenter__(self) -> Indexer:
-        """Start the indexer on context entry."""
-        await self.start()
+        """Start the file watcher on context entry."""
+        await self.watch()
         return self
 
     async def __aexit__(
@@ -270,5 +264,5 @@ class Indexer:
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
-        """Stop the indexer on context exit."""
-        await self.stop()
+        """Stop the file watcher on context exit."""
+        await self.unwatch()

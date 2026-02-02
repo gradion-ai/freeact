@@ -3,11 +3,32 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 
 import pytest
+from watchfiles import Change
 
 from freeact.agent.tools.pytools.search.hybrid.watch import ToolWatcher
+
+
+def create_tool_watcher(
+    base_dir: Path,
+    on_change: Callable[[Path], Awaitable[None]] | None = None,
+    on_delete: Callable[[Path], Awaitable[None]] | None = None,
+    **kwargs: int,
+) -> ToolWatcher:
+    """Create a ToolWatcher with default no-op callbacks."""
+
+    async def _noop(path: Path) -> None:
+        pass
+
+    return ToolWatcher(
+        base_dir,
+        on_change=on_change or _noop,
+        on_delete=on_delete or _noop,
+        **kwargs,
+    )
 
 
 class TestToolWatcherFilter:
@@ -15,60 +36,35 @@ class TestToolWatcherFilter:
 
     def test_filter_accepts_py_files_in_mcptools(self, tmp_path: Path) -> None:
         """Test filter accepts .py files in mcptools/."""
-        watcher = ToolWatcher(
-            tmp_path,
-            on_change=lambda p: asyncio.sleep(0),
-            on_delete=lambda p: asyncio.sleep(0),
-        )
-        from watchfiles import Change
+        watcher = create_tool_watcher(tmp_path)
 
         path = str(tmp_path / "mcptools" / "github" / "create_issue.py")
         assert watcher._watch_filter(Change.modified, path) is True
 
     def test_filter_accepts_py_files_in_gentools(self, tmp_path: Path) -> None:
         """Test filter accepts .py files in gentools/."""
-        watcher = ToolWatcher(
-            tmp_path,
-            on_change=lambda p: asyncio.sleep(0),
-            on_delete=lambda p: asyncio.sleep(0),
-        )
-        from watchfiles import Change
+        watcher = create_tool_watcher(tmp_path)
 
         path = str(tmp_path / "gentools" / "data" / "csv_parser" / "api.py")
         assert watcher._watch_filter(Change.modified, path) is True
 
     def test_filter_rejects_non_py_files(self, tmp_path: Path) -> None:
         """Test filter rejects non-.py files."""
-        watcher = ToolWatcher(
-            tmp_path,
-            on_change=lambda p: asyncio.sleep(0),
-            on_delete=lambda p: asyncio.sleep(0),
-        )
-        from watchfiles import Change
+        watcher = create_tool_watcher(tmp_path)
 
         path = str(tmp_path / "mcptools" / "github" / "readme.md")
         assert watcher._watch_filter(Change.modified, path) is False
 
     def test_filter_rejects_files_outside_tool_dirs(self, tmp_path: Path) -> None:
         """Test filter rejects files outside mcptools/ and gentools/."""
-        watcher = ToolWatcher(
-            tmp_path,
-            on_change=lambda p: asyncio.sleep(0),
-            on_delete=lambda p: asyncio.sleep(0),
-        )
-        from watchfiles import Change
+        watcher = create_tool_watcher(tmp_path)
 
         path = str(tmp_path / "other" / "file.py")
         assert watcher._watch_filter(Change.modified, path) is False
 
     def test_filter_rejects_files_outside_base_dir(self, tmp_path: Path) -> None:
         """Test filter rejects files outside base directory."""
-        watcher = ToolWatcher(
-            tmp_path / "workspace",
-            on_change=lambda p: asyncio.sleep(0),
-            on_delete=lambda p: asyncio.sleep(0),
-        )
-        from watchfiles import Change
+        watcher = create_tool_watcher(tmp_path / "workspace")
 
         path = str(tmp_path / "mcptools" / "tool.py")
         assert watcher._watch_filter(Change.modified, path) is False
@@ -81,12 +77,7 @@ class TestToolWatcherLifecycle:
     async def test_start_sets_running(self, tmp_path: Path) -> None:
         """Test start() sets is_running to True."""
         (tmp_path / "mcptools").mkdir()
-
-        watcher = ToolWatcher(
-            tmp_path,
-            on_change=lambda p: asyncio.sleep(0),
-            on_delete=lambda p: asyncio.sleep(0),
-        )
+        watcher = create_tool_watcher(tmp_path)
 
         await watcher.start()
         try:
@@ -98,12 +89,7 @@ class TestToolWatcherLifecycle:
     async def test_stop_clears_running(self, tmp_path: Path) -> None:
         """Test stop() sets is_running to False."""
         (tmp_path / "mcptools").mkdir()
-
-        watcher = ToolWatcher(
-            tmp_path,
-            on_change=lambda p: asyncio.sleep(0),
-            on_delete=lambda p: asyncio.sleep(0),
-        )
+        watcher = create_tool_watcher(tmp_path)
 
         await watcher.start()
         await watcher.stop()
@@ -114,12 +100,7 @@ class TestToolWatcherLifecycle:
     async def test_start_is_idempotent(self, tmp_path: Path) -> None:
         """Test calling start() multiple times is safe."""
         (tmp_path / "mcptools").mkdir()
-
-        watcher = ToolWatcher(
-            tmp_path,
-            on_change=lambda p: asyncio.sleep(0),
-            on_delete=lambda p: asyncio.sleep(0),
-        )
+        watcher = create_tool_watcher(tmp_path)
 
         await watcher.start()
         await watcher.start()  # Should not raise
@@ -132,12 +113,7 @@ class TestToolWatcherLifecycle:
     async def test_stop_is_idempotent(self, tmp_path: Path) -> None:
         """Test calling stop() multiple times is safe."""
         (tmp_path / "mcptools").mkdir()
-
-        watcher = ToolWatcher(
-            tmp_path,
-            on_change=lambda p: asyncio.sleep(0),
-            on_delete=lambda p: asyncio.sleep(0),
-        )
+        watcher = create_tool_watcher(tmp_path)
 
         await watcher.start()
         await watcher.stop()
@@ -150,11 +126,7 @@ class TestToolWatcherLifecycle:
         """Test watcher works as async context manager."""
         (tmp_path / "mcptools").mkdir()
 
-        async with ToolWatcher(
-            tmp_path,
-            on_change=lambda p: asyncio.sleep(0),
-            on_delete=lambda p: asyncio.sleep(0),
-        ) as watcher:
+        async with create_tool_watcher(tmp_path) as watcher:
             assert watcher.is_running is True
 
         assert watcher.is_running is False
@@ -163,11 +135,7 @@ class TestToolWatcherLifecycle:
     async def test_no_directories_to_watch(self, tmp_path: Path) -> None:
         """Test watcher handles missing mcptools/ and gentools/ gracefully."""
         # Neither mcptools nor gentools exist
-        watcher = ToolWatcher(
-            tmp_path,
-            on_change=lambda p: asyncio.sleep(0),
-            on_delete=lambda p: asyncio.sleep(0),
-        )
+        watcher = create_tool_watcher(tmp_path)
 
         await watcher.start()
         try:
@@ -191,12 +159,7 @@ class TestToolWatcherEvents:
         async def on_change(path: Path) -> None:
             changes.append(path)
 
-        async with ToolWatcher(
-            tmp_path,
-            on_change=on_change,
-            on_delete=lambda p: asyncio.sleep(0),
-            debounce_ms=50,  # Short debounce for faster tests
-        ):
+        async with create_tool_watcher(tmp_path, on_change=on_change, debounce_ms=50):
             # Create a file
             tool_file = mcptools / "tool.py"
             tool_file.write_text("def run(): pass")
@@ -220,12 +183,7 @@ class TestToolWatcherEvents:
         async def on_change(path: Path) -> None:
             changes.append(path)
 
-        async with ToolWatcher(
-            tmp_path,
-            on_change=on_change,
-            on_delete=lambda p: asyncio.sleep(0),
-            debounce_ms=50,
-        ):
+        async with create_tool_watcher(tmp_path, on_change=on_change, debounce_ms=50):
             # Modify the file
             tool_file.write_text("def run(): return 42")
 
@@ -247,12 +205,7 @@ class TestToolWatcherEvents:
         async def on_delete(path: Path) -> None:
             deletes.append(path)
 
-        async with ToolWatcher(
-            tmp_path,
-            on_change=lambda p: asyncio.sleep(0),
-            on_delete=on_delete,
-            debounce_ms=50,
-        ):
+        async with create_tool_watcher(tmp_path, on_delete=on_delete, debounce_ms=50):
             # Delete the file
             tool_file.unlink()
 
@@ -272,12 +225,7 @@ class TestToolWatcherEvents:
         async def on_change(path: Path) -> None:
             changes.append(path)
 
-        async with ToolWatcher(
-            tmp_path,
-            on_change=on_change,
-            on_delete=lambda p: asyncio.sleep(0),
-            debounce_ms=50,
-        ):
+        async with create_tool_watcher(tmp_path, on_change=on_change, debounce_ms=50):
             # Create a non-.py file
             (mcptools / "readme.md").write_text("# Tool")
 
@@ -299,12 +247,7 @@ class TestToolWatcherEvents:
             if call_count == 1:
                 raise ValueError("First call fails")
 
-        async with ToolWatcher(
-            tmp_path,
-            on_change=failing_callback,
-            on_delete=lambda p: asyncio.sleep(0),
-            debounce_ms=50,
-        ) as watcher:
+        async with create_tool_watcher(tmp_path, on_change=failing_callback, debounce_ms=50) as watcher:
             # First file - callback raises
             (mcptools / "tool1.py").write_text("def run(): pass")
             await asyncio.sleep(0.2)
@@ -335,12 +278,7 @@ class TestToolWatcherDebounce:
         async def on_change(path: Path) -> None:
             changes.append(path)
 
-        async with ToolWatcher(
-            tmp_path,
-            on_change=on_change,
-            on_delete=lambda p: asyncio.sleep(0),
-            debounce_ms=100,
-        ):
+        async with create_tool_watcher(tmp_path, on_change=on_change, debounce_ms=100):
             # Rapid modifications
             for i in range(5):
                 tool_file.write_text(f"v{i+2}")

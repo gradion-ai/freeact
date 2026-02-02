@@ -11,18 +11,6 @@ from freeact.agent.tools.pytools.search.hybrid.database import Database, ToolEnt
 
 
 @pytest.fixture
-def db_path(tmp_path: Path) -> Path:
-    """Provide a temporary database path."""
-    return tmp_path / "test.db"
-
-
-@pytest.fixture
-def dimensions() -> int:
-    """Embedding dimensions for tests."""
-    return 8
-
-
-@pytest.fixture
 def sample_entry() -> ToolEntry:
     """Provide a sample tool entry."""
     return ToolEntry(

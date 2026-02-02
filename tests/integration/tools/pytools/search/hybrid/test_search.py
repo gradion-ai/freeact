@@ -11,18 +11,6 @@ from freeact.agent.tools.pytools.search.hybrid.search import SearchConfig, Searc
 
 
 @pytest.fixture
-def db_path(tmp_path: Path) -> Path:
-    """Provide a temporary database path."""
-    return tmp_path / "test.db"
-
-
-@pytest.fixture
-def dimensions() -> int:
-    """Embedding dimensions for tests."""
-    return 8
-
-
-@pytest.fixture
 def sample_entries() -> list[ToolEntry]:
     """Provide sample tool entries for search tests."""
     return [

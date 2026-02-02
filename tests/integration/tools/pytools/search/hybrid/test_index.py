@@ -3,54 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import AsyncMock
 
 import pytest
 
 from freeact.agent.tools.pytools.search.hybrid.database import Database
 from freeact.agent.tools.pytools.search.hybrid.embed import ToolEmbedder
 from freeact.agent.tools.pytools.search.hybrid.index import Indexer, SyncResult
-
-
-@pytest.fixture
-def db_path(tmp_path: Path) -> Path:
-    """Provide a temporary database path."""
-    return tmp_path / "test.db"
-
-
-@pytest.fixture
-def dimensions() -> int:
-    """Embedding dimensions for tests."""
-    return 8
-
-
-@pytest.fixture
-def fixtures_dir() -> Path:
-    """Path to test fixtures directory (in unit tests)."""
-    # Fixtures are shared with unit tests
-    tests_root = Path(__file__).parent.parent.parent.parent.parent.parent
-    return tests_root / "unit" / "tools" / "pytools" / "search" / "hybrid" / "fixtures"
-
-
-@pytest.fixture
-def mock_embedder() -> ToolEmbedder:
-    """Create a mock embedder that returns deterministic embeddings."""
-    embedder = AsyncMock(spec=ToolEmbedder)
-
-    def make_embedding(text: str) -> list[float]:
-        """Create a simple hash-based embedding for testing."""
-        h = hash(text) % 1000
-        return [float(h + i) / 1000.0 for i in range(8)]
-
-    async def embed_documents(texts: list[str]) -> list[list[float]]:
-        return [make_embedding(t) for t in texts]
-
-    async def embed_query(text: str) -> list[float]:
-        return make_embedding(text)
-
-    embedder.embed_documents = embed_documents
-    embedder.embed_query = embed_query
-    return embedder
 
 
 class TestSyncResult:
@@ -70,15 +28,15 @@ class TestIndexerSync:
 
     @pytest.mark.asyncio
     async def test_sync_empty_directory(
-        self, db_path: Path, dimensions: int, mock_embedder: ToolEmbedder, tmp_path: Path
+        self, db_path: Path, dimensions: int, embedder: ToolEmbedder, tmp_path: Path
     ) -> None:
         """Test sync with empty tool directories."""
         base_dir = tmp_path / "workspace"
         base_dir.mkdir()
 
         async with Database(db_path, dimensions) as db:
-            indexer = Indexer(db, mock_embedder, base_dir, watching=False)
-            result = await indexer.start()
+            indexer = Indexer(db, embedder, base_dir)
+            result = await indexer.sync()
 
         assert result.added == 0
         assert result.updated == 0
@@ -86,12 +44,12 @@ class TestIndexerSync:
 
     @pytest.mark.asyncio
     async def test_sync_indexes_new_tools(
-        self, db_path: Path, dimensions: int, mock_embedder: ToolEmbedder, fixtures_dir: Path
+        self, db_path: Path, dimensions: int, embedder: ToolEmbedder, fixtures_dir: Path
     ) -> None:
         """Test sync indexes tools from fixtures."""
         async with Database(db_path, dimensions) as db:
-            indexer = Indexer(db, mock_embedder, fixtures_dir, watching=False)
-            result = await indexer.start()
+            indexer = Indexer(db, embedder, fixtures_dir)
+            result = await indexer.sync()
 
             # Should have indexed the valid tools from fixtures
             assert result.added >= 3  # create_issue, list_repos, csv_parser
@@ -105,18 +63,17 @@ class TestIndexerSync:
 
     @pytest.mark.asyncio
     async def test_sync_skips_unchanged_tools(
-        self, db_path: Path, dimensions: int, mock_embedder: ToolEmbedder, fixtures_dir: Path
+        self, db_path: Path, dimensions: int, embedder: ToolEmbedder, fixtures_dir: Path
     ) -> None:
         """Test sync skips tools that haven't changed."""
         async with Database(db_path, dimensions) as db:
-            indexer = Indexer(db, mock_embedder, fixtures_dir, watching=False)
+            indexer = Indexer(db, embedder, fixtures_dir)
 
             # First sync
-            result1 = await indexer.start()
-            await indexer.stop()
+            result1 = await indexer.sync()
 
             # Second sync - nothing should change
-            result2 = await indexer.start()
+            result2 = await indexer.sync()
 
         assert result2.added == 0
         assert result2.updated == 0
@@ -125,7 +82,7 @@ class TestIndexerSync:
 
     @pytest.mark.asyncio
     async def test_sync_detects_modified_tools(
-        self, db_path: Path, dimensions: int, mock_embedder: ToolEmbedder, tmp_path: Path
+        self, db_path: Path, dimensions: int, embedder: ToolEmbedder, tmp_path: Path
     ) -> None:
         """Test sync detects and re-indexes modified tools."""
         # Create initial tool
@@ -135,11 +92,10 @@ class TestIndexerSync:
         tool_file.write_text('def run():\n    """Original docstring."""\n    pass\n')
 
         async with Database(db_path, dimensions) as db:
-            indexer = Indexer(db, mock_embedder, base_dir, watching=False)
+            indexer = Indexer(db, embedder, base_dir)
 
             # First sync
-            result1 = await indexer.start()
-            await indexer.stop()
+            result1 = await indexer.sync()
 
             original_entry = await db.get("mcptools:cat:tool")
             assert original_entry is not None
@@ -149,7 +105,7 @@ class TestIndexerSync:
             tool_file.write_text('def run():\n    """Modified docstring."""\n    pass\n')
 
             # Second sync
-            result2 = await indexer.start()
+            result2 = await indexer.sync()
 
             modified_entry = await db.get("mcptools:cat:tool")
 
@@ -162,7 +118,7 @@ class TestIndexerSync:
 
     @pytest.mark.asyncio
     async def test_sync_removes_deleted_tools(
-        self, db_path: Path, dimensions: int, mock_embedder: ToolEmbedder, tmp_path: Path
+        self, db_path: Path, dimensions: int, embedder: ToolEmbedder, tmp_path: Path
     ) -> None:
         """Test sync removes tools that no longer exist."""
         # Create initial tool
@@ -172,18 +128,17 @@ class TestIndexerSync:
         tool_file.write_text('def run():\n    """Docstring."""\n    pass\n')
 
         async with Database(db_path, dimensions) as db:
-            indexer = Indexer(db, mock_embedder, base_dir, watching=False)
+            indexer = Indexer(db, embedder, base_dir)
 
             # First sync
-            await indexer.start()
-            await indexer.stop()
+            await indexer.sync()
             assert await db.exists("mcptools:cat:tool")
 
             # Delete the tool
             tool_file.unlink()
 
             # Second sync
-            result = await indexer.start()
+            result = await indexer.sync()
 
         assert result.deleted == 1
         assert not await db.exists("mcptools:cat:tool")
@@ -194,7 +149,7 @@ class TestIndexerFileHandling:
 
     @pytest.mark.asyncio
     async def test_handle_file_change_indexes_new_tool(
-        self, db_path: Path, dimensions: int, mock_embedder: ToolEmbedder, tmp_path: Path
+        self, db_path: Path, dimensions: int, embedder: ToolEmbedder, tmp_path: Path
     ) -> None:
         """Test handle_file_change indexes a new tool file."""
         base_dir = tmp_path / "workspace"
@@ -203,8 +158,7 @@ class TestIndexerFileHandling:
         tool_file.write_text('def run():\n    """New tool docstring."""\n    pass\n')
 
         async with Database(db_path, dimensions) as db:
-            indexer = Indexer(db, mock_embedder, base_dir, watching=False)
-            await indexer.start()
+            indexer = Indexer(db, embedder, base_dir)
 
             # Simulate file change event
             await indexer.handle_file_change(tool_file)
@@ -217,7 +171,7 @@ class TestIndexerFileHandling:
 
     @pytest.mark.asyncio
     async def test_handle_file_change_updates_existing_tool(
-        self, db_path: Path, dimensions: int, mock_embedder: ToolEmbedder, tmp_path: Path
+        self, db_path: Path, dimensions: int, embedder: ToolEmbedder, tmp_path: Path
     ) -> None:
         """Test handle_file_change updates an existing tool."""
         base_dir = tmp_path / "workspace"
@@ -226,8 +180,7 @@ class TestIndexerFileHandling:
         tool_file.write_text('def run():\n    """Original."""\n    pass\n')
 
         async with Database(db_path, dimensions) as db:
-            indexer = Indexer(db, mock_embedder, base_dir, watching=False)
-            await indexer.start()
+            indexer = Indexer(db, embedder, base_dir)
 
             # Initial index
             await indexer.handle_file_change(tool_file)
@@ -246,7 +199,7 @@ class TestIndexerFileHandling:
 
     @pytest.mark.asyncio
     async def test_handle_file_change_ignores_invalid_path(
-        self, db_path: Path, dimensions: int, mock_embedder: ToolEmbedder, tmp_path: Path
+        self, db_path: Path, dimensions: int, embedder: ToolEmbedder, tmp_path: Path
     ) -> None:
         """Test handle_file_change ignores files outside tool directories."""
         base_dir = tmp_path / "workspace"
@@ -255,8 +208,7 @@ class TestIndexerFileHandling:
         other_file.write_text('def run():\n    """Not a tool."""\n    pass\n')
 
         async with Database(db_path, dimensions) as db:
-            indexer = Indexer(db, mock_embedder, base_dir, watching=False)
-            await indexer.start()
+            indexer = Indexer(db, embedder, base_dir)
 
             # Should not raise, should just ignore
             await indexer.handle_file_change(other_file)
@@ -267,7 +219,7 @@ class TestIndexerFileHandling:
 
     @pytest.mark.asyncio
     async def test_handle_file_delete_removes_mcptool(
-        self, db_path: Path, dimensions: int, mock_embedder: ToolEmbedder, tmp_path: Path
+        self, db_path: Path, dimensions: int, embedder: ToolEmbedder, tmp_path: Path
     ) -> None:
         """Test handle_file_delete removes an mcptools entry."""
         base_dir = tmp_path / "workspace"
@@ -276,8 +228,7 @@ class TestIndexerFileHandling:
         tool_file.write_text('def run():\n    """Doc."""\n    pass\n')
 
         async with Database(db_path, dimensions) as db:
-            indexer = Indexer(db, mock_embedder, base_dir, watching=False)
-            await indexer.start()
+            indexer = Indexer(db, embedder, base_dir)
             await indexer.handle_file_change(tool_file)
 
             assert await db.exists("mcptools:cat:tool")
@@ -290,7 +241,7 @@ class TestIndexerFileHandling:
 
     @pytest.mark.asyncio
     async def test_handle_file_delete_removes_gentool(
-        self, db_path: Path, dimensions: int, mock_embedder: ToolEmbedder, tmp_path: Path
+        self, db_path: Path, dimensions: int, embedder: ToolEmbedder, tmp_path: Path
     ) -> None:
         """Test handle_file_delete removes a gentools entry."""
         base_dir = tmp_path / "workspace"
@@ -299,8 +250,7 @@ class TestIndexerFileHandling:
         tool_file.write_text('def run():\n    """Doc."""\n    pass\n')
 
         async with Database(db_path, dimensions) as db:
-            indexer = Indexer(db, mock_embedder, base_dir, watching=False)
-            await indexer.start()
+            indexer = Indexer(db, embedder, base_dir)
             await indexer.handle_file_change(tool_file)
 
             assert await db.exists("gentools:cat:tool")
@@ -313,15 +263,14 @@ class TestIndexerFileHandling:
 
     @pytest.mark.asyncio
     async def test_handle_file_delete_ignores_invalid_path(
-        self, db_path: Path, dimensions: int, mock_embedder: ToolEmbedder, tmp_path: Path
+        self, db_path: Path, dimensions: int, embedder: ToolEmbedder, tmp_path: Path
     ) -> None:
         """Test handle_file_delete ignores paths outside tool directories."""
         base_dir = tmp_path / "workspace"
         base_dir.mkdir()
 
         async with Database(db_path, dimensions) as db:
-            indexer = Indexer(db, mock_embedder, base_dir, watching=False)
-            await indexer.start()
+            indexer = Indexer(db, embedder, base_dir)
 
             # Should not raise for path outside base_dir
             await indexer.handle_file_delete(tmp_path / "other.py")
@@ -331,23 +280,13 @@ class TestIndexerLifecycle:
     """Tests for Indexer lifecycle management."""
 
     @pytest.mark.asyncio
-    async def test_context_manager(
-        self, db_path: Path, dimensions: int, mock_embedder: ToolEmbedder, fixtures_dir: Path
+    async def test_sync_returns_sync_result(
+        self, db_path: Path, dimensions: int, embedder: ToolEmbedder, fixtures_dir: Path
     ) -> None:
-        """Test Indexer works as async context manager."""
+        """Test sync() returns SyncResult."""
         async with Database(db_path, dimensions) as db:
-            async with Indexer(db, mock_embedder, fixtures_dir, watching=False):
-                # Should have synced on entry
-                assert await db.exists("mcptools:github:create_issue")
-
-    @pytest.mark.asyncio
-    async def test_start_returns_sync_result(
-        self, db_path: Path, dimensions: int, mock_embedder: ToolEmbedder, fixtures_dir: Path
-    ) -> None:
-        """Test start() returns SyncResult."""
-        async with Database(db_path, dimensions) as db:
-            indexer = Indexer(db, mock_embedder, fixtures_dir, watching=False)
-            result = await indexer.start()
+            indexer = Indexer(db, embedder, fixtures_dir)
+            result = await indexer.sync()
 
         assert isinstance(result, SyncResult)
         assert result.added >= 0
@@ -355,64 +294,90 @@ class TestIndexerLifecycle:
         assert result.deleted >= 0
 
     @pytest.mark.asyncio
-    async def test_stop_can_be_called_multiple_times(
-        self, db_path: Path, dimensions: int, mock_embedder: ToolEmbedder, tmp_path: Path
+    async def test_sync_works_without_watcher(
+        self, db_path: Path, dimensions: int, embedder: ToolEmbedder, fixtures_dir: Path
     ) -> None:
-        """Test stop() is idempotent."""
-        base_dir = tmp_path / "workspace"
-        base_dir.mkdir()
-
+        """Test sync() works without starting the watcher."""
         async with Database(db_path, dimensions) as db:
-            indexer = Indexer(db, mock_embedder, base_dir, watching=False)
-            await indexer.start()
-            await indexer.stop()
-            await indexer.stop()  # Should not raise
+            indexer = Indexer(db, embedder, fixtures_dir)
 
-
-class TestIndexerWatchingFlag:
-    """Tests for watching flag behavior."""
-
-    @pytest.mark.asyncio
-    async def test_watching_false_skips_watcher(
-        self, db_path: Path, dimensions: int, mock_embedder: ToolEmbedder, tmp_path: Path
-    ) -> None:
-        """Test watching=False skips file watcher setup."""
-        base_dir = tmp_path / "workspace"
-        base_dir.mkdir()
-
-        async with Database(db_path, dimensions) as db:
-            indexer = Indexer(db, mock_embedder, base_dir, watching=False)
-            await indexer.start()
-
-            # Watcher should be None
+            # No watcher started
             assert indexer._watcher is None
 
-            await indexer.stop()
+            # Sync should still work
+            result = await indexer.sync()
+            assert result.added >= 3
+
+            # Still no watcher
+            assert indexer._watcher is None
 
     @pytest.mark.asyncio
-    async def test_watching_true_starts_watcher(
-        self, db_path: Path, dimensions: int, mock_embedder: ToolEmbedder, tmp_path: Path
+    async def test_unwatch_is_idempotent(
+        self, db_path: Path, dimensions: int, embedder: ToolEmbedder, tmp_path: Path
     ) -> None:
-        """Test watching=True starts file watcher."""
+        """Test unwatch() can be called multiple times."""
         base_dir = tmp_path / "workspace"
         (base_dir / "mcptools").mkdir(parents=True)
 
         async with Database(db_path, dimensions) as db:
-            indexer = Indexer(db, mock_embedder, base_dir, watching=True)
-            await indexer.start()
+            indexer = Indexer(db, embedder, base_dir)
+            await indexer.watch()
+            await indexer.unwatch()
+            await indexer.unwatch()  # Should not raise
 
-            # Watcher should be created and running
-            assert indexer._watcher is not None
-            assert indexer._watcher.is_running is True
 
-            await indexer.stop()
+class TestIndexerWatcher:
+    """Tests for file watcher functionality."""
 
-            # Watcher should be stopped and cleared
+    @pytest.mark.asyncio
+    async def test_context_manager_starts_watcher(
+        self, db_path: Path, dimensions: int, embedder: ToolEmbedder, tmp_path: Path
+    ) -> None:
+        """Test context manager starts and stops the watcher."""
+        base_dir = tmp_path / "workspace"
+        (base_dir / "mcptools").mkdir(parents=True)
+
+        async with Database(db_path, dimensions) as db:
+            indexer = Indexer(db, embedder, base_dir)
+
+            async with indexer:
+                # Watcher should be running
+                assert indexer._watcher is not None
+                assert indexer._watcher.is_running is True
+
+            # Watcher should be stopped after exit
             assert indexer._watcher is None
 
     @pytest.mark.asyncio
+    async def test_context_manager_does_not_sync(
+        self, db_path: Path, dimensions: int, embedder: ToolEmbedder, fixtures_dir: Path
+    ) -> None:
+        """Test context manager does not implicitly sync."""
+        async with Database(db_path, dimensions) as db:
+            async with Indexer(db, embedder, fixtures_dir):
+                # No sync happened on context entry
+                assert not await db.exists("mcptools:github:create_issue")
+
+    @pytest.mark.asyncio
+    async def test_watch_starts_watcher(
+        self, db_path: Path, dimensions: int, embedder: ToolEmbedder, tmp_path: Path
+    ) -> None:
+        """Test watch() starts the file watcher."""
+        base_dir = tmp_path / "workspace"
+        (base_dir / "mcptools").mkdir(parents=True)
+
+        async with Database(db_path, dimensions) as db:
+            indexer = Indexer(db, embedder, base_dir)
+            await indexer.watch()
+
+            assert indexer._watcher is not None
+            assert indexer._watcher.is_running is True
+
+            await indexer.unwatch()
+
+    @pytest.mark.asyncio
     async def test_watcher_indexes_new_file(
-        self, db_path: Path, dimensions: int, mock_embedder: ToolEmbedder, tmp_path: Path
+        self, db_path: Path, dimensions: int, embedder: ToolEmbedder, tmp_path: Path
     ) -> None:
         """Test file watcher triggers indexing of new files."""
         import asyncio
@@ -422,7 +387,7 @@ class TestIndexerWatchingFlag:
         mcptools.mkdir(parents=True)
 
         async with Database(db_path, dimensions) as db:
-            async with Indexer(db, mock_embedder, base_dir, watching=True):
+            async with Indexer(db, embedder, base_dir):
                 # Create a new tool file
                 tool_file = mcptools / "new_tool.py"
                 tool_file.write_text('def run():\n    """A brand new tool."""\n    pass\n')
@@ -435,3 +400,18 @@ class TestIndexerWatchingFlag:
                 entry = await db.get("mcptools:cat:new_tool")
                 assert entry is not None
                 assert "brand new" in entry.description
+
+    @pytest.mark.asyncio
+    async def test_sync_works_with_watcher_running(
+        self, db_path: Path, dimensions: int, embedder: ToolEmbedder, fixtures_dir: Path
+    ) -> None:
+        """Test sync() can be called while watcher is running."""
+        async with Database(db_path, dimensions) as db:
+            async with Indexer(db, embedder, fixtures_dir) as indexer:
+                # Watcher is running
+                assert indexer._watcher is not None
+
+                # Sync should still work
+                result = await indexer.sync()
+                assert result.added >= 3
+                assert await db.exists("mcptools:github:create_issue")
