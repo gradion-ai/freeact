@@ -25,7 +25,7 @@ class ToolResult(BaseModel):
     name: str = Field(description="Tool name (e.g., 'create_issue')")
     category: str = Field(description="Category/server name (e.g., 'github')")
     source: Literal["gentools", "mcptools"] = Field(description="Tool source")
-    description: str = Field(description="Full docstring from run()")
+    description: str = Field(description="Tool description")
     score: float = Field(description="Relevance score (0.0 to 1.0)")
 
 
@@ -110,15 +110,30 @@ mcp = FastMCP("pytools_hybrid_search", log_level="ERROR", lifespan=lifespan)
     },
 )
 async def search_tools(
-    query: Annotated[str, Field(description="Natural language search query")],
+    query: Annotated[
+        str,
+        Field(
+            description="Search query. Use natural language for 'hybrid' (default) "
+            "and 'vector' modes; use keywords for 'bm25' mode."
+        ),
+    ],
     mode: Annotated[
         Literal["bm25", "vector", "hybrid"],
-        Field(description="Search mode"),
+        Field(
+            description="Search mode: 'hybrid' combines keyword and semantic matching, "
+            "'bm25' for keyword/exact term matching, 'vector' for semantic similarity."
+        ),
     ] = "hybrid",
-    limit: Annotated[int, Field(description="Max results", ge=1, le=50)] = 5,
+    limit: Annotated[int, Field(description="Maximum number of results to return.", ge=1, le=50)] = 5,
     ctx: Context | None = None,
 ) -> list[ToolResult]:
-    """Search for tools matching a natural language query."""
+    """Search for tools matching a query.
+
+    Returns ranked results with tool name, category, source (gentools/mcptools),
+    tool description, and relevance score. Use focused queries describing specific
+    capabilities. For complex requests needing multiple tools, split into separate
+    searches by capability.
+    """
     if ctx is None:
         raise RuntimeError("Context is required")
 

@@ -241,7 +241,7 @@ The system prompt template uses conditional sections to provide appropriate work
 
 When hybrid search is active, the `{tool_discovery_workflow}` placeholder renders instructions for using `search_tools` instead of category browsing.
 
-## Agent Workflow
+## Tool Discovery Workflow
 
 With hybrid search, the agent's tool discovery workflow changes:
 
