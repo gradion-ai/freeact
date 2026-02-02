@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 from watchfiles import Change
 
+from freeact.agent.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
 from freeact.agent.tools.pytools.search.hybrid.watch import ToolWatcher
 
 
@@ -38,21 +39,21 @@ class TestToolWatcherFilter:
         """Test filter accepts .py files in mcptools/."""
         watcher = create_tool_watcher(tmp_path)
 
-        path = str(tmp_path / "mcptools" / "github" / "create_issue.py")
+        path = str(tmp_path / MCPTOOLS_DIR / "github" / "create_issue.py")
         assert watcher._watch_filter(Change.modified, path) is True
 
     def test_filter_accepts_py_files_in_gentools(self, tmp_path: Path) -> None:
         """Test filter accepts .py files in gentools/."""
         watcher = create_tool_watcher(tmp_path)
 
-        path = str(tmp_path / "gentools" / "data" / "csv_parser" / "api.py")
+        path = str(tmp_path / GENTOOLS_DIR / "data" / "csv_parser" / "api.py")
         assert watcher._watch_filter(Change.modified, path) is True
 
     def test_filter_rejects_non_py_files(self, tmp_path: Path) -> None:
         """Test filter rejects non-.py files."""
         watcher = create_tool_watcher(tmp_path)
 
-        path = str(tmp_path / "mcptools" / "github" / "readme.md")
+        path = str(tmp_path / MCPTOOLS_DIR / "github" / "readme.md")
         assert watcher._watch_filter(Change.modified, path) is False
 
     def test_filter_rejects_files_outside_tool_dirs(self, tmp_path: Path) -> None:
@@ -66,7 +67,7 @@ class TestToolWatcherFilter:
         """Test filter rejects files outside base directory."""
         watcher = create_tool_watcher(tmp_path / "workspace")
 
-        path = str(tmp_path / "mcptools" / "tool.py")
+        path = str(tmp_path / MCPTOOLS_DIR / "tool.py")
         assert watcher._watch_filter(Change.modified, path) is False
 
 
@@ -76,7 +77,7 @@ class TestToolWatcherLifecycle:
     @pytest.mark.asyncio
     async def test_start_sets_running(self, tmp_path: Path) -> None:
         """Test start() sets is_running to True."""
-        (tmp_path / "mcptools").mkdir()
+        (tmp_path / MCPTOOLS_DIR).mkdir()
         watcher = create_tool_watcher(tmp_path)
 
         await watcher.start()
@@ -88,7 +89,7 @@ class TestToolWatcherLifecycle:
     @pytest.mark.asyncio
     async def test_stop_clears_running(self, tmp_path: Path) -> None:
         """Test stop() sets is_running to False."""
-        (tmp_path / "mcptools").mkdir()
+        (tmp_path / MCPTOOLS_DIR).mkdir()
         watcher = create_tool_watcher(tmp_path)
 
         await watcher.start()
@@ -99,7 +100,7 @@ class TestToolWatcherLifecycle:
     @pytest.mark.asyncio
     async def test_start_is_idempotent(self, tmp_path: Path) -> None:
         """Test calling start() multiple times is safe."""
-        (tmp_path / "mcptools").mkdir()
+        (tmp_path / MCPTOOLS_DIR).mkdir()
         watcher = create_tool_watcher(tmp_path)
 
         await watcher.start()
@@ -112,7 +113,7 @@ class TestToolWatcherLifecycle:
     @pytest.mark.asyncio
     async def test_stop_is_idempotent(self, tmp_path: Path) -> None:
         """Test calling stop() multiple times is safe."""
-        (tmp_path / "mcptools").mkdir()
+        (tmp_path / MCPTOOLS_DIR).mkdir()
         watcher = create_tool_watcher(tmp_path)
 
         await watcher.start()
@@ -124,7 +125,7 @@ class TestToolWatcherLifecycle:
     @pytest.mark.asyncio
     async def test_context_manager(self, tmp_path: Path) -> None:
         """Test watcher works as async context manager."""
-        (tmp_path / "mcptools").mkdir()
+        (tmp_path / MCPTOOLS_DIR).mkdir()
 
         async with create_tool_watcher(tmp_path) as watcher:
             assert watcher.is_running is True
@@ -151,7 +152,7 @@ class TestToolWatcherEvents:
     @pytest.mark.asyncio
     async def test_file_creation_triggers_on_change(self, tmp_path: Path) -> None:
         """Test creating a .py file triggers on_change callback."""
-        mcptools = tmp_path / "mcptools" / "cat"
+        mcptools = tmp_path / MCPTOOLS_DIR / "cat"
         mcptools.mkdir(parents=True)
 
         changes: list[Path] = []
@@ -173,7 +174,7 @@ class TestToolWatcherEvents:
     @pytest.mark.asyncio
     async def test_file_modification_triggers_on_change(self, tmp_path: Path) -> None:
         """Test modifying a .py file triggers on_change callback."""
-        mcptools = tmp_path / "mcptools" / "cat"
+        mcptools = tmp_path / MCPTOOLS_DIR / "cat"
         mcptools.mkdir(parents=True)
         tool_file = mcptools / "tool.py"
         tool_file.write_text("def run(): pass")
@@ -195,7 +196,7 @@ class TestToolWatcherEvents:
     @pytest.mark.asyncio
     async def test_file_deletion_triggers_on_delete(self, tmp_path: Path) -> None:
         """Test deleting a .py file triggers on_delete callback."""
-        mcptools = tmp_path / "mcptools" / "cat"
+        mcptools = tmp_path / MCPTOOLS_DIR / "cat"
         mcptools.mkdir(parents=True)
         tool_file = mcptools / "tool.py"
         tool_file.write_text("def run(): pass")
@@ -217,7 +218,7 @@ class TestToolWatcherEvents:
     @pytest.mark.asyncio
     async def test_non_py_files_ignored(self, tmp_path: Path) -> None:
         """Test non-.py files don't trigger callbacks."""
-        mcptools = tmp_path / "mcptools" / "cat"
+        mcptools = tmp_path / MCPTOOLS_DIR / "cat"
         mcptools.mkdir(parents=True)
 
         changes: list[Path] = []
@@ -236,7 +237,7 @@ class TestToolWatcherEvents:
     @pytest.mark.asyncio
     async def test_callback_error_does_not_stop_watcher(self, tmp_path: Path) -> None:
         """Test that errors in callbacks don't stop the watcher."""
-        mcptools = tmp_path / "mcptools" / "cat"
+        mcptools = tmp_path / MCPTOOLS_DIR / "cat"
         mcptools.mkdir(parents=True)
 
         call_count = 0
@@ -268,7 +269,7 @@ class TestToolWatcherDebounce:
     @pytest.mark.asyncio
     async def test_rapid_changes_debounced(self, tmp_path: Path) -> None:
         """Test rapid changes to same file are debounced into one callback."""
-        mcptools = tmp_path / "mcptools" / "cat"
+        mcptools = tmp_path / MCPTOOLS_DIR / "cat"
         mcptools.mkdir(parents=True)
         tool_file = mcptools / "tool.py"
         tool_file.write_text("v1")

@@ -13,6 +13,7 @@ from freeact.agent.tools.pytools.search.hybrid.extract import (
 )
 from freeact.agent.tools.pytools.search.hybrid.index import Indexer, SyncResult
 from freeact.agent.tools.pytools.search.hybrid.search import SearchConfig, SearchEngine
+from freeact.agent.tools.pytools.search.hybrid.server import ToolResult, main, mcp
 
 __all__ = [
     "Database",
@@ -24,8 +25,11 @@ __all__ = [
     "ToolEmbedder",
     "ToolEntry",
     "ToolInfo",
+    "ToolResult",
     "extract_docstring",
+    "main",
     "make_tool_id",
+    "mcp",
     "parse_tool_id",
     "scan_tools",
     "tool_id_from_path",

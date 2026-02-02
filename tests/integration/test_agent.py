@@ -10,6 +10,7 @@ from pydantic_ai.messages import ModelMessage
 from pydantic_ai.models.function import AgentInfo, DeltaThinkingPart, DeltaToolCall, FunctionModel
 
 from freeact.agent import Agent, ApprovalRequest
+from freeact.agent.tools.pytools import MCPTOOLS_DIR
 from tests.conftest import (
     DeltaThinkingCalls,
     DeltaToolCalls,
@@ -43,7 +44,7 @@ class TestIpyboxExecution:
         await ipybox.generate_mcp_sources(
             "test",
             {"command": "python", "args": [str(STDIO_SERVER_PATH)]},
-            tmp_path / "mcptools",
+            tmp_path / MCPTOOLS_DIR,
         )
         return tmp_path
 

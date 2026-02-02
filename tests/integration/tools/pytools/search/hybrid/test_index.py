@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from freeact.agent.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
 from freeact.agent.tools.pytools.search.hybrid.database import Database
 from freeact.agent.tools.pytools.search.hybrid.embed import ToolEmbedder
 from freeact.agent.tools.pytools.search.hybrid.index import Indexer, SyncResult
@@ -57,9 +58,9 @@ class TestIndexerSync:
             assert result.deleted == 0
 
             # Verify tools are in database
-            assert await db.exists("mcptools:github:create_issue")
-            assert await db.exists("mcptools:github:list_repos")
-            assert await db.exists("gentools:data:csv_parser")
+            assert await db.exists(f"{MCPTOOLS_DIR}:github:create_issue")
+            assert await db.exists(f"{MCPTOOLS_DIR}:github:list_repos")
+            assert await db.exists(f"{GENTOOLS_DIR}:data:csv_parser")
 
     @pytest.mark.asyncio
     async def test_sync_skips_unchanged_tools(
@@ -87,7 +88,7 @@ class TestIndexerSync:
         """Test sync detects and re-indexes modified tools."""
         # Create initial tool
         base_dir = tmp_path / "workspace"
-        tool_file = base_dir / "mcptools" / "cat" / "tool.py"
+        tool_file = base_dir / MCPTOOLS_DIR / "cat" / "tool.py"
         tool_file.parent.mkdir(parents=True)
         tool_file.write_text('def run():\n    """Original docstring."""\n    pass\n')
 
@@ -97,7 +98,7 @@ class TestIndexerSync:
             # First sync
             result1 = await indexer.sync()
 
-            original_entry = await db.get("mcptools:cat:tool")
+            original_entry = await db.get(f"{MCPTOOLS_DIR}:cat:tool")
             assert original_entry is not None
             original_hash = original_entry.file_hash
 
@@ -107,7 +108,7 @@ class TestIndexerSync:
             # Second sync
             result2 = await indexer.sync()
 
-            modified_entry = await db.get("mcptools:cat:tool")
+            modified_entry = await db.get(f"{MCPTOOLS_DIR}:cat:tool")
 
         assert result1.added == 1
         assert result2.updated == 1
@@ -123,7 +124,7 @@ class TestIndexerSync:
         """Test sync removes tools that no longer exist."""
         # Create initial tool
         base_dir = tmp_path / "workspace"
-        tool_file = base_dir / "mcptools" / "cat" / "tool.py"
+        tool_file = base_dir / MCPTOOLS_DIR / "cat" / "tool.py"
         tool_file.parent.mkdir(parents=True)
         tool_file.write_text('def run():\n    """Docstring."""\n    pass\n')
 
@@ -132,7 +133,7 @@ class TestIndexerSync:
 
             # First sync
             await indexer.sync()
-            assert await db.exists("mcptools:cat:tool")
+            assert await db.exists(f"{MCPTOOLS_DIR}:cat:tool")
 
             # Delete the tool
             tool_file.unlink()
@@ -141,7 +142,7 @@ class TestIndexerSync:
             result = await indexer.sync()
 
         assert result.deleted == 1
-        assert not await db.exists("mcptools:cat:tool")
+        assert not await db.exists(f"{MCPTOOLS_DIR}:cat:tool")
 
 
 class TestIndexerFileHandling:
@@ -153,7 +154,7 @@ class TestIndexerFileHandling:
     ) -> None:
         """Test handle_file_change indexes a new tool file."""
         base_dir = tmp_path / "workspace"
-        tool_file = base_dir / "mcptools" / "cat" / "tool.py"
+        tool_file = base_dir / MCPTOOLS_DIR / "cat" / "tool.py"
         tool_file.parent.mkdir(parents=True)
         tool_file.write_text('def run():\n    """New tool docstring."""\n    pass\n')
 
@@ -163,8 +164,8 @@ class TestIndexerFileHandling:
             # Simulate file change event
             await indexer.handle_file_change(tool_file)
 
-            assert await db.exists("mcptools:cat:tool")
-            entry = await db.get("mcptools:cat:tool")
+            assert await db.exists(f"{MCPTOOLS_DIR}:cat:tool")
+            entry = await db.get(f"{MCPTOOLS_DIR}:cat:tool")
 
         assert entry is not None
         assert "New tool" in entry.description
@@ -175,7 +176,7 @@ class TestIndexerFileHandling:
     ) -> None:
         """Test handle_file_change updates an existing tool."""
         base_dir = tmp_path / "workspace"
-        tool_file = base_dir / "mcptools" / "cat" / "tool.py"
+        tool_file = base_dir / MCPTOOLS_DIR / "cat" / "tool.py"
         tool_file.parent.mkdir(parents=True)
         tool_file.write_text('def run():\n    """Original."""\n    pass\n')
 
@@ -184,13 +185,13 @@ class TestIndexerFileHandling:
 
             # Initial index
             await indexer.handle_file_change(tool_file)
-            original = await db.get("mcptools:cat:tool")
+            original = await db.get(f"{MCPTOOLS_DIR}:cat:tool")
 
             # Modify and handle change
             tool_file.write_text('def run():\n    """Updated."""\n    pass\n')
             await indexer.handle_file_change(tool_file)
 
-            updated = await db.get("mcptools:cat:tool")
+            updated = await db.get(f"{MCPTOOLS_DIR}:cat:tool")
 
         assert original is not None
         assert updated is not None
@@ -223,7 +224,7 @@ class TestIndexerFileHandling:
     ) -> None:
         """Test handle_file_delete removes an mcptools entry."""
         base_dir = tmp_path / "workspace"
-        tool_file = base_dir / "mcptools" / "cat" / "tool.py"
+        tool_file = base_dir / MCPTOOLS_DIR / "cat" / "tool.py"
         tool_file.parent.mkdir(parents=True)
         tool_file.write_text('def run():\n    """Doc."""\n    pass\n')
 
@@ -231,13 +232,13 @@ class TestIndexerFileHandling:
             indexer = Indexer(db, embedder, base_dir)
             await indexer.handle_file_change(tool_file)
 
-            assert await db.exists("mcptools:cat:tool")
+            assert await db.exists(f"{MCPTOOLS_DIR}:cat:tool")
 
             # Delete file and handle event
             tool_file.unlink()
             await indexer.handle_file_delete(tool_file)
 
-            assert not await db.exists("mcptools:cat:tool")
+            assert not await db.exists(f"{MCPTOOLS_DIR}:cat:tool")
 
     @pytest.mark.asyncio
     async def test_handle_file_delete_removes_gentool(
@@ -245,7 +246,7 @@ class TestIndexerFileHandling:
     ) -> None:
         """Test handle_file_delete removes a gentools entry."""
         base_dir = tmp_path / "workspace"
-        tool_file = base_dir / "gentools" / "cat" / "tool" / "api.py"
+        tool_file = base_dir / GENTOOLS_DIR / "cat" / "tool" / "api.py"
         tool_file.parent.mkdir(parents=True)
         tool_file.write_text('def run():\n    """Doc."""\n    pass\n')
 
@@ -253,13 +254,13 @@ class TestIndexerFileHandling:
             indexer = Indexer(db, embedder, base_dir)
             await indexer.handle_file_change(tool_file)
 
-            assert await db.exists("gentools:cat:tool")
+            assert await db.exists(f"{GENTOOLS_DIR}:cat:tool")
 
             # Delete and handle
             tool_file.unlink()
             await indexer.handle_file_delete(tool_file)
 
-            assert not await db.exists("gentools:cat:tool")
+            assert not await db.exists(f"{GENTOOLS_DIR}:cat:tool")
 
     @pytest.mark.asyncio
     async def test_handle_file_delete_ignores_invalid_path(
@@ -317,7 +318,7 @@ class TestIndexerLifecycle:
     ) -> None:
         """Test unwatch() can be called multiple times."""
         base_dir = tmp_path / "workspace"
-        (base_dir / "mcptools").mkdir(parents=True)
+        (base_dir / MCPTOOLS_DIR).mkdir(parents=True)
 
         async with Database(db_path, dimensions) as db:
             indexer = Indexer(db, embedder, base_dir)
@@ -335,7 +336,7 @@ class TestIndexerWatcher:
     ) -> None:
         """Test context manager starts and stops the watcher."""
         base_dir = tmp_path / "workspace"
-        (base_dir / "mcptools").mkdir(parents=True)
+        (base_dir / MCPTOOLS_DIR).mkdir(parents=True)
 
         async with Database(db_path, dimensions) as db:
             indexer = Indexer(db, embedder, base_dir)
@@ -356,7 +357,7 @@ class TestIndexerWatcher:
         async with Database(db_path, dimensions) as db:
             async with Indexer(db, embedder, fixtures_dir):
                 # No sync happened on context entry
-                assert not await db.exists("mcptools:github:create_issue")
+                assert not await db.exists(f"{MCPTOOLS_DIR}:github:create_issue")
 
     @pytest.mark.asyncio
     async def test_watch_starts_watcher(
@@ -364,7 +365,7 @@ class TestIndexerWatcher:
     ) -> None:
         """Test watch() starts the file watcher."""
         base_dir = tmp_path / "workspace"
-        (base_dir / "mcptools").mkdir(parents=True)
+        (base_dir / MCPTOOLS_DIR).mkdir(parents=True)
 
         async with Database(db_path, dimensions) as db:
             indexer = Indexer(db, embedder, base_dir)
@@ -383,7 +384,7 @@ class TestIndexerWatcher:
         import asyncio
 
         base_dir = tmp_path / "workspace"
-        mcptools = base_dir / "mcptools" / "cat"
+        mcptools = base_dir / MCPTOOLS_DIR / "cat"
         mcptools.mkdir(parents=True)
 
         async with Database(db_path, dimensions) as db:
@@ -396,8 +397,8 @@ class TestIndexerWatcher:
                 await asyncio.sleep(0.5)
 
                 # Tool should be indexed
-                assert await db.exists("mcptools:cat:new_tool")
-                entry = await db.get("mcptools:cat:new_tool")
+                assert await db.exists(f"{MCPTOOLS_DIR}:cat:new_tool")
+                entry = await db.get(f"{MCPTOOLS_DIR}:cat:new_tool")
                 assert entry is not None
                 assert "brand new" in entry.description
 
@@ -414,4 +415,4 @@ class TestIndexerWatcher:
                 # Sync should still work
                 result = await indexer.sync()
                 assert result.added >= 3
-                assert await db.exists("mcptools:github:create_issue")
+                assert await db.exists(f"{MCPTOOLS_DIR}:github:create_issue")
