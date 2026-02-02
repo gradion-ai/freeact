@@ -10,7 +10,7 @@ This plan breaks down the implementation of the hybrid tool search feature into 
 | 2 | Docstring Extraction | Done | |
 | 3 | Search Engine | Done | |
 | 4 | Embedder Integration | Done | Upgraded pydantic-ai to >=1.51.0 |
-| 5 | Index Manager | Not Started | |
+| 5 | Indexer | Done | Renamed from IndexManager; added tool_info_from_path utility |
 | 6 | File Watcher | Not Started | |
 | 7 | Server Implementation | Not Started | |
 | 8 | Package Structure | Not Started | |
@@ -97,20 +97,24 @@ This plan breaks down the implementation of the hybrid tool search feature into 
 
 ---
 
-### Step 5: Index Manager
+### Step 5: Indexer
 
-**Goal**: Orchestrate extraction, embedding, and database updates.
+**Goal**: Orchestrate extraction, embedding, database updates, and file watching.
 
 **Deliverables**:
 - `freeact/agent/tools/pytools/search/hybrid/index.py`
-- `IndexManager` class
-- `sync(base_dir) -> SyncResult` - incremental sync with hash comparison
-- `index_tool(tool_info)` - extract, embed, store single tool
-- `remove_tool(tool_id)` - remove from all tables
-- SHA256 file hashing
+- `Indexer` class - coordinates database, embedder, scanner, and watcher
+- `start() -> SyncResult` - sync and optionally start file watcher
+- `stop()` - stop file watcher
+- Context manager support (`async with Indexer(...) as indexer`)
+- `watching: bool` constructor arg to enable/disable file watching
+- `SyncResult` dataclass with added/updated/deleted counts
+- SHA256 file hashing for change detection
+- `tool_info_from_path()` utility in extract.py for shared path-to-ToolInfo conversion
 
 **Tests**:
 - `tests/unit/tools/pytools/search/hybrid/test_index.py`
+- `tests/unit/tools/pytools/search/hybrid/test_extract.py` (tool_info_from_path tests)
 
 ---
 
@@ -124,7 +128,7 @@ This plan breaks down the implementation of the hybrid tool search feature into 
 - Watch mcptools/ and gentools/ recursively
 - Handle created/modified/deleted events
 - Debounce rapid changes
-- Integration with IndexManager
+- Wire into Indexer (called from start() when watching=True)
 
 **Tests**:
 - `tests/unit/tools/pytools/search/hybrid/test_watch.py`

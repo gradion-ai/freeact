@@ -11,6 +11,7 @@ from freeact.agent.tools.pytools.search.hybrid.extract import (
     make_tool_id,
     parse_tool_id,
     scan_tools,
+    tool_info_from_path,
 )
 
 
@@ -188,3 +189,101 @@ class TestToolIdFunctions:
 
         with pytest.raises(ValueError, match="Invalid tool ID format"):
             parse_tool_id("too:many:colons:here")
+
+
+class TestToolInfoFromPath:
+    """Tests for tool_info_from_path function."""
+
+    def test_mcptools_valid_path(self, fixtures_dir: Path) -> None:
+        """Test creating ToolInfo from valid mcptools path."""
+        filepath = fixtures_dir / "mcptools" / "github" / "create_issue.py"
+        tool_info = tool_info_from_path(filepath, fixtures_dir)
+
+        assert tool_info is not None
+        assert tool_info.id == "mcptools:github:create_issue"
+        assert tool_info.name == "create_issue"
+        assert tool_info.category == "github"
+        assert tool_info.source == "mcptools"
+        assert tool_info.filepath == filepath
+        assert "Create a new issue" in tool_info.description
+
+    def test_gentools_valid_path(self, fixtures_dir: Path) -> None:
+        """Test creating ToolInfo from valid gentools path."""
+        filepath = fixtures_dir / "gentools" / "data" / "csv_parser" / "api.py"
+        tool_info = tool_info_from_path(filepath, fixtures_dir)
+
+        assert tool_info is not None
+        assert tool_info.id == "gentools:data:csv_parser"
+        assert tool_info.name == "csv_parser"
+        assert tool_info.category == "data"
+        assert tool_info.source == "gentools"
+        assert tool_info.filepath == filepath
+
+    def test_path_outside_base_dir(self, fixtures_dir: Path, tmp_path: Path) -> None:
+        """Test returns None for path outside base directory."""
+        filepath = tmp_path / "mcptools" / "cat" / "tool.py"
+        filepath.parent.mkdir(parents=True)
+        filepath.write_text('def run(): """Doc."""\n    pass\n')
+
+        tool_info = tool_info_from_path(filepath, fixtures_dir)
+
+        assert tool_info is None
+
+    def test_invalid_mcptools_structure(self, fixtures_dir: Path, tmp_path: Path) -> None:
+        """Test returns None for invalid mcptools path structure."""
+        # Too deep: mcptools/<cat>/<subdir>/<tool>.py
+        deep_path = tmp_path / "mcptools" / "cat" / "subdir" / "tool.py"
+        deep_path.parent.mkdir(parents=True)
+        deep_path.write_text('def run(): """Doc."""\n    pass\n')
+
+        tool_info = tool_info_from_path(deep_path, tmp_path)
+
+        assert tool_info is None
+
+    def test_invalid_gentools_structure(self, fixtures_dir: Path, tmp_path: Path) -> None:
+        """Test returns None for invalid gentools path structure."""
+        # Wrong filename: gentools/<cat>/<tool>/other.py
+        other_path = tmp_path / "gentools" / "cat" / "tool" / "other.py"
+        other_path.parent.mkdir(parents=True)
+        other_path.write_text('def run(): """Doc."""\n    pass\n')
+
+        tool_info = tool_info_from_path(other_path, tmp_path)
+
+        assert tool_info is None
+
+    def test_prefixed_category_skipped(self, tmp_path: Path) -> None:
+        """Test returns None for _prefixed category."""
+        filepath = tmp_path / "mcptools" / "_private" / "tool.py"
+        filepath.parent.mkdir(parents=True)
+        filepath.write_text('def run(): """Doc."""\n    pass\n')
+
+        tool_info = tool_info_from_path(filepath, tmp_path)
+
+        assert tool_info is None
+
+    def test_prefixed_tool_skipped(self, tmp_path: Path) -> None:
+        """Test returns None for _prefixed tool name."""
+        filepath = tmp_path / "mcptools" / "cat" / "_internal.py"
+        filepath.parent.mkdir(parents=True)
+        filepath.write_text('def run(): """Doc."""\n    pass\n')
+
+        tool_info = tool_info_from_path(filepath, tmp_path)
+
+        assert tool_info is None
+
+    def test_no_docstring_returns_none(self, fixtures_dir: Path) -> None:
+        """Test returns None when run() has no docstring."""
+        filepath = fixtures_dir / "mcptools" / "github" / "no_docstring.py"
+        tool_info = tool_info_from_path(filepath, fixtures_dir)
+
+        assert tool_info is None
+
+    def test_unknown_source_directory(self, tmp_path: Path) -> None:
+        """Test returns None for unknown source directory."""
+        filepath = tmp_path / "unknown" / "cat" / "tool.py"
+        filepath.parent.mkdir(parents=True)
+        filepath.write_text('def run(): """Doc."""\n    pass\n')
+
+        tool_info = tool_info_from_path(filepath, tmp_path)
+
+        assert tool_info is None

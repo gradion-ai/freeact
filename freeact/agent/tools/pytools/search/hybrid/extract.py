@@ -84,84 +84,73 @@ def parse_tool_id(tool_id: str) -> tuple[str, str, str]:
     return parts[0], parts[1], parts[2]
 
 
-def _scan_mcptools(base_dir: Path) -> list[ToolInfo]:
-    """Scan mcptools/<category>/<tool>.py for tools."""
-    tools: list[ToolInfo] = []
-    mcptools_dir = base_dir / "mcptools"
+def tool_info_from_path(filepath: Path, base_dir: Path) -> ToolInfo | None:
+    """Create ToolInfo from a tool file path.
 
-    if not mcptools_dir.is_dir():
-        return tools
+    Validates the path structure and extracts the docstring. Returns None if
+    the path is not a valid tool location or has no docstring.
 
-    for category_dir in mcptools_dir.iterdir():
-        if not category_dir.is_dir() or category_dir.name.startswith("_"):
-            continue
+    Valid tool locations:
+    - mcptools/<category>/<tool>.py
+    - gentools/<category>/<tool>/api.py
 
-        category = category_dir.name
+    Args:
+        filepath: Absolute path to the tool file.
+        base_dir: Base directory containing mcptools/ and gentools/.
 
-        for tool_file in category_dir.glob("*.py"):
-            if tool_file.name.startswith("_"):
-                continue
+    Returns:
+        ToolInfo if valid, None otherwise.
+    """
+    try:
+        rel_path = filepath.relative_to(base_dir)
+    except ValueError:
+        return None
 
-            tool_name = tool_file.stem
-            description = extract_docstring(tool_file)
+    parts = rel_path.parts
 
-            if description is None:
-                continue
+    # Check for mcptools/<category>/<tool>.py
+    if len(parts) == 3 and parts[0] == "mcptools" and parts[2].endswith(".py"):
+        category = parts[1]
+        tool_name = Path(parts[2]).stem
 
-            tools.append(
-                ToolInfo(
-                    id=make_tool_id("mcptools", category, tool_name),
-                    name=tool_name,
-                    category=category,
-                    source="mcptools",
-                    filepath=tool_file,
-                    description=description,
-                )
-            )
+        if category.startswith("_") or tool_name.startswith("_"):
+            return None
 
-    return tools
+        description = extract_docstring(filepath)
+        if description is None:
+            return None
 
+        return ToolInfo(
+            id=make_tool_id("mcptools", category, tool_name),
+            name=tool_name,
+            category=category,
+            source="mcptools",
+            filepath=filepath,
+            description=description,
+        )
 
-def _scan_gentools(base_dir: Path) -> list[ToolInfo]:
-    """Scan gentools/<category>/<tool>/api.py for tools."""
-    tools: list[ToolInfo] = []
-    gentools_dir = base_dir / "gentools"
+    # Check for gentools/<category>/<tool>/api.py
+    if len(parts) == 4 and parts[0] == "gentools" and parts[3] == "api.py":
+        category = parts[1]
+        tool_name = parts[2]
 
-    if not gentools_dir.is_dir():
-        return tools
+        if category.startswith("_") or tool_name.startswith("_"):
+            return None
 
-    for category_dir in gentools_dir.iterdir():
-        if not category_dir.is_dir() or category_dir.name.startswith("_"):
-            continue
+        description = extract_docstring(filepath)
+        if description is None:
+            return None
 
-        category = category_dir.name
+        return ToolInfo(
+            id=make_tool_id("gentools", category, tool_name),
+            name=tool_name,
+            category=category,
+            source="gentools",
+            filepath=filepath,
+            description=description,
+        )
 
-        for tool_dir in category_dir.iterdir():
-            if not tool_dir.is_dir() or tool_dir.name.startswith("_"):
-                continue
-
-            api_file = tool_dir / "api.py"
-            if not api_file.is_file():
-                continue
-
-            tool_name = tool_dir.name
-            description = extract_docstring(api_file)
-
-            if description is None:
-                continue
-
-            tools.append(
-                ToolInfo(
-                    id=make_tool_id("gentools", category, tool_name),
-                    name=tool_name,
-                    category=category,
-                    source="gentools",
-                    filepath=api_file,
-                    description=description,
-                )
-            )
-
-    return tools
+    return None
 
 
 def scan_tools(base_dir: Path) -> list[ToolInfo]:
@@ -180,6 +169,21 @@ def scan_tools(base_dir: Path) -> list[ToolInfo]:
         List of discovered tools with their information.
     """
     tools: list[ToolInfo] = []
-    tools.extend(_scan_mcptools(base_dir))
-    tools.extend(_scan_gentools(base_dir))
+
+    # Scan mcptools/<category>/<tool>.py
+    mcptools_dir = base_dir / "mcptools"
+    if mcptools_dir.is_dir():
+        for filepath in mcptools_dir.glob("*/*.py"):
+            tool_info = tool_info_from_path(filepath, base_dir)
+            if tool_info is not None:
+                tools.append(tool_info)
+
+    # Scan gentools/<category>/<tool>/api.py
+    gentools_dir = base_dir / "gentools"
+    if gentools_dir.is_dir():
+        for filepath in gentools_dir.glob("*/*/api.py"):
+            tool_info = tool_info_from_path(filepath, base_dir)
+            if tool_info is not None:
+                tools.append(tool_info)
+
     return tools
