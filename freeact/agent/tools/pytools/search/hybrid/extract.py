@@ -6,6 +6,8 @@ import ast
 from dataclasses import dataclass
 from pathlib import Path
 
+from freeact.agent.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
+
 
 @dataclass
 class ToolInfo:
@@ -109,24 +111,24 @@ def tool_id_from_path(filepath: Path, base_dir: Path) -> str | None:
     parts = rel_path.parts
 
     # Check for mcptools/<category>/<tool>.py
-    if len(parts) == 3 and parts[0] == "mcptools" and parts[2].endswith(".py"):
+    if len(parts) == 3 and parts[0] == MCPTOOLS_DIR and parts[2].endswith(".py"):
         category = parts[1]
         tool_name = Path(parts[2]).stem
 
         if category.startswith("_") or tool_name.startswith("_"):
             return None
 
-        return make_tool_id("mcptools", category, tool_name)
+        return make_tool_id(MCPTOOLS_DIR, category, tool_name)
 
     # Check for gentools/<category>/<tool>/api.py
-    if len(parts) == 4 and parts[0] == "gentools" and parts[3] == "api.py":
+    if len(parts) == 4 and parts[0] == GENTOOLS_DIR and parts[3] == "api.py":
         category = parts[1]
         tool_name = parts[2]
 
         if category.startswith("_") or tool_name.startswith("_"):
             return None
 
-        return make_tool_id("gentools", category, tool_name)
+        return make_tool_id(GENTOOLS_DIR, category, tool_name)
 
     return None
 
@@ -186,7 +188,7 @@ def scan_tools(base_dir: Path) -> list[ToolInfo]:
     tools: list[ToolInfo] = []
 
     # Scan mcptools/<category>/<tool>.py
-    mcptools_dir = base_dir / "mcptools"
+    mcptools_dir = base_dir / MCPTOOLS_DIR
     if mcptools_dir.is_dir():
         for filepath in mcptools_dir.glob("*/*.py"):
             tool_info = tool_info_from_path(filepath, base_dir)
@@ -194,7 +196,7 @@ def scan_tools(base_dir: Path) -> list[ToolInfo]:
                 tools.append(tool_info)
 
     # Scan gentools/<category>/<tool>/api.py
-    gentools_dir = base_dir / "gentools"
+    gentools_dir = base_dir / GENTOOLS_DIR
     if gentools_dir.is_dir():
         for filepath in gentools_dir.glob("*/*/api.py"):
             tool_info = tool_info_from_path(filepath, base_dir)

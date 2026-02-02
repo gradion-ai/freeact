@@ -9,6 +9,8 @@ from types import TracebackType
 
 from watchfiles import Change, awatch
 
+from freeact.agent.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
+
 
 class ToolWatcher:
     """Watches mcptools/ and gentools/ for file changes.
@@ -73,7 +75,7 @@ class ToolWatcher:
             parts = rel.parts
             if not parts:
                 return False
-            return parts[0] in ("mcptools", "gentools")
+            return parts[0] in (MCPTOOLS_DIR, GENTOOLS_DIR)
         except ValueError:
             return False
 
@@ -82,11 +84,11 @@ class ToolWatcher:
         # Collect directories to watch
         watch_paths: list[Path] = []
 
-        mcptools = self._base_dir / "mcptools"
+        mcptools = self._base_dir / MCPTOOLS_DIR
         if mcptools.is_dir():
             watch_paths.append(mcptools)
 
-        gentools = self._base_dir / "gentools"
+        gentools = self._base_dir / GENTOOLS_DIR
         if gentools.is_dir():
             watch_paths.append(gentools)
 

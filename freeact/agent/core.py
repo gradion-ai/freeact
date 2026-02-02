@@ -30,6 +30,7 @@ from pydantic_ai.messages import (
 from pydantic_ai.models import Model, ModelRequestParameters, ModelSettings
 from pydantic_ai.tools import ToolDefinition
 
+from freeact.agent.tools.pytools import MCPTOOLS_DIR
 from freeact.agent.tools.utils import get_tool_definitions, load_ipybox_tool_definitions
 
 logger = logging.getLogger("freeact")
@@ -419,7 +420,7 @@ class Agent:
 
     async def _ipybox_register_mcp_server(self, server_name: str, server_params: dict[str, Any]) -> str:
         try:
-            tool_names = await ipybox.generate_mcp_sources(server_name, server_params, Path("mcptools"))
+            tool_names = await ipybox.generate_mcp_sources(server_name, server_params, Path(MCPTOOLS_DIR))
             return f"Registered MCP server {server_name} with tools: {', '.join(tool_names)}"
         except Exception as e:
             return f"Registration of MCP server {server_name} failed: {str(e)}"
