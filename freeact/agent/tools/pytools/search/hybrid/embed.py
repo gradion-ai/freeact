@@ -27,7 +27,7 @@ class ToolEmbedder:
         ```python
         embedder = ToolEmbedder(
             "google-gla:gemini-embedding-001",
-            {"dimensions": 768},
+            {"dimensions": 3072},
         )
         query_embedding = await embedder.embed_query("search tools for GitHub")
         doc_embeddings = await embedder.embed_documents(["Create GitHub issue", "List repos"])

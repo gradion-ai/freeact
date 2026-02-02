@@ -26,7 +26,7 @@ class ToolResult(BaseModel):
     category: str = Field(description="Category/server name (e.g., 'github')")
     source: Literal["gentools", "mcptools"] = Field(description="Tool source")
     description: str = Field(description="Tool description")
-    score: float = Field(description="Relevance score (0.0 to 1.0)")
+    path: str = Field(description="Relative path to the tool source file")
 
 
 @dataclass
@@ -48,7 +48,7 @@ def _get_env_config() -> tuple[Path, str, str, int, bool, bool, float, float]:
     """
     tools_dir = Path(os.environ.get("PYTOOLS_DIR", "."))
     db_path = os.environ.get("PYTOOLS_DB_PATH", ".freeact/search.db")
-    embedding_model = os.environ.get("PYTOOLS_EMBEDDING_MODEL", "google-gla:text-embedding-004")
+    embedding_model = os.environ.get("PYTOOLS_EMBEDDING_MODEL", "google-gla:gemini-embedding-001")
     embedding_dim = int(os.environ.get("PYTOOLS_EMBEDDING_DIM", "3072"))
     sync_enabled = os.environ.get("PYTOOLS_SYNC", "true").lower() == "true"
     watch_enabled = os.environ.get("PYTOOLS_WATCH", "true").lower() == "true"
@@ -129,10 +129,8 @@ async def search_tools(
 ) -> list[ToolResult]:
     """Search for tools matching a query.
 
-    Returns ranked results with tool name, category, source (gentools/mcptools),
-    tool description, and relevance score. Use focused queries describing specific
-    capabilities. For complex requests needing multiple tools, split into separate
-    searches by capability.
+    Returns ranked results with tool name, category, source, description,
+    and file path. Use focused queries describing specific capabilities.
     """
     if ctx is None:
         raise RuntimeError("Context is required")
@@ -158,13 +156,19 @@ async def search_tools(
         if entry is None:
             continue
 
+        # Construct path based on source type
+        if source == "mcptools":
+            path = f"{source}/{category}/{name}.py"
+        else:  # gentools
+            path = f"{source}/{category}/{name}/api.py"
+
         tool_results.append(
             ToolResult(
                 name=name,
                 category=category,
                 source=source,  # type: ignore[arg-type]
                 description=entry.description,
-                score=result.score,
+                path=path,
             )
         )
 

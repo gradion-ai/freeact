@@ -26,16 +26,23 @@ class TestInitConfig:
         assert plans_dir.exists()
         assert plans_dir.is_dir()
 
-    def test_copies_system_prompt_template(self, tmp_path: Path):
-        """Copies prompts/system.md with {working_dir} and {skills} placeholders."""
+    def test_copies_system_prompt_templates(self, tmp_path: Path):
+        """Copies prompts/system-basic.md and system-hybrid.md with placeholders."""
         init_config(tmp_path)
 
-        system_prompt = tmp_path / ".freeact" / "prompts" / "system.md"
-        assert system_prompt.exists()
+        prompts_dir = tmp_path / ".freeact" / "prompts"
 
-        content = system_prompt.read_text()
-        assert "{working_dir}" in content
-        assert "{skills}" in content
+        # Both prompt files should exist
+        basic_prompt = prompts_dir / "system-basic.md"
+        hybrid_prompt = prompts_dir / "system-hybrid.md"
+        assert basic_prompt.exists()
+        assert hybrid_prompt.exists()
+
+        # Both should have template placeholders
+        for prompt_file in [basic_prompt, hybrid_prompt]:
+            content = prompt_file.read_text()
+            assert "{working_dir}" in content
+            assert "{skills}" in content
 
     def test_copies_servers_json_template(self, tmp_path: Path):
         """Copies servers.json with mcp-servers and ptc-servers keys."""
@@ -75,7 +82,7 @@ class TestInitConfig:
 
         # Create existing file with custom content
         existing_content = "Custom user content"
-        system_prompt = prompts_dir / "system.md"
+        system_prompt = prompts_dir / "system-basic.md"
         system_prompt.write_text(existing_content)
 
         init_config(tmp_path)
@@ -102,6 +109,7 @@ class TestInitConfig:
         assert freeact_dir.exists()
 
         # Verify structure is intact after multiple calls
-        assert (freeact_dir / "prompts" / "system.md").exists()
+        assert (freeact_dir / "prompts" / "system-basic.md").exists()
+        assert (freeact_dir / "prompts" / "system-hybrid.md").exists()
         assert (freeact_dir / "servers.json").exists()
         assert (freeact_dir / "plans").exists()

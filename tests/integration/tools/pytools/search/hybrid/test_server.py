@@ -228,7 +228,7 @@ class TestResultFormat:
             assert "category" in r
             assert "source" in r
             assert "description" in r
-            assert "score" in r
+            assert "path" in r
 
 
 class TestConcurrentServers:
