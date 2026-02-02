@@ -12,8 +12,8 @@ This plan breaks down the implementation of the hybrid tool search feature into 
 | 4 | Embedder Integration | Done | Upgraded pydantic-ai to >=1.51.0 |
 | 5 | Indexer | Done | Renamed from IndexManager; added tool_info_from_path utility |
 | 6 | File Watcher | Done | ToolWatcher class with 300ms debounce; .py-only filtering |
-| 7 | Server Implementation | Not Started | |
-| 8 | Package Structure | Not Started | |
+| 7 | Server Implementation | Done | FastMCP server with env config; PYTOOLS_SYNC/WATCH options |
+| 8 | Package Structure | Done | Entry point via `python -m freeact.agent.tools.pytools.search.hybrid` |
 | 9 | System Prompt Updates | Not Started | |
 | 10 | Configuration Support | Not Started | |
 | 11 | End-to-End Testing | Not Started | |
@@ -139,36 +139,44 @@ This plan breaks down the implementation of the hybrid tool search feature into 
 
 ## Phase 3: MCP Server
 
-### Step 7: Server Implementation
+### Step 7: Server Implementation ✓
 
 **Goal**: Implement the hybrid search MCP server with FastMCP.
 
 **Deliverables**:
 - `freeact/agent/tools/pytools/search/hybrid/server.py`
-- `search_tools` tool with query, mode, scope, limit parameters
-- `ToolResult` response model
-- Server lifecycle hooks (startup: init + sync, shutdown: cleanup)
-- Configuration loading from environment/args
+- `search_tools` tool with query, mode, limit parameters
+- `ToolResult` response model with name, category, source, description, score
+- Server lifecycle via FastMCP lifespan context manager
+- Environment variable configuration:
+  - `PYTOOLS_DIR` - base directory for tools
+  - `PYTOOLS_DB_PATH` - SQLite database path
+  - `PYTOOLS_EMBEDDING_MODEL` - embedding model (supports "test" for testing)
+  - `PYTOOLS_EMBEDDING_DIM` - embedding dimensions
+  - `PYTOOLS_SYNC` - enable/disable initial sync (default: true)
+  - `PYTOOLS_WATCH` - enable/disable file watching (default: true)
+  - `PYTOOLS_BM25_WEIGHT` / `PYTOOLS_VEC_WEIGHT` - search weights
 
 **Tests**:
-- `tests/unit/tools/pytools/search/hybrid/test_server.py`
-- `tests/integration/tools/pytools/search/hybrid/test_server.py`
+- `tests/unit/tools/pytools/search/hybrid/test_server.py` - unit tests with mocked components
+- `tests/integration/tools/pytools/search/hybrid/test_server.py` - real MCP client tests via MCPServerStdio
+- Test fixtures in `tests/integration/tools/pytools/search/hybrid/fixtures/`
+- Concurrent server test with 3 instances searching in parallel
 
 ---
 
-### Step 8: Package Structure and Entry Point
+### Step 8: Package Structure and Entry Point ✓
 
 **Goal**: Finalize package structure and make server runnable.
 
 **Deliverables**:
-- `freeact/agent/tools/pytools/search/hybrid/__init__.py` - public exports
-- `freeact/agent/tools/pytools/search/hybrid/__main__.py` - entry point
-- Verify `python -m freeact.agent.tools.pytools.search.hybrid` works
-- Update `freeact/agent/tools/pytools/search/__init__.py` if needed
+- `freeact/agent/tools/pytools/search/hybrid/__init__.py` - exports MCPTOOLS_DIR, GENTOOLS_DIR constants
+- `freeact/agent/tools/pytools/search/hybrid/__main__.py` - entry point calling server.main()
+- Server runs via `python -m freeact.agent.tools.pytools.search.hybrid` or `uv run -m ...`
 
 **Tests**:
-- Manual verification of server startup
-- Integration test with MCP client
+- Integration tests use MCPServerStdio to spawn and communicate with server subprocess
+- All tests use constants from `freeact.agent.tools.pytools` for directory names
 
 ---
 
@@ -227,6 +235,8 @@ This plan breaks down the implementation of the hybrid tool search feature into 
 **Goal**: Finalize documentation and code cleanup.
 
 **Deliverables**:
+- Update user documentation in `docs/` with hybrid search usage guide (use mkdocs-formatter skill)
+- Update API documentation in `docs/api/` with module reference (use mkdocs-formatter skill)
 - Update CLAUDE.md with hybrid search information
 - Add docstrings to all public functions/classes
 - Run `uv run invoke cc` and fix any issues
