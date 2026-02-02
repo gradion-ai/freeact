@@ -42,13 +42,13 @@ def sample_entries() -> list[ToolEntry]:
             id="gentools:data:csv_parser",
             description="Parse CSV files into structured data.",
             file_hash="hash3",
-            embedding=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.9],  # opposite direction
+            embedding=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.9],  # orthogonal to first
         ),
         ToolEntry(
             id="mcptools:slack:send_message",
             description="Send a message to a Slack channel.",
             file_hash="hash4",
-            embedding=[0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0],  # orthogonal
+            embedding=[0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0],  # also orthogonal
         ),
     ]
 
