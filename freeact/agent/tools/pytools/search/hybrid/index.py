@@ -14,6 +14,7 @@ from freeact.agent.tools.pytools.search.hybrid.embed import ToolEmbedder
 from freeact.agent.tools.pytools.search.hybrid.extract import (
     ToolInfo,
     scan_tools,
+    tool_id_from_path,
     tool_info_from_path,
 )
 
@@ -248,26 +249,8 @@ class Indexer:
         Args:
             filepath: Path to the deleted file.
         """
-        # Derive tool ID from path without reading the file
-        try:
-            rel_path = filepath.relative_to(self._base_dir)
-        except ValueError:
-            return
-
-        parts = rel_path.parts
-
-        # mcptools/<category>/<tool>.py
-        if len(parts) == 3 and parts[0] == "mcptools" and parts[2].endswith(".py"):
-            category = parts[1]
-            tool_name = Path(parts[2]).stem
-            tool_id = f"mcptools:{category}:{tool_name}"
-            await self._remove_tool(tool_id)
-
-        # gentools/<category>/<tool>/api.py
-        elif len(parts) == 4 and parts[0] == "gentools" and parts[3] == "api.py":
-            category = parts[1]
-            tool_name = parts[2]
-            tool_id = f"gentools:{category}:{tool_name}"
+        tool_id = tool_id_from_path(filepath, self._base_dir)
+        if tool_id is not None:
             await self._remove_tool(tool_id)
 
     async def __aenter__(self) -> Indexer:

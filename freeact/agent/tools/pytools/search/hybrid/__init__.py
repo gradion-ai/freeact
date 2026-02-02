@@ -8,6 +8,7 @@ from freeact.agent.tools.pytools.search.hybrid.extract import (
     make_tool_id,
     parse_tool_id,
     scan_tools,
+    tool_id_from_path,
     tool_info_from_path,
 )
 from freeact.agent.tools.pytools.search.hybrid.index import Indexer, SyncResult
@@ -27,5 +28,6 @@ __all__ = [
     "make_tool_id",
     "parse_tool_id",
     "scan_tools",
+    "tool_id_from_path",
     "tool_info_from_path",
 ]

@@ -11,6 +11,7 @@ from freeact.agent.tools.pytools.search.hybrid.extract import (
     make_tool_id,
     parse_tool_id,
     scan_tools,
+    tool_id_from_path,
     tool_info_from_path,
 )
 
@@ -189,6 +190,62 @@ class TestToolIdFunctions:
 
         with pytest.raises(ValueError, match="Invalid tool ID format"):
             parse_tool_id("too:many:colons:here")
+
+
+class TestToolIdFromPath:
+    """Tests for tool_id_from_path function."""
+
+    def test_mcptools_valid_path(self, fixtures_dir: Path) -> None:
+        """Test deriving ID from valid mcptools path."""
+        filepath = fixtures_dir / "mcptools" / "github" / "create_issue.py"
+        tool_id = tool_id_from_path(filepath, fixtures_dir)
+
+        assert tool_id == "mcptools:github:create_issue"
+
+    def test_gentools_valid_path(self, fixtures_dir: Path) -> None:
+        """Test deriving ID from valid gentools path."""
+        filepath = fixtures_dir / "gentools" / "data" / "csv_parser" / "api.py"
+        tool_id = tool_id_from_path(filepath, fixtures_dir)
+
+        assert tool_id == "gentools:data:csv_parser"
+
+    def test_path_outside_base_dir(self, fixtures_dir: Path, tmp_path: Path) -> None:
+        """Test returns None for path outside base directory."""
+        filepath = tmp_path / "mcptools" / "cat" / "tool.py"
+        tool_id = tool_id_from_path(filepath, fixtures_dir)
+
+        assert tool_id is None
+
+    def test_prefixed_category_skipped(self, tmp_path: Path) -> None:
+        """Test returns None for _prefixed category."""
+        filepath = tmp_path / "mcptools" / "_private" / "tool.py"
+        tool_id = tool_id_from_path(filepath, tmp_path)
+
+        assert tool_id is None
+
+    def test_prefixed_tool_skipped(self, tmp_path: Path) -> None:
+        """Test returns None for _prefixed tool name."""
+        filepath = tmp_path / "mcptools" / "cat" / "_internal.py"
+        tool_id = tool_id_from_path(filepath, tmp_path)
+
+        assert tool_id is None
+
+    def test_invalid_structure(self, tmp_path: Path) -> None:
+        """Test returns None for invalid path structure."""
+        # Too deep for mcptools
+        filepath = tmp_path / "mcptools" / "cat" / "sub" / "tool.py"
+        assert tool_id_from_path(filepath, tmp_path) is None
+
+        # Wrong filename for gentools
+        filepath = tmp_path / "gentools" / "cat" / "tool" / "other.py"
+        assert tool_id_from_path(filepath, tmp_path) is None
+
+    def test_unknown_source_directory(self, tmp_path: Path) -> None:
+        """Test returns None for unknown source directory."""
+        filepath = tmp_path / "unknown" / "cat" / "tool.py"
+        tool_id = tool_id_from_path(filepath, tmp_path)
+
+        assert tool_id is None
 
 
 class TestToolInfoFromPath:

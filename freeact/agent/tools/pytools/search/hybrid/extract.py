@@ -84,6 +84,53 @@ def parse_tool_id(tool_id: str) -> tuple[str, str, str]:
     return parts[0], parts[1], parts[2]
 
 
+def tool_id_from_path(filepath: Path, base_dir: Path) -> str | None:
+    """Derive tool ID from a file path without reading the file.
+
+    Validates the path structure and returns the tool ID. Does not check
+    for docstrings or read file contents. Useful for handling file deletions.
+
+    Valid tool locations:
+    - mcptools/<category>/<tool>.py
+    - gentools/<category>/<tool>/api.py
+
+    Args:
+        filepath: Path to the tool file.
+        base_dir: Base directory containing mcptools/ and gentools/.
+
+    Returns:
+        Tool ID string if valid path, None otherwise.
+    """
+    try:
+        rel_path = filepath.relative_to(base_dir)
+    except ValueError:
+        return None
+
+    parts = rel_path.parts
+
+    # Check for mcptools/<category>/<tool>.py
+    if len(parts) == 3 and parts[0] == "mcptools" and parts[2].endswith(".py"):
+        category = parts[1]
+        tool_name = Path(parts[2]).stem
+
+        if category.startswith("_") or tool_name.startswith("_"):
+            return None
+
+        return make_tool_id("mcptools", category, tool_name)
+
+    # Check for gentools/<category>/<tool>/api.py
+    if len(parts) == 4 and parts[0] == "gentools" and parts[3] == "api.py":
+        category = parts[1]
+        tool_name = parts[2]
+
+        if category.startswith("_") or tool_name.startswith("_"):
+            return None
+
+        return make_tool_id("gentools", category, tool_name)
+
+    return None
+
+
 def tool_info_from_path(filepath: Path, base_dir: Path) -> ToolInfo | None:
     """Create ToolInfo from a tool file path.
 
@@ -101,56 +148,24 @@ def tool_info_from_path(filepath: Path, base_dir: Path) -> ToolInfo | None:
     Returns:
         ToolInfo if valid, None otherwise.
     """
-    try:
-        rel_path = filepath.relative_to(base_dir)
-    except ValueError:
+    tool_id = tool_id_from_path(filepath, base_dir)
+    if tool_id is None:
         return None
 
-    parts = rel_path.parts
+    source, category, name = parse_tool_id(tool_id)
 
-    # Check for mcptools/<category>/<tool>.py
-    if len(parts) == 3 and parts[0] == "mcptools" and parts[2].endswith(".py"):
-        category = parts[1]
-        tool_name = Path(parts[2]).stem
+    description = extract_docstring(filepath)
+    if description is None:
+        return None
 
-        if category.startswith("_") or tool_name.startswith("_"):
-            return None
-
-        description = extract_docstring(filepath)
-        if description is None:
-            return None
-
-        return ToolInfo(
-            id=make_tool_id("mcptools", category, tool_name),
-            name=tool_name,
-            category=category,
-            source="mcptools",
-            filepath=filepath,
-            description=description,
-        )
-
-    # Check for gentools/<category>/<tool>/api.py
-    if len(parts) == 4 and parts[0] == "gentools" and parts[3] == "api.py":
-        category = parts[1]
-        tool_name = parts[2]
-
-        if category.startswith("_") or tool_name.startswith("_"):
-            return None
-
-        description = extract_docstring(filepath)
-        if description is None:
-            return None
-
-        return ToolInfo(
-            id=make_tool_id("gentools", category, tool_name),
-            name=tool_name,
-            category=category,
-            source="gentools",
-            filepath=filepath,
-            description=description,
-        )
-
-    return None
+    return ToolInfo(
+        id=tool_id,
+        name=name,
+        category=category,
+        source=source,
+        filepath=filepath,
+        description=description,
+    )
 
 
 def scan_tools(base_dir: Path) -> list[ToolInfo]:
