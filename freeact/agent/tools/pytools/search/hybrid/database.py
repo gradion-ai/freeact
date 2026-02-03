@@ -212,11 +212,19 @@ class Database:
         return result  # type: ignore[return-value]
 
     def _prepare_fts_query(self, query: str) -> str:
-        """Convert query to FTS5 OR query for better recall."""
+        """Convert query to FTS5 OR query for better recall.
+
+        Tokens are quoted to escape FTS5 special characters (commas,
+        parentheses, colons, etc.) that would otherwise cause syntax errors.
+        """
         tokens = query.split()
-        if len(tokens) <= 1:
-            return query
-        return " OR ".join(tokens)
+        if not tokens:
+            return '""'
+        # Quote each token to escape special characters (double internal quotes)
+        quoted = ['"' + token.replace('"', '""') + '"' for token in tokens]
+        if len(quoted) == 1:
+            return quoted[0]
+        return " OR ".join(quoted)
 
     async def bm25_search(self, query: str, limit: int) -> list[SearchResult]:
         """Search using BM25 ranking on id and description columns."""

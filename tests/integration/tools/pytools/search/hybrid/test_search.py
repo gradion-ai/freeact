@@ -72,6 +72,33 @@ class TestBM25Search:
 
         assert results == []
 
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "query",
+        [
+            "GitHub, issues",
+            "issue (create)",
+            "issue:github",
+            'issue "quoted"',
+            "issue -negation",
+            "issue* prefix",
+            "(grouped) terms",
+        ],
+    )
+    async def test_bm25_handles_special_characters(
+        self, db_path: Path, dimensions: int, sample_entries: list[ToolEntry], query: str
+    ) -> None:
+        """Test BM25 search handles FTS5 special characters without errors."""
+        async with Database(db_path, dimensions) as db:
+            await db.add_batch(sample_entries)
+            engine = SearchEngine(db)
+
+            # Should not raise an error
+            results = await engine.bm25_search(query, limit=10)
+
+            # Results is a list (may or may not have matches depending on the query)
+            assert isinstance(results, list)
+
 
 class TestVectorSearch:
     """Tests for vector similarity search."""
