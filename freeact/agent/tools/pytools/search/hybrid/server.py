@@ -113,8 +113,8 @@ async def search_tools(
     query: Annotated[
         str,
         Field(
-            description="Search query. Use natural language for 'hybrid' (default) "
-            "and 'vector' modes; use keywords for 'bm25' mode."
+            description="Search query that matches the tool descriptions. Use natural "
+            "language for 'hybrid' (default) and 'vector' modes; use keywords for 'bm25' mode."
         ),
     ],
     mode: Annotated[
@@ -127,10 +127,10 @@ async def search_tools(
     limit: Annotated[int, Field(description="Maximum number of results to return.", ge=1, le=50)] = 5,
     ctx: Context | None = None,
 ) -> list[ToolResult]:
-    """Search for tools matching a query.
+    """Search for tools with a query matching their description.
 
     Returns ranked results with tool name, category, source, description,
-    and file path. Use focused queries describing specific capabilities.
+    and file path.
     """
     if ctx is None:
         raise RuntimeError("Context is required")
