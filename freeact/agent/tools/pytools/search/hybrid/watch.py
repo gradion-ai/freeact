@@ -127,6 +127,8 @@ class ToolWatcher:
 
         self._stop_event.clear()
         self._watch_task = asyncio.create_task(self._watch_loop())
+        # Allow watcher to initialize (needed for Linux inotify)
+        await asyncio.sleep(0.05)
 
     async def stop(self) -> None:
         """Stop watching for file changes.
