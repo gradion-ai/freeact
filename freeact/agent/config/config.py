@@ -1,11 +1,13 @@
 import json
 import os
+from collections.abc import Set
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import yaml
 from ipybox.vars import replace_variables
+from mcp import types as mcp_types
 from pydantic_ai.mcp import MCPServer, MCPServerStdio, MCPServerStreamableHTTP
 from pydantic_ai.models import Model, ModelSettings
 from pydantic_ai.models.google import GoogleModelSettings
@@ -17,6 +19,31 @@ DEFAULT_MODEL_SETTINGS = GoogleModelSettings(
         "include_thoughts": True,
     },
 )
+
+_EXCLUDED_FILESYSTEM_TOOLS = frozenset(
+    {
+        "create_directory",
+        "list_directory",
+        "list_directory_with_sizes",
+        "directory_tree",
+        "move_file",
+        "search_files",
+        "list_allowed_directories",
+        "read_file",
+    }
+)
+
+
+class _MCPServerStdioFiltered(MCPServerStdio):
+    """MCPServerStdio that filters out specified tools."""
+
+    def __init__(self, excluded_tools: Set[str], **kwargs: Any):
+        super().__init__(**kwargs)
+        self._excluded_tools = excluded_tools
+
+    async def list_tools(self) -> list[mcp_types.Tool]:
+        tools = await super().list_tools()
+        return [t for t in tools if t.name not in self._excluded_tools]
 
 
 @dataclass
@@ -158,7 +185,13 @@ class Config:
         for name, cfg in result.replaced.items():
             match cfg:
                 case {"command": _}:
-                    servers[name] = MCPServerStdio(**cfg)
+                    if name == "filesystem":
+                        servers[name] = _MCPServerStdioFiltered(
+                            excluded_tools=_EXCLUDED_FILESYSTEM_TOOLS,
+                            **cfg,
+                        )
+                    else:
+                        servers[name] = MCPServerStdio(**cfg)
                 case {"url": _}:
                     servers[name] = MCPServerStreamableHTTP(**cfg)
                 case _:
