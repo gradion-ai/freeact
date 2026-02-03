@@ -172,7 +172,7 @@ class TestToolIdFunctions:
 
     def test_make_tool_id(self) -> None:
         """Test creating tool ID from components."""
-        id = make_tool_id("mcptools", "github", "create_issue")
+        id = make_tool_id(MCPTOOLS_DIR, "github", "create_issue")
 
         assert id == f"{MCPTOOLS_DIR}:github:create_issue"
 

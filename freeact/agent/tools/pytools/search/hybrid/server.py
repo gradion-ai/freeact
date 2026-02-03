@@ -12,6 +12,7 @@ from typing import Annotated, Literal
 from mcp.server.fastmcp import Context, FastMCP
 from pydantic import BaseModel, Field
 
+from freeact.agent.tools.pytools import MCPTOOLS_DIR
 from freeact.agent.tools.pytools.search.hybrid.database import Database
 from freeact.agent.tools.pytools.search.hybrid.embed import ToolEmbedder
 from freeact.agent.tools.pytools.search.hybrid.extract import parse_tool_id
@@ -157,7 +158,7 @@ async def search_tools(
             continue
 
         # Construct path based on source type
-        if source == "mcptools":
+        if source == MCPTOOLS_DIR:
             path = f"{source}/{category}/{name}.py"
         else:  # gentools
             path = f"{source}/{category}/{name}/api.py"
