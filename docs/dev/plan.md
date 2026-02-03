@@ -14,10 +14,10 @@ This plan breaks down the implementation of the hybrid tool search feature into 
 | 6 | File Watcher | Done | ToolWatcher class with 300ms debounce; .py-only filtering |
 | 7 | Server Implementation | Done | FastMCP server with env config; PYTOOLS_SYNC/WATCH options |
 | 8 | Package Structure | Done | Entry point via `python -m freeact.agent.tools.pytools.search.hybrid` |
-| 9 | System Prompt Updates | Not Started | |
-| 10 | Configuration Support | Not Started | |
+| 9 | System Prompt Updates | Done | Separate prompt files approach instead of placeholder |
+| 10 | Configuration Support | Done | `--tool-search` CLI arg; env vars for server settings |
 | 11 | End-to-End Testing | Done | Covered by test_server.py integration tests |
-| 12 | Documentation and Cleanup | Not Started | |
+| 12 | Documentation and Cleanup | Not Started | Includes spec/plan updates |
 
 **Status legend**: Not Started | In Progress | Done | Blocked
 
@@ -182,51 +182,51 @@ This plan breaks down the implementation of the hybrid tool search feature into 
 
 ## Phase 4: Integration
 
-### Step 9: System Prompt Updates
+### Step 9: System Prompt Updates ✓
 
 **Goal**: Add conditional sections for hybrid search workflow.
 
 **Deliverables**:
-- Update `freeact/agent/config/templates/prompts/system.md`
-- Add `{tool_discovery_workflow}` placeholder
-- Create workflow text for basic mode (current behavior)
-- Create workflow text for hybrid mode (search_tools usage)
-- Update `Config` class to render appropriate workflow based on server config
+- `freeact/agent/config/templates/prompts/system-basic.md` - prompt for basic mode
+- `freeact/agent/config/templates/prompts/system-hybrid.md` - prompt for hybrid mode
+- `_is_hybrid_search_enabled()` method in Config detects pytools mode from args
+- `_load_system_prompt()` selects appropriate prompt file based on detection
+
+**Implementation note**: Used separate prompt files instead of a `{tool_discovery_workflow}` placeholder. This is cleaner since the workflow sections are substantial and intertwined with surrounding context.
 
 **Tests**:
-- `tests/unit/agent/config/test_config.py` - verify prompt rendering
+- `tests/unit/test_config.py::TestSystemPromptSelection` - verifies prompt selection
 
 ---
 
-### Step 10: Configuration Support
+### Step 10: Configuration Support ✓
 
-**Goal**: Support hybrid search server settings in servers.json.
+**Goal**: Support hybrid search server configuration.
 
 **Deliverables**:
-- Document configuration format in spec (already done)
-- Update config loading to pass settings to hybrid server
-- Environment variable support for embedding model API keys
-- Example servers.json with hybrid search configuration
+- `--tool-search` CLI argument (`basic` or `hybrid`, default: `basic`)
+- `init_config(tool_search=...)` parameter enforces pytools config in servers.json
+- `PYTOOLS_BASIC` and `PYTOOLS_HYBRID` constants in `freeact/agent/config/init.py`
+- Environment variable support via `${VAR_NAME}` syntax in servers.json
+- Hybrid server reads settings from `PYTOOLS_*` environment variables
 
 **Tests**:
-- `tests/unit/agent/config/test_servers.py`
+- `tests/unit/test_init.py::TestToolSearchEnforcement` - verifies mode switching
 
 ---
 
 ## Phase 5: Validation
 
-### Step 11: End-to-End Testing
+### Step 11: End-to-End Testing ✓
 
 **Goal**: Validate full workflow from config to search results.
 
 **Deliverables**:
-- TODO: chceck if this isn't already covered by `tests/integration/tools/pytools/search/hybrid/test_server.py`
-- `tests/integration/tools/pytools/search/hybrid/test_e2e.py`
-- Test: startup with empty database, full sync
-- Test: startup with existing database, incremental sync
-- Test: file change triggers re-index
-- Test: search returns expected results
-- Test: mode switching (bm25/vector/hybrid)
+- `tests/integration/tools/pytools/search/hybrid/test_server.py` covers E2E scenarios:
+  - Startup with empty database, full sync
+  - Search returns expected results
+  - Mode switching (bm25/vector/hybrid)
+  - Concurrent server instances
 
 ---
 
@@ -235,13 +235,18 @@ This plan breaks down the implementation of the hybrid tool search feature into 
 **Goal**: Finalize documentation and code cleanup.
 
 **Deliverables**:
+- Update `docs/configuration.md`:
+  - Document `--tool-search` CLI argument
+  - Document hybrid server environment variables (`PYTOOLS_*`)
+  - Add example servers.json with hybrid configuration
+- Update `docs/dev/spec.md`:
+  - Reflect separate prompt files approach (not placeholder)
+  - Update configuration section to match implementation
+  - Remove prototype references (make paths relative to freeact)
 - Update user documentation in `docs/` with hybrid search usage guide (use mkdocs-formatter skill)
 - Update API documentation in `docs/api/` with module reference (use mkdocs-formatter skill)
-- Update CLAUDE.md with hybrid search information
 - Add docstrings to all public functions/classes
 - Run `uv run invoke cc` and fix any issues
-- Update spec.md with any changes discovered during implementation
-- Remove prototype references from spec (make paths relative to freeact)
 
 ---
 
