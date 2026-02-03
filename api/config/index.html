@@ -1443,13 +1443,17 @@ system prompts, MCP servers (JSON tool calls), and PTC servers
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">init_config</span><span class="p">(</span><span class="n">working_dir</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">init_config</span><span class="p">(</span>
+    <span class="n">working_dir</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">tool_search</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Literal" href="https://docs.python.org/3/library/typing.html#typing.Literal">Literal</a></span><span class="p">[</span><span class="s2">&quot;basic&quot;</span><span class="p">,</span> <span class="s2">&quot;hybrid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;basic&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </code></pre></div>
 
     <div class="doc doc-contents first">
 
         <p>Initialize <code>.freeact/</code> config directory from templates.</p>
-<p>Copies template files that don't already exist, preserving user modifications.</p>
+<p>Copies template files that don't already exist, preserving user modifications.
+Enforces the pytools server configuration based on the tool_search setting.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1477,6 +1481,24 @@ system prompts, MCP servers (JSON tool calls), and PTC servers
             </td>
             <td>
                   <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>tool_search</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" title="typing.Literal" href="https://docs.python.org/3/library/typing.html#typing.Literal">Literal</a>[&#39;basic&#39;, &#39;hybrid&#39;]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Tool discovery mode. "basic" uses category browsing via
+<code>list_categories</code> and <code>list_tools</code>. "hybrid" uses BM25/vector search
+via <code>search_tools</code> for natural language queries.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;basic&#39;</code>
             </td>
           </tr>
       </tbody>

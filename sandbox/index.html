@@ -1372,7 +1372,7 @@
 </code></pre></div>
 <p>This macOS-specific example configuration allows additional network access to <code>example.org</code>. Filesystem settings permit writes to <code>~/Library/Jupyter/</code> and <code>~/.ipython/</code>, which is required for running a sandboxed IPython kernel. The sandbox configuration file itself is protected from reads and writes.</p>
 <h2 id="mcp-servers">MCP Servers</h2>
-<p>MCP servers run as separate processes and are not affected by <a href="#code-execution">code execution sandboxing</a>. Local stdio servers can be sandboxed independently by wrapping the server command with the <code>srt</code> tool from sandbox-runtime. This applies to both <code>mcp-servers</code> and <code>ptc-servers</code> in the <a href="../configuration/#mcp-server-configuration">MCP server configuration</a>.</p>
+<p>MCP servers run as separate processes and are not affected by <a href="#code-execution">code execution sandboxing</a>. Local stdio servers can be sandboxed independently by wrapping the server command with the <code>srt</code> tool from sandbox-runtime. This applies to both <code>mcp-servers</code> and <code>ptc-servers</code> in the <a href="../configuration/#mcp-servers">MCP server configuration</a>.</p>
 <h3 id="filesystem-mcp-server">Filesystem MCP Server</h3>
 <p>This example shows a sandboxed <a href="https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem">filesystem MCP server</a> in the <code>mcp-servers</code> section:</p>
 <div class="highlight"><span class="filename">.freeact/servers.json</span><pre><span></span><code><span class="p">{</span>

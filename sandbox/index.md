@@ -66,7 +66,7 @@ This macOS-specific example configuration allows additional network access to `e
 
 ## MCP Servers
 
-MCP servers run as separate processes and are not affected by [code execution sandboxing](#code-execution). Local stdio servers can be sandboxed independently by wrapping the server command with the `srt` tool from sandbox-runtime. This applies to both `mcp-servers` and `ptc-servers` in the [MCP server configuration](https://gradion-ai.github.io/freeact/configuration/#mcp-server-configuration).
+MCP servers run as separate processes and are not affected by [code execution sandboxing](#code-execution). Local stdio servers can be sandboxed independently by wrapping the server command with the `srt` tool from sandbox-runtime. This applies to both `mcp-servers` and `ptc-servers` in the [MCP server configuration](https://gradion-ai.github.io/freeact/configuration/#mcp-servers).
 
 ### Filesystem MCP Server
 

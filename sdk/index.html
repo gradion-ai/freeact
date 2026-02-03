@@ -1301,7 +1301,7 @@
 <li><a href="../api/permissions/">Permissions API</a> for managing approval decisions</li>
 </ul>
 <h2 id="configuration-api">Configuration API</h2>
-<p>Use <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.init_config"><code>init_config()</code></a> to initialize the <code>.freeact/</code> directory from default templates. The <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config"><code>Config()</code></a> constructor loads all configuration from it:</p>
+<p>Use <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.init_config"><code>init_config()</code></a> to initialize the <code>.freeact/</code> directory from default templates. The optional <code>tool_search</code> parameter selects the tool discovery mode (<code>"basic"</code> or <code>"hybrid"</code>). The <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config"><code>Config()</code></a> constructor loads all configuration from it:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span><span class="p">,</span> <span class="n">init_config</span>
 
 <span class="c1"># Initialize .freeact/ config directory if needed</span>
@@ -1312,7 +1312,7 @@
 </code></pre></div>
 <p>See the <a href="../configuration/">Configuration</a> reference for details on the <code>.freeact/</code> directory structure.</p>
 <h2 id="generation-api">Generation API</h2>
-<p>MCP servers <a href="../configuration/#mcp-server-configuration">configured</a> as <code>ptc-servers</code> in <code>servers.json</code> require Python API generation with <a class="autorefs autorefs-internal" href="../api/generate/#freeact.agent.tools.pytools.apigen.generate_mcp_sources"><code>generate_mcp_sources()</code></a> before the agent can call their tools programmatically:</p>
+<p>MCP servers <a href="../configuration/#mcp-servers">configured</a> as <code>ptc-servers</code> in <code>servers.json</code> require Python API generation with <a class="autorefs autorefs-internal" href="../api/generate/#freeact.agent.tools.pytools.apigen.generate_mcp_sources"><code>generate_mcp_sources()</code></a> before the agent can call their tools programmatically:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent.tools.pytools.apigen</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_mcp_sources</span>
 
 <span class="c1"># Generate Python APIs for MCP servers in ptc_servers</span>

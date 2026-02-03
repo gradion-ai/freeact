@@ -37,18 +37,22 @@ Metadata parsed from a skill's SKILL.md frontmatter.
 ## freeact.agent.config.init_config
 
 ```
-init_config(working_dir: Path | None = None) -> None
+init_config(
+    working_dir: Path | None = None,
+    tool_search: Literal["basic", "hybrid"] = "basic",
+) -> None
 ```
 
 Initialize `.freeact/` config directory from templates.
 
-Copies template files that don't already exist, preserving user modifications.
+Copies template files that don't already exist, preserving user modifications. Enforces the pytools server configuration based on the tool_search setting.
 
 Parameters:
 
-| Name          | Type   | Description | Default                                                |
-| ------------- | ------ | ----------- | ------------------------------------------------------ |
-| `working_dir` | \`Path | None\`      | Base directory. Defaults to current working directory. |
+| Name          | Type                         | Description                                                                                                                                                             | Default                                                |
+| ------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `working_dir` | \`Path                       | None\`                                                                                                                                                                  | Base directory. Defaults to current working directory. |
+| `tool_search` | `Literal['basic', 'hybrid']` | Tool discovery mode. "basic" uses category browsing via list_categories and list_tools. "hybrid" uses BM25/vector search via search_tools for natural language queries. | `'basic'`                                              |
 
 ## freeact.agent.config.DEFAULT_MODEL
 

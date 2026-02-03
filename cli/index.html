@@ -594,6 +594,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#hybrid-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hybrid Search
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#interactive-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1201,6 +1212,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#hybrid-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hybrid Search
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#interactive-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1295,6 +1317,10 @@
 <td>Path to sandbox configuration file.</td>
 </tr>
 <tr>
+<td><code>--tool-search MODE</code></td>
+<td>Tool discovery mode: <code>basic</code> (default) or <code>hybrid</code>. See <a href="#hybrid-search">Hybrid Search</a>.</td>
+</tr>
+<tr>
 <td><code>--log-level LEVEL</code></td>
 <td>Set logging level: <code>debug</code>, <code>info</code> (default), <code>warning</code>, <code>error</code>, <code>critical</code>.</td>
 </tr>
@@ -1322,6 +1348,12 @@
 <p>Recording a session for documentation:</p>
 <div class="highlight"><pre><span></span><code>freeact<span class="w"> </span>--record<span class="w"> </span>--record-dir<span class="w"> </span>docs/recordings/demo<span class="w"> </span>--record-title<span class="w"> </span><span class="s2">&quot;Demo Session&quot;</span>
 </code></pre></div>
+<h2 id="hybrid-search">Hybrid Search</h2>
+<p>The <code>--tool-search</code> option controls how the agent discovers Python tools. The default <code>basic</code> mode uses category browsing with <code>pytools_list_categories</code> and <code>pytools_list_tools</code>. The <code>hybrid</code> mode uses BM25/vector search with <code>pytools_search_tools</code> for natural language queries.</p>
+<p>To enable hybrid search:</p>
+<div class="highlight"><pre><span></span><code>freeact<span class="w"> </span>--tool-search<span class="w"> </span>hybrid
+</code></pre></div>
+<p>This requires an embedding API. The default configuration uses Gemini embeddings, which requires setting <code>GEMINI_API_KEY</code>. See <a href="../configuration/#hybrid-search">Hybrid Search Configuration</a> for environment variables and customization options.</p>
 <h2 id="interactive-mode">Interactive Mode</h2>
 <p>The interactive mode provides a conversation interface with the agent in a terminal window.</p>
 <p><a href="../recordings/cli/conversation.html" target="_blank"><img alt="Interactive mode" src="../recordings/cli/conversation.svg" /></a></p>

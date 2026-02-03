@@ -9,7 +9,7 @@ The Python SDK provides four main APIs:
 
 ## Configuration API
 
-Use init_config() to initialize the `.freeact/` directory from default templates. The Config() constructor loads all configuration from it:
+Use init_config() to initialize the `.freeact/` directory from default templates. The optional `tool_search` parameter selects the tool discovery mode (`"basic"` or `"hybrid"`). The Config() constructor loads all configuration from it:
 
 ```
 from freeact.agent.config import Config, init_config
@@ -25,7 +25,7 @@ See the [Configuration](https://gradion-ai.github.io/freeact/configuration/index
 
 ## Generation API
 
-MCP servers [configured](https://gradion-ai.github.io/freeact/configuration/#mcp-server-configuration) as `ptc-servers` in `servers.json` require Python API generation with generate_mcp_sources() before the agent can call their tools programmatically:
+MCP servers [configured](https://gradion-ai.github.io/freeact/configuration/#mcp-servers) as `ptc-servers` in `servers.json` require Python API generation with generate_mcp_sources() before the agent can call their tools programmatically:
 
 ```
 from freeact.agent.tools.pytools.apigen import generate_mcp_sources
