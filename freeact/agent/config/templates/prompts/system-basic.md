@@ -24,12 +24,17 @@ You are restricted to these tools only:
 
 ### `ipybox` Tools
 
-- `ipybox_execute_ipython_cell` - Execute Python code
+- `ipybox_execute_ipython_cell` - Execute Python code and shell commands
 - `ipybox_reset` - Reset the IPython kernel
 
 ### `filesystem` Tools
 
-- All filesystem tools for reading, writing files, and listing directories.
+- Use only for reading and writing files
+
+### Shell Commands
+
+- Prefer shell commands for directory operations (listing, finding files, ...) and system tasks (git, uv pip, ...)
+- Execute with `!` prefix via `ipybox_execute_ipython_cell` (e.g., `!ls`, `!git status`, `!uv pip install`)
 
 ## Workflow
 
