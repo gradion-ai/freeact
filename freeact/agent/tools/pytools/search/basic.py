@@ -6,6 +6,7 @@ from typing import Annotated
 from mcp.server.fastmcp import FastMCP
 from pydantic import BaseModel, Field
 
+from freeact.agent.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
 from freeact.agent.tools.pytools.categories import Categories
 from freeact.agent.tools.pytools.categories import list_categories as _list_categories
 
@@ -73,12 +74,12 @@ def list_tools(
         mcptools: list[str] = []
 
         # mcptools: <category>/<tool>.py
-        mcp_cat_dir = base / "mcptools" / category
+        mcp_cat_dir = base / MCPTOOLS_DIR / category
         if mcp_cat_dir.is_dir():
             mcptools = [f.stem for f in mcp_cat_dir.glob("*.py") if not f.name.startswith("_")]
 
         # gentools: <category>/<tool>/api.py
-        gen_cat_dir = base / "gentools" / category
+        gen_cat_dir = base / GENTOOLS_DIR / category
         if gen_cat_dir.is_dir():
             gentools = [d.name for d in gen_cat_dir.iterdir() if d.is_dir() and (d / "api.py").exists()]
 

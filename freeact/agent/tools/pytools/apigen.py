@@ -4,6 +4,7 @@ from typing import Any
 
 import ipybox
 
+from freeact.agent.tools.pytools import MCPTOOLS_DIR
 from freeact.agent.tools.pytools.categories import Categories, list_categories
 
 logger = logging.getLogger("freeact")
@@ -27,4 +28,4 @@ async def generate_mcp_sources(config: dict[str, dict[str, Any]]) -> None:
     for name, params in config.items():
         if name not in categories_mcptools:
             logger.info(f"Generating Python API for MCP server: {name}")
-            await ipybox.generate_mcp_sources(name, params, Path("mcptools"))
+            await ipybox.generate_mcp_sources(name, params, Path(MCPTOOLS_DIR))

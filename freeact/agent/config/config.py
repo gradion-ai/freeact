@@ -62,9 +62,9 @@ class Config:
 
         # Load all data
         self.skills_metadata = self._load_skills_metadata()
-        self.system_prompt = self._load_system_prompt()
         self.mcp_servers = self._load_mcp_servers()
         self.ptc_servers = self._load_ptc_servers()
+        self.system_prompt = self._load_system_prompt()
 
     def _load_skills_metadata(self) -> list[SkillMetadata]:
         """Load skill metadata from all SKILL.md files."""
@@ -114,9 +114,20 @@ class Config:
 
         return "\n".join(lines)
 
+    def _is_hybrid_search_enabled(self) -> bool:
+        """Check if pytools server uses hybrid search module."""
+        pytools_server = self.mcp_servers.get("pytools")
+        if not isinstance(pytools_server, MCPServerStdio):
+            return False
+        return "freeact.agent.tools.pytools.search.hybrid" in pytools_server.args
+
     def _load_system_prompt(self) -> str:
         """Load and render system prompt template."""
-        prompt_file = self.freeact_dir / "prompts" / "system.md"
+        if self._is_hybrid_search_enabled():
+            prompt_file = self.freeact_dir / "prompts" / "system-hybrid.md"
+        else:
+            prompt_file = self.freeact_dir / "prompts" / "system-basic.md"
+
         template = prompt_file.read_text()
 
         return template.format(

@@ -2,6 +2,8 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
+from freeact.agent.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
+
 
 class Categories(BaseModel):
     """Tool categories discovered from `gentools/` and `mcptools/` directories."""
@@ -25,11 +27,11 @@ def list_categories(base_dir: str = ".") -> Categories:
     gentools_categories: list[str] = []
     mcptools_categories: list[str] = []
 
-    gentools_dir = base / "gentools"
+    gentools_dir = base / GENTOOLS_DIR
     if gentools_dir.is_dir():
         gentools_categories = [d.name for d in gentools_dir.iterdir() if d.is_dir() and not d.name.startswith("_")]
 
-    mcptools_dir = base / "mcptools"
+    mcptools_dir = base / MCPTOOLS_DIR
     if mcptools_dir.is_dir():
         mcptools_categories = [d.name for d in mcptools_dir.iterdir() if d.is_dir() and not d.name.startswith("_")]
 

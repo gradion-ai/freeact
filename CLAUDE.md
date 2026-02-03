@@ -72,6 +72,27 @@ Both server types are configured in `.freeact/servers.json`:
 - **mcp-servers**: Agent calls these directly via JSON tool calls
 - **ptc-servers**: Python APIs generated to `mcptools/<server_name>/` at startup; agent writes code that imports and uses these typed APIs
 
+### Tool Search System
+
+Two tool discovery modes, configured via CLI `--tool-search {basic|hybrid}`:
+
+- **basic**: List-based search via `freeact/agent/tools/pytools/search/basic.py` - provides `list_categories` and `list_tools` MCP tools for manual category/tool browsing
+- **hybrid**: BM25 + vector search via `freeact/agent/tools/pytools/search/hybrid/` - provides `search_tools` MCP tool for natural language queries
+
+Hybrid search components (`search/hybrid/`):
+- `database.py`: SQLite with sqlite-vec extension for vector storage
+- `embed.py`: Query/document embedding via pydantic-ai embeddings
+- `extract.py`: Parses tool metadata from `api.py` files (docstrings, signatures)
+- `index.py`: Builds and syncs the search index from `gentools/` and `mcptools/`
+- `search.py`: BM25, vector, and hybrid search implementations
+- `server.py`: FastMCP server exposing `search_tools` tool
+- `watch.py`: File system watcher for automatic index updates
+
+The hybrid server runs as an MCP server and can be started with:
+```bash
+python -m freeact.agent.tools.pytools.search.hybrid
+```
+
 ### Approval Flow
 
 All tool executions require approval. `Agent.stream()` yields `ApprovalRequest` before executing any tool:

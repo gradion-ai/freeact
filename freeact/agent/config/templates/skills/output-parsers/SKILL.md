@@ -39,32 +39,31 @@ Preservation rules when extending tool modules:
 - Never remove or modify existing imports (they may be used by existing code)
 - Only add new imports, models, and functions
 
+Docstring guidelines:
+- Derive docstrings from the original `run()` function docstring
+- `ParseResult` docstring should describe the parsed data structure
+- `run_parsed()` docstring must be exactly the same as the `run()` docstring
+- Field descriptions should explain what each field contains
+
 Add to `mcptools/<category>/<tool>.py`:
 
 1. A `ParseResult` model:
 
 ```python
 class ParseResult(BaseModel):
-    """Parsed result containing structured data."""
+    """<Describe parsed data, derived from run() docstring>."""
 
     model_config = ConfigDict(
         use_enum_values=True,
     )
-    <field_name>: <field_type> = Field(..., title="<Title>")
+    <field_name>: <field_type> = Field(..., title="<Title>", description="<What this field contains>")
 ```
 
 2. A `run_parsed()` function:
 
 ```python
 def run_parsed(params: Params) -> ParseResult:
-    """Run tool and return parsed structured data.
-
-    Args:
-        params: Tool parameters
-
-    Returns:
-        ParseResult with structured data
-    """
+    """<Copy exact docstring from run() function>."""
     from mcpparse.<category>.<tool> import parse
 
     result = run(params)
@@ -120,7 +119,7 @@ Verify that the `ParseResult` fields are correctly populated.
 
 ## Examples
 
-### str return type (brave_web_search)
+### str return type (web_search)
 
 **Original:** `run(params: Params) -> str` returns JSONL
 

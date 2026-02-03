@@ -12,13 +12,15 @@ dependencies = [
     "aiofiles>=25.1.0",
     "aiostream>=0.7.1",
     "google-genai>=1.56.0",
-    "pydantic-ai>=1.36.0",
+    "pydantic-ai>=1.51.0",
     "prompt-toolkit>=3.0.0",
     "python-dotenv>=1.0.0",
     "pillow>=12.0.0",
     "pyyaml>=6.0.3",
     "rich>=14.2.0",
     "ipybox>=0.7.2",
+    "sqlite-vec>=0.1.0",
+    "watchfiles>=1.0.0",
 ]
 
 [project.scripts]

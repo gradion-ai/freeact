@@ -9,7 +9,7 @@ The Python SDK provides four main APIs:
 
 ## Configuration API
 
-Use [`init_config()`][freeact.agent.config.init_config] to initialize the `.freeact/` directory from default templates. The [`Config()`][freeact.agent.config.Config] constructor loads all configuration from it:
+Use [`init_config()`][freeact.agent.config.init_config] to initialize the `.freeact/` directory from default templates. The optional `tool_search` parameter selects the tool discovery mode (`"basic"` or `"hybrid"`). The [`Config()`][freeact.agent.config.Config] constructor loads all configuration from it:
 
 ```python
 --8<-- "examples/basic_agent.py:config-imports"
@@ -20,7 +20,7 @@ See the [Configuration](configuration.md) reference for details on the `.freeact
 
 ## Generation API
 
-MCP servers [configured](configuration.md#mcp-server-configuration) as `ptc-servers` in `servers.json` require Python API generation with [`generate_mcp_sources()`][freeact.agent.tools.pytools.apigen.generate_mcp_sources] before the agent can call their tools programmatically:
+MCP servers [configured](configuration.md#mcp-servers) as `ptc-servers` in `servers.json` require Python API generation with [`generate_mcp_sources()`][freeact.agent.tools.pytools.apigen.generate_mcp_sources] before the agent can call their tools programmatically:
 
 ```python
 --8<-- "examples/basic_agent.py:apigen-imports"

@@ -15,7 +15,9 @@ def freeact_dir(tmp_path: Path) -> Path:
     freeact_dir.mkdir()
     prompts_dir = freeact_dir / "prompts"
     prompts_dir.mkdir()
-    (prompts_dir / "system.md").write_text("{working_dir} {skills}")
+    # Create both prompt files for compatibility
+    (prompts_dir / "system-basic.md").write_text("{working_dir} {skills}")
+    (prompts_dir / "system-hybrid.md").write_text("{working_dir} {skills}")
     (freeact_dir / "servers.json").write_text(json.dumps({}))
     return freeact_dir
 
@@ -112,6 +114,58 @@ class TestLoadSystemPrompt:
 
         assert str(tmp_path) in config.system_prompt
         assert "No skills available." in config.system_prompt
+
+
+class TestSystemPromptSelection:
+    """Tests for system prompt file selection based on pytools mode."""
+
+    def test_loads_basic_prompt_for_basic_pytools(self, tmp_path: Path, freeact_dir: Path):
+        """Loads system-basic.md when pytools uses basic search module."""
+        (freeact_dir / "prompts" / "system-basic.md").write_text("basic: {working_dir} {skills}")
+        (freeact_dir / "prompts" / "system-hybrid.md").write_text("hybrid: {working_dir} {skills}")
+        (freeact_dir / "servers.json").write_text(
+            json.dumps(
+                {
+                    "mcp-servers": {
+                        "pytools": {"command": "python", "args": ["-m", "freeact.agent.tools.pytools.search.basic"]}
+                    }
+                }
+            )
+        )
+
+        config = Config(working_dir=tmp_path)
+
+        assert config.system_prompt.startswith("basic:")
+
+    def test_loads_hybrid_prompt_for_hybrid_pytools(self, tmp_path: Path, freeact_dir: Path):
+        """Loads system-hybrid.md when pytools uses hybrid search module."""
+        (freeact_dir / "prompts" / "system-basic.md").write_text("basic: {working_dir} {skills}")
+        (freeact_dir / "prompts" / "system-hybrid.md").write_text("hybrid: {working_dir} {skills}")
+        (freeact_dir / "servers.json").write_text(
+            json.dumps(
+                {
+                    "mcp-servers": {
+                        "pytools": {"command": "python", "args": ["-m", "freeact.agent.tools.pytools.search.hybrid"]}
+                    }
+                }
+            )
+        )
+
+        config = Config(working_dir=tmp_path)
+
+        assert config.system_prompt.startswith("hybrid:")
+
+    def test_loads_basic_prompt_when_no_pytools_server(self, tmp_path: Path, freeact_dir: Path):
+        """Loads system-basic.md when pytools server is not configured."""
+        (freeact_dir / "prompts" / "system-basic.md").write_text("basic: {working_dir} {skills}")
+        (freeact_dir / "prompts" / "system-hybrid.md").write_text("hybrid: {working_dir} {skills}")
+        (freeact_dir / "servers.json").write_text(
+            json.dumps({"mcp-servers": {"filesystem": {"command": "npx", "args": []}}})
+        )
+
+        config = Config(working_dir=tmp_path)
+
+        assert config.system_prompt.startswith("basic:")
 
 
 class TestLoadServersJson:
