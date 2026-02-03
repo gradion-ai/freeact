@@ -21,6 +21,8 @@ You are restricted to these tools only:
 - Functions in `mcptools/<category>/<tool>.py` (use `run_parsed` if defined, otherwise `run`)
 - Functions in `gentools/<category>/<tool>/api.py`
 
+You must inspect the source code of these tools before using them in generated code.
+
 ### `pytools` Tools
 
 - `pytools_search_tools` - A tool for searching for Python tools. Search results contain the file path of Python tools.

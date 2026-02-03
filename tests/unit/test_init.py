@@ -1,10 +1,11 @@
 """Tests for freeact/agent/config/init.py."""
 
+import json
 from pathlib import Path
 
 import pytest
 
-from freeact.agent.config.init import init_config
+from freeact.agent.config.init import PYTOOLS_BASIC, PYTOOLS_HYBRID, init_config
 
 
 class TestInitConfig:
@@ -113,3 +114,79 @@ class TestInitConfig:
         assert (freeact_dir / "prompts" / "system-hybrid.md").exists()
         assert (freeact_dir / "servers.json").exists()
         assert (freeact_dir / "plans").exists()
+
+
+class TestToolSearchEnforcement:
+    """Tests for tool_search parameter enforcement."""
+
+    def test_default_creates_basic_pytools(self, tmp_path: Path):
+        """Default tool_search creates basic pytools configuration."""
+        init_config(tmp_path)
+
+        servers_json = tmp_path / ".freeact" / "servers.json"
+        config = json.loads(servers_json.read_text())
+
+        assert config["mcp-servers"]["pytools"] == PYTOOLS_BASIC
+
+    def test_hybrid_creates_hybrid_pytools(self, tmp_path: Path):
+        """tool_search='hybrid' creates hybrid pytools configuration."""
+        init_config(tmp_path, tool_search="hybrid")
+
+        servers_json = tmp_path / ".freeact" / "servers.json"
+        config = json.loads(servers_json.read_text())
+
+        assert config["mcp-servers"]["pytools"] == PYTOOLS_HYBRID
+
+    def test_switch_basic_to_hybrid(self, tmp_path: Path):
+        """Switching from basic to hybrid updates servers.json."""
+        init_config(tmp_path, tool_search="basic")
+        init_config(tmp_path, tool_search="hybrid")
+
+        servers_json = tmp_path / ".freeact" / "servers.json"
+        config = json.loads(servers_json.read_text())
+
+        assert config["mcp-servers"]["pytools"] == PYTOOLS_HYBRID
+
+    def test_switch_hybrid_to_basic(self, tmp_path: Path):
+        """Switching from hybrid to basic updates servers.json."""
+        init_config(tmp_path, tool_search="hybrid")
+        init_config(tmp_path, tool_search="basic")
+
+        servers_json = tmp_path / ".freeact" / "servers.json"
+        config = json.loads(servers_json.read_text())
+
+        assert config["mcp-servers"]["pytools"] == PYTOOLS_BASIC
+
+    def test_preserves_other_servers(self, tmp_path: Path):
+        """Switching tool_search preserves other server configurations."""
+        init_config(tmp_path, tool_search="basic")
+
+        # Add a custom server
+        servers_json = tmp_path / ".freeact" / "servers.json"
+        config = json.loads(servers_json.read_text())
+        config["mcp-servers"]["custom"] = {"command": "custom-server"}
+        servers_json.write_text(json.dumps(config, indent=2))
+
+        # Switch to hybrid
+        init_config(tmp_path, tool_search="hybrid")
+
+        config = json.loads(servers_json.read_text())
+        assert config["mcp-servers"]["pytools"] == PYTOOLS_HYBRID
+        assert config["mcp-servers"]["custom"] == {"command": "custom-server"}
+
+    def test_no_write_when_pytools_matches(self, tmp_path: Path):
+        """Does not write servers.json when pytools already matches."""
+        init_config(tmp_path, tool_search="basic")
+
+        servers_json = tmp_path / ".freeact" / "servers.json"
+        mtime_before = servers_json.stat().st_mtime
+
+        # Small delay to ensure mtime would change if file is written
+        import time
+
+        time.sleep(0.01)
+
+        init_config(tmp_path, tool_search="basic")
+
+        mtime_after = servers_json.stat().st_mtime
+        assert mtime_before == mtime_after
