@@ -190,3 +190,21 @@ class TestToolSearchEnforcement:
 
         mtime_after = servers_json.stat().st_mtime
         assert mtime_before == mtime_after
+
+    def test_preserves_user_modifications_when_mode_matches(self, tmp_path: Path):
+        """Preserves user modifications to pytools config when mode already matches."""
+        init_config(tmp_path, tool_search="hybrid")
+
+        servers_json = tmp_path / ".freeact" / "servers.json"
+        config = json.loads(servers_json.read_text())
+
+        # User adds custom env var to hybrid config
+        config["mcp-servers"]["pytools"]["env"]["CUSTOM_VAR"] = "custom_value"
+        servers_json.write_text(json.dumps(config, indent=2) + "\n")
+
+        # Re-init with same mode should preserve modifications
+        init_config(tmp_path, tool_search="hybrid")
+
+        config = json.loads(servers_json.read_text())
+        assert config["mcp-servers"]["pytools"]["env"]["CUSTOM_VAR"] == "custom_value"
+        assert "freeact.agent.tools.pytools.search.hybrid" in config["mcp-servers"]["pytools"]["args"][1]

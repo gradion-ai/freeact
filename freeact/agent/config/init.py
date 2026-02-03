@@ -29,7 +29,9 @@ def init_config(
 
     Args:
         working_dir: Base directory. Defaults to current working directory.
-        tool_search: Tool search mode - "basic" or "hybrid".
+        tool_search: Tool discovery mode. "basic" uses category browsing via
+            `list_categories` and `list_tools`. "hybrid" uses BM25/vector search
+            via `search_tools` for natural language queries.
     """
     working_dir = working_dir or Path.cwd()
     freeact_dir = working_dir / ".freeact"
@@ -58,9 +60,18 @@ def init_config(
     servers_path = freeact_dir / "servers.json"
     if servers_path.exists():
         servers = json.loads(servers_path.read_text())
-        expected_pytools = PYTOOLS_HYBRID if tool_search == "hybrid" else PYTOOLS_BASIC
-        current_pytools = servers.get("mcp-servers", {}).get("pytools")
+        current_pytools = servers.get("mcp-servers", {}).get("pytools", {})
+        current_args = current_pytools.get("args", [])
 
-        if current_pytools != expected_pytools:
-            servers.setdefault("mcp-servers", {})["pytools"] = expected_pytools
+        # Check if current mode matches expected by looking for module string
+        has_hybrid = any("freeact.agent.tools.pytools.search.hybrid" in arg for arg in current_args)
+        has_basic = any("freeact.agent.tools.pytools.search.basic" in arg for arg in current_args)
+        needs_hybrid = tool_search == "hybrid"
+
+        # Only update if mode doesn't match (preserves user modifications when mode is correct)
+        if needs_hybrid and not has_hybrid:
+            servers.setdefault("mcp-servers", {})["pytools"] = PYTOOLS_HYBRID
+            servers_path.write_text(json.dumps(servers, indent=2) + "\n")
+        elif not needs_hybrid and not has_basic:
+            servers.setdefault("mcp-servers", {})["pytools"] = PYTOOLS_BASIC
             servers_path.write_text(json.dumps(servers, indent=2) + "\n")
