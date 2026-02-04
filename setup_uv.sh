@@ -16,7 +16,10 @@ fi
 # Install project dependencies
 uv sync
 
-# Set up pre-commit hooks
-uv run invoke precommit-install
+# Set up pre-commit hooks (only in remote environments to avoid
+# overwriting the main repo's hook path when running in worktrees)
+if [ "$CLAUDE_CODE_REMOTE" = "true" ]; then
+  uv run invoke precommit-install
+fi
 
 exit 0
