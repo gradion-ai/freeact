@@ -1,3 +1,4 @@
+import asyncio
 import json
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -9,11 +10,12 @@ from pydantic_ai.mcp import MCPServerStdio
 from pydantic_ai.messages import ModelMessage
 from pydantic_ai.models.function import AgentInfo, DeltaThinkingPart, DeltaToolCall, FunctionModel
 
-from freeact.agent import Agent, ApprovalRequest
+from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput, Response
 from freeact.agent.tools.pytools import MCPTOOLS_DIR
 from tests.conftest import (
     DeltaThinkingCalls,
     DeltaToolCalls,
+    StreamResults,
     collect_stream,
     create_stream_function,
     get_tool_return_parts,
@@ -291,7 +293,7 @@ class TestCodeExecutionException:
 
         async with unpatched_agent(stream_function) as agent:
             # Mock the stream method to raise an exception
-            async def failing_stream(code, chunks=False):
+            async def failing_stream(code, timeout=None, chunks=False):
                 raise RuntimeError("Kernel crashed unexpectedly")
                 yield  # Make it an async generator
 
@@ -355,3 +357,121 @@ class TestStreamingDeltas:
             # Should have final response with combined text
             assert len(results.responses) == 1
             assert results.responses[0].content == "Hello world!"
+
+
+class TestTimeouts:
+    """Tests for execution_timeout and approval_timeout behavior."""
+
+    @pytest_asyncio.fixture
+    async def mcp_sources_dir(self, tmp_path):
+        """Pre-generate MCP sources for PTC testing."""
+        await ipybox.generate_mcp_sources(
+            "test",
+            {"command": "python", "args": [str(STDIO_SERVER_PATH)]},
+            tmp_path / MCPTOOLS_DIR,
+        )
+        return tmp_path
+
+    @pytest.mark.asyncio
+    async def test_execution_timeout_exceeded(self):
+        """Code execution exceeding timeout raises error."""
+        # Code that would print "completed" if it ran to completion
+        slow_code = "import time; time.sleep(2); print('completed')"
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": slow_code},
+        )
+
+        agent = Agent(
+            model=FunctionModel(stream_function=stream_function),
+            model_settings={},
+            system_prompt="Test system prompt",
+            execution_timeout=0.5,  # 500ms timeout
+        )
+        async with agent:
+            results = await collect_stream(agent, "run slow code")
+
+            # Should have code output (timeout is caught and yields output)
+            assert len(results.code_outputs) == 1
+            # The code should NOT have completed - "completed" should not appear
+            # TimeoutError has empty str() representation, so text is empty
+            assert "completed" not in (results.code_outputs[0].text or "")
+
+    @pytest.mark.asyncio
+    async def test_execution_timeout_excludes_ptc_approval_wait(self, mcp_sources_dir):
+        """Execution timeout does not count PTC approval waiting time."""
+        # Code that calls a tool (triggering PTC approval)
+        call_code = f"""
+import os
+os.chdir("{mcp_sources_dir}")
+from mcptools.test import tool_2
+tool_2.run(tool_2.Params(s="test"))
+"""
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": call_code},
+        )
+
+        # Use a 3 second execution timeout - the actual execution is fast,
+        # but we'll delay PTC approval by 5 seconds to prove approval wait
+        # time is excluded from the timeout
+        agent = Agent(
+            model=FunctionModel(stream_function=stream_function),
+            model_settings={},
+            system_prompt="Test system prompt",
+            execution_timeout=3,  # 3 second timeout for actual execution
+        )
+
+        async def delayed_ptc_approve(agent, prompt):
+            """Collect stream, approve code action immediately, delay PTC approval."""
+            results = StreamResults()
+            async for event in agent.stream(prompt):
+                match event:
+                    case ApprovalRequest() as req:
+                        results.approvals.append(req)
+                        if req.tool_name == "ipybox_execute_ipython_cell":
+                            req.approve(True)  # Approve code action immediately
+                        else:
+                            # Delay PTC approval by 5 seconds - longer than execution_timeout
+                            # If approval wait counted toward timeout, this would fail
+                            await asyncio.sleep(5)
+                            req.approve(True)
+                    case CodeExecutionOutput() as out:
+                        results.code_outputs.append(out)
+                    case Response() as resp:
+                        results.responses.append(resp)
+            return results
+
+        async with agent:
+            results = await delayed_ptc_approve(agent, "run code")
+
+            # Should succeed despite 5s PTC approval delay with 3s execution timeout
+            # This proves approval wait time is excluded from the timeout budget
+            assert len(results.approvals) == 2
+            assert results.approvals[0].tool_name == "ipybox_execute_ipython_cell"
+            assert results.approvals[1].tool_name == "test_tool_2"
+            assert len(results.code_outputs) == 1
+            assert results.code_outputs[0].text is not None
+            assert "You passed to tool 2: test" in results.code_outputs[0].text
+
+    @pytest.mark.asyncio
+    async def test_fast_execution_within_timeout(self):
+        """Code completing within timeout succeeds."""
+        fast_code = "print('hello')"
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": fast_code},
+        )
+
+        agent = Agent(
+            model=FunctionModel(stream_function=stream_function),
+            model_settings={},
+            system_prompt="Test system prompt",
+            execution_timeout=10,  # Generous timeout
+        )
+        async with agent:
+            results = await collect_stream(agent, "run code")
+
+            assert len(results.code_outputs) == 1
+            assert results.code_outputs[0].text is not None
+            assert "hello" in results.code_outputs[0].text

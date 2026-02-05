@@ -1,9 +1,10 @@
 from pathlib import Path
 from typing import Any
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from freeact.agent import ApprovalRequest, CodeExecutionOutput
+from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput
 from tests.conftest import (
     CodeExecFunction,
     collect_stream,
@@ -218,3 +219,65 @@ class TestIpyboxExecution:
             assert "ToolRunnerError: Approval request for test_tool_2 rejected" in results.code_outputs[0].text
             # Agent turn ends with rejection response
             assert any(r.content == "Tool call rejected" for r in results.responses)
+
+
+class TestTimeoutParameters:
+    """Tests for execution_timeout and approval_timeout parameters."""
+
+    def test_default_execution_timeout(self):
+        """Default execution_timeout is 300 seconds."""
+        with patch("freeact.agent.core.ipybox.CodeExecutor"):
+            agent = Agent(
+                model="test",
+                model_settings={},
+                system_prompt="test",
+            )
+            assert agent._execution_timeout == 300
+
+    def test_custom_execution_timeout(self):
+        """Custom execution_timeout is stored."""
+        with patch("freeact.agent.core.ipybox.CodeExecutor"):
+            agent = Agent(
+                model="test",
+                model_settings={},
+                system_prompt="test",
+                execution_timeout=60,
+            )
+            assert agent._execution_timeout == 60
+
+    def test_none_execution_timeout(self):
+        """None execution_timeout disables timeout."""
+        with patch("freeact.agent.core.ipybox.CodeExecutor"):
+            agent = Agent(
+                model="test",
+                model_settings={},
+                system_prompt="test",
+                execution_timeout=None,
+            )
+            assert agent._execution_timeout is None
+
+    def test_approval_timeout_passed_to_executor(self):
+        """approval_timeout is passed to CodeExecutor."""
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            Agent(
+                model="test",
+                model_settings={},
+                system_prompt="test",
+                approval_timeout=30,
+            )
+            mock_executor.assert_called_once()
+            call_kwargs = mock_executor.call_args.kwargs
+            assert call_kwargs["approval_timeout"] == 30
+
+    def test_default_approval_timeout_is_none(self):
+        """Default approval_timeout is None."""
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            Agent(
+                model="test",
+                model_settings={},
+                system_prompt="test",
+            )
+            call_kwargs = mock_executor.call_args.kwargs
+            assert call_kwargs["approval_timeout"] is None
