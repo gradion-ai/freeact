@@ -170,6 +170,8 @@ class Agent:
         sandbox: bool = False,
         sandbox_config: Path | None = None,
         images_dir: Path | None = None,
+        execution_timeout: float | None = 300,
+        approval_timeout: float | None = None,
     ):
         """Initialize the agent.
 
@@ -182,11 +184,19 @@ class Agent:
             sandbox: Run the kernel in sandbox mode.
             sandbox_config: Path to custom sandbox configuration.
             images_dir: Directory for saving generated images.
+            execution_timeout: Maximum time in seconds for code execution.
+                Approval wait time is excluded from this timeout budget.
+                If None, no timeout is applied. Defaults to 300 seconds.
+            approval_timeout: Timeout in seconds for approval requests during
+                programmatic tool calls. If an approval request is not accepted
+                or rejected within this time, the tool call fails.
+                If None, no timeout is applied.
         """
         self.model = model
         self.model_settings = model_settings
 
         self._system_prompt = system_prompt
+        self._execution_timeout = execution_timeout
 
         self._mcp_servers = mcp_servers or {}
         self._tool_servers: dict[str, MCPServer] = {}
@@ -198,6 +208,7 @@ class Agent:
             sandbox=sandbox,
             sandbox_config=sandbox_config,
             images_dir=images_dir,
+            approval_timeout=approval_timeout,
             log_level="ERROR",
         )
 
@@ -394,7 +405,7 @@ class Agent:
     ) -> AsyncIterator[ApprovalRequest | CodeExecutionOutputChunk | CodeExecutionOutput]:
         try:
             async with self._code_executor_lock:
-                async for item in self._code_executor.stream(code, chunks=True):
+                async for item in self._code_executor.stream(code, timeout=self._execution_timeout, chunks=True):
                     match item:
                         case ipybox.ApprovalRequest(
                             server_name=server_name,

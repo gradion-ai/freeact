@@ -71,6 +71,8 @@ async def patched_agent(
     stream_function,
     code_exec_function: CodeExecFunction | None = None,
     mcp_servers: dict[str, Any] | None = None,
+    execution_timeout: float | None = 300,
+    approval_timeout: float | None = None,
 ):
     """Context manager that creates and yields a patched agent with mocked code execution."""
     agent = Agent(
@@ -78,6 +80,8 @@ async def patched_agent(
         model_settings={},
         system_prompt="Test system prompt",
         mcp_servers=mcp_servers or {},
+        execution_timeout=execution_timeout,
+        approval_timeout=approval_timeout,
     )
     agent._code_executor = _mock_code_executor()
     if code_exec_function is not None:

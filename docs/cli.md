@@ -19,6 +19,8 @@ freeact init
 | `--sandbox` | Run code execution in [sandbox mode](sandbox.md). |
 | `--sandbox-config PATH` | Path to sandbox configuration file. |
 | `--tool-search MODE` | Tool discovery mode: `basic` (default) or `hybrid`. See [Hybrid Search](#hybrid-search). |
+| `--execution-timeout SECONDS` | Maximum time for code execution (default: 300). Approval wait time is excluded. |
+| `--approval-timeout SECONDS` | Timeout for PTC approval requests (default: None, no timeout). |
 | `--log-level LEVEL` | Set logging level: `debug`, `info` (default), `warning`, `error`, `critical`. |
 | `--record` | Record the conversation as SVG and HTML files. |
 | `--record-dir PATH` | Output directory for recordings (default: `output`). |

@@ -107,6 +107,23 @@ finally:
     await agent.stop()
 ```
 
+### Timeouts
+
+The agent supports two timeout configurations:
+
+- **execution_timeout**: Maximum time in seconds for each code execution. Approval wait time is excluded from this budget, so the timeout only counts actual execution time. Defaults to 300 seconds. Set to `None` to disable.
+- **approval_timeout**: Timeout for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. Defaults to `None` (no timeout).
+
+```python
+agent = Agent(
+    model="anthropic:claude-sonnet-4-20250514",
+    model_settings=model_settings,
+    system_prompt=config.system_prompt,
+    execution_timeout=60,     # 60 second execution limit (excludes approval wait)
+    approval_timeout=30,      # 30 second approval limit
+)
+```
+
 ## Permissions API
 
 The agent requests approval for each code action and tool call but doesn't remember past decisions. [`PermissionManager`][freeact.permissions.PermissionManager] adds memory: `allow_always()` persists to `.freeact/permissions.json`, while `allow_session()` stores in-memory until the session ends:

@@ -72,6 +72,20 @@ def create_parser() -> argparse.ArgumentParser:
         choices=["basic", "hybrid"],
         help="Tool search mode: basic (list-based) or hybrid (BM25+vector)",
     )
+    parser.add_argument(
+        "--execution-timeout",
+        type=float,
+        default=300,
+        metavar="SECONDS",
+        help="Maximum time in seconds for code execution (default: 300). Approval wait time is excluded.",
+    )
+    parser.add_argument(
+        "--approval-timeout",
+        type=float,
+        default=None,
+        metavar="SECONDS",
+        help="Timeout in seconds for PTC approval requests (default: None, no timeout)",
+    )
     return parser
 
 
@@ -129,6 +143,8 @@ async def run(namespace: argparse.Namespace) -> None:
         mcp_servers=config.mcp_servers,
         sandbox=namespace.sandbox,
         sandbox_config=namespace.sandbox_config,
+        execution_timeout=namespace.execution_timeout,
+        approval_timeout=namespace.approval_timeout,
     )
 
     if config.ptc_servers:
