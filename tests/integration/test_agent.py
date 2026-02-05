@@ -412,14 +412,15 @@ tool_2.run(tool_2.Params(s="test"))
             tool_args={"code": call_code},
         )
 
-        # Use a 3 second execution timeout - the actual execution is fast,
-        # but we'll delay PTC approval by 5 seconds to prove approval wait
-        # time is excluded from the timeout
+        # Use a 10 second execution timeout - generous for slow CI environments.
+        # The key is that we delay PTC approval by 15 seconds, which is longer
+        # than the execution timeout. If approval wait counted toward timeout,
+        # this would fail.
         agent = Agent(
             model=FunctionModel(stream_function=stream_function),
             model_settings={},
             system_prompt="Test system prompt",
-            execution_timeout=3,  # 3 second timeout for actual execution
+            execution_timeout=10,  # 10 second timeout for actual execution
         )
 
         async def delayed_ptc_approve(agent, prompt):
@@ -432,9 +433,9 @@ tool_2.run(tool_2.Params(s="test"))
                         if req.tool_name == "ipybox_execute_ipython_cell":
                             req.approve(True)  # Approve code action immediately
                         else:
-                            # Delay PTC approval by 5 seconds - longer than execution_timeout
+                            # Delay PTC approval by 15 seconds - longer than execution_timeout
                             # If approval wait counted toward timeout, this would fail
-                            await asyncio.sleep(5)
+                            await asyncio.sleep(15)
                             req.approve(True)
                     case CodeExecutionOutput() as out:
                         results.code_outputs.append(out)
@@ -445,7 +446,7 @@ tool_2.run(tool_2.Params(s="test"))
         async with agent:
             results = await delayed_ptc_approve(agent, "run code")
 
-            # Should succeed despite 5s PTC approval delay with 3s execution timeout
+            # Should succeed despite 15s PTC approval delay with 10s execution timeout
             # This proves approval wait time is excluded from the timeout budget
             assert len(results.approvals) == 2
             assert results.approvals[0].tool_name == "ipybox_execute_ipython_cell"
