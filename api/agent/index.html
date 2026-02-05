@@ -1466,6 +1466,8 @@
     <span class="n">sandbox</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">sandbox_config</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">images_dir</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">execution_timeout</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="mi">300</span><span class="p">,</span>
+    <span class="n">approval_timeout</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
 
@@ -1624,6 +1626,43 @@ be resolved before execution proceeds.</p>
             <td>
               <div class="doc-md-description">
                 <p>Directory for saving generated images.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>execution_timeout</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Maximum time in seconds for code execution.
+Approval wait time is excluded from this timeout budget.
+If None, no timeout is applied. Defaults to 300 seconds.</p>
+              </div>
+            </td>
+            <td>
+                  <code>300</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>approval_timeout</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Timeout in seconds for approval requests during
+programmatic tool calls. If an approval request is not accepted
+or rejected within this time, the tool call fails.
+If None, no timeout is applied.</p>
               </div>
             </td>
             <td>

@@ -10,6 +10,8 @@ Agent(
     sandbox: bool = False,
     sandbox_config: Path | None = None,
     images_dir: Path | None = None,
+    execution_timeout: float | None = 300,
+    approval_timeout: float | None = None,
 )
 ```
 
@@ -28,16 +30,18 @@ Initialize the agent.
 
 Parameters:
 
-| Name             | Type                   | Description                                      | Default                                             |
-| ---------------- | ---------------------- | ------------------------------------------------ | --------------------------------------------------- |
-| `model`          | \`str                  | Model\`                                          | LLM model identifier or pydantic-ai Model instance. |
-| `model_settings` | `ModelSettings`        | Temperature, max tokens, and other model params. | *required*                                          |
-| `system_prompt`  | `str`                  | Instructions defining agent behavior.            | *required*                                          |
-| `mcp_servers`    | \`dict[str, MCPServer] | None\`                                           | Named MCP servers for JSON-based tool calls.        |
-| `kernel_env`     | \`dict[str, str]       | None\`                                           | Environment variables passed to the IPython kernel. |
-| `sandbox`        | `bool`                 | Run the kernel in sandbox mode.                  | `False`                                             |
-| `sandbox_config` | \`Path                 | None\`                                           | Path to custom sandbox configuration.               |
-| `images_dir`     | \`Path                 | None\`                                           | Directory for saving generated images.              |
+| Name                | Type                   | Description                                      | Default                                                                                                                                                                                            |
+| ------------------- | ---------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`             | \`str                  | Model\`                                          | LLM model identifier or pydantic-ai Model instance.                                                                                                                                                |
+| `model_settings`    | `ModelSettings`        | Temperature, max tokens, and other model params. | *required*                                                                                                                                                                                         |
+| `system_prompt`     | `str`                  | Instructions defining agent behavior.            | *required*                                                                                                                                                                                         |
+| `mcp_servers`       | \`dict[str, MCPServer] | None\`                                           | Named MCP servers for JSON-based tool calls.                                                                                                                                                       |
+| `kernel_env`        | \`dict[str, str]       | None\`                                           | Environment variables passed to the IPython kernel.                                                                                                                                                |
+| `sandbox`           | `bool`                 | Run the kernel in sandbox mode.                  | `False`                                                                                                                                                                                            |
+| `sandbox_config`    | \`Path                 | None\`                                           | Path to custom sandbox configuration.                                                                                                                                                              |
+| `images_dir`        | \`Path                 | None\`                                           | Directory for saving generated images.                                                                                                                                                             |
+| `execution_timeout` | \`float                | None\`                                           | Maximum time in seconds for code execution. Approval wait time is excluded from this timeout budget. If None, no timeout is applied. Defaults to 300 seconds.                                      |
+| `approval_timeout`  | \`float                | None\`                                           | Timeout in seconds for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. If None, no timeout is applied. |
 
 ### start
 

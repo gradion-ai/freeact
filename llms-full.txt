@@ -782,6 +782,23 @@ finally:
     await agent.stop()
 ```
 
+### Timeouts
+
+The agent supports two timeout configurations:
+
+- **execution_timeout**: Maximum time in seconds for each code execution. Approval wait time is excluded from this budget, so the timeout only counts actual execution time. Defaults to 300 seconds. Set to `None` to disable.
+- **approval_timeout**: Timeout for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. Defaults to `None` (no timeout).
+
+```
+agent = Agent(
+    model="anthropic:claude-sonnet-4-20250514",
+    model_settings=model_settings,
+    system_prompt=config.system_prompt,
+    execution_timeout=60,     # 60 second execution limit (excludes approval wait)
+    approval_timeout=30,      # 30 second approval limit
+)
+```
+
 ## Permissions API
 
 The agent requests approval for each code action and tool call but doesn't remember past decisions. PermissionManager adds memory: `allow_always()` persists to `.freeact/permissions.json`, while `allow_session()` stores in-memory until the session ends:
@@ -829,15 +846,17 @@ freeact init
 
 ## Options
 
-| Option                  | Description                                                                                  |
-| ----------------------- | -------------------------------------------------------------------------------------------- |
-| `--sandbox`             | Run code execution in [sandbox mode](https://gradion-ai.github.io/freeact/sandbox/index.md). |
-| `--sandbox-config PATH` | Path to sandbox configuration file.                                                          |
-| `--tool-search MODE`    | Tool discovery mode: `basic` (default) or `hybrid`. See [Hybrid Search](#hybrid-search).     |
-| `--log-level LEVEL`     | Set logging level: `debug`, `info` (default), `warning`, `error`, `critical`.                |
-| `--record`              | Record the conversation as SVG and HTML files.                                               |
-| `--record-dir PATH`     | Output directory for recordings (default: `output`).                                         |
-| `--record-title TEXT`   | Title for the recording (default: `Conversation`).                                           |
+| Option                        | Description                                                                                  |
+| ----------------------------- | -------------------------------------------------------------------------------------------- |
+| `--sandbox`                   | Run code execution in [sandbox mode](https://gradion-ai.github.io/freeact/sandbox/index.md). |
+| `--sandbox-config PATH`       | Path to sandbox configuration file.                                                          |
+| `--tool-search MODE`          | Tool discovery mode: `basic` (default) or `hybrid`. See [Hybrid Search](#hybrid-search).     |
+| `--execution-timeout SECONDS` | Maximum time for code execution (default: 300). Approval wait time is excluded.              |
+| `--approval-timeout SECONDS`  | Timeout for PTC approval requests (default: None, no timeout).                               |
+| `--log-level LEVEL`           | Set logging level: `debug`, `info` (default), `warning`, `error`, `critical`.                |
+| `--record`                    | Record the conversation as SVG and HTML files.                                               |
+| `--record-dir PATH`           | Output directory for recordings (default: `output`).                                         |
+| `--record-title TEXT`         | Title for the recording (default: `Conversation`).                                           |
 
 ## Examples
 
@@ -929,6 +948,8 @@ Agent(
     sandbox: bool = False,
     sandbox_config: Path | None = None,
     images_dir: Path | None = None,
+    execution_timeout: float | None = 300,
+    approval_timeout: float | None = None,
 )
 ```
 
@@ -947,16 +968,18 @@ Initialize the agent.
 
 Parameters:
 
-| Name             | Type                   | Description                                      | Default                                             |
-| ---------------- | ---------------------- | ------------------------------------------------ | --------------------------------------------------- |
-| `model`          | \`str                  | Model\`                                          | LLM model identifier or pydantic-ai Model instance. |
-| `model_settings` | `ModelSettings`        | Temperature, max tokens, and other model params. | *required*                                          |
-| `system_prompt`  | `str`                  | Instructions defining agent behavior.            | *required*                                          |
-| `mcp_servers`    | \`dict[str, MCPServer] | None\`                                           | Named MCP servers for JSON-based tool calls.        |
-| `kernel_env`     | \`dict[str, str]       | None\`                                           | Environment variables passed to the IPython kernel. |
-| `sandbox`        | `bool`                 | Run the kernel in sandbox mode.                  | `False`                                             |
-| `sandbox_config` | \`Path                 | None\`                                           | Path to custom sandbox configuration.               |
-| `images_dir`     | \`Path                 | None\`                                           | Directory for saving generated images.              |
+| Name                | Type                   | Description                                      | Default                                                                                                                                                                                            |
+| ------------------- | ---------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`             | \`str                  | Model\`                                          | LLM model identifier or pydantic-ai Model instance.                                                                                                                                                |
+| `model_settings`    | `ModelSettings`        | Temperature, max tokens, and other model params. | *required*                                                                                                                                                                                         |
+| `system_prompt`     | `str`                  | Instructions defining agent behavior.            | *required*                                                                                                                                                                                         |
+| `mcp_servers`       | \`dict[str, MCPServer] | None\`                                           | Named MCP servers for JSON-based tool calls.                                                                                                                                                       |
+| `kernel_env`        | \`dict[str, str]       | None\`                                           | Environment variables passed to the IPython kernel.                                                                                                                                                |
+| `sandbox`           | `bool`                 | Run the kernel in sandbox mode.                  | `False`                                                                                                                                                                                            |
+| `sandbox_config`    | \`Path                 | None\`                                           | Path to custom sandbox configuration.                                                                                                                                                              |
+| `images_dir`        | \`Path                 | None\`                                           | Directory for saving generated images.                                                                                                                                                             |
+| `execution_timeout` | \`float                | None\`                                           | Maximum time in seconds for code execution. Approval wait time is excluded from this timeout budget. If None, no timeout is applied. Defaults to 300 seconds.                                      |
+| `approval_timeout`  | \`float                | None\`                                           | Timeout in seconds for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. If None, no timeout is applied. |
 
 ### start
 

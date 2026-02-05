@@ -610,6 +610,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#timeouts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Timeouts
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1256,6 +1267,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#timeouts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Timeouts
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1441,6 +1463,20 @@
         <span class="o">...</span>
 <span class="k">finally</span><span class="p">:</span>
     <span class="k">await</span> <span class="n">agent</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+</code></pre></div>
+<h3 id="timeouts">Timeouts</h3>
+<p>The agent supports two timeout configurations:</p>
+<ul>
+<li><strong>execution_timeout</strong>: Maximum time in seconds for each code execution. Approval wait time is excluded from this budget, so the timeout only counts actual execution time. Defaults to 300 seconds. Set to <code>None</code> to disable.</li>
+<li><strong>approval_timeout</strong>: Timeout for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. Defaults to <code>None</code> (no timeout).</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="n">agent</span> <span class="o">=</span> <span class="n">Agent</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;anthropic:claude-sonnet-4-20250514&quot;</span><span class="p">,</span>
+    <span class="n">model_settings</span><span class="o">=</span><span class="n">model_settings</span><span class="p">,</span>
+    <span class="n">system_prompt</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">system_prompt</span><span class="p">,</span>
+    <span class="n">execution_timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>     <span class="c1"># 60 second execution limit (excludes approval wait)</span>
+    <span class="n">approval_timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>      <span class="c1"># 30 second approval limit</span>
+<span class="p">)</span>
 </code></pre></div>
 <h2 id="permissions-api">Permissions API</h2>
 <p>The agent requests approval for each code action and tool call but doesn't remember past decisions. <a class="autorefs autorefs-internal" href="../api/permissions/#freeact.permissions.PermissionManager"><code>PermissionManager</code></a> adds memory: <code>allow_always()</code> persists to <code>.freeact/permissions.json</code>, while <code>allow_session()</code> stores in-memory until the session ends:</p>
