@@ -2,6 +2,7 @@
 
 from freeact.agent.core import (
     Agent,
+    AgentEvent,
     ApprovalRequest,
     CodeExecutionOutput,
     CodeExecutionOutputChunk,
@@ -14,6 +15,7 @@ from freeact.agent.core import (
 
 __all__ = [
     "Agent",
+    "AgentEvent",
     "ApprovalRequest",
     "CodeExecutionOutput",
     "CodeExecutionOutputChunk",

@@ -40,6 +40,7 @@ class Terminal:
                 not provided.
         """
         self._agent = agent
+        self._main_agent_id = agent.agent_id
         self._display = Display(console or Console())
         self._permission_manager = PermissionManager()
 
@@ -70,39 +71,40 @@ class Terminal:
 
     async def _process_turn(self, prompt: str | Sequence[UserContent]) -> None:
         """Process a single conversation turn."""
-        thoughts_header_shown = False
-        response_header_shown = False
+        thoughts_agent_id = ""
+        response_agent_id = ""
 
         async for event in self._agent.stream(prompt):
             match event:
-                case ThoughtsChunk(content=content):
-                    if not thoughts_header_shown:
-                        self._display.show_thoughts_header()
-                        thoughts_header_shown = True
+                case ThoughtsChunk(agent_id=aid, content=content) if aid == self._main_agent_id:
+                    if thoughts_agent_id != aid:
+                        self._display.show_thoughts_header(aid)
+                        thoughts_agent_id = aid
                     self._display.print_thoughts_chunk(content)
 
-                case Thoughts():
+                case Thoughts(agent_id=aid) if aid == self._main_agent_id:
                     self._display.finalize_thoughts()
-                    thoughts_header_shown = False
+                    thoughts_agent_id = ""
 
-                case ResponseChunk(content=content):
-                    if not response_header_shown:
-                        self._display.show_response_header()
-                        response_header_shown = True
+                case ResponseChunk(agent_id=aid, content=content) if aid == self._main_agent_id:
+                    if response_agent_id != aid:
+                        self._display.show_response_header(aid)
+                        response_agent_id = aid
                     self._display.print_response_chunk(content)
 
-                case Response():
+                case Response(agent_id=aid) if aid == self._main_agent_id:
                     self._display.finalize_response()
+                    response_agent_id = ""
 
                 case ApprovalRequest() as request:
                     await self._handle_approval(request)
 
-                case CodeExecutionOutput(text=text, images=images):
-                    self._display.show_exec_output_header()
+                case CodeExecutionOutput(agent_id=aid, text=text, images=images) if aid == self._main_agent_id:
+                    self._display.show_exec_output_header(aid)
                     self._display.show_exec_output(text, images)
 
-                case ToolOutput(content=content):
-                    self._display.show_tool_output_header()
+                case ToolOutput(agent_id=aid, content=content) if aid == self._main_agent_id:
+                    self._display.show_tool_output_header(aid)
                     self._display.show_tool_output(str(content))
 
     async def _handle_approval(self, request: ApprovalRequest) -> None:
@@ -111,9 +113,9 @@ class Terminal:
         match request.tool_name:
             case "ipybox_execute_ipython_cell":
                 code = request.tool_args.get("code", "")
-                self._display.show_code_action(code)
+                self._display.show_code_action(code, agent_id=request.agent_id)
             case _:
-                self._display.show_tool_call(request.tool_name, request.tool_args)
+                self._display.show_tool_call(request.tool_name, request.tool_args, agent_id=request.agent_id)
 
         # Check if pre-approved
         if self._permission_manager.is_allowed(request.tool_name, request.tool_args):

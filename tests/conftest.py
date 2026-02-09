@@ -104,16 +104,19 @@ class StreamResults:
     response_chunks: list[ResponseChunk] = field(default_factory=list)
     thoughts: list[Thoughts] = field(default_factory=list)
     thoughts_chunks: list[ThoughtsChunk] = field(default_factory=list)
+    all_events: list[Any] = field(default_factory=list)
 
 
 async def collect_stream(
     agent: Agent,
     prompt: str,
     approve_function: Callable[[ApprovalRequest], bool] = lambda _: True,
+    max_turns: int | None = None,
 ) -> StreamResults:
     """Collect all events from agent.stream(), auto-approving with approve_function."""
     results = StreamResults()
-    async for event in agent.stream(prompt):
+    async for event in agent.stream(prompt, max_turns=max_turns):
+        results.all_events.append(event)
         match event:
             case ApprovalRequest() as req:
                 results.approvals.append(req)

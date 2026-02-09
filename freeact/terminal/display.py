@@ -149,36 +149,42 @@ class Display:
     def show_user_header(self) -> None:
         self._console.print(Rule("User", style=self.user_header_color, characters="━"))
 
-    def show_thoughts_header(self) -> None:
-        self._console.print(Rule("Thinking", style=self.thoughts_header_color, characters="━"))
+    def show_thoughts_header(self, agent_id: str = "") -> None:
+        title = f"Thinking \\[{agent_id}]" if agent_id else "Thinking"
+        self._console.print(Rule(title, style=self.thoughts_header_color, characters="━"))
 
-    def show_response_header(self) -> None:
-        self._console.print(Rule("Response", style=self.response_header_color, characters="━"))
+    def show_response_header(self, agent_id: str = "") -> None:
+        title = f"Response \\[{agent_id}]" if agent_id else "Response"
+        self._console.print(Rule(title, style=self.response_header_color, characters="━"))
 
-    def show_tool_output_header(self) -> None:
-        self._console.print(Rule("Tool Output", style=self.tool_output_header_color, characters="━"))
+    def show_tool_output_header(self, agent_id: str = "") -> None:
+        title = f"Tool Output \\[{agent_id}]" if agent_id else "Tool Output"
+        self._console.print(Rule(title, style=self.tool_output_header_color, characters="━"))
 
-    def show_exec_output_header(self) -> None:
-        self._console.print(Rule("Code Action Output", style=self.exec_output_header_color, characters="━"))
+    def show_exec_output_header(self, agent_id: str = "") -> None:
+        title = f"Code Action Output \\[{agent_id}]" if agent_id else "Code Action Output"
+        self._console.print(Rule(title, style=self.exec_output_header_color, characters="━"))
 
     # --- Panels ---
 
-    def show_code_action(self, code: str) -> None:
+    def show_code_action(self, code: str, agent_id: str = "") -> None:
+        title = f"Code Action \\[{agent_id}]" if agent_id else "Code Action"
         syntax = Syntax(code, "python", theme="monokai", line_numbers=True)
         panel = Panel(
             syntax,
-            title="Code Action",
+            title=title,
             title_align="left",
             border_style=self.exec_panel_color,
         )
         self._console.print(panel)
 
-    def show_tool_call(self, tool_name: str, tool_args: dict[str, Any]) -> None:
+    def show_tool_call(self, tool_name: str, tool_args: dict[str, Any], agent_id: str = "") -> None:
+        title = f"Tool: {tool_name} \\[{agent_id}]" if agent_id else f"Tool: {tool_name}"
         args_json = json.dumps(tool_args, indent=2)
         syntax = Syntax(args_json, "json", theme="monokai")
         panel = Panel(
             syntax,
-            title=f"Tool: {tool_name}",
+            title=title,
             title_align="left",
             border_style=self.tool_panel_color,
         )

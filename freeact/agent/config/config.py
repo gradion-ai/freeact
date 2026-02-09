@@ -89,7 +89,7 @@ class Config:
 
         # Load all data
         self.skills_metadata = self._load_skills_metadata()
-        self.mcp_servers = self._load_mcp_servers()
+        self.mcp_servers = self.create_mcp_servers()
         self.ptc_servers = self._load_ptc_servers()
         self.system_prompt = self._load_system_prompt()
 
@@ -170,7 +170,7 @@ class Config:
         with open(config_file) as f:
             return json.load(f)
 
-    def _load_mcp_servers(self) -> dict[str, MCPServer]:
+    def create_mcp_servers(self) -> dict[str, MCPServer]:
         """Load and instantiate MCP servers."""
         raw_config = self._load_servers_json()
         config = raw_config.get("mcp-servers", {})
