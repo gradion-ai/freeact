@@ -1,15 +1,6 @@
 ## Project Overview
 
-Freeact is a lightweight, general-purpose agent that acts via [code actions](https://machinelearning.apple.com/research/codeact) rather than JSON tool calls. It writes executable Python code that can call multiple tools programmatically, process intermediate results, and use loops and conditionals in a single pass - tasks that would otherwise require many inference rounds with JSON tool calling.
-
-Beyond executing tools, freeact can develop new tools from successful code actions, evolving its own tool library over time. Tools are defined via Python interfaces, progressively discovered and loaded from the agent's workspace rather than consuming context upfront. All execution happens locally in a secure sandbox via [ipybox](https://gradion-ai.github.io/ipybox/).
-
-Key capabilities:
-- **Programmatic tool calling**: Generates typed Python APIs from MCP tool schemas to `mcptools/`, enabling tool calls within code actions
-- **Reusable code actions**: Successful code actions can be saved as discoverable tools in `gentools/` with clean interfaces
-- **Agent skills**: Supports the [agentskills.io](https://agentskills.io/) specification for extending agent capabilities with specialized knowledge and workflows
-- **Progressive loading**: Tool/skill information loads in stages as needed, not upfront
-- **Unified approval**: Code actions, programmatic tool calls, and JSON-based tool calls all require approval before proceeding
+Freeact is a lightweight, general-purpose agent that acts via [code actions](https://machinelearning.apple.com/research/codeact) rather than JSON tool calls. It writes executable Python code in a sandboxed IPython kernel ([ipybox](https://gradion-ai.github.io/ipybox/)), where variables persist across executions. Tools can be called programmatically (via generated Python APIs) or through JSON tool calls (via MCP servers).
 
 ## Development Commands
 
@@ -36,64 +27,60 @@ uv run invoke serve-docs     # Serve docs at localhost:8000
 
 ## Architecture
 
-### Core Components
+### Agent Core (`freeact/agent/core.py`)
 
-- `freeact/agent/core.py`: Main `Agent` class - pydantic-ai orchestration, streaming events, ipybox code execution, approval gating. Yields event types: `ResponseChunk`, `Response`, `ApprovalRequest`, `CodeExecutionOutput`, `ToolOutput`, etc.
-- `freeact/agent/config/config.py`: `Config` class - loads `.freeact/` directory (skills metadata, system prompt, server configs)
-- `freeact/agent/config/init.py`: Initializes `.freeact/` from templates on first run
-- `freeact/agent/tools/pytools/apigen.py`: Generates Python APIs for PTC servers using `ipybox.generate_mcp_sources()`
-- `freeact/agent/tools/pytools/categories.py`: Discovers tool categories from `gentools/` and `mcptools/`
-- `freeact/media/`: Reusable media handling - `parse_prompt()` for `@file` reference extraction, image loading/downscaling
-- `freeact/terminal/interface.py`: `Terminal` class - conversation loop, event rendering, approval handling
-- `freeact/permissions.py`: `PermissionManager` - two-tier approval (always/session), persists to `.freeact/permissions.json`
-- `freeact/cli.py`: CLI entry point, loads config, creates agent, runs terminal
+The `Agent` class is the central orchestration point. It uses pydantic-ai's `model_request_stream` for LLM interaction and ipybox's `CodeExecutor` for sandboxed Python execution. Key design:
 
-### Configuration Directory (`.freeact/`)
+- **Event streaming**: `Agent.stream()` is an async generator yielding `AgentEvent` subclasses (`ResponseChunk`, `Response`, `ThoughtsChunk`, `Thoughts`, `ApprovalRequest`, `CodeExecutionOutputChunk`, `CodeExecutionOutput`, `ToolOutput`).
+- **Event base class**: All events inherit from `AgentEvent(kw_only=True)` with an `agent_id: str` field. The `kw_only=True` on the base class avoids field-ordering issues with subclass fields that lack defaults.
+- **Tool dispatch**: `_execute_tool()` uses `match/case` on `tool_name` to route to ipybox execution, MCP tool calls, or subagent task spawning. All paths yield an `ApprovalRequest` before execution.
+- **Agentic loop**: `stream()` loops model responses and tool executions until the model produces no tool calls or `max_turns` is reached.
+- **Parallel tool execution**: Multiple tool calls from a single model response execute concurrently via `aiostream.merge(*tool_streams)`.
 
-- `prompts/system.md`: System prompt template with `{working_dir}` and `{skills}` placeholders
-- `servers.json`: Server configuration with `mcp-servers` (JSON tool calls) and `ptc-servers` (code-based calls)
-- `skills/*`: Agent skill directories
-- `plans/`: Task plan storage
-- `permissions.json`: Persisted tool permissions
+### Subagent System
 
-### Tool Directories
+Subagents are spawned via the `subagent_task` JSON tool call:
 
-- `mcptools/<server>/`: Auto-generated Python APIs from PTC server schemas
-- `gentools/<category>/<tool>/api.py`: Python APIs of code actions saved as tools
+- `_execute_subagent_task()` creates a new `Agent` with `_include_subagent_task_tool=False` (prevents nesting).
+- Each subagent gets its own ipybox kernel, MCP server connections (via `mcp_server_factory`), and message history.
+- `_SubagentRunner` wraps the subagent in a background task with a queue-based event bridge, enabling safe streaming from a separate task.
+- Subagent events bubble transparently through the parent's stream. Events carry `agent_id` (prefixed `sub-`) to distinguish from parent events.
+- The final `ToolOutput` carrying the subagent's last response uses the parent's `agent_id`.
+- Concurrency is bounded by `asyncio.Semaphore(max_subagents)` (default 5).
 
-### Server Configuration
+### Configuration (`freeact/agent/config/`)
 
-Both server types are configured in `.freeact/servers.json`:
+- `config.py`: `Config` class loads `.freeact/` directory (skills, system prompt, server configs). `create_mcp_servers()` is a public factory method used both by Config itself and passed as `mcp_server_factory` to agents.
+- `init.py`: Initializes `.freeact/` from templates on first run.
 
-- **mcp-servers**: Agent calls these directly via JSON tool calls
-- **ptc-servers**: Python APIs generated to `mcptools/<server_name>/` at startup; agent writes code that imports and uses these typed APIs
+### Tool System
 
-### Tool Search System
-
-Two tool discovery modes, configured via CLI `--tool-search {basic|hybrid}`:
-
-- **basic**: List-based search via `freeact/agent/tools/pytools/search/basic.py` - provides `list_categories` and `list_tools` MCP tools for manual category/tool browsing
-- **hybrid**: BM25 + vector search via `freeact/agent/tools/pytools/search/hybrid/` - provides `search_tools` MCP tool for natural language queries
-
-Hybrid search components (`search/hybrid/`):
-- `database.py`: SQLite with sqlite-vec extension for vector storage
-- `embed.py`: Query/document embedding via pydantic-ai embeddings
-- `extract.py`: Parses tool metadata from `api.py` files (docstrings, signatures)
-- `index.py`: Builds and syncs the search index from `gentools/` and `mcptools/`
-- `search.py`: BM25, vector, and hybrid search implementations
-- `server.py`: FastMCP server exposing `search_tools` tool
-- `watch.py`: File system watcher for automatic index updates
-
-The hybrid server runs as an MCP server and can be started with:
-```bash
-python -m freeact.agent.tools.pytools.search.hybrid
-```
+- **ipybox tools**: Tool definitions cached in `freeact/agent/tools/ipybox.json` and `subagent_task.json`. Loaded via `load_ipybox_tool_definitions()` and `load_subagent_task_tool_definitions()`.
+- **MCP servers** (`mcp-servers` in `servers.json`): Called directly via JSON tool calls. Server connections managed by `_ResourceSupervisor` for lifecycle management.
+- **PTC servers** (`ptc-servers` in `servers.json`): Python APIs auto-generated to `mcptools/<server>/` at startup via `ipybox.generate_mcp_sources()`. Agent writes code importing these APIs.
+- **Tool search**: Two modes via `--tool-search {basic|hybrid}`. Basic provides `list_categories`/`list_tools` MCP tools. Hybrid adds BM25 + vector search (`search/hybrid/`).
 
 ### Approval Flow
 
 All tool executions require approval. `Agent.stream()` yields `ApprovalRequest` before executing any tool:
 
-- **JSON tool calls** (MCP servers, ipybox tools): `ApprovalRequest` yielded in `_execute_tool()` before execution
-- **PTC tool calls**: When executed code calls a tool, ipybox yields `ipybox.ApprovalRequest` which freeact wraps in its own `ApprovalRequest` and surfaces to the caller
+- **JSON tool calls**: `ApprovalRequest` yielded in `_execute_tool()` before execution.
+- **PTC tool calls**: ipybox yields `ipybox.ApprovalRequest` which freeact wraps in its own `ApprovalRequest`.
+- **Subagent approvals**: Bubble up through the parent's event stream transparently.
+- `Terminal` uses `PermissionManager` for always/session/once approval modes, persisted to `.freeact/permissions.json`.
 
-The `Terminal` uses `PermissionManager` to handle approvals with always/session/once modes.
+### Other Components
+
+- `freeact/media/`: Prompt parsing (`parse_prompt()`) for `@file` references, image loading/downscaling.
+- `freeact/terminal/interface.py`: `Terminal` class handles conversation loop, event rendering, approval handling.
+- `freeact/permissions.py`: `PermissionManager` with two-tier approval (always/session).
+- `freeact/cli.py`: CLI entry point.
+
+## Testing Patterns
+
+- **Unit tests** (`tests/unit/`): Use `FunctionModel(stream_function=...)` for test models. Stream functions receive `(messages, info)` where `info.function_tools` contains available tools.
+- **`patched_agent`** (`tests/conftest.py`): Creates an agent with mocked code executor. Use for unit tests that don't need real kernel execution.
+- **`unpatched_agent`** (`tests/integration/test_subagents.py`): Creates an agent with real ipybox kernel. Subagent tests must use this since subagents always start real kernels.
+- **`collect_stream()`**: Helper that consumes `agent.stream()`, auto-approves via `approve_function`, and collects events into `StreamResults`.
+- **`get_tool_return_parts(messages)`**: Detects post-tool-execution model calls (messages ending with `ToolReturnPart`).
+- **Distinguishing parent vs subagent** in shared stream functions: Check `"subagent_task" in [t.name for t in info.function_tools]`. Parent has it, subagent does not.
