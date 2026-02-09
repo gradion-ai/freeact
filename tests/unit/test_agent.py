@@ -355,8 +355,8 @@ class TestSubagentConfigPropagation:
     """Tests that subagents inherit parent runtime/safety configuration."""
 
     @pytest.mark.asyncio
-    async def test_execute_task_propagates_runtime_and_safety_settings(self):
-        """_execute_task forwards parent execution config to spawned subagents."""
+    async def test_execute_subagent_task_propagates_runtime_and_safety_settings(self):
+        """_execute_subagent_task forwards parent execution config to spawned subagents."""
         captured: dict[str, Any] = {}
 
         class FakeSubagent:
@@ -389,7 +389,7 @@ class TestSubagentConfigPropagation:
             )
 
         with patch("freeact.agent.core.Agent", FakeSubagent):
-            events = [event async for event in agent._execute_task("subtask", max_turns=3)]
+            events = [event async for event in agent._execute_subagent_task("subtask", max_turns=3)]
 
         assert len(events) >= 1
         assert captured["kernel_env"] == {"HOME": "/custom/home", "OTHER": "value"}

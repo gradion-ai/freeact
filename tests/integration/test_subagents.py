@@ -133,10 +133,10 @@ class TestTaskExecution:
             tool_names = [t.name for t in info.function_tools]
             if get_tool_return_parts(messages):
                 yield "Parent done"
-            elif "task" in tool_names:
+            elif "subagent_task" in tool_names:
                 yield {
                     0: DeltaToolCall(
-                        name="task",
+                        name="subagent_task",
                         json_args=json.dumps({"prompt": "Say hello"}),
                         tool_call_id="call_task",
                     )
@@ -163,10 +163,10 @@ class TestTaskExecution:
             tool_names = [t.name for t in info.function_tools]
             if get_tool_return_parts(messages):
                 yield "Parent done"
-            elif "task" in tool_names:
+            elif "subagent_task" in tool_names:
                 yield {
                     0: DeltaToolCall(
-                        name="task",
+                        name="subagent_task",
                         json_args=json.dumps({"prompt": "Do something"}),
                         tool_call_id="call_task",
                     )
@@ -199,10 +199,10 @@ class TestTaskExecution:
             tool_names = [t.name for t in info.function_tools]
             if get_tool_return_parts(messages):
                 yield "Done"
-            elif "task" in tool_names:
+            elif "subagent_task" in tool_names:
                 yield {
                     0: DeltaToolCall(
-                        name="task",
+                        name="subagent_task",
                         json_args=json.dumps({"prompt": "Do it"}),
                         tool_call_id="call_task",
                     )
@@ -230,10 +230,10 @@ class TestTaskExecution:
             seen_tool_names.append(tool_names)
             if get_tool_return_parts(messages):
                 yield "Done"
-            elif "task" in tool_names:
+            elif "subagent_task" in tool_names:
                 yield {
                     0: DeltaToolCall(
-                        name="task",
+                        name="subagent_task",
                         json_args=json.dumps({"prompt": "check tools"}),
                         tool_call_id="call_task",
                     )
@@ -244,10 +244,10 @@ class TestTaskExecution:
         async with unpatched_agent(stream_function) as agent:
             await collect_stream(agent, "test")
 
-            # First call is parent (has "task"), last call is subagent (no "task")
-            assert "task" in seen_tool_names[0]
-            # Find the subagent's tool set (any call without "task")
-            subagent_tool_sets = [ts for ts in seen_tool_names if "task" not in ts]
+            # First call is parent (has "subagent_task"), last call is subagent (no "subagent_task")
+            assert "subagent_task" in seen_tool_names[0]
+            # Find the subagent's tool set (any call without "subagent_task")
+            subagent_tool_sets = [ts for ts in seen_tool_names if "subagent_task" not in ts]
             assert len(subagent_tool_sets) >= 1
             # Subagent should still have ipybox tools
             assert "ipybox_execute_ipython_cell" in subagent_tool_sets[0]
@@ -260,10 +260,10 @@ class TestTaskExecution:
             tool_names = [t.name for t in info.function_tools]
             if get_tool_return_parts(messages):
                 yield "Done"
-            elif "task" in tool_names:
+            elif "subagent_task" in tool_names:
                 yield {
                     0: DeltaToolCall(
-                        name="task",
+                        name="subagent_task",
                         json_args=json.dumps({"prompt": "Do it"}),
                         tool_call_id="call_task",
                     )
@@ -272,7 +272,7 @@ class TestTaskExecution:
                 yield "Should not appear"
 
         def reject_task(req: ApprovalRequest) -> bool:
-            return req.tool_name != "task"
+            return req.tool_name != "subagent_task"
 
         async with unpatched_agent(stream_function) as agent:
             results = await collect_stream(agent, "test", approve_function=reject_task)
@@ -298,10 +298,10 @@ class TestSubagentCodeExecution:
             tool_names = [t.name for t in info.function_tools]
             if get_tool_return_parts(messages):
                 yield "Done"
-            elif "task" in tool_names:
+            elif "subagent_task" in tool_names:
                 yield {
                     0: DeltaToolCall(
-                        name="task",
+                        name="subagent_task",
                         json_args=json.dumps({"prompt": "Calculate 99"}),
                         tool_call_id="call_task",
                     )
@@ -330,10 +330,10 @@ class TestSubagentCodeExecution:
             tool_names = [t.name for t in info.function_tools]
             if get_tool_return_parts(messages):
                 yield "Done"
-            elif "task" in tool_names:
+            elif "subagent_task" in tool_names:
                 yield {
                     0: DeltaToolCall(
-                        name="task",
+                        name="subagent_task",
                         json_args=json.dumps({"prompt": "Run code"}),
                         tool_call_id="call_task",
                     )
@@ -352,7 +352,7 @@ class TestSubagentCodeExecution:
 
             # Should have approval requests from both parent (task) and subagent (ipybox)
             approval_names = [a.tool_name for a in results.approvals]
-            assert "task" in approval_names
+            assert "subagent_task" in approval_names
             assert "ipybox_execute_ipython_cell" in approval_names
 
     @pytest.mark.asyncio
@@ -363,10 +363,10 @@ class TestSubagentCodeExecution:
             tool_names = [t.name for t in info.function_tools]
             if get_tool_return_parts(messages):
                 yield "Done"
-            elif "task" in tool_names:
+            elif "subagent_task" in tool_names:
                 yield {
                     0: DeltaToolCall(
-                        name="task",
+                        name="subagent_task",
                         json_args=json.dumps({"prompt": "Read parent var"}),
                         tool_call_id="call_task",
                     )
@@ -391,7 +391,7 @@ class TestSubagentCodeExecution:
             nonlocal call_count
             tool_names = [t.name for t in info.function_tools]
 
-            if "task" not in tool_names:
+            if "subagent_task" not in tool_names:
                 # Subagent: try to access parent's variable
                 if get_tool_return_parts(messages):
                     yield "Subagent done"
@@ -421,7 +421,7 @@ class TestSubagentCodeExecution:
                 # Phase 2: spawn subagent that tries to read the variable
                 yield {
                     0: DeltaToolCall(
-                        name="task",
+                        name="subagent_task",
                         json_args=json.dumps({"prompt": "Read parent var"}),
                         tool_call_id="call_task",
                     )
@@ -450,13 +450,13 @@ class TestSubagentMaxTurns:
 
         async def stream_function(messages: list[ModelMessage], info: AgentInfo) -> AsyncIterator[str | DeltaToolCalls]:
             tool_names = [t.name for t in info.function_tools]
-            if "task" in tool_names:
+            if "subagent_task" in tool_names:
                 if get_tool_return_parts(messages):
                     yield "Parent done"
                 else:
                     yield {
                         0: DeltaToolCall(
-                            name="task",
+                            name="subagent_task",
                             json_args=json.dumps({"prompt": "Loop forever", "max_turns": 1}),
                             tool_call_id="call_task",
                         )
@@ -488,14 +488,14 @@ class TestSubagentMaxTurns:
         async def stream_function(messages: list[ModelMessage], info: AgentInfo) -> AsyncIterator[str | DeltaToolCalls]:
             nonlocal turn_count
             tool_names = [t.name for t in info.function_tools]
-            if "task" in tool_names:
+            if "subagent_task" in tool_names:
                 if get_tool_return_parts(messages):
                     yield "Parent done"
                 else:
                     # No max_turns specified -- defaults to 25
                     yield {
                         0: DeltaToolCall(
-                            name="task",
+                            name="subagent_task",
                             json_args=json.dumps({"prompt": "Loop"}),
                             tool_call_id="call_task",
                         )
@@ -530,13 +530,13 @@ class TestSubagentErrors:
 
         async def stream_function(messages: list[ModelMessage], info: AgentInfo) -> AsyncIterator[str | DeltaToolCalls]:
             tool_names = [t.name for t in info.function_tools]
-            if "task" in tool_names:
+            if "subagent_task" in tool_names:
                 if get_tool_return_parts(messages):
                     yield "Parent done"
                 else:
                     yield {
                         0: DeltaToolCall(
-                            name="task",
+                            name="subagent_task",
                             json_args=json.dumps({"prompt": "Crash please"}),
                             tool_call_id="call_task",
                         )
@@ -566,19 +566,19 @@ class TestParallelTasks:
 
         async def stream_function(messages: list[ModelMessage], info: AgentInfo) -> AsyncIterator[str | DeltaToolCalls]:
             tool_names = [t.name for t in info.function_tools]
-            if "task" in tool_names:
+            if "subagent_task" in tool_names:
                 if get_tool_return_parts(messages):
                     yield "Parent done"
                 else:
                     # Spawn two parallel tasks
                     yield {
                         0: DeltaToolCall(
-                            name="task",
+                            name="subagent_task",
                             json_args=json.dumps({"prompt": "Task A"}),
                             tool_call_id="call_a",
                         ),
                         1: DeltaToolCall(
-                            name="task",
+                            name="subagent_task",
                             json_args=json.dumps({"prompt": "Task B"}),
                             tool_call_id="call_b",
                         ),

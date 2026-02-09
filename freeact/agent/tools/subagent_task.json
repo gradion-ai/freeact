@@ -1,6 +1,6 @@
 [
   {
-    "name": "task",
+    "name": "subagent_task",
     "parameters_json_schema": {
       "properties": {
         "prompt": {

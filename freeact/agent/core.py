@@ -33,7 +33,11 @@ from pydantic_ai.models import Model, ModelRequestParameters, ModelSettings
 from pydantic_ai.tools import ToolDefinition
 
 from freeact.agent.tools.pytools import MCPTOOLS_DIR
-from freeact.agent.tools.utils import get_tool_definitions, load_ipybox_tool_definitions, load_task_tool_definitions
+from freeact.agent.tools.utils import (
+    get_tool_definitions,
+    load_ipybox_tool_definitions,
+    load_subagent_task_tool_definitions,
+)
 
 logger = logging.getLogger("freeact")
 
@@ -268,7 +272,7 @@ class Agent:
         execution_timeout: float | None = 300,
         approval_timeout: float | None = None,
         max_subagents: int = 5,
-        _include_task_tool: bool = True,
+        _include_subagent_task_tool: bool = True,
     ):
         """Initialize the agent.
 
@@ -291,8 +295,9 @@ class Agent:
                 or rejected within this time, the tool call fails.
                 If None, no timeout is applied.
             max_subagents: Maximum number of concurrent subagents. Defaults to 5.
-            _include_task_tool: Whether to include the task tool for spawning
-                subagents. Set to False for subagents to prevent nesting.
+            _include_subagent_task_tool: Whether to include the subagent task
+                tool for spawning subagents. Set to False for subagents to
+                prevent nesting.
         """
         self.agent_id = f"agent-{uuid.uuid4().hex[:4]}"
         self.model = model
@@ -300,7 +305,7 @@ class Agent:
 
         self._system_prompt = system_prompt
         self._execution_timeout = execution_timeout
-        self._include_task_tool = _include_task_tool
+        self._include_subagent_task_tool = _include_subagent_task_tool
         self._mcp_server_factory = mcp_server_factory
         self._subagent_semaphore = asyncio.Semaphore(max_subagents)
         self._sandbox = sandbox
@@ -373,8 +378,8 @@ class Agent:
 
         try:
             self._tool_definitions = await load_ipybox_tool_definitions()
-            if self._include_task_tool:
-                self._tool_definitions.extend(await load_task_tool_definitions())
+            if self._include_subagent_task_tool:
+                self._tool_definitions.extend(await load_subagent_task_tool_definitions())
 
             for server in self._mcp_servers.values():
                 for tool_def in await get_tool_definitions(server):
@@ -548,8 +553,8 @@ class Agent:
                     case "ipybox_reset":
                         content = await self._ipybox_reset()
                         yield ToolOutput(content=content, agent_id=self.agent_id)
-                    case "task":
-                        async for task_event in self._execute_task(
+                    case "subagent_task":
+                        async for task_event in self._execute_subagent_task(
                             prompt=tool_args["prompt"],
                             max_turns=tool_args.get("max_turns", 25),
                         ):
@@ -568,7 +573,7 @@ class Agent:
             metadata={"rejected": rejected},
         )
 
-    async def _execute_task(self, prompt: str, max_turns: int) -> AsyncIterator[AgentEvent]:
+    async def _execute_subagent_task(self, prompt: str, max_turns: int) -> AsyncIterator[AgentEvent]:
         subagent = Agent(
             model=self.model,
             model_settings=self.model_settings,
@@ -580,7 +585,7 @@ class Agent:
             images_dir=self._images_dir,
             execution_timeout=self._execution_timeout,
             approval_timeout=self._approval_timeout,
-            _include_task_tool=False,
+            _include_subagent_task_tool=False,
         )
         runner = _SubagentRunner(subagent=subagent, semaphore=self._subagent_semaphore)
 

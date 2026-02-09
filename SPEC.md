@@ -2,7 +2,7 @@
 
 ## Overview
 
-Extend the freeact agent with a **Task tool** that allows a main agent to spawn subagents. Subagents are fresh agent instances of the same type and configuration as the parent. They execute isolated multi-step tasks in a separate context window and return only the final result to the parent.
+Extend the freeact agent with a **Subagent Task tool** that allows a main agent to spawn subagents. Subagents are fresh agent instances of the same type and configuration as the parent. They execute isolated multi-step tasks in a separate context window and return only the final result to the parent.
 
 ## Agent Identity
 
@@ -28,16 +28,16 @@ class ApprovalRequest(AgentEvent):
 
 This applies to every existing event type: `ResponseChunk`, `Response`, `ThoughtsChunk`, `Thoughts`, `ToolOutput`, `CodeExecutionOutputChunk`, `CodeExecutionOutput`, `ApprovalRequest`.
 
-## Task Tool
+## Subagent Task Tool
 
 ### Tool Definition
 
-A new tool definition file `freeact/agent/tools/task.json` following the same pattern as `ipybox.json`:
+A new tool definition file `freeact/agent/tools/subagent_task.json` following the same pattern as `ipybox.json`:
 
 ```json
 [
   {
-    "name": "task",
+    "name": "subagent_task",
     "parameters_json_schema": {
       "properties": {
         "prompt": {
@@ -62,11 +62,11 @@ A new tool definition file `freeact/agent/tools/task.json` following the same pa
 
 ### Handling in `Agent`
 
-The `task` tool is handled in `_execute_tool()` alongside the existing `ipybox_*` cases:
+The `subagent_task` tool is handled in `_execute_tool()` alongside the existing `ipybox_*` cases:
 
 ```python
-case "task":
-    async for item in self._execute_task(
+case "subagent_task":
+    async for item in self._execute_subagent_task(
         prompt=tool_args["prompt"],
         max_turns=tool_args.get("max_turns", 10),
     ):
@@ -80,14 +80,14 @@ case "task":
 
 ### Spawning
 
-`Agent._execute_task()` creates a child `Agent` with:
+`Agent._execute_subagent_task()` creates a child `Agent` with:
 
 - **Same model and model_settings** as the parent
 - **Same system prompt** as the parent
 - **Same MCP server configuration** (new connections, not shared instances)
 - **Fresh IPython kernel** (own `CodeExecutor`, own state)
 - **Own agent ID** (auto-generated)
-- **No access to the Task tool** (no nesting; the subagent's tool definitions exclude `task`)
+- **No access to the Subagent Task tool** (no nesting; the subagent's tool definitions exclude `subagent_task`)
 
 ### Execution
 
@@ -130,7 +130,7 @@ No separate `TaskResult` event type. The subagent's final text response is retur
 
 ## Constraints
 
-- **No nesting**: Only the main agent can spawn subagents. Subagents do not have access to the `task` tool.
+- **No nesting**: Only the main agent can spawn subagents. Subagents do not have access to the `subagent_task` tool.
 - **No shared kernel state**: Subagents cannot access parent variables or kernel state.
 - **Hidden thinking only**: Subagent thinking is hidden in the CLI. All other events (tool calls, approvals, code execution, responses) are displayed normally.
 - **Bounded parallelism**: Multiple subagents can run in parallel for independent tasks, capped at a configurable maximum (default: 5) to prevent resource exhaustion.
