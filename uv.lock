@@ -1190,7 +1190,7 @@ requires-dist = [
     { name = "aiofiles", specifier = ">=25.1.0" },
     { name = "aiostream", specifier = ">=0.7.1" },
     { name = "google-genai", specifier = ">=1.56.0" },
-    { name = "ipybox", specifier = ">=0.7.3" },
+    { name = "ipybox", specifier = ">=0.7.4" },
     { name = "pillow", specifier = ">=12.0.0" },
     { name = "prompt-toolkit", specifier = ">=3.0.0" },
     { name = "pydantic-ai", specifier = ">=1.51.0" },
@@ -1674,7 +1674,7 @@ wheels = [
 
 [[package]]
 name = "ipybox"
-version = "0.7.3"
+version = "0.7.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -1693,9 +1693,9 @@ dependencies = [
     { name = "websockets" },
     { name = "wsproto" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/bf/d6/4e8c620422d7103e47b20735c764187908c3ba01c45437a755bbcb8ef311/ipybox-0.7.3.tar.gz", hash = "sha256:a8525fad22c0fcaa4be333498c5ea7abf1a5c056c7537159495742d0a114f654", size = 26858, upload-time = "2026-02-05T10:42:30.103Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d7/2e/58c0f4aac3b55d238ba66d54297987155842f4e1d1a84152e2f140bae005/ipybox-0.7.4.tar.gz", hash = "sha256:87d40401fc077fb8f8d28508185ec8d660e5a90e41b6263d95087291f9006ce9", size = 26681, upload-time = "2026-02-09T06:33:04.896Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e2/a8/884819d8745691b6c8589da92e03187e7a3bf7e60daf0332ace3e9fa0820/ipybox-0.7.3-py3-none-any.whl", hash = "sha256:a04e0d6f24a7e8f8794d7155e9b7fd624b15ef10da05f6ba8989c332ae2e632a", size = 34964, upload-time = "2026-02-05T10:42:28.56Z" },
+    { url = "https://files.pythonhosted.org/packages/ca/f1/a643f71cfd0f8363eb7814d540eab272e84083b6c1bf0875450f6049c667/ipybox-0.7.4-py3-none-any.whl", hash = "sha256:a385cb49b71e7e2d2c1e197818ed87ed0b27107c6d78e858f18055b421e98738", size = 34834, upload-time = "2026-02-09T06:33:03.308Z" },
 ]
 
 [[package]]

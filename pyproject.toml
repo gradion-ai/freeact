@@ -18,7 +18,7 @@ dependencies = [
     "pillow>=12.0.0",
     "pyyaml>=6.0.3",
     "rich>=14.2.0",
-    "ipybox>=0.7.3",
+    "ipybox>=0.7.4",
     "sqlite-vec>=0.1.0",
     "watchfiles>=1.0.0",
 ]
