@@ -1,7 +1,3 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Project Overview
 
 Freeact is a lightweight, general-purpose agent that acts via [code actions](https://machinelearning.apple.com/research/codeact) rather than JSON tool calls. It writes executable Python code that can call multiple tools programmatically, process intermediate results, and use loops and conditionals in a single pass - tasks that would otherwise require many inference rounds with JSON tool calling.
