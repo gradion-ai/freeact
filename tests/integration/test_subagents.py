@@ -484,7 +484,7 @@ class TestSubagentMaxTurns:
 
     @pytest.mark.asyncio
     async def test_default_max_turns(self):
-        """Task without explicit max_turns uses default of 25."""
+        """Task without explicit max_turns uses default of 100."""
         turn_count = 0
 
         async def stream_function(messages: list[ModelMessage], info: AgentInfo) -> AsyncIterator[str | DeltaToolCalls]:
@@ -494,7 +494,7 @@ class TestSubagentMaxTurns:
                 if get_tool_return_parts(messages):
                     yield "Parent done"
                 else:
-                    # No max_turns specified -- defaults to 25
+                    # No max_turns specified -- defaults to 100
                     yield {
                         0: DeltaToolCall(
                             name="subagent_task",
@@ -516,11 +516,11 @@ class TestSubagentMaxTurns:
         async with unpatched_agent(stream_function) as agent:
             results = await collect_stream(agent, "test")
 
-            # Default max_turns is 25, so subagent should have 25 code executions
+            # Default max_turns is 100, so subagent should have 100 code executions
             subagent_code_outputs = [
                 e for e in results.all_events if isinstance(e, CodeExecutionOutput) and e.agent_id != agent.agent_id
             ]
-            assert len(subagent_code_outputs) == 25
+            assert len(subagent_code_outputs) == 100
 
 
 class TestSubagentErrors:

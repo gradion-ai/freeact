@@ -559,7 +559,7 @@ class Agent:
                     case "subagent_task":
                         async for task_event in self._execute_subagent_task(
                             prompt=tool_args["prompt"],
-                            max_turns=tool_args.get("max_turns", 25),
+                            max_turns=tool_args.get("max_turns", 100),
                         ):
                             yield task_event
                             match task_event:

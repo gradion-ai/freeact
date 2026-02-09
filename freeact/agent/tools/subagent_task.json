@@ -9,10 +9,10 @@
           "type": "string"
         },
         "max_turns": {
-          "description": "Maximum number of agentic turns before stopping. Defaults to 25.",
+          "description": "Maximum number of agentic turns before stopping. Defaults to 100.",
           "title": "Max Turns",
           "type": "integer",
-          "default": 25
+          "default": 100
         }
       },
       "required": ["prompt"],
