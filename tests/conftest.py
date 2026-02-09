@@ -70,7 +70,7 @@ async def _mock_code_executor():
 async def patched_agent(
     stream_function,
     code_exec_function: CodeExecFunction | None = None,
-    mcp_servers: dict[str, Any] | None = None,
+    mcp_server_factory: Callable[[], dict[str, Any]] | None = None,
     execution_timeout: float | None = 300,
     approval_timeout: float | None = None,
 ):
@@ -79,7 +79,7 @@ async def patched_agent(
         model=FunctionModel(stream_function=stream_function),
         model_settings={},
         system_prompt="Test system prompt",
-        mcp_servers=mcp_servers or {},
+        mcp_server_factory=mcp_server_factory,
         execution_timeout=execution_timeout,
         approval_timeout=approval_timeout,
     )

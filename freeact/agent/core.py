@@ -260,16 +260,15 @@ class Agent:
         model: str | Model,
         model_settings: ModelSettings,
         system_prompt: str,
-        mcp_servers: dict[str, MCPServer] | None = None,
+        mcp_server_factory: Callable[[], dict[str, MCPServer]] | None = None,
         kernel_env: dict[str, str] | None = None,
         sandbox: bool = False,
         sandbox_config: Path | None = None,
         images_dir: Path | None = None,
         execution_timeout: float | None = 300,
         approval_timeout: float | None = None,
-        _include_task_tool: bool = True,
-        mcp_server_factory: Callable[[], dict[str, MCPServer]] | None = None,
         max_subagents: int = 5,
+        _include_task_tool: bool = True,
     ):
         """Initialize the agent.
 
@@ -277,7 +276,9 @@ class Agent:
             model: LLM model identifier or pydantic-ai Model instance.
             model_settings: Temperature, max tokens, and other model params.
             system_prompt: Instructions defining agent behavior.
-            mcp_servers: Named MCP servers for JSON-based tool calls.
+            mcp_server_factory: Factory function that creates fresh MCP server
+                connections for each agent instance. Subagents get their own
+                connections by using the same factory.
             kernel_env: Environment variables passed to the IPython kernel.
             sandbox: Run the kernel in sandbox mode.
             sandbox_config: Path to custom sandbox configuration.
@@ -289,11 +290,9 @@ class Agent:
                 programmatic tool calls. If an approval request is not accepted
                 or rejected within this time, the tool call fails.
                 If None, no timeout is applied.
+            max_subagents: Maximum number of concurrent subagents. Defaults to 5.
             _include_task_tool: Whether to include the task tool for spawning
                 subagents. Set to False for subagents to prevent nesting.
-            mcp_server_factory: Factory function that creates fresh MCP server
-                connections for subagents. Each subagent gets its own connections.
-            max_subagents: Maximum number of concurrent subagents. Defaults to 5.
         """
         self.agent_id = f"agent-{uuid.uuid4().hex[:4]}"
         self.model = model
@@ -309,7 +308,7 @@ class Agent:
         self._images_dir = images_dir
         self._approval_timeout = approval_timeout
 
-        self._mcp_servers = mcp_servers or {}
+        self._mcp_servers: dict[str, MCPServer] = {}
         self._tool_servers: dict[str, MCPServer] = {}
         self._tool_definitions: list[ToolDefinition] = []
 
@@ -352,6 +351,8 @@ class Agent:
         """
         if self._resource_supervisors:
             return
+
+        self._mcp_servers = self._mcp_server_factory() if self._mcp_server_factory else {}
 
         resource_supervisors = [_ResourceSupervisor(self._code_executor, "code-executor")]
         for name, server in self._mcp_servers.items():
@@ -407,6 +408,7 @@ class Agent:
             if len(errors) == 1:
                 raise errors[0]
             raise ExceptionGroup("Multiple errors while stopping agent resources", errors)
+        self._mcp_servers = {}
 
     def _create_model_request(self, user_prompt: str | Sequence[UserContent]) -> ModelRequest:
         parts: list[SystemPromptPart | UserPromptPart] = []
@@ -567,12 +569,11 @@ class Agent:
         )
 
     async def _execute_task(self, prompt: str, max_turns: int) -> AsyncIterator[AgentEvent]:
-        mcp_servers = self._mcp_server_factory() if self._mcp_server_factory else {}
         subagent = Agent(
             model=self.model,
             model_settings=self.model_settings,
             system_prompt=self._system_prompt,
-            mcp_servers=mcp_servers,
+            mcp_server_factory=self._mcp_server_factory,
             kernel_env=dict(self._kernel_env),
             sandbox=self._sandbox,
             sandbox_config=self._sandbox_config,

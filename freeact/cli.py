@@ -140,12 +140,11 @@ async def run(namespace: argparse.Namespace) -> None:
         model=config.model,
         model_settings=config.model_settings,
         system_prompt=config.system_prompt,
-        mcp_servers=config.mcp_servers,
+        mcp_server_factory=config.create_mcp_servers,
         sandbox=namespace.sandbox,
         sandbox_config=namespace.sandbox_config,
         execution_timeout=namespace.execution_timeout,
         approval_timeout=namespace.approval_timeout,
-        mcp_server_factory=config.create_mcp_servers,
     )
 
     if config.ptc_servers:
