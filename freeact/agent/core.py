@@ -5,7 +5,7 @@ import re
 import uuid
 from asyncio import Future
 from collections.abc import Callable, Sequence
-from contextlib import AsyncExitStack
+from contextlib import suppress
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, AsyncIterator
@@ -154,6 +154,88 @@ class ApprovalRequest(AgentEvent):
         return await self._future
 
 
+class _ResourceSupervisor:
+    """Keeps a single async context manager running in its own task."""
+
+    def __init__(self, resource: Any, name: str):
+        self._resource = resource
+        self._name = name
+        self._task: asyncio.Task[None] | None = None
+        self._ready = asyncio.Event()
+        self._stop = asyncio.Event()
+        self._entered_resource: Any | None = None
+        self._error: Exception | None = None
+
+    async def start(self) -> Any:
+        """Start resource task and wait until context is entered."""
+        if self._task is not None:
+            raise RuntimeError(f"Resource supervisor for '{self._name}' already started")
+
+        self._task = asyncio.create_task(self._run(), name=f"resource-{self._name}")
+        await self._ready.wait()
+
+        if self._error is not None:
+            raise RuntimeError(f"Failed to start resource '{self._name}'") from self._error
+
+        return self._entered_resource
+
+    async def stop(self) -> None:
+        """Signal resource task to exit context and wait for completion."""
+        if self._task is None:
+            return
+
+        self._stop.set()
+        await self._task
+
+    async def _run(self) -> None:
+        try:
+            async with self._resource as entered_resource:
+                self._entered_resource = entered_resource
+                self._ready.set()
+                await self._stop.wait()
+        except Exception as e:
+            self._error = e
+            self._ready.set()
+            raise
+
+
+class _SubagentRunner:
+    """Runs a subagent in a dedicated task and streams its events safely."""
+
+    def __init__(self, subagent: "Agent", semaphore: asyncio.Semaphore):
+        self._subagent = subagent
+        self._semaphore = semaphore
+
+    async def stream(self, prompt: str, max_turns: int) -> AsyncIterator[AgentEvent]:
+        queue: asyncio.Queue[AgentEvent | Exception | None] = asyncio.Queue()
+
+        async def run_subagent() -> None:
+            try:
+                async with self._semaphore:
+                    async with self._subagent:
+                        async for event in self._subagent.stream(prompt, max_turns=max_turns):
+                            await queue.put(event)
+            except Exception as e:
+                queue.put_nowait(e)
+            finally:
+                queue.put_nowait(None)
+
+        task = asyncio.create_task(run_subagent())
+        try:
+            while True:
+                item = await queue.get()
+                if item is None:
+                    return
+                if isinstance(item, Exception):
+                    raise item
+                yield item
+        finally:
+            if not task.done():
+                task.cancel()
+                with suppress(asyncio.CancelledError):
+                    await task
+
+
 class Agent:
     """Code action agent that generates and executes Python code in ipybox.
 
@@ -222,6 +304,10 @@ class Agent:
         self._include_task_tool = _include_task_tool
         self._mcp_server_factory = mcp_server_factory
         self._subagent_semaphore = asyncio.Semaphore(max_subagents)
+        self._sandbox = sandbox
+        self._sandbox_config = sandbox_config
+        self._images_dir = images_dir
+        self._approval_timeout = approval_timeout
 
         self._mcp_servers = mcp_servers or {}
         self._tool_servers: dict[str, MCPServer] = {}
@@ -232,6 +318,7 @@ class Agent:
             home = os.environ.get("HOME")
             if home:
                 _kernel_env["HOME"] = home
+        self._kernel_env = _kernel_env
 
         self._code_executor_lock = asyncio.Lock()
         self._code_executor = ipybox.CodeExecutor(
@@ -244,7 +331,7 @@ class Agent:
         )
 
         self._message_history: list[ModelMessage] = []
-        self._exit_stack = AsyncExitStack()
+        self._resource_supervisors: list[_ResourceSupervisor] = []
 
     @property
     def tool_names(self) -> list[str]:
@@ -263,17 +350,40 @@ class Agent:
 
         Automatically called when entering the async context manager.
         """
-        await self._exit_stack.enter_async_context(self._code_executor)
-        self._tool_definitions = await load_ipybox_tool_definitions()
-        if self._include_task_tool:
-            self._tool_definitions.extend(await load_task_tool_definitions())
+        if self._resource_supervisors:
+            return
+
+        resource_supervisors = [_ResourceSupervisor(self._code_executor, "code-executor")]
         for name, server in self._mcp_servers.items():
             logger.info(f"Starting MCP server: {name}")
             server.tool_prefix = name
-            await self._exit_stack.enter_async_context(server)
-            for tool_def in await get_tool_definitions(server):
-                self._tool_definitions.append(tool_def)
-                self._tool_servers[tool_def.name] = server
+            resource_supervisors.append(_ResourceSupervisor(server, f"mcp-server-{name}"))
+
+        try:
+            await asyncio.gather(*(supervisor.start() for supervisor in resource_supervisors))
+        except Exception:
+            await asyncio.gather(
+                *(supervisor.stop() for supervisor in resource_supervisors),
+                return_exceptions=True,
+            )
+            raise
+
+        self._resource_supervisors = resource_supervisors
+
+        try:
+            self._tool_definitions = await load_ipybox_tool_definitions()
+            if self._include_task_tool:
+                self._tool_definitions.extend(await load_task_tool_definitions())
+
+            for server in self._mcp_servers.values():
+                for tool_def in await get_tool_definitions(server):
+                    self._tool_definitions.append(tool_def)
+                    self._tool_servers[tool_def.name] = server
+        except Exception:
+            self._tool_definitions = []
+            self._tool_servers = {}
+            await self.stop()
+            raise
 
     async def stop(self) -> None:
         """Stop the code executor and disconnect from MCP servers.
@@ -282,7 +392,21 @@ class Agent:
         """
         self._tool_definitions = []
         self._tool_servers = {}
-        await self._exit_stack.aclose()
+
+        resource_supervisors = self._resource_supervisors
+        self._resource_supervisors = []
+        if not resource_supervisors:
+            return
+
+        results = await asyncio.gather(
+            *(supervisor.stop() for supervisor in resource_supervisors),
+            return_exceptions=True,
+        )
+        errors = [result for result in results if isinstance(result, Exception)]
+        if errors:
+            if len(errors) == 1:
+                raise errors[0]
+            raise ExceptionGroup("Multiple errors while stopping agent resources", errors)
 
     def _create_model_request(self, user_prompt: str | Sequence[UserContent]) -> ModelRequest:
         parts: list[SystemPromptPart | UserPromptPart] = []
@@ -297,16 +421,7 @@ class Agent:
         self,
         prompt: str | Sequence[UserContent],
         max_turns: int | None = None,
-    ) -> AsyncIterator[
-        ApprovalRequest
-        | ToolOutput
-        | CodeExecutionOutputChunk
-        | CodeExecutionOutput
-        | ThoughtsChunk
-        | Thoughts
-        | ResponseChunk
-        | Response
-    ]:
+    ) -> AsyncIterator[AgentEvent]:
         """Run a full agentic turn, yielding events as they occur.
 
         Loops through model responses and tool executions until the model
@@ -396,19 +511,7 @@ class Agent:
             if max_turns is not None and turn >= max_turns:
                 return
 
-    async def _execute_tool(
-        self, call: ToolCallPart
-    ) -> AsyncIterator[
-        ApprovalRequest
-        | CodeExecutionOutputChunk
-        | CodeExecutionOutput
-        | ToolOutput
-        | ResponseChunk
-        | Response
-        | ThoughtsChunk
-        | Thoughts
-        | ToolReturnPart
-    ]:
+    async def _execute_tool(self, call: ToolCallPart) -> AsyncIterator[AgentEvent | ToolReturnPart]:
         tool_name = call.tool_name
         tool_args = call.args_as_dict()
 
@@ -446,7 +549,7 @@ class Agent:
                     case "task":
                         async for task_event in self._execute_task(
                             prompt=tool_args["prompt"],
-                            max_turns=tool_args.get("max_turns", 10),
+                            max_turns=tool_args.get("max_turns", 25),
                         ):
                             yield task_event
                             match task_event:
@@ -463,78 +566,35 @@ class Agent:
             metadata={"rejected": rejected},
         )
 
-    async def _execute_task(
-        self, prompt: str, max_turns: int
-    ) -> AsyncIterator[
-        ApprovalRequest
-        | CodeExecutionOutputChunk
-        | CodeExecutionOutput
-        | ToolOutput
-        | ResponseChunk
-        | Response
-        | ThoughtsChunk
-        | Thoughts
-    ]:
+    async def _execute_task(self, prompt: str, max_turns: int) -> AsyncIterator[AgentEvent]:
         mcp_servers = self._mcp_server_factory() if self._mcp_server_factory else {}
         subagent = Agent(
             model=self.model,
             model_settings=self.model_settings,
             system_prompt=self._system_prompt,
             mcp_servers=mcp_servers,
+            kernel_env=dict(self._kernel_env),
+            sandbox=self._sandbox,
+            sandbox_config=self._sandbox_config,
+            images_dir=self._images_dir,
             execution_timeout=self._execution_timeout,
+            approval_timeout=self._approval_timeout,
             _include_task_tool=False,
         )
-
-        # Run the subagent in its own task so that async context managers
-        # (MCP servers, code executor) enter and exit cancel scopes in the
-        # same task. Without this, aiostream.merge may clean up the async
-        # generator from a different task, causing anyio cancel-scope errors.
-        _TaskEvent = (
-            ApprovalRequest
-            | CodeExecutionOutputChunk
-            | CodeExecutionOutput
-            | ToolOutput
-            | ResponseChunk
-            | Response
-            | ThoughtsChunk
-            | Thoughts
-        )
-        queue: asyncio.Queue[_TaskEvent | Exception | None] = asyncio.Queue()
-
-        async def run_subagent() -> None:
-            try:
-                async with self._subagent_semaphore:
-                    async with subagent:
-                        async for event in subagent.stream(prompt, max_turns=max_turns):
-                            await queue.put(event)
-            except Exception as e:
-                queue.put_nowait(e)
-            finally:
-                queue.put_nowait(None)
-
-        task = asyncio.create_task(run_subagent())
+        runner = _SubagentRunner(subagent=subagent, semaphore=self._subagent_semaphore)
 
         last_response = ""
         try:
-            while True:
-                item = await queue.get()
-                if item is None:
-                    break
-                if isinstance(item, Exception):
-                    yield ToolOutput(content=f"Subagent error: {item}", agent_id=self.agent_id)
-                    return
+            async for item in runner.stream(prompt, max_turns=max_turns):
                 yield item
                 match item:
                     case Response(content=content):
                         last_response = content
-            yield ToolOutput(content=last_response, agent_id=self.agent_id)
-        finally:
-            if not task.done():
-                task.cancel()
-                try:
-                    await task
-                except asyncio.CancelledError:
-                    pass
+        except Exception as e:
+            yield ToolOutput(content=f"Subagent error: {e}", agent_id=self.agent_id)
+            return
+
+        yield ToolOutput(content=last_response, agent_id=self.agent_id)
 
     async def _ipybox_execute_ipython_cell(
         self, code: str
