@@ -80,7 +80,7 @@ All tool executions require approval. `Agent.stream()` yields `ApprovalRequest` 
 
 - **Unit tests** (`tests/unit/`): Use `FunctionModel(stream_function=...)` for test models. Stream functions receive `(messages, info)` where `info.function_tools` contains available tools.
 - **`patched_agent`** (`tests/conftest.py`): Creates an agent with mocked code executor. Use for unit tests that don't need real kernel execution.
-- **`unpatched_agent`** (`tests/integration/test_subagents.py`): Creates an agent with real ipybox kernel. Subagent tests must use this since subagents always start real kernels.
+- **`unpatched_agent`** (defined locally in integration test files): Creates an agent with real ipybox kernel. Subagent tests must use this since subagents always start real kernels.
 - **`collect_stream()`**: Helper that consumes `agent.stream()`, auto-approves via `approve_function`, and collects events into `StreamResults`.
 - **`get_tool_return_parts(messages)`**: Detects post-tool-execution model calls (messages ending with `ToolReturnPart`).
 - **Distinguishing parent vs subagent** in shared stream functions: Check `"subagent_task" in [t.name for t in info.function_tools]`. Parent has it, subagent does not.

@@ -65,7 +65,7 @@ All yielded events inherit from [`AgentEvent`][freeact.agent.AgentEvent] and car
 
 ### Turn limits
 
-Use `max_turns` to limit the number of model requests before the stream stops:
+Use `max_turns` to limit the number of tool-execution rounds before the stream stops:
 
 ```python
 async for event in agent.stream(prompt, max_turns=50):
