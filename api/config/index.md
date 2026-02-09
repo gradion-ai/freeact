@@ -26,6 +26,14 @@ Attributes:
 | `mcp_servers`     |      | MCPServer instances used for JSON tool calling.            |
 | `ptc_servers`     |      | Raw PTC server configs for programmatic tool generation.   |
 
+### create_mcp_servers
+
+```
+create_mcp_servers() -> dict[str, MCPServer]
+```
+
+Load and instantiate MCP servers.
+
 ## freeact.agent.config.SkillMetadata
 
 ```

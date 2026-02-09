@@ -1312,10 +1312,11 @@ uvx<span class="w"> </span>freeact
             <span class="k">await</span> <span class="n">generate_mcp_sources</span><span class="p">({</span><span class="n">server_name</span><span class="p">:</span> <span class="n">params</span><span class="p">})</span>
 
     <span class="k">async</span> <span class="k">with</span> <span class="n">Agent</span><span class="p">(</span>
+        <span class="s2">&quot;main&quot;</span><span class="p">,</span>
         <span class="n">model</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
         <span class="n">model_settings</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">model_settings</span><span class="p">,</span>
         <span class="n">system_prompt</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">system_prompt</span><span class="p">,</span>
-        <span class="n">mcp_servers</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">mcp_servers</span><span class="p">,</span>
+        <span class="n">mcp_server_factory</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">create_mcp_servers</span><span class="p">,</span>
     <span class="p">)</span> <span class="k">as</span> <span class="n">agent</span><span class="p">:</span>
         <span class="n">prompt</span> <span class="o">=</span> <span class="s2">&quot;Who is the F1 world champion 2025?&quot;</span>
 

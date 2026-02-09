@@ -78,10 +78,11 @@ async def main() -> None:
             await generate_mcp_sources({server_name: params})
 
     async with Agent(
+        "main",
         model=config.model,
         model_settings=config.model_settings,
         system_prompt=config.system_prompt,
-        mcp_servers=config.mcp_servers,
+        mcp_server_factory=config.create_mcp_servers,
     ) as agent:
         prompt = "Who is the F1 world champion 2025?"
 

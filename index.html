@@ -1234,6 +1234,10 @@
 <td>Code actions, programmatic tool calls, and JSON-based tool calls all require approval before proceeding. <a href="sdk/#approval">Unified approval</a> ensures every action can be inspected and gated with a uniform interface regardless of how it originates.</td>
 </tr>
 <tr>
+<td><strong>Subagent delegation</strong></td>
+<td>Agents can <a href="sdk/#subagents">delegate subtasks</a> to child agents that run with their own kernel and context. Parent and child share the same event stream and <a href="sdk/#approval">approval flow</a>.</td>
+</tr>
+<tr>
 <td><strong>Python ecosystem</strong></td>
 <td>Agents can use any Python package available in the execution environment, from data processing with <code>pandas</code> to visualization with <code>matplotlib</code> to HTTP requests with <code>httpx</code>. Many capabilities like data transformation or scientific computing don't need to be wrapped as tools when agents can <a href="examples/python-packages/">call libraries directly</a>.</td>
 </tr>

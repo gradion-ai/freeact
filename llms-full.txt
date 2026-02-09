@@ -41,6 +41,7 @@ Freeact combines the following elements into a coherent system:
 | **Progressive loading**       | Tool and skill information is [loaded in stages as needed](https://gradion-ai.github.io/freeact/quickstart/#running-a-task), rather than consuming context upfront. For tools: category names, tool names, and API definitions load progressively as needed. For skills: metadata loads at startup; full instructions load when triggered.                                                                                                   |
 | **Sandbox mode**              | Code actions execute locally in a stateful IPython kernel via ipybox. [Sandbox mode](https://gradion-ai.github.io/freeact/sandbox/index.md) restricts filesystem and network access for executed code ([example](https://gradion-ai.github.io/freeact/examples/sandbox-mode/index.md)). Stdio MCP servers can be sandboxed independently.                                                                                                    |
 | **Unified approval**          | Code actions, programmatic tool calls, and JSON-based tool calls all require approval before proceeding. [Unified approval](https://gradion-ai.github.io/freeact/sdk/#approval) ensures every action can be inspected and gated with a uniform interface regardless of how it originates.                                                                                                                                                    |
+| **Subagent delegation**       | Agents can [delegate subtasks](https://gradion-ai.github.io/freeact/sdk/#subagents) to child agents that run with their own kernel and context. Parent and child share the same event stream and [approval flow](https://gradion-ai.github.io/freeact/sdk/#approval).                                                                                                                                                                        |
 | **Python ecosystem**          | Agents can use any Python package available in the execution environment, from data processing with `pandas` to visualization with `matplotlib` to HTTP requests with `httpx`. Many capabilities like data transformation or scientific computing don't need to be wrapped as tools when agents can [call libraries directly](https://gradion-ai.github.io/freeact/examples/python-packages/index.md).                                       |
 
 ## Beyond task execution
@@ -221,10 +222,11 @@ async def main() -> None:
             await generate_mcp_sources({server_name: params})
 
     async with Agent(
+        "main",
         model=config.model,
         model_settings=config.model_settings,
         system_prompt=config.system_prompt,
-        mcp_servers=config.mcp_servers,
+        mcp_server_factory=config.create_mcp_servers,
     ) as agent:
         prompt = "Who is the F1 world champion 2025?"
 
@@ -397,7 +399,7 @@ Set `PYTOOLS_EMBEDDING_MODEL=test` to use a test embedder that generates determi
 
 ## System Prompt
 
-The system prompt template is stored in `.freeact/prompts/system.md`. The template used depends on the [`--tool-search`](https://gradion-ai.github.io/freeact/cli/#hybrid-search) mode:
+The system prompt template is stored in `.freeact/prompts/`. The template used depends on the [`--tool-search`](https://gradion-ai.github.io/freeact/cli/#hybrid-search) mode:
 
 | Mode     | Template           | Description                                                               |
 | -------- | ------------------ | ------------------------------------------------------------------------- |
@@ -509,6 +511,7 @@ The `sandbox` and `sandbox_config` parameters of the Agent constructor provide t
 from pathlib import Path
 
 agent = Agent(
+    "main",
     ...
     sandbox=True,
     sandbox_config=Path("sandbox-config.json"),
@@ -680,7 +683,7 @@ result = run(Params(query="python async tutorial"))
 
 ## Agent API
 
-The Agent class implements the agentic code action loop, handling code action generation, code execution, tool calls, and the approval workflow. Each stream() call runs a single agent turn, with the agent managing conversation history across calls. Use `stream()` to iterate over [events](#events) and handle them with pattern matching:
+The Agent class implements the agentic code action loop, handling code action generation, code execution, tool calls, and the approval workflow. The constructor requires an agent ID as the first argument (for example `"main"` in apps using a single top-level agent). Each stream() call runs a single agent turn, with the agent managing conversation history across calls. Use `stream()` to iterate over [events](#events) and handle them with pattern matching:
 
 ```
 from freeact.agent import (
@@ -693,10 +696,11 @@ from freeact.agent import (
 )
 
 async with Agent(
+    "main",
     model=config.model,
     model_settings=config.model_settings,
     system_prompt=config.system_prompt,
-    mcp_servers=config.mcp_servers,
+    mcp_server_factory=config.create_mcp_servers,
 ) as agent:
     prompt = "Who is the F1 world champion 2025?"
 
@@ -734,7 +738,36 @@ The Agent.stream() method yields events as they occur:
 | ApprovalRequest          | Pending code action or tool call approval         |
 | CodeExecutionOutputChunk | Partial code execution output (content streaming) |
 | CodeExecutionOutput      | Complete code execution output                    |
-| ToolOutput               | JSON tool call output                             |
+| ToolOutput               | Tool or built-in operation output                 |
+
+All yielded events inherit from AgentEvent and carry `agent_id`.
+
+### Turn limits
+
+Use `max_turns` to limit the number of tool-execution rounds before the stream stops:
+
+```
+async for event in agent.stream(prompt, max_turns=50):
+    ...
+```
+
+If `max_turns=None` (default), the loop continues until the model produces a final response.
+
+### Subagents
+
+The built-in `subagent_task` tool delegates a subtask to a child agent with a fresh IPython kernel and fresh MCP server connections. The child inherits model, system prompt, and sandbox settings from the parent. Its events flow through the parent's stream using the same [approval](#approval) mechanism, with `agent_id` identifying the source:
+
+```
+async for event in agent.stream(prompt):
+    match event:
+        case ApprovalRequest(agent_id=agent_id) as request:
+            print(f"[{agent_id}] Approve {request.tool_name}?")
+            request.approve(True)
+        case Response(content=content, agent_id=agent_id):
+            print(f"[{agent_id}] {content}")
+```
+
+Subagent IDs use the form `sub-xxxx`. Each delegated task defaults to `max_turns=100`. Use `max_subagents` on the parent to limit concurrent subagents (default 5).
 
 ### Approval
 
@@ -761,10 +794,10 @@ For code actions, `tool_name` is `ipybox_execute_ipython_cell` and `tool_args` c
 
 ### Lifecycle
 
-The agent manages MCP server connections and an IPython kernel via [ipybox](https://gradion-ai.github.io/ipybox/). On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calling connect. MCP servers configured for programmatic tool calling connect lazily on first tool call.
+The agent manages MCP server connections and an IPython kernel via [ipybox](https://gradion-ai.github.io/ipybox/). On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calling connect. MCP servers configured for programmatic tool calling connect lazily on first tool call. When constructing agents directly, pass `mcp_server_factory` (a callable returning fresh MCP server instances) rather than pre-instantiated server objects.
 
 ```
-async with Agent(...) as agent:
+async with Agent("main", ...) as agent:
     async for event in agent.stream(prompt):
         ...
 # Connections closed, kernel stopped
@@ -773,7 +806,7 @@ async with Agent(...) as agent:
 Without using the async context manager:
 
 ```
-agent = Agent(...)
+agent = Agent("main", ...)
 await agent.start()
 try:
     async for event in agent.stream(prompt):
@@ -791,6 +824,7 @@ The agent supports two timeout configurations:
 
 ```
 agent = Agent(
+    "main",
     model="anthropic:claude-sonnet-4-20250514",
     model_settings=model_settings,
     system_prompt=config.system_prompt,
@@ -940,16 +974,21 @@ See [Permissions API](https://gradion-ai.github.io/freeact/sdk/#permissions-api)
 
 ```
 Agent(
+    id: str,
     model: str | Model,
     model_settings: ModelSettings,
     system_prompt: str,
-    mcp_servers: dict[str, MCPServer] | None = None,
+    mcp_server_factory: (
+        Callable[[], dict[str, MCPServer]] | None
+    ) = None,
     kernel_env: dict[str, str] | None = None,
     sandbox: bool = False,
     sandbox_config: Path | None = None,
     images_dir: Path | None = None,
     execution_timeout: float | None = 300,
     approval_timeout: float | None = None,
+    max_subagents: int = 5,
+    _include_subagent_task_tool: bool = True,
 )
 ```
 
@@ -968,18 +1007,21 @@ Initialize the agent.
 
 Parameters:
 
-| Name                | Type                   | Description                                      | Default                                                                                                                                                                                            |
-| ------------------- | ---------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `model`             | \`str                  | Model\`                                          | LLM model identifier or pydantic-ai Model instance.                                                                                                                                                |
-| `model_settings`    | `ModelSettings`        | Temperature, max tokens, and other model params. | *required*                                                                                                                                                                                         |
-| `system_prompt`     | `str`                  | Instructions defining agent behavior.            | *required*                                                                                                                                                                                         |
-| `mcp_servers`       | \`dict[str, MCPServer] | None\`                                           | Named MCP servers for JSON-based tool calls.                                                                                                                                                       |
-| `kernel_env`        | \`dict[str, str]       | None\`                                           | Environment variables passed to the IPython kernel.                                                                                                                                                |
-| `sandbox`           | `bool`                 | Run the kernel in sandbox mode.                  | `False`                                                                                                                                                                                            |
-| `sandbox_config`    | \`Path                 | None\`                                           | Path to custom sandbox configuration.                                                                                                                                                              |
-| `images_dir`        | \`Path                 | None\`                                           | Directory for saving generated images.                                                                                                                                                             |
-| `execution_timeout` | \`float                | None\`                                           | Maximum time in seconds for code execution. Approval wait time is excluded from this timeout budget. If None, no timeout is applied. Defaults to 300 seconds.                                      |
-| `approval_timeout`  | \`float                | None\`                                           | Timeout in seconds for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. If None, no timeout is applied. |
+| Name                          | Type                                   | Description                                                                                                      | Default                                                                                                                                                                                            |
+| ----------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                          | `str`                                  | Identifier for this agent instance.                                                                              | *required*                                                                                                                                                                                         |
+| `model`                       | \`str                                  | Model\`                                                                                                          | LLM model identifier or pydantic-ai Model instance.                                                                                                                                                |
+| `model_settings`              | `ModelSettings`                        | Temperature, max tokens, and other model params.                                                                 | *required*                                                                                                                                                                                         |
+| `system_prompt`               | `str`                                  | Instructions defining agent behavior.                                                                            | *required*                                                                                                                                                                                         |
+| `mcp_server_factory`          | \`Callable\[[], dict[str, MCPServer]\] | None\`                                                                                                           | Factory function that creates fresh MCP server connections for each agent instance. Subagents get their own connections by using the same factory.                                                 |
+| `kernel_env`                  | \`dict[str, str]                       | None\`                                                                                                           | Environment variables passed to the IPython kernel.                                                                                                                                                |
+| `sandbox`                     | `bool`                                 | Run the kernel in sandbox mode.                                                                                  | `False`                                                                                                                                                                                            |
+| `sandbox_config`              | \`Path                                 | None\`                                                                                                           | Path to custom sandbox configuration.                                                                                                                                                              |
+| `images_dir`                  | \`Path                                 | None\`                                                                                                           | Directory for saving generated images.                                                                                                                                                             |
+| `execution_timeout`           | \`float                                | None\`                                                                                                           | Maximum time in seconds for code execution. Approval wait time is excluded from this timeout budget. If None, no timeout is applied. Defaults to 300 seconds.                                      |
+| `approval_timeout`            | \`float                                | None\`                                                                                                           | Timeout in seconds for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. If None, no timeout is applied. |
+| `max_subagents`               | `int`                                  | Maximum number of concurrent subagents. Defaults to 5.                                                           | `5`                                                                                                                                                                                                |
+| `_include_subagent_task_tool` | `bool`                                 | Whether to include the subagent task tool for spawning subagents. Set to False for subagents to prevent nesting. | `True`                                                                                                                                                                                             |
 
 ### start
 
@@ -1006,16 +1048,8 @@ Automatically called when exiting the async context manager.
 ```
 stream(
     prompt: str | Sequence[UserContent],
-) -> AsyncIterator[
-    ApprovalRequest
-    | ToolOutput
-    | CodeExecutionOutputChunk
-    | CodeExecutionOutput
-    | ThoughtsChunk
-    | Thoughts
-    | ResponseChunk
-    | Response
-]
+    max_turns: int | None = None,
+) -> AsyncIterator[AgentEvent]
 ```
 
 Run a full agentic turn, yielding events as they occur.
@@ -1024,15 +1058,26 @@ Loops through model responses and tool executions until the model produces a res
 
 Parameters:
 
-| Name     | Type  | Description             | Default                                              |
-| -------- | ----- | ----------------------- | ---------------------------------------------------- |
-| `prompt` | \`str | Sequence[UserContent]\` | User message as text or multimodal content sequence. |
+| Name        | Type  | Description             | Default                                                                                                                                                         |
+| ----------- | ----- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `prompt`    | \`str | Sequence[UserContent]\` | User message as text or multimodal content sequence.                                                                                                            |
+| `max_turns` | \`int | None\`                  | Maximum number of tool-execution rounds. Each round consists of a model response followed by tool execution. If None, runs until the model stops calling tools. |
 
 Returns:
 
-| Type                             | Description |
-| -------------------------------- | ----------- |
-| \`AsyncIterator\[ApprovalRequest | ToolOutput  |
+| Type                        | Description              |
+| --------------------------- | ------------------------ |
+| `AsyncIterator[AgentEvent]` | An async event iterator. |
+
+## freeact.agent.AgentEvent
+
+```
+AgentEvent(*, agent_id: str = '')
+```
+
+Base class for all agent stream events.
+
+Carries the `agent_id` of the agent that produced the event, allowing callers to distinguish events from a parent agent vs. its subagents.
 
 ## freeact.agent.ApprovalRequest
 
@@ -1041,8 +1086,12 @@ ApprovalRequest(
     tool_name: str,
     tool_args: dict[str, Any],
     _future: Future[bool] = Future(),
+    *,
+    agent_id: str = ""
 )
 ```
+
+Bases: `AgentEvent`
 
 Pending tool execution awaiting user approval.
 
@@ -1073,58 +1122,77 @@ Await until `approve()` is called and return the decision.
 ## freeact.agent.Response
 
 ```
-Response(content: str)
+Response(content: str, *, agent_id: str = '')
 ```
+
+Bases: `AgentEvent`
 
 Complete model text response after streaming finishes.
 
 ## freeact.agent.ResponseChunk
 
 ```
-ResponseChunk(content: str)
+ResponseChunk(content: str, *, agent_id: str = '')
 ```
+
+Bases: `AgentEvent`
 
 Partial text from an in-progress model response.
 
 ## freeact.agent.Thoughts
 
 ```
-Thoughts(content: str)
+Thoughts(content: str, *, agent_id: str = '')
 ```
+
+Bases: `AgentEvent`
 
 Complete model thoughts after streaming finishes.
 
 ## freeact.agent.ThoughtsChunk
 
 ```
-ThoughtsChunk(content: str)
+ThoughtsChunk(content: str, *, agent_id: str = '')
 ```
+
+Bases: `AgentEvent`
 
 Partial text from model's extended thinking.
 
 ## freeact.agent.CodeExecutionOutput
 
 ```
-CodeExecutionOutput(text: str | None, images: list[Path])
+CodeExecutionOutput(
+    text: str | None,
+    images: list[Path],
+    *,
+    agent_id: str = ""
+)
 ```
+
+Bases: `AgentEvent`
 
 Complete result from Python code execution in the ipybox kernel.
 
 ## freeact.agent.CodeExecutionOutputChunk
 
 ```
-CodeExecutionOutputChunk(text: str)
+CodeExecutionOutputChunk(text: str, *, agent_id: str = '')
 ```
+
+Bases: `AgentEvent`
 
 Partial output from an in-progress code execution.
 
 ## freeact.agent.ToolOutput
 
 ```
-ToolOutput(content: ToolResult)
+ToolOutput(content: ToolResult, *, agent_id: str = '')
 ```
 
-Result from a JSON-based MCP tool call.
+Bases: `AgentEvent`
+
+Result from a tool or built-in agent operation.
 
 ## freeact.agent.config.Config
 
@@ -1153,6 +1221,14 @@ Attributes:
 | `system_prompt`   |      | Rendered system prompt from .freeact/prompts/system.md.    |
 | `mcp_servers`     |      | MCPServer instances used for JSON tool calling.            |
 | `ptc_servers`     |      | Raw PTC server configs for programmatic tool generation.   |
+
+### create_mcp_servers
+
+```
+create_mcp_servers() -> dict[str, MCPServer]
+```
+
+Load and instantiate MCP servers.
 
 ## freeact.agent.config.SkillMetadata
 

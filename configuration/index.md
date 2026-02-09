@@ -144,7 +144,7 @@ Set `PYTOOLS_EMBEDDING_MODEL=test` to use a test embedder that generates determi
 
 ## System Prompt
 
-The system prompt template is stored in `.freeact/prompts/system.md`. The template used depends on the [`--tool-search`](https://gradion-ai.github.io/freeact/cli/#hybrid-search) mode:
+The system prompt template is stored in `.freeact/prompts/`. The template used depends on the [`--tool-search`](https://gradion-ai.github.io/freeact/cli/#hybrid-search) mode:
 
 | Mode     | Template           | Description                                                               |
 | -------- | ------------------ | ------------------------------------------------------------------------- |
