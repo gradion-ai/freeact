@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import re
 from asyncio import Future
 from collections.abc import Sequence
@@ -202,9 +203,15 @@ class Agent:
         self._tool_servers: dict[str, MCPServer] = {}
         self._tool_definitions: list[ToolDefinition] = []
 
+        _kernel_env = dict(kernel_env) if kernel_env else {}
+        if "HOME" not in _kernel_env:
+            home = os.environ.get("HOME")
+            if home:
+                _kernel_env["HOME"] = home
+
         self._code_executor_lock = asyncio.Lock()
         self._code_executor = ipybox.CodeExecutor(
-            kernel_env=kernel_env,
+            kernel_env=_kernel_env,
             sandbox=sandbox,
             sandbox_config=sandbox_config,
             images_dir=images_dir,

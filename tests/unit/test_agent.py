@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
@@ -281,3 +282,70 @@ class TestTimeoutParameters:
             )
             call_kwargs = mock_executor.call_args.kwargs
             assert call_kwargs["approval_timeout"] is None
+
+
+class TestKernelEnvHome:
+    """Tests for default HOME environment variable in kernel_env."""
+
+    def test_default_home_env_var(self):
+        """HOME from os.environ is added to kernel_env when not provided."""
+        with (
+            patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor,
+            patch.dict(os.environ, {"HOME": "/home/testuser"}),
+        ):
+            mock_executor.return_value = MagicMock()
+            Agent(
+                model="test",
+                model_settings={},
+                system_prompt="test",
+            )
+            call_kwargs = mock_executor.call_args.kwargs
+            assert call_kwargs["kernel_env"]["HOME"] == "/home/testuser"
+
+    def test_home_env_var_not_overridden(self):
+        """Caller-provided HOME in kernel_env is not overwritten."""
+        with (
+            patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor,
+            patch.dict(os.environ, {"HOME": "/home/testuser"}),
+        ):
+            mock_executor.return_value = MagicMock()
+            Agent(
+                model="test",
+                model_settings={},
+                system_prompt="test",
+                kernel_env={"HOME": "/custom/home"},
+            )
+            call_kwargs = mock_executor.call_args.kwargs
+            assert call_kwargs["kernel_env"]["HOME"] == "/custom/home"
+
+    def test_home_env_var_with_existing_env(self):
+        """HOME is added alongside other kernel_env vars."""
+        with (
+            patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor,
+            patch.dict(os.environ, {"HOME": "/home/testuser"}),
+        ):
+            mock_executor.return_value = MagicMock()
+            Agent(
+                model="test",
+                model_settings={},
+                system_prompt="test",
+                kernel_env={"OTHER": "value"},
+            )
+            call_kwargs = mock_executor.call_args.kwargs
+            assert call_kwargs["kernel_env"]["HOME"] == "/home/testuser"
+            assert call_kwargs["kernel_env"]["OTHER"] == "value"
+
+    def test_home_env_var_missing_from_environ(self):
+        """HOME is not added when it is not in os.environ."""
+        with (
+            patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor,
+            patch.dict(os.environ, {}, clear=True),
+        ):
+            mock_executor.return_value = MagicMock()
+            Agent(
+                model="test",
+                model_settings={},
+                system_prompt="test",
+            )
+            call_kwargs = mock_executor.call_args.kwargs
+            assert "HOME" not in call_kwargs["kernel_env"]
