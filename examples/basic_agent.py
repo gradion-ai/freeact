@@ -40,6 +40,7 @@ async def main() -> None:
 
     # --8<-- [start:agent]
     async with Agent(
+        "main",
         model=config.model,
         model_settings=config.model_settings,
         system_prompt=config.system_prompt,

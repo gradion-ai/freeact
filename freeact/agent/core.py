@@ -261,6 +261,7 @@ class Agent:
 
     def __init__(
         self,
+        id: str,
         model: str | Model,
         model_settings: ModelSettings,
         system_prompt: str,
@@ -277,6 +278,7 @@ class Agent:
         """Initialize the agent.
 
         Args:
+            id: Identifier for this agent instance.
             model: LLM model identifier or pydantic-ai Model instance.
             model_settings: Temperature, max tokens, and other model params.
             system_prompt: Instructions defining agent behavior.
@@ -299,7 +301,7 @@ class Agent:
                 tool for spawning subagents. Set to False for subagents to
                 prevent nesting.
         """
-        self.agent_id = f"agent-{uuid.uuid4().hex[:4]}"
+        self.agent_id = id
         self.model = model
         self.model_settings = model_settings
 
@@ -515,6 +517,7 @@ class Agent:
                 break  # end of agent turn
 
             turn += 1
+
             if max_turns is not None and turn >= max_turns:
                 return
 
@@ -575,6 +578,7 @@ class Agent:
 
     async def _execute_subagent_task(self, prompt: str, max_turns: int) -> AsyncIterator[AgentEvent]:
         subagent = Agent(
+            f"sub-{uuid.uuid4().hex[:4]}",
             model=self.model,
             model_settings=self.model_settings,
             system_prompt=self._system_prompt,

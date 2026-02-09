@@ -137,6 +137,7 @@ async def run(namespace: argparse.Namespace) -> None:
 
     config: Config = await arun(create_config, namespace)
     agent = Agent(
+        "main",
         model=config.model,
         model_settings=config.model_settings,
         system_prompt=config.system_prompt,

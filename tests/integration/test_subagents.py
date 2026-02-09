@@ -17,9 +17,10 @@ from tests.conftest import (
 
 
 @asynccontextmanager
-async def unpatched_agent(stream_function):
+async def unpatched_agent(stream_function, agent_id: str = "main"):
     """Context manager for an agent with real code executor."""
     agent = Agent(
+        agent_id,
         model=FunctionModel(stream_function=stream_function),
         model_settings={},
         system_prompt="Test system prompt",
@@ -38,24 +39,24 @@ class TestAgentIdentity:
 
     @pytest.mark.asyncio
     async def test_agent_has_id(self):
-        """Agent gets an auto-generated ID starting with 'agent-'."""
+        """Agent keeps the caller-provided ID."""
 
         async def noop(messages: list[ModelMessage], info: AgentInfo) -> AsyncIterator[str]:
             yield "hello"
 
         async with unpatched_agent(noop) as agent:
             assert hasattr(agent, "agent_id")
-            assert agent.agent_id.startswith("agent-")
+            assert agent.agent_id == "main"
 
     @pytest.mark.asyncio
     async def test_two_agents_have_different_ids(self):
-        """Two agents get distinct IDs."""
+        """Two agents with different constructor IDs keep distinct IDs."""
 
         async def noop(messages: list[ModelMessage], info: AgentInfo) -> AsyncIterator[str]:
             yield "hello"
 
-        async with unpatched_agent(noop) as agent1:
-            async with unpatched_agent(noop) as agent2:
+        async with unpatched_agent(noop, agent_id="main-1") as agent1:
+            async with unpatched_agent(noop, agent_id="main-2") as agent2:
                 assert agent1.agent_id != agent2.agent_id
 
     @pytest.mark.asyncio
@@ -184,6 +185,7 @@ class TestTaskExecution:
             # Should have at least two distinct agent IDs (parent + subagent)
             assert len(agent_ids) >= 2
             assert parent_id in agent_ids
+            assert any(aid.startswith("sub-") for aid in agent_ids if aid != parent_id)
 
             # Subagent response events should carry a different ID
             subagent_responses = [
