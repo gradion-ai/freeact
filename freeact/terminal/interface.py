@@ -99,11 +99,11 @@ class Terminal:
                 case ApprovalRequest() as request:
                     await self._handle_approval(request)
 
-                case CodeExecutionOutput(agent_id=aid, text=text, images=images) if aid == self._main_agent_id:
+                case CodeExecutionOutput(agent_id=aid, text=text, images=images):  # if aid == self._main_agent_id:
                     self._display.show_exec_output_header(aid)
                     self._display.show_exec_output(text, images)
 
-                case ToolOutput(agent_id=aid, content=content) if aid == self._main_agent_id:
+                case ToolOutput(agent_id=aid, content=content):  # if aid == self._main_agent_id:
                     self._display.show_tool_output_header(aid)
                     self._display.show_tool_output(str(content))
 

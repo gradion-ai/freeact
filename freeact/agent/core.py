@@ -83,7 +83,7 @@ class Thoughts(AgentEvent):
 
 @dataclass
 class ToolOutput(AgentEvent):
-    """Result from a JSON-based MCP tool call."""
+    """Result from a tool or built-in agent operation."""
 
     content: ToolResult
 

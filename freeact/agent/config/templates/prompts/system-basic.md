@@ -31,6 +31,12 @@ You are restricted to these tools only:
 
 - Use only for reading and writing files
 
+### `subagent_task` Tool
+
+- Use `subagent_task` tool to spawn subagents.
+- A subagent has the same capabilities as you have.
+- Rely on the subagent to select tools and execute code to accomplish its task.
+
 ### Shell Commands
 
 - Prefer shell commands for directory operations (listing, finding files, ...) and system tasks (git, uv pip, ...)
