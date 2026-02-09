@@ -24,6 +24,7 @@ Freeact combines the following elements into a coherent system:
 | **Progressive loading** | Tool and skill information is [loaded in stages as needed](quickstart.md#running-a-task), rather than consuming context upfront. For tools: category names, tool names, and API definitions load progressively as needed. For skills: metadata loads at startup; full instructions load when triggered. |
 | **Sandbox mode** | Code actions execute locally in a stateful IPython kernel via ipybox. [Sandbox mode](sandbox.md) restricts filesystem and network access for executed code ([example](examples/sandbox-mode.md)). Stdio MCP servers can be sandboxed independently. |
 | **Unified approval** | Code actions, programmatic tool calls, and JSON-based tool calls all require approval before proceeding. [Unified approval](sdk.md#approval) ensures every action can be inspected and gated with a uniform interface regardless of how it originates. |
+| **Subagent delegation** | Agents can [delegate subtasks](sdk.md#subagent-tasks) to child agents that run with their own kernel and context. Parent and child share the same event stream and [approval flow](sdk.md#approval). |
 | **Python ecosystem** | Agents can use any Python package available in the execution environment, from data processing with `pandas` to visualization with `matplotlib` to HTTP requests with `httpx`. Many capabilities like data transformation or scientific computing don't need to be wrapped as tools when agents can [call libraries directly](examples/python-packages.md). |
 
 ## Beyond task execution
