@@ -142,7 +142,7 @@ The default embedding model requires `GEMINI_API_KEY` to be set. To use a differ
 
 ## System Prompt
 
-The system prompt template is stored in `.freeact/prompts/system.md`. The template used depends on the [`--tool-search`](cli.md#hybrid-search) mode:
+The system prompt template is stored in `.freeact/prompts/`. The template used depends on the [`--tool-search`](cli.md#hybrid-search) mode:
 
 | Mode | Template | Description |
 |------|----------|-------------|

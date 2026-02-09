@@ -3,6 +3,8 @@
       filters:
         - "!^tool_names$"
 
+::: freeact.agent.AgentEvent
+
 ::: freeact.agent.ApprovalRequest
 
 ::: freeact.agent.Response

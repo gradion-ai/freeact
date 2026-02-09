@@ -229,6 +229,7 @@ class TestTimeoutParameters:
         """Default execution_timeout is 300 seconds."""
         with patch("freeact.agent.core.ipybox.CodeExecutor"):
             agent = Agent(
+                "main",
                 model="test",
                 model_settings={},
                 system_prompt="test",
@@ -239,6 +240,7 @@ class TestTimeoutParameters:
         """Custom execution_timeout is stored."""
         with patch("freeact.agent.core.ipybox.CodeExecutor"):
             agent = Agent(
+                "main",
                 model="test",
                 model_settings={},
                 system_prompt="test",
@@ -250,6 +252,7 @@ class TestTimeoutParameters:
         """None execution_timeout disables timeout."""
         with patch("freeact.agent.core.ipybox.CodeExecutor"):
             agent = Agent(
+                "main",
                 model="test",
                 model_settings={},
                 system_prompt="test",
@@ -262,6 +265,7 @@ class TestTimeoutParameters:
         with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
             mock_executor.return_value = MagicMock()
             Agent(
+                "main",
                 model="test",
                 model_settings={},
                 system_prompt="test",
@@ -276,6 +280,7 @@ class TestTimeoutParameters:
         with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
             mock_executor.return_value = MagicMock()
             Agent(
+                "main",
                 model="test",
                 model_settings={},
                 system_prompt="test",
@@ -295,6 +300,7 @@ class TestKernelEnvHome:
         ):
             mock_executor.return_value = MagicMock()
             Agent(
+                "main",
                 model="test",
                 model_settings={},
                 system_prompt="test",
@@ -310,6 +316,7 @@ class TestKernelEnvHome:
         ):
             mock_executor.return_value = MagicMock()
             Agent(
+                "main",
                 model="test",
                 model_settings={},
                 system_prompt="test",
@@ -326,6 +333,7 @@ class TestKernelEnvHome:
         ):
             mock_executor.return_value = MagicMock()
             Agent(
+                "main",
                 model="test",
                 model_settings={},
                 system_prompt="test",
@@ -343,9 +351,62 @@ class TestKernelEnvHome:
         ):
             mock_executor.return_value = MagicMock()
             Agent(
+                "main",
                 model="test",
                 model_settings={},
                 system_prompt="test",
             )
             call_kwargs = mock_executor.call_args.kwargs
             assert "HOME" not in call_kwargs["kernel_env"]
+
+
+class TestSubagentConfigPropagation:
+    """Tests that subagents inherit parent runtime/safety configuration."""
+
+    @pytest.mark.asyncio
+    async def test_execute_subagent_task_propagates_runtime_and_safety_settings(self):
+        """_execute_subagent_task forwards parent execution config to spawned subagents."""
+        captured: dict[str, Any] = {}
+
+        class FakeSubagent:
+            def __init__(self, id: str, **kwargs: Any):
+                captured["id"] = id
+                captured.update(kwargs)
+                self.agent_id = id
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args: object) -> None:
+                return None
+
+            async def stream(self, prompt: str, max_turns: int | None = None):
+                from freeact.agent.core import Response
+
+                yield Response(content="done", agent_id=self.agent_id)
+
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            agent = Agent(
+                "main",
+                model="test",
+                model_settings={},
+                system_prompt="test",
+                kernel_env={"HOME": "/custom/home", "OTHER": "value"},
+                sandbox=True,
+                sandbox_config=Path("/tmp/sandbox.cfg"),
+                images_dir=Path("/tmp/images"),
+                approval_timeout=42,
+            )
+
+        with patch("freeact.agent.core.Agent", FakeSubagent):
+            events = [event async for event in agent._execute_subagent_task("subtask", max_turns=3)]
+
+        assert len(events) >= 1
+        assert captured["kernel_env"] == {"HOME": "/custom/home", "OTHER": "value"}
+        assert captured["kernel_env"] is not agent._kernel_env
+        assert captured["id"].startswith("sub-")
+        assert captured["sandbox"] is True
+        assert captured["sandbox_config"] == Path("/tmp/sandbox.cfg")
+        assert captured["images_dir"] == Path("/tmp/images")
+        assert captured["approval_timeout"] == 42

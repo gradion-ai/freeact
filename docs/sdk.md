@@ -37,7 +37,7 @@ result = run(Params(query="python async tutorial"))
 
 ## Agent API
 
-The [`Agent`][freeact.agent.Agent] class implements the agentic code action loop, handling code action generation, code execution, tool calls, and the approval workflow. Each [`stream()`][freeact.agent.Agent.stream] call runs a single agent turn, with the agent managing conversation history across calls. Use `stream()` to iterate over [events](#events) and handle them with pattern matching:
+The [`Agent`][freeact.agent.Agent] class implements the agentic code action loop, handling code action generation, code execution, tool calls, and the approval workflow. The constructor requires an agent ID as the first argument (for example `"main"` in apps using a single top-level agent). Each [`stream()`][freeact.agent.Agent.stream] call runs a single agent turn, with the agent managing conversation history across calls. Use `stream()` to iterate over [events](#events) and handle them with pattern matching:
 
 ```python
 --8<-- "examples/basic_agent.py:agent-imports"
@@ -59,7 +59,36 @@ The [`Agent.stream()`][freeact.agent.Agent.stream] method yields events as they 
 | [`ApprovalRequest`][freeact.agent.ApprovalRequest] | Pending code action or tool call approval |
 | [`CodeExecutionOutputChunk`][freeact.agent.CodeExecutionOutputChunk] | Partial code execution output (content streaming) |
 | [`CodeExecutionOutput`][freeact.agent.CodeExecutionOutput] | Complete code execution output |
-| [`ToolOutput`][freeact.agent.ToolOutput] | JSON tool call output |
+| [`ToolOutput`][freeact.agent.ToolOutput] | Tool or built-in operation output |
+
+All yielded events inherit from [`AgentEvent`][freeact.agent.AgentEvent] and carry `agent_id`.
+
+### Turn limits
+
+Use `max_turns` to limit the number of tool-execution rounds before the stream stops:
+
+```python
+async for event in agent.stream(prompt, max_turns=50):
+    ...
+```
+
+If `max_turns=None` (default), the loop continues until the model produces a final response.
+
+### Subagents
+
+The built-in `subagent_task` tool delegates a subtask to a child agent with a fresh IPython kernel and fresh MCP server connections. The child inherits model, system prompt, and sandbox settings from the parent. Its events flow through the parent's stream using the same [approval](#approval) mechanism, with `agent_id` identifying the source:
+
+```python
+async for event in agent.stream(prompt):
+    match event:
+        case ApprovalRequest(agent_id=agent_id) as request:
+            print(f"[{agent_id}] Approve {request.tool_name}?")
+            request.approve(True)
+        case Response(content=content, agent_id=agent_id):
+            print(f"[{agent_id}] {content}")
+```
+
+Subagent IDs use the form `sub-xxxx`. Each delegated task defaults to `max_turns=100`. Use `max_subagents` on the parent to limit concurrent subagents (default 5).
 
 ### Approval
 
@@ -86,10 +115,10 @@ async for event in agent.stream(prompt):
 
 ### Lifecycle
 
-The agent manages MCP server connections and an IPython kernel via [ipybox](https://gradion-ai.github.io/ipybox/). On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calling connect. MCP servers configured for programmatic tool calling connect lazily on first tool call.
+The agent manages MCP server connections and an IPython kernel via [ipybox](https://gradion-ai.github.io/ipybox/). On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calling connect. MCP servers configured for programmatic tool calling connect lazily on first tool call. When constructing agents directly, pass `mcp_server_factory` (a callable returning fresh MCP server instances) rather than pre-instantiated server objects.
 
 ```python
-async with Agent(...) as agent:
+async with Agent("main", ...) as agent:
     async for event in agent.stream(prompt):
         ...
 # Connections closed, kernel stopped
@@ -98,7 +127,7 @@ async with Agent(...) as agent:
 Without using the async context manager:
 
 ```python
-agent = Agent(...)
+agent = Agent("main", ...)
 await agent.start()
 try:
     async for event in agent.stream(prompt):
@@ -116,6 +145,7 @@ The agent supports two timeout configurations:
 
 ```python
 agent = Agent(
+    "main",
     model="anthropic:claude-sonnet-4-20250514",
     model_settings=model_settings,
     system_prompt=config.system_prompt,

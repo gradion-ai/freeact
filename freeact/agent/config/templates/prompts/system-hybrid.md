@@ -36,6 +36,12 @@ You must inspect the source code of these tools before using them in generated c
 
 - Use only for reading and writing files
 
+### `subagent_task` Tool
+
+- Use `subagent_task` tool to spawn subagents.
+- A subagent has the same capabilities as you have.
+- Rely on the subagent to select tools and execute code to accomplish its task.
+
 ### Shell Commands
 
 - Prefer shell commands for directory operations (listing, finding files, ...) and system tasks (git, uv pip, ...)

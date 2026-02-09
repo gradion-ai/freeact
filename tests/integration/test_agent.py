@@ -28,10 +28,10 @@ from tests.integration.mcp_server import STDIO_SERVER_PATH
 async def unpatched_agent(stream_function):
     """Context manager that creates and yields an agent with a real code executor."""
     agent = Agent(
+        "main",
         model=FunctionModel(stream_function=stream_function),
         model_settings={},
         system_prompt="Test system prompt",
-        mcp_servers={},
     )
     async with agent:
         yield agent
@@ -136,7 +136,7 @@ class TestMcpToolExecution:
             tool_args={"s": "hello"},
         )
 
-        async with patched_agent(stream_function, mcp_servers=mcp_servers) as agent:
+        async with patched_agent(stream_function, mcp_server_factory=lambda: mcp_servers) as agent:
             assert "test_tool-1" in agent.tool_names
             assert "test_tool_2" in agent.tool_names
             assert "test_tool_3" in agent.tool_names
@@ -154,7 +154,7 @@ class TestMcpToolExecution:
             tool_args={"s": "approved"},
         )
 
-        async with patched_agent(stream_function, mcp_servers=mcp_servers) as agent:
+        async with patched_agent(stream_function, mcp_server_factory=lambda: mcp_servers) as agent:
             results = await collect_stream(agent, "test prompt")
 
             assert len(results.approvals) == 1
@@ -171,7 +171,7 @@ class TestMcpToolExecution:
             tool_args={"s": "should not run"},
         )
 
-        async with patched_agent(stream_function, mcp_servers=mcp_servers) as agent:
+        async with patched_agent(stream_function, mcp_server_factory=lambda: mcp_servers) as agent:
             results = await collect_stream(agent, "test prompt", approve_function=lambda _: False)
 
             # ToolResult is not yielded if rejected
@@ -266,7 +266,7 @@ class TestMcpToolException:
             tool_args={"s": "test"},
         )
 
-        async with patched_agent(stream_function, mcp_servers=mcp_servers) as agent:
+        async with patched_agent(stream_function, mcp_server_factory=lambda: mcp_servers) as agent:
             # Mock direct_call_tool to raise an exception
             async def failing_call(*args, **kwargs):
                 raise RuntimeError("Connection failed")
@@ -383,6 +383,7 @@ class TestTimeouts:
         )
 
         agent = Agent(
+            "main",
             model=FunctionModel(stream_function=stream_function),
             model_settings={},
             system_prompt="Test system prompt",
@@ -417,6 +418,7 @@ tool_2.run(tool_2.Params(s="test"))
         # than the execution timeout. If approval wait counted toward timeout,
         # this would fail.
         agent = Agent(
+            "main",
             model=FunctionModel(stream_function=stream_function),
             model_settings={},
             system_prompt="Test system prompt",
@@ -465,6 +467,7 @@ tool_2.run(tool_2.Params(s="test"))
         )
 
         agent = Agent(
+            "main",
             model=FunctionModel(stream_function=stream_function),
             model_settings={},
             system_prompt="Test system prompt",
