@@ -76,7 +76,6 @@ async def patched_agent(
 ):
     """Context manager that creates and yields a patched agent with mocked code execution."""
     agent = Agent(
-        "main",
         model=FunctionModel(stream_function=stream_function),
         model_settings={},
         system_prompt="Test system prompt",

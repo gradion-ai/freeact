@@ -274,10 +274,10 @@ class Agent:
 
     def __init__(
         self,
-        id: str,
         model: str | Model,
         model_settings: ModelSettings,
         system_prompt: str,
+        agent_id: str = "main",
         mcp_servers: dict[str, dict[str, Any]] | None = None,
         kernel_env: dict[str, str] | None = None,
         sandbox: bool = False,
@@ -291,10 +291,10 @@ class Agent:
         """Initialize the agent.
 
         Args:
-            id: Identifier for this agent instance.
             model: LLM model identifier or pydantic-ai Model instance.
             model_settings: Temperature, max tokens, and other model params.
             system_prompt: Instructions defining agent behavior.
+            agent_id: Identifier for this agent instance. Defaults to ``"main"``.
             mcp_servers: Raw MCP server configurations. Each key is
                 a server name, each value is a config dict with `command` or
                 `url` and optional `excluded_tools`. Used during startup and
@@ -313,7 +313,7 @@ class Agent:
             enable_subagents: Whether to enable subagent delegation.
             max_subagents: Maximum number of concurrent subagents. Defaults to 5.
         """
-        self.agent_id = id
+        self.agent_id = agent_id
         self.model = model
         self.model_settings = model_settings
 
@@ -430,7 +430,6 @@ class Agent:
         self._mcp_server_instances = {}
 
     def _create_mcp_servers(self) -> dict[str, MCPServer]:
-        """Create MCP server instances from raw config."""
         if not self._mcp_servers:
             return {}
         servers: dict[str, MCPServer] = {}
@@ -613,10 +612,10 @@ class Agent:
 
     async def _execute_subagent_task(self, prompt: str, max_turns: int) -> AsyncIterator[AgentEvent]:
         subagent = Agent(
-            f"sub-{uuid.uuid4().hex[:4]}",
             model=self.model,
             model_settings=self.model_settings,
             system_prompt=self._system_prompt,
+            agent_id=f"sub-{uuid.uuid4().hex[:4]}",
             mcp_servers=self._mcp_servers,
             kernel_env=dict(self._kernel_env),
             sandbox=self._sandbox,

@@ -27,7 +27,6 @@ from tests.integration.mcp_server import STDIO_SERVER_PATH
 async def unpatched_agent(stream_function):
     """Context manager that creates and yields an agent with a real code executor."""
     agent = Agent(
-        "main",
         model=FunctionModel(stream_function=stream_function),
         model_settings={},
         system_prompt="Test system prompt",
@@ -382,7 +381,6 @@ class TestTimeouts:
         )
 
         agent = Agent(
-            "main",
             model=FunctionModel(stream_function=stream_function),
             model_settings={},
             system_prompt="Test system prompt",
@@ -417,7 +415,6 @@ tool_2.run(tool_2.Params(s="test"))
         # than the execution timeout. If approval wait counted toward timeout,
         # this would fail.
         agent = Agent(
-            "main",
             model=FunctionModel(stream_function=stream_function),
             model_settings={},
             system_prompt="Test system prompt",
@@ -466,7 +463,6 @@ tool_2.run(tool_2.Params(s="test"))
         )
 
         agent = Agent(
-            "main",
             model=FunctionModel(stream_function=stream_function),
             model_settings={},
             system_prompt="Test system prompt",

@@ -118,7 +118,7 @@ async for event in agent.stream(prompt):
 The agent manages MCP server connections and an IPython kernel via [ipybox](https://gradion-ai.github.io/ipybox/). On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calling connect. MCP servers configured for programmatic tool calling connect lazily on first tool call.
 
 ```python
-async with Agent("main", ...) as agent:
+async with Agent(...) as agent:
     async for event in agent.stream(prompt):
         ...
 # Connections closed, kernel stopped
@@ -127,7 +127,7 @@ async with Agent("main", ...) as agent:
 Without using the async context manager:
 
 ```python
-agent = Agent("main", ...)
+agent = Agent(...)
 await agent.start()
 try:
     async for event in agent.stream(prompt):
@@ -145,7 +145,6 @@ The agent supports two timeout configurations:
 
 ```python
 agent = Agent(
-    "main",
     model="anthropic:claude-sonnet-4-20250514",
     model_settings=model_settings,
     system_prompt=config.system_prompt,
