@@ -1,0 +1,11 @@
+{
+  "tool-search": "basic",
+  "mcp-servers": {},
+  "ptc-servers": {
+    "google": {
+      "command": "python",
+      "args": ["-m", "freeact.agent.tools.gsearch", "--thinking-level", "medium"],
+      "env": {"GEMINI_API_KEY": "${GEMINI_API_KEY}"}
+    }
+  }
+}

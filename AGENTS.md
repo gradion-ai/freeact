@@ -62,9 +62,9 @@ Subagents are spawned via the `subagent_task` JSON tool call:
 ### Tool System
 
 - **ipybox tools**: Tool definitions cached in `freeact/agent/tools/ipybox.json` and `subagent_task.json`. Loaded via `load_ipybox_tool_definitions()` and `load_subagent_task_tool_definitions()`.
-- **MCP servers** (`mcp-servers` in `servers.json`): Called directly via JSON tool calls. Server connections managed by `_ResourceSupervisor` for lifecycle management.
-- **PTC servers** (`ptc-servers` in `servers.json`): Python APIs auto-generated to `mcptools/<server>/` at startup via `ipybox.generate_mcp_sources()`. Agent writes code importing these APIs.
-- **Tool search**: Two modes via `--tool-search {basic|hybrid}`. Basic provides `list_categories`/`list_tools` MCP tools. Hybrid adds BM25 + vector search (`search/hybrid/`).
+- **MCP servers** (`mcp-servers` in `config.json`): Called directly via JSON tool calls. Server connections managed by `_ResourceSupervisor` for lifecycle management.
+- **PTC servers** (`ptc-servers` in `config.json`): Python APIs auto-generated to `mcptools/<server>/` at startup via `ipybox.generate_mcp_sources()`. Agent writes code importing these APIs.
+- **Tool search**: Two modes via `tool-search` in `config.json`. Basic provides `list_categories`/`list_tools` MCP tools. Hybrid adds BM25 + vector search (`search/hybrid/`).
 
 ### Approval Flow
 

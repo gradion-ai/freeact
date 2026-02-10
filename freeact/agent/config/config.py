@@ -1,6 +1,7 @@
 import json
 import os
 from dataclasses import dataclass
+from importlib.resources import as_file, files
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +17,65 @@ DEFAULT_MODEL_SETTINGS = GoogleModelSettings(
         "include_thoughts": True,
     },
 )
+
+PYTOOLS_BASIC_CONFIG: dict[str, Any] = {
+    "command": "python",
+    "args": ["-m", "freeact.agent.tools.pytools.search.basic"],
+}
+
+PYTOOLS_HYBRID_CONFIG: dict[str, Any] = {
+    "command": "python",
+    "args": ["-m", "freeact.agent.tools.pytools.search.hybrid"],
+    "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+        "PYTOOLS_DIR": "${PYTOOLS_DIR}",
+        "PYTOOLS_DB_PATH": "${PYTOOLS_DB_PATH}",
+        "PYTOOLS_EMBEDDING_MODEL": "${PYTOOLS_EMBEDDING_MODEL}",
+        "PYTOOLS_EMBEDDING_DIM": "${PYTOOLS_EMBEDDING_DIM}",
+        "PYTOOLS_SYNC": "${PYTOOLS_SYNC}",
+        "PYTOOLS_WATCH": "${PYTOOLS_WATCH}",
+        "PYTOOLS_BM25_WEIGHT": "${PYTOOLS_BM25_WEIGHT}",
+        "PYTOOLS_VEC_WEIGHT": "${PYTOOLS_VEC_WEIGHT}",
+    },
+}
+
+_HYBRID_ENV_DEFAULTS: dict[str, str] = {
+    "PYTOOLS_DIR": ".",
+    "PYTOOLS_DB_PATH": ".freeact/search.db",
+    "PYTOOLS_EMBEDDING_MODEL": "google-gla:gemini-embedding-001",
+    "PYTOOLS_EMBEDDING_DIM": "3072",
+    "PYTOOLS_SYNC": "true",
+    "PYTOOLS_WATCH": "true",
+    "PYTOOLS_BM25_WEIGHT": "1.0",
+    "PYTOOLS_VEC_WEIGHT": "1.0",
+}
+
+FILESYSTEM_CONFIG: dict[str, Any] = {
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
+    "excluded_tools": [
+        "create_directory",
+        "list_directory",
+        "list_directory_with_sizes",
+        "directory_tree",
+        "move_file",
+        "search_files",
+        "list_allowed_directories",
+        "read_file",
+    ],
+}
+
+
+def _ensure_hybrid_env_defaults() -> None:
+    """Set default values in `os.environ` for hybrid search env vars.
+
+    Called when `tool-search` is `"hybrid"`. Each variable uses
+    `os.environ.setdefault` so user-provided values take precedence.
+    `GEMINI_API_KEY` is intentionally omitted -- it has no default and
+    validation will catch it if missing.
+    """
+    for key, default in _HYBRID_ENV_DEFAULTS.items():
+        os.environ.setdefault(key, default)
 
 
 @dataclass
@@ -34,16 +94,21 @@ class Config:
     system prompts, MCP servers (JSON tool calls), and PTC servers
     (programmatic tool calling).
 
+    Internal MCP servers (pytools, filesystem) are defined as constants in
+    this module. User-defined servers from `config.json` override internal
+    configs when they share the same key.
+
     Attributes:
         working_dir: Agent's working directory.
         freeact_dir: Path to `.freeact/` configuration directory.
         plans_dir: Path to `.freeact/plans/` for plan storage.
         model: LLM model name or instance.
         model_settings: Model-specific settings (e.g., thinking config).
+        tool_search: Tool discovery mode read from `config.json`.
         skills_metadata: Parsed skill definitions from `.freeact/skills/*/SKILL.md`.
-        system_prompt: Rendered system prompt from `.freeact/prompts/system.md`.
-        mcp_servers: Raw MCP server configs loaded from `servers.json`.
-        ptc_servers: Raw PTC server configs loaded from `servers.json`..
+        system_prompt: Rendered system prompt loaded from package resources.
+        mcp_servers: Merged MCP server configs (internal defaults + user overrides).
+        ptc_servers: Raw PTC server configs loaded from `config.json`.
     """
 
     def __init__(
@@ -59,11 +124,24 @@ class Config:
         self.model = model
         self.model_settings = model_settings
 
-        # Load all data
+        self._config_data = self._load_config_json()
+        self.tool_search: str = self._config_data.get("tool-search", "basic")
+
+        if self.tool_search == "hybrid":
+            _ensure_hybrid_env_defaults()
+
         self.skills_metadata = self._load_skills_metadata()
-        self.mcp_servers = self._load_servers("mcp-servers")
+        self.mcp_servers = self._load_mcp_servers()
         self.ptc_servers = self._load_servers("ptc-servers")
         self.system_prompt = self._load_system_prompt()
+
+    def _load_config_json(self) -> dict[str, Any]:
+        """Load config.json file."""
+        config_file = self.freeact_dir / "config.json"
+        if not config_file.exists():
+            return {}
+        with open(config_file) as f:
+            return json.load(f)
 
     def _load_skills_metadata(self) -> list[SkillMetadata]:
         """Load skill metadata from all SKILL.md files."""
@@ -113,29 +191,36 @@ class Config:
 
         return "\n".join(lines)
 
-    def _is_hybrid_search_enabled(self) -> bool:
-        """Check if pytools server uses hybrid search module."""
-        pytools_config = self.mcp_servers.get("pytools", {})
-        return "freeact.agent.tools.pytools.search.hybrid" in pytools_config.get("args", [])
-
     def _load_system_prompt(self) -> str:
-        """Load and render system prompt template."""
-        if self._is_hybrid_search_enabled():
-            prompt_file = self.freeact_dir / "prompts" / "system-hybrid.md"
-        else:
-            prompt_file = self.freeact_dir / "prompts" / "system-basic.md"
-
-        template = prompt_file.read_text()
+        """Load and render system prompt template from package resources."""
+        prompt_files = files("freeact.agent.config").joinpath("prompts")
+        with as_file(prompt_files) as prompts_dir:
+            name = "system-hybrid.md" if self.tool_search == "hybrid" else "system-basic.md"
+            template = (prompts_dir / name).read_text()
 
         return template.format(
             working_dir=self.working_dir,
             skills=self._render_skills_section(),
         )
 
+    def _internal_mcp_servers(self) -> dict[str, dict[str, Any]]:
+        """Return internal MCP server configs based on tool_search mode."""
+        pytools = PYTOOLS_HYBRID_CONFIG if self.tool_search == "hybrid" else PYTOOLS_BASIC_CONFIG
+        return {"pytools": pytools, "filesystem": FILESYSTEM_CONFIG}
+
+    def _load_mcp_servers(self) -> dict[str, dict[str, Any]]:
+        """Load MCP servers: internal defaults merged with user overrides.
+
+        User-defined servers from `config.json` take precedence over
+        internal configs for the same key.
+        """
+        internal = self._internal_mcp_servers()
+        user = self._load_servers("mcp-servers")
+        return {**internal, **user}
+
     def _load_servers(self, key: str) -> dict[str, dict[str, Any]]:
         """Load server configs, validating env vars but keeping placeholders."""
-        raw_config = self._load_servers_json()
-        config = raw_config.get(key, {})
+        config = self._config_data.get(key, {})
         if not config:
             return {}
 
@@ -144,11 +229,3 @@ class Config:
             raise ValueError(f"Missing environment variables for {key}: {result.missing_variables}")
 
         return config
-
-    def _load_servers_json(self) -> dict[str, Any]:
-        """Load servers.json file."""
-        config_file = self.freeact_dir / "servers.json"
-        if not config_file.exists():
-            return {}
-        with open(config_file) as f:
-            return json.load(f)

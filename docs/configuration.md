@@ -24,80 +24,50 @@ This allows safe customization: edit any configuration file, and your changes re
 
 ```
 .freeact/
-├── prompts/
-│   └── system.md        # System prompt template
-├── servers.json         # MCP server configurations
-├── skills/              # Agent skills
+├── config.json         # Configuration and MCP server definitions
+├── skills/             # Agent skills
 │   └── <skill-name>/
-│       ├── SKILL.md     # Skill metadata and instructions
-│       └── ...          # Further skill resources
-├── plans/               # Task plan storage
-└── permissions.json     # Persisted approval decisions
+│       ├── SKILL.md    # Skill metadata and instructions
+│       └── ...         # Further skill resources
+├── plans/              # Task plan storage
+└── permissions.json    # Persisted approval decisions
 ```
 
-## MCP Servers
+## Configuration File
 
-The `servers.json` file configures two types of MCP servers:
+The `config.json` file contains settings and user-defined MCP server configurations:
 
 ```json
 {
-  "mcp-servers": {
-    "server-name": { ... }
-  },
+  "tool-search": "basic",
+  "mcp-servers": {},
   "ptc-servers": {
     "server-name": { ... }
   }
 }
 ```
 
-Both sections support stdio servers and streamable HTTP servers.
+### `tool-search`
+
+Controls how the agent discovers Python tools:
+
+| Mode | Description |
+|------|-------------|
+| `basic` | Category browsing with `pytools_list_categories` and `pytools_list_tools` |
+| `hybrid` | BM25/vector search with `pytools_search_tools` for natural language queries |
+
+The `tool-search` setting also selects the matching system prompt template (see [System Prompt](#system-prompt)). For hybrid mode environment variables, see [Hybrid Search](#hybrid-search).
 
 ### `mcp-servers`
 
-These are MCP servers that are called directly via JSON. This section is primarily for freeact-internal servers. The default configuration includes the bundled `pytools` MCP server (for tool discovery) and the `filesystem` MCP server.
+MCP servers called directly via JSON tool calls. Internal servers (`pytools` for tool discovery and `filesystem` for file operations) are provided automatically and do not need to be configured. User-defined servers in this section are merged with the internal defaults. If a user entry uses the same key as an internal server, the user entry takes precedence.
 
-The `pytools` server configuration depends on the [`--tool-search`](cli.md#hybrid-search) mode:
-
-**Basic mode** (default):
-
-```json
-{
-  "mcp-servers": {
-    "pytools": {
-      "command": "python",
-      "args": ["-m", "freeact.agent.tools.pytools.search.basic"]
-    },
-    "filesystem": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
-    }
-  }
-}
-```
-
-**Hybrid mode** (`--tool-search hybrid`):
-
-```json
-{
-  "mcp-servers": {
-    "pytools": {
-      "command": "python",
-      "args": ["-m", "freeact.agent.tools.pytools.search.hybrid"],
-      "env": {"GEMINI_API_KEY": "${GEMINI_API_KEY}"}
-    },
-    "filesystem": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
-    }
-  }
-}
-```
-
-The `--tool-search` CLI option automatically updates the `pytools` entry in `servers.json` to use the selected mode. See [Hybrid Search](#hybrid-search) for environment variables.
+!!! tip "Custom MCP servers"
+    Application-specific MCP servers for JSON tool calls can be added to this section as needed.
 
 ### `ptc-servers`
 
-These are MCP servers called programmatically via Python APIs. Python APIs must be generated from `ptc-servers` to `mcptools/<server-name>/<tool>.py` before the agent can use them. The [CLI tool](cli.md) handles this automatically. When using the [Python SDK](sdk.md), call [`generate_mcp_sources()`][freeact.agent.tools.pytools.apigen.generate_mcp_sources] explicitly. Code actions can then import and call the generated APIs.
+MCP servers called programmatically via Python APIs. Python APIs must be generated from `ptc-servers` to `mcptools/<server-name>/<tool>.py` before the agent can use them. The [CLI tool](cli.md) handles this automatically. When using the [Python SDK](sdk.md), call [`generate_mcp_sources()`][freeact.agent.tools.pytools.apigen.generate_mcp_sources] explicitly. Code actions can then import and call the generated APIs.
 
 The default configuration includes the bundled `google` MCP server (web search via Gemini):
 
@@ -116,16 +86,21 @@ The default configuration includes the bundled `google` MCP server (web search v
 !!! tip "Custom MCP servers"
     Application-specific MCP servers can be added as needed to `ptc-servers` for programmatic tool calling.
 
+### Server Formats
+
+Both `mcp-servers` and `ptc-servers` support stdio servers and streamable HTTP servers.
+
 ### Environment Variables
 
 Server configurations support environment variable references using `${VAR_NAME}` syntax. [`Config()`][freeact.agent.config.Config] validates that all referenced variables are set. If a variable is missing, loading fails with an error.
 
 ## Hybrid Search
 
-When using [`--tool-search hybrid`](cli.md#hybrid-search) or [`init_config(tool_search="hybrid")`][freeact.agent.config.init.init_config], the hybrid search server reads configuration from environment variables. These are set via the `env` section of the `pytools` server in `servers.json`.
+When `tool-search` is set to `"hybrid"` in `config.json`, the hybrid search server reads additional configuration from environment variables. Default values are provided for all optional variables:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
+| `GEMINI_API_KEY` | *(required)* | API key for the default embedding model |
 | `PYTOOLS_DIR` | `.` | Base directory containing `mcptools/` and `gentools/` |
 | `PYTOOLS_DB_PATH` | `.freeact/search.db` | Path to SQLite database for search index |
 | `PYTOOLS_EMBEDDING_MODEL` | `google-gla:gemini-embedding-001` | Embedding model identifier |
@@ -135,14 +110,14 @@ When using [`--tool-search hybrid`](cli.md#hybrid-search) or [`init_config(tool_
 | `PYTOOLS_BM25_WEIGHT` | `1.0` | Weight for BM25 (keyword) results in hybrid fusion |
 | `PYTOOLS_VEC_WEIGHT` | `1.0` | Weight for vector (semantic) results in hybrid fusion |
 
-The default embedding model requires `GEMINI_API_KEY` to be set. To use a different embedding provider, change `PYTOOLS_EMBEDDING_MODEL` to a supported [pydantic-ai embedder](https://ai.pydantic.dev/embeddings/){target="_blank"} identifier.
+To use a different embedding provider, change `PYTOOLS_EMBEDDING_MODEL` to a supported [pydantic-ai embedder](https://ai.pydantic.dev/embeddings/){target="_blank"} identifier.
 
 !!! tip "Testing without an API key"
     Set `PYTOOLS_EMBEDDING_MODEL=test` to use a test embedder that generates deterministic embeddings. This is useful for development and testing but produces meaningless search results.
 
 ## System Prompt
 
-The system prompt template is stored in `.freeact/prompts/`. The template used depends on the [`--tool-search`](cli.md#hybrid-search) mode:
+The system prompt is an internal resource bundled with the package. The template used depends on the `tool-search` setting in `config.json`:
 
 | Mode | Template | Description |
 |------|----------|-------------|
@@ -156,10 +131,7 @@ The template supports placeholders:
 | `{working_dir}` | The agent's workspace directory |
 | `{skills}` | Rendered metadata from skills in `.freeact/skills/` |
 
-See the default templates for [basic](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/templates/prompts/system-basic.md) and [hybrid](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/templates/prompts/system-hybrid.md) modes.
-
-!!! tip "Custom system prompt"
-    The system prompt can be extended or modified to specialize agent behavior for specific applications.
+See the templates for [basic](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-basic.md) and [hybrid](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-hybrid.md) modes.
 
 ## Skills
 

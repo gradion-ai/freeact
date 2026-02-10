@@ -54,13 +54,13 @@ This macOS-specific example configuration allows additional network access to `e
 
 ## MCP Servers
 
-MCP servers run as separate processes and are not affected by [code execution sandboxing](#code-execution). Local stdio servers can be sandboxed independently by wrapping the server command with the `srt` tool from sandbox-runtime. This applies to both `mcp-servers` and `ptc-servers` in the [MCP server configuration](configuration.md#mcp-servers).
+MCP servers run as separate processes and are not affected by [code execution sandboxing](#code-execution). Local stdio servers can be sandboxed independently by wrapping the server command with the `srt` tool from sandbox-runtime. This applies to both [`mcp-servers`](configuration.md#mcp-servers) and [`ptc-servers`](configuration.md#ptc-servers) in the [configuration file](configuration.md#configuration-file).
 
 ### Filesystem MCP Server
 
 This example shows a sandboxed [filesystem MCP server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem) in the `mcp-servers` section:
 
-```json title=".freeact/servers.json"
+```json title=".freeact/config.json"
 {
   "mcp-servers": {
     "filesystem": {
@@ -102,7 +102,7 @@ uv add "httpx[socks]>=0.28.1"
 
 Then add it to the `ptc-servers` section:
 
-```json title=".freeact/servers.json"
+```json title=".freeact/config.json"
 {
   "ptc-servers": {
     "fetch": {

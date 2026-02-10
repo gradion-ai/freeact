@@ -18,7 +18,6 @@ freeact init
 |--------|-------------|
 | `--sandbox` | Run code execution in [sandbox mode](sandbox.md). |
 | `--sandbox-config PATH` | Path to sandbox configuration file. |
-| `--tool-search MODE` | Tool discovery mode: `basic` (default) or `hybrid`. See [Hybrid Search](#hybrid-search). |
 | `--execution-timeout SECONDS` | Maximum time for code execution (default: 300). Approval wait time is excluded. |
 | `--approval-timeout SECONDS` | Timeout for PTC approval requests (default: None, no timeout). |
 | `--log-level LEVEL` | Set logging level: `debug`, `info` (default), `warning`, `error`, `critical`. |
@@ -48,15 +47,9 @@ freeact --record --record-dir docs/recordings/demo --record-title "Demo Session"
 
 ## Hybrid Search
 
-The `--tool-search` option controls how the agent discovers Python tools. The default `basic` mode uses category browsing with `pytools_list_categories` and `pytools_list_tools`. The `hybrid` mode uses BM25/vector search with `pytools_search_tools` for natural language queries.
+Tool discovery mode is controlled by the [`tool-search`](configuration.md#tool-search) setting in `.freeact/config.json`. The default `basic` mode uses category browsing with `pytools_list_categories` and `pytools_list_tools`. Setting it to `hybrid` enables BM25/vector search with `pytools_search_tools` for natural language queries.
 
-To enable hybrid search:
-
-```bash
-freeact --tool-search hybrid
-```
-
-This requires an embedding API. The default configuration uses Gemini embeddings, which requires setting `GEMINI_API_KEY`. See [Hybrid Search Configuration](configuration.md#hybrid-search) for environment variables and customization options.
+This requires an embedding API. The default configuration uses Gemini embeddings, which requires setting `GEMINI_API_KEY`. See [Hybrid Search](configuration.md#hybrid-search) for environment variables and customization options.
 
 ## Interactive Mode
 
