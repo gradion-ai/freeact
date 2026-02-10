@@ -272,8 +272,8 @@ class Agent:
         images_dir: Path | None = None,
         execution_timeout: float | None = 300,
         approval_timeout: float | None = None,
+        with_subagents: bool = True,
         max_subagents: int = 5,
-        _include_subagent_task_tool: bool = True,
     ):
         """Initialize the agent.
 
@@ -296,10 +296,8 @@ class Agent:
                 programmatic tool calls. If an approval request is not accepted
                 or rejected within this time, the tool call fails.
                 If None, no timeout is applied.
+            with_subagents: Whether to enable subagent delegation.
             max_subagents: Maximum number of concurrent subagents. Defaults to 5.
-            _include_subagent_task_tool: Whether to include the subagent task
-                tool for spawning subagents. Set to False for subagents to
-                prevent nesting.
         """
         self.agent_id = id
         self.model = model
@@ -307,7 +305,7 @@ class Agent:
 
         self._system_prompt = system_prompt
         self._execution_timeout = execution_timeout
-        self._include_subagent_task_tool = _include_subagent_task_tool
+        self._with_subagents = with_subagents
         self._mcp_server_factory = mcp_server_factory
         self._subagent_semaphore = asyncio.Semaphore(max_subagents)
         self._sandbox = sandbox
@@ -380,7 +378,7 @@ class Agent:
 
         try:
             self._tool_definitions = await load_ipybox_tool_definitions()
-            if self._include_subagent_task_tool:
+            if self._with_subagents:
                 self._tool_definitions.extend(await load_subagent_task_tool_definitions())
 
             for server in self._mcp_servers.values():
@@ -589,7 +587,7 @@ class Agent:
             images_dir=self._images_dir,
             execution_timeout=self._execution_timeout,
             approval_timeout=self._approval_timeout,
-            _include_subagent_task_tool=False,
+            with_subagents=False,
         )
         runner = _SubagentRunner(subagent=subagent, semaphore=self._subagent_semaphore)
 
