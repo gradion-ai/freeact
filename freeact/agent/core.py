@@ -285,7 +285,7 @@ class Agent:
         images_dir: Path | None = None,
         execution_timeout: float | None = 300,
         approval_timeout: float | None = None,
-        with_subagents: bool = True,
+        enable_subagents: bool = True,
         max_subagents: int = 5,
     ):
         """Initialize the agent.
@@ -310,7 +310,7 @@ class Agent:
                 programmatic tool calls. If an approval request is not accepted
                 or rejected within this time, the tool call fails.
                 If None, no timeout is applied.
-            with_subagents: Whether to enable subagent delegation.
+            enable_subagents: Whether to enable subagent delegation.
             max_subagents: Maximum number of concurrent subagents. Defaults to 5.
         """
         self.agent_id = id
@@ -319,7 +319,7 @@ class Agent:
 
         self._system_prompt = system_prompt
         self._execution_timeout = execution_timeout
-        self._with_subagents = with_subagents
+        self._enable_subagents = enable_subagents
         self._mcp_servers = mcp_servers
         self._subagent_semaphore = asyncio.Semaphore(max_subagents)
         self._sandbox = sandbox
@@ -392,7 +392,7 @@ class Agent:
 
         try:
             self._tool_definitions = await load_ipybox_tool_definitions()
-            if self._with_subagents:
+            if self._enable_subagents:
                 self._tool_definitions.extend(await load_subagent_task_tool_definitions())
 
             for server in self._mcp_server_instances.values():
@@ -624,7 +624,7 @@ class Agent:
             images_dir=self._images_dir,
             execution_timeout=self._execution_timeout,
             approval_timeout=self._approval_timeout,
-            with_subagents=False,
+            enable_subagents=False,
         )
         runner = _SubagentRunner(subagent=subagent, semaphore=self._subagent_semaphore)
 
