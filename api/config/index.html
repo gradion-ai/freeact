@@ -1007,23 +1007,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Config">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#freeact.agent.config.Config.create_mcp_servers" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        create_mcp_servers
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -1064,6 +1047,39 @@
     <span class="md-ellipsis">
       
         DEFAULT_MODEL_SETTINGS
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#freeact.agent.config.PYTOOLS_BASIC_CONFIG" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PYTOOLS_BASIC_CONFIG
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#freeact.agent.config.PYTOOLS_HYBRID_CONFIG" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PYTOOLS_HYBRID_CONFIG
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#freeact.agent.config.FILESYSTEM_CONFIG" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FILESYSTEM_CONFIG
       
     </span>
   </a>
@@ -1175,23 +1191,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Config">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#freeact.agent.config.Config.create_mcp_servers" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        create_mcp_servers
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -1232,6 +1231,39 @@
     <span class="md-ellipsis">
       
         DEFAULT_MODEL_SETTINGS
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#freeact.agent.config.PYTOOLS_BASIC_CONFIG" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PYTOOLS_BASIC_CONFIG
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#freeact.agent.config.PYTOOLS_HYBRID_CONFIG" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PYTOOLS_HYBRID_CONFIG
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#freeact.agent.config.FILESYSTEM_CONFIG" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FILESYSTEM_CONFIG
       
     </span>
   </a>
@@ -1284,6 +1316,9 @@
 <p>Loads and parses all configuration on instantiation: skills metadata,
 system prompts, MCP servers (JSON tool calls), and PTC servers
 (programmatic tool calling).</p>
+<p>Internal MCP servers (pytools, filesystem) are defined as constants in
+this module. User-defined servers from <code>config.json</code> override internal
+configs when they share the same key.</p>
 
 
 <p><span class="doc-section-title">Attributes:</span></p>
@@ -1347,6 +1382,17 @@ system prompts, MCP servers (JSON tool calls), and PTC servers
             </td>
           </tr>
           <tr class="doc-section-item">
+            <td><code><span title="freeact.agent.config.Config.tool_search">tool_search</span></code></td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Tool discovery mode read from <code>config.json</code>.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
             <td><code><span title="freeact.agent.config.Config.skills_metadata">skills_metadata</span></code></td>
             <td>
             </td>
@@ -1362,7 +1408,7 @@ system prompts, MCP servers (JSON tool calls), and PTC servers
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Rendered system prompt from <code>.freeact/prompts/system.md</code>.</p>
+                <p>Rendered system prompt loaded from package resources.</p>
               </div>
             </td>
           </tr>
@@ -1372,7 +1418,7 @@ system prompts, MCP servers (JSON tool calls), and PTC servers
             </td>
             <td>
               <div class="doc-md-description">
-                <p><code>MCPServer</code> instances used for JSON tool calling.</p>
+                <p>Merged MCP server configs (internal defaults + user overrides).</p>
               </div>
             </td>
           </tr>
@@ -1382,7 +1428,7 @@ system prompts, MCP servers (JSON tool calls), and PTC servers
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Raw PTC server configs for programmatic tool generation.</p>
+                <p>Raw PTC server configs loaded from <code>config.json</code>.</p>
               </div>
             </td>
           </tr>
@@ -1409,26 +1455,6 @@ system prompts, MCP servers (JSON tool calls), and PTC servers
 
 
 
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="freeact.agent.config.Config.create_mcp_servers" class="doc doc-heading">
-            <span class="doc doc-object-name doc-function-name">create_mcp_servers</span>
-
-
-</h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">create_mcp_servers</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/reference/expressions.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><span title="pydantic_ai.mcp.MCPServer">MCPServer</span></span><span class="p">]</span>
-</code></pre></div>
-
-    <div class="doc doc-contents ">
-
-        <p>Load and instantiate MCP servers.</p>
-
-
-    </div>
-
-</div>
 
 
 
@@ -1497,17 +1523,13 @@ system prompts, MCP servers (JSON tool calls), and PTC servers
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">init_config</span><span class="p">(</span>
-    <span class="n">working_dir</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">tool_search</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Literal" href="https://docs.python.org/3/library/typing.html#typing.Literal">Literal</a></span><span class="p">[</span><span class="s2">&quot;basic&quot;</span><span class="p">,</span> <span class="s2">&quot;hybrid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;basic&quot;</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">init_config</span><span class="p">(</span><span class="n">working_dir</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </code></pre></div>
 
     <div class="doc doc-contents first">
 
         <p>Initialize <code>.freeact/</code> config directory from templates.</p>
-<p>Copies template files that don't already exist, preserving user modifications.
-Enforces the pytools server configuration based on the tool_search setting.</p>
+<p>Copies template files that don't already exist, preserving user modifications.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1535,24 +1557,6 @@ Enforces the pytools server configuration based on the tool_search setting.</p>
             </td>
             <td>
                   <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>tool_search</code>
-            </td>
-            <td>
-                  <code><a class="autorefs autorefs-external" title="typing.Literal" href="https://docs.python.org/3/library/typing.html#typing.Literal">Literal</a>[&#39;basic&#39;, &#39;hybrid&#39;]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Tool discovery mode. "basic" uses category browsing via
-<code>list_categories</code> and <code>list_tools</code>. "hybrid" uses BM25/vector search
-via <code>search_tools</code> for natural language queries.</p>
-              </div>
-            </td>
-            <td>
-                  <code>&#39;basic&#39;</code>
             </td>
           </tr>
       </tbody>
@@ -1604,6 +1608,112 @@ via <code>search_tools</code> for natural language queries.</p>
         <span class="s2">&quot;include_thoughts&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">}</span>
 <span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="freeact.agent.config.PYTOOLS_BASIC_CONFIG" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">freeact.agent.config.PYTOOLS_BASIC_CONFIG</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+</h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">PYTOOLS_BASIC_CONFIG</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/reference/expressions.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;python&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;-m&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;freeact.agent.tools.pytools.search.basic&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+<span class="p">}</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="freeact.agent.config.PYTOOLS_HYBRID_CONFIG" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">freeact.agent.config.PYTOOLS_HYBRID_CONFIG</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+</h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">PYTOOLS_HYBRID_CONFIG</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/reference/expressions.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;python&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;-m&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;freeact.agent.tools.pytools.search.hybrid&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;env&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;GEMINI_API_KEY&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="si">{GEMINI_API_KEY}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;PYTOOLS_DIR&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="si">{PYTOOLS_DIR}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;PYTOOLS_DB_PATH&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="si">{PYTOOLS_DB_PATH}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;PYTOOLS_EMBEDDING_MODEL&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="si">{PYTOOLS_EMBEDDING_MODEL}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;PYTOOLS_EMBEDDING_DIM&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="si">{PYTOOLS_EMBEDDING_DIM}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;PYTOOLS_SYNC&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="si">{PYTOOLS_SYNC}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;PYTOOLS_WATCH&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="si">{PYTOOLS_WATCH}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;PYTOOLS_BM25_WEIGHT&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="si">{PYTOOLS_BM25_WEIGHT}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;PYTOOLS_VEC_WEIGHT&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="si">{PYTOOLS_VEC_WEIGHT}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="freeact.agent.config.FILESYSTEM_CONFIG" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">freeact.agent.config.FILESYSTEM_CONFIG</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+</h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">FILESYSTEM_CONFIG</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/reference/expressions.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;npx&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;-y&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;@modelcontextprotocol/server-filesystem&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;excluded_tools&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;create_directory&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;list_directory&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;list_directory_with_sizes&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;directory_tree&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;move_file&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;search_files&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;list_allowed_directories&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;read_file&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+<span class="p">}</span>
 </code></pre></div>
 
     <div class="doc doc-contents first">

@@ -2,21 +2,19 @@
 
 ```
 Agent(
-    id: str,
     model: str | Model,
     model_settings: ModelSettings,
     system_prompt: str,
-    mcp_server_factory: (
-        Callable[[], dict[str, MCPServer]] | None
-    ) = None,
+    agent_id: str = "main",
+    mcp_servers: dict[str, dict[str, Any]] | None = None,
     kernel_env: dict[str, str] | None = None,
     sandbox: bool = False,
     sandbox_config: Path | None = None,
     images_dir: Path | None = None,
     execution_timeout: float | None = 300,
     approval_timeout: float | None = None,
+    enable_subagents: bool = True,
     max_subagents: int = 5,
-    _include_subagent_task_tool: bool = True,
 )
 ```
 
@@ -35,21 +33,21 @@ Initialize the agent.
 
 Parameters:
 
-| Name                          | Type                                   | Description                                                                                                      | Default                                                                                                                                                                                            |
-| ----------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`                          | `str`                                  | Identifier for this agent instance.                                                                              | *required*                                                                                                                                                                                         |
-| `model`                       | \`str                                  | Model\`                                                                                                          | LLM model identifier or pydantic-ai Model instance.                                                                                                                                                |
-| `model_settings`              | `ModelSettings`                        | Temperature, max tokens, and other model params.                                                                 | *required*                                                                                                                                                                                         |
-| `system_prompt`               | `str`                                  | Instructions defining agent behavior.                                                                            | *required*                                                                                                                                                                                         |
-| `mcp_server_factory`          | \`Callable\[[], dict[str, MCPServer]\] | None\`                                                                                                           | Factory function that creates fresh MCP server connections for each agent instance. Subagents get their own connections by using the same factory.                                                 |
-| `kernel_env`                  | \`dict[str, str]                       | None\`                                                                                                           | Environment variables passed to the IPython kernel.                                                                                                                                                |
-| `sandbox`                     | `bool`                                 | Run the kernel in sandbox mode.                                                                                  | `False`                                                                                                                                                                                            |
-| `sandbox_config`              | \`Path                                 | None\`                                                                                                           | Path to custom sandbox configuration.                                                                                                                                                              |
-| `images_dir`                  | \`Path                                 | None\`                                                                                                           | Directory for saving generated images.                                                                                                                                                             |
-| `execution_timeout`           | \`float                                | None\`                                                                                                           | Maximum time in seconds for code execution. Approval wait time is excluded from this timeout budget. If None, no timeout is applied. Defaults to 300 seconds.                                      |
-| `approval_timeout`            | \`float                                | None\`                                                                                                           | Timeout in seconds for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. If None, no timeout is applied. |
-| `max_subagents`               | `int`                                  | Maximum number of concurrent subagents. Defaults to 5.                                                           | `5`                                                                                                                                                                                                |
-| `_include_subagent_task_tool` | `bool`                                 | Whether to include the subagent task tool for spawning subagents. Set to False for subagents to prevent nesting. | `True`                                                                                                                                                                                             |
+| Name                | Type                          | Description                                             | Default                                                                                                                                                                                                                   |
+| ------------------- | ----------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`             | \`str                         | Model\`                                                 | LLM model identifier or pydantic-ai Model instance.                                                                                                                                                                       |
+| `model_settings`    | `ModelSettings`               | Temperature, max tokens, and other model params.        | *required*                                                                                                                                                                                                                |
+| `system_prompt`     | `str`                         | Instructions defining agent behavior.                   | *required*                                                                                                                                                                                                                |
+| `agent_id`          | `str`                         | Identifier for this agent instance. Defaults to "main". | `'main'`                                                                                                                                                                                                                  |
+| `mcp_servers`       | \`dict\[str, dict[str, Any]\] | None\`                                                  | Raw MCP server configurations. Each key is a server name, each value is a config dict with command or url and optional excluded_tools. Used during startup and passed to subagents so each gets its own server processes. |
+| `kernel_env`        | \`dict[str, str]              | None\`                                                  | Environment variables passed to the IPython kernel.                                                                                                                                                                       |
+| `sandbox`           | `bool`                        | Run the kernel in sandbox mode.                         | `False`                                                                                                                                                                                                                   |
+| `sandbox_config`    | \`Path                        | None\`                                                  | Path to custom sandbox configuration.                                                                                                                                                                                     |
+| `images_dir`        | \`Path                        | None\`                                                  | Directory for saving generated images.                                                                                                                                                                                    |
+| `execution_timeout` | \`float                       | None\`                                                  | Maximum time in seconds for code execution. Approval wait time is excluded from this timeout budget. If None, no timeout is applied. Defaults to 300 seconds.                                                             |
+| `approval_timeout`  | \`float                       | None\`                                                  | Timeout in seconds for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. If None, no timeout is applied.                        |
+| `enable_subagents`  | `bool`                        | Whether to enable subagent delegation.                  | `True`                                                                                                                                                                                                                    |
+| `max_subagents`     | `int`                         | Maximum number of concurrent subagents. Defaults to 5.  | `5`                                                                                                                                                                                                                       |
 
 ### start
 

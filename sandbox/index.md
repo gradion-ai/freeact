@@ -67,13 +67,13 @@ This macOS-specific example configuration allows additional network access to `e
 
 ## MCP Servers
 
-MCP servers run as separate processes and are not affected by [code execution sandboxing](#code-execution). Local stdio servers can be sandboxed independently by wrapping the server command with the `srt` tool from sandbox-runtime. This applies to both `mcp-servers` and `ptc-servers` in the [MCP server configuration](https://gradion-ai.github.io/freeact/configuration/#mcp-servers).
+MCP servers run as separate processes and are not affected by [code execution sandboxing](#code-execution). Local stdio servers can be sandboxed independently by wrapping the server command with the `srt` tool from sandbox-runtime. This applies to both [`mcp-servers`](https://gradion-ai.github.io/freeact/configuration/#mcp-servers) and [`ptc-servers`](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) in the [configuration file](https://gradion-ai.github.io/freeact/configuration/#configuration-file).
 
 ### Filesystem MCP Server
 
 This example shows a sandboxed [filesystem MCP server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem) in the `mcp-servers` section:
 
-.freeact/servers.json
+.freeact/config.json
 
 ```
 {
@@ -119,7 +119,7 @@ uv add "httpx[socks]>=0.28.1"
 
 Then add it to the `ptc-servers` section:
 
-.freeact/servers.json
+.freeact/config.json
 
 ```
 {

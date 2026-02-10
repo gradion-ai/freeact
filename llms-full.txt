@@ -168,7 +168,7 @@ On first start, the CLI tool auto-generates Python APIs for [configured](https:/
 
 Custom MCP servers
 
-For calling the tools of your own MCP servers programmatically, add them to the [`ptc-servers`](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) section in `.freeact/servers.json`. Freeact auto-generates a Python API for them when the CLI tool starts.
+For calling the tools of your own MCP servers programmatically, add them to the [`ptc-servers`](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) section in `.freeact/config.json`. Freeact auto-generates a Python API for them when the CLI tool starts.
 
 ### Running a Task
 
@@ -222,11 +222,10 @@ async def main() -> None:
             await generate_mcp_sources({server_name: params})
 
     async with Agent(
-        "main",
         model=config.model,
         model_settings=config.model_settings,
         system_prompt=config.system_prompt,
-        mcp_server_factory=config.create_mcp_servers,
+        mcp_servers=config.mcp_servers,
     ) as agent:
         prompt = "Who is the F1 world champion 2025?"
 
@@ -279,80 +278,51 @@ This allows safe customization: edit any configuration file, and your changes re
 
 ```
 .freeact/
-├── prompts/
-│   └── system.md        # System prompt template
-├── servers.json         # MCP server configurations
-├── skills/              # Agent skills
+├── config.json         # Configuration and MCP server definitions
+├── skills/             # Agent skills
 │   └── <skill-name>/
-│       ├── SKILL.md     # Skill metadata and instructions
-│       └── ...          # Further skill resources
-├── plans/               # Task plan storage
-└── permissions.json     # Persisted approval decisions
+│       ├── SKILL.md    # Skill metadata and instructions
+│       └── ...         # Further skill resources
+├── plans/              # Task plan storage
+└── permissions.json    # Persisted approval decisions
 ```
 
-## MCP Servers
+## Configuration File
 
-The `servers.json` file configures two types of MCP servers:
+The `config.json` file contains settings and user-defined MCP server configurations:
 
 ```
 {
-  "mcp-servers": {
-    "server-name": { ... }
-  },
+  "tool-search": "basic",
+  "mcp-servers": {},
   "ptc-servers": {
     "server-name": { ... }
   }
 }
 ```
 
-Both sections support stdio servers and streamable HTTP servers.
+### `tool-search`
+
+Controls how the agent discovers Python tools:
+
+| Mode     | Description                                                                 |
+| -------- | --------------------------------------------------------------------------- |
+| `basic`  | Category browsing with `pytools_list_categories` and `pytools_list_tools`   |
+| `hybrid` | BM25/vector search with `pytools_search_tools` for natural language queries |
+
+The `tool-search` setting also selects the matching system prompt template (see [System Prompt](#system-prompt)). For hybrid mode environment variables, see [Hybrid Search](#hybrid-search).
 
 ### `mcp-servers`
 
-These are MCP servers that are called directly via JSON. This section is primarily for freeact-internal servers. The default configuration includes the bundled `pytools` MCP server (for tool discovery) and the `filesystem` MCP server.
+MCP servers called directly via JSON tool calls. Internal servers (`pytools` for tool discovery and `filesystem` for file operations) are provided automatically and do not need to be configured. User-defined servers in this section are merged with the internal defaults. If a user entry uses the same key as an internal server, the user entry takes precedence.
 
-The `pytools` server configuration depends on the [`--tool-search`](https://gradion-ai.github.io/freeact/cli/#hybrid-search) mode:
+Custom MCP servers
 
-**Basic mode** (default):
-
-```
-{
-  "mcp-servers": {
-    "pytools": {
-      "command": "python",
-      "args": ["-m", "freeact.agent.tools.pytools.search.basic"]
-    },
-    "filesystem": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
-    }
-  }
-}
-```
-
-**Hybrid mode** (`--tool-search hybrid`):
-
-```
-{
-  "mcp-servers": {
-    "pytools": {
-      "command": "python",
-      "args": ["-m", "freeact.agent.tools.pytools.search.hybrid"],
-      "env": {"GEMINI_API_KEY": "${GEMINI_API_KEY}"}
-    },
-    "filesystem": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
-    }
-  }
-}
-```
-
-The `--tool-search` CLI option automatically updates the `pytools` entry in `servers.json` to use the selected mode. See [Hybrid Search](#hybrid-search) for environment variables.
+Application-specific MCP servers for JSON tool calls can be added to this section as needed.
 
 ### `ptc-servers`
 
-These are MCP servers called programmatically via Python APIs. Python APIs must be generated from `ptc-servers` to `mcptools/<server-name>/<tool>.py` before the agent can use them. The [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) handles this automatically. When using the [Python SDK](https://gradion-ai.github.io/freeact/sdk/index.md), call generate_mcp_sources() explicitly. Code actions can then import and call the generated APIs.
+MCP servers called programmatically via Python APIs. Python APIs must be generated from `ptc-servers` to `mcptools/<server-name>/<tool>.py` before the agent can use them. The [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) handles this automatically. When using the [Python SDK](https://gradion-ai.github.io/freeact/sdk/index.md), call generate_mcp_sources() explicitly. Code actions can then import and call the generated APIs.
 
 The default configuration includes the bundled `google` MCP server (web search via Gemini):
 
@@ -372,16 +342,21 @@ Custom MCP servers
 
 Application-specific MCP servers can be added as needed to `ptc-servers` for programmatic tool calling.
 
+### Server Formats
+
+Both `mcp-servers` and `ptc-servers` support stdio servers and streamable HTTP servers.
+
 ### Environment Variables
 
 Server configurations support environment variable references using `${VAR_NAME}` syntax. Config() validates that all referenced variables are set. If a variable is missing, loading fails with an error.
 
 ## Hybrid Search
 
-When using [`--tool-search hybrid`](https://gradion-ai.github.io/freeact/cli/#hybrid-search) or init_config(tool_search="hybrid"), the hybrid search server reads configuration from environment variables. These are set via the `env` section of the `pytools` server in `servers.json`.
+When `tool-search` is set to `"hybrid"` in `config.json`, the hybrid search server reads additional configuration from environment variables. Default values are provided for all optional variables:
 
 | Variable                  | Default                           | Description                                           |
 | ------------------------- | --------------------------------- | ----------------------------------------------------- |
+| `GEMINI_API_KEY`          | *(required)*                      | API key for the default embedding model               |
 | `PYTOOLS_DIR`             | `.`                               | Base directory containing `mcptools/` and `gentools/` |
 | `PYTOOLS_DB_PATH`         | `.freeact/search.db`              | Path to SQLite database for search index              |
 | `PYTOOLS_EMBEDDING_MODEL` | `google-gla:gemini-embedding-001` | Embedding model identifier                            |
@@ -391,7 +366,7 @@ When using [`--tool-search hybrid`](https://gradion-ai.github.io/freeact/cli/#hy
 | `PYTOOLS_BM25_WEIGHT`     | `1.0`                             | Weight for BM25 (keyword) results in hybrid fusion    |
 | `PYTOOLS_VEC_WEIGHT`      | `1.0`                             | Weight for vector (semantic) results in hybrid fusion |
 
-The default embedding model requires `GEMINI_API_KEY` to be set. To use a different embedding provider, change `PYTOOLS_EMBEDDING_MODEL` to a supported [pydantic-ai embedder](https://ai.pydantic.dev/embeddings/) identifier.
+To use a different embedding provider, change `PYTOOLS_EMBEDDING_MODEL` to a supported [pydantic-ai embedder](https://ai.pydantic.dev/embeddings/) identifier.
 
 Testing without an API key
 
@@ -399,7 +374,7 @@ Set `PYTOOLS_EMBEDDING_MODEL=test` to use a test embedder that generates determi
 
 ## System Prompt
 
-The system prompt template is stored in `.freeact/prompts/`. The template used depends on the [`--tool-search`](https://gradion-ai.github.io/freeact/cli/#hybrid-search) mode:
+The system prompt is an internal resource bundled with the package. The template used depends on the `tool-search` setting in `config.json`:
 
 | Mode     | Template           | Description                                                               |
 | -------- | ------------------ | ------------------------------------------------------------------------- |
@@ -413,11 +388,7 @@ The template supports placeholders:
 | `{working_dir}` | The agent's workspace directory                     |
 | `{skills}`      | Rendered metadata from skills in `.freeact/skills/` |
 
-See the default templates for [basic](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/templates/prompts/system-basic.md) and [hybrid](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/templates/prompts/system-hybrid.md) modes.
-
-Custom system prompt
-
-The system prompt can be extended or modified to specialize agent behavior for specific applications.
+See the templates for [basic](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-basic.md) and [hybrid](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-hybrid.md) modes.
 
 ## Skills
 
@@ -548,13 +519,13 @@ This macOS-specific example configuration allows additional network access to `e
 
 ## MCP Servers
 
-MCP servers run as separate processes and are not affected by [code execution sandboxing](#code-execution). Local stdio servers can be sandboxed independently by wrapping the server command with the `srt` tool from sandbox-runtime. This applies to both `mcp-servers` and `ptc-servers` in the [MCP server configuration](https://gradion-ai.github.io/freeact/configuration/#mcp-servers).
+MCP servers run as separate processes and are not affected by [code execution sandboxing](#code-execution). Local stdio servers can be sandboxed independently by wrapping the server command with the `srt` tool from sandbox-runtime. This applies to both [`mcp-servers`](https://gradion-ai.github.io/freeact/configuration/#mcp-servers) and [`ptc-servers`](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) in the [configuration file](https://gradion-ai.github.io/freeact/configuration/#configuration-file).
 
 ### Filesystem MCP Server
 
 This example shows a sandboxed [filesystem MCP server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem) in the `mcp-servers` section:
 
-.freeact/servers.json
+.freeact/config.json
 
 ```
 {
@@ -600,7 +571,7 @@ uv add "httpx[socks]>=0.28.1"
 
 Then add it to the `ptc-servers` section:
 
-.freeact/servers.json
+.freeact/config.json
 
 ```
 {
@@ -646,7 +617,7 @@ The Python SDK provides four main APIs:
 
 ## Configuration API
 
-Use init_config() to initialize the `.freeact/` directory from default templates. The optional `tool_search` parameter selects the tool discovery mode (`"basic"` or `"hybrid"`). The Config() constructor loads all configuration from it:
+Use init_config() to initialize the `.freeact/` directory from default templates. The Config() constructor loads all configuration from it:
 
 ```
 from freeact.agent.config import Config, init_config
@@ -662,7 +633,7 @@ See the [Configuration](https://gradion-ai.github.io/freeact/configuration/index
 
 ## Generation API
 
-MCP servers [configured](https://gradion-ai.github.io/freeact/configuration/#mcp-servers) as `ptc-servers` in `servers.json` require Python API generation with generate_mcp_sources() before the agent can call their tools programmatically:
+MCP servers [configured](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) as `ptc-servers` in `config.json` require Python API generation with generate_mcp_sources() before the agent can call their tools programmatically:
 
 ```
 from freeact.agent.tools.pytools.apigen import generate_mcp_sources
@@ -683,7 +654,7 @@ result = run(Params(query="python async tutorial"))
 
 ## Agent API
 
-The Agent class implements the agentic code action loop, handling code action generation, code execution, tool calls, and the approval workflow. The constructor requires an agent ID as the first argument (for example `"main"` in apps using a single top-level agent). Each stream() call runs a single agent turn, with the agent managing conversation history across calls. Use `stream()` to iterate over [events](#events) and handle them with pattern matching:
+The Agent class implements the agentic code action loop, handling code action generation, code execution, tool calls, and the approval workflow. Each stream() call runs a single agent turn, with the agent managing conversation history across calls. Use `stream()` to iterate over [events](#events) and handle them with pattern matching:
 
 ```
 from freeact.agent import (
@@ -696,11 +667,10 @@ from freeact.agent import (
 )
 
 async with Agent(
-    "main",
     model=config.model,
     model_settings=config.model_settings,
     system_prompt=config.system_prompt,
-    mcp_server_factory=config.create_mcp_servers,
+    mcp_servers=config.mcp_servers,
 ) as agent:
     prompt = "Who is the F1 world champion 2025?"
 
@@ -794,10 +764,10 @@ For code actions, `tool_name` is `ipybox_execute_ipython_cell` and `tool_args` c
 
 ### Lifecycle
 
-The agent manages MCP server connections and an IPython kernel via [ipybox](https://gradion-ai.github.io/ipybox/). On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calling connect. MCP servers configured for programmatic tool calling connect lazily on first tool call. When constructing agents directly, pass `mcp_server_factory` (a callable returning fresh MCP server instances) rather than pre-instantiated server objects.
+The agent manages MCP server connections and an IPython kernel via [ipybox](https://gradion-ai.github.io/ipybox/). On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calling connect. MCP servers configured for programmatic tool calling connect lazily on first tool call.
 
 ```
-async with Agent("main", ...) as agent:
+async with Agent(...) as agent:
     async for event in agent.stream(prompt):
         ...
 # Connections closed, kernel stopped
@@ -806,7 +776,7 @@ async with Agent("main", ...) as agent:
 Without using the async context manager:
 
 ```
-agent = Agent("main", ...)
+agent = Agent(...)
 await agent.start()
 try:
     async for event in agent.stream(prompt):
@@ -824,7 +794,6 @@ The agent supports two timeout configurations:
 
 ```
 agent = Agent(
-    "main",
     model="anthropic:claude-sonnet-4-20250514",
     model_settings=model_settings,
     system_prompt=config.system_prompt,
@@ -884,7 +853,6 @@ freeact init
 | ----------------------------- | -------------------------------------------------------------------------------------------- |
 | `--sandbox`                   | Run code execution in [sandbox mode](https://gradion-ai.github.io/freeact/sandbox/index.md). |
 | `--sandbox-config PATH`       | Path to sandbox configuration file.                                                          |
-| `--tool-search MODE`          | Tool discovery mode: `basic` (default) or `hybrid`. See [Hybrid Search](#hybrid-search).     |
 | `--execution-timeout SECONDS` | Maximum time for code execution (default: 300). Approval wait time is excluded.              |
 | `--approval-timeout SECONDS`  | Timeout for PTC approval requests (default: None, no timeout).                               |
 | `--log-level LEVEL`           | Set logging level: `debug`, `info` (default), `warning`, `error`, `critical`.                |
@@ -914,15 +882,9 @@ freeact --record --record-dir docs/recordings/demo --record-title "Demo Session"
 
 ## Hybrid Search
 
-The `--tool-search` option controls how the agent discovers Python tools. The default `basic` mode uses category browsing with `pytools_list_categories` and `pytools_list_tools`. The `hybrid` mode uses BM25/vector search with `pytools_search_tools` for natural language queries.
+Tool discovery mode is controlled by the [`tool-search`](https://gradion-ai.github.io/freeact/configuration/#tool-search) setting in `.freeact/config.json`. The default `basic` mode uses category browsing with `pytools_list_categories` and `pytools_list_tools`. Setting it to `hybrid` enables BM25/vector search with `pytools_search_tools` for natural language queries.
 
-To enable hybrid search:
-
-```
-freeact --tool-search hybrid
-```
-
-This requires an embedding API. The default configuration uses Gemini embeddings, which requires setting `GEMINI_API_KEY`. See [Hybrid Search Configuration](https://gradion-ai.github.io/freeact/configuration/#hybrid-search) for environment variables and customization options.
+This requires an embedding API. The default configuration uses Gemini embeddings, which requires setting `GEMINI_API_KEY`. See [Hybrid Search](https://gradion-ai.github.io/freeact/configuration/#hybrid-search) for environment variables and customization options.
 
 ## Interactive Mode
 
@@ -974,21 +936,19 @@ See [Permissions API](https://gradion-ai.github.io/freeact/sdk/#permissions-api)
 
 ```
 Agent(
-    id: str,
     model: str | Model,
     model_settings: ModelSettings,
     system_prompt: str,
-    mcp_server_factory: (
-        Callable[[], dict[str, MCPServer]] | None
-    ) = None,
+    agent_id: str = "main",
+    mcp_servers: dict[str, dict[str, Any]] | None = None,
     kernel_env: dict[str, str] | None = None,
     sandbox: bool = False,
     sandbox_config: Path | None = None,
     images_dir: Path | None = None,
     execution_timeout: float | None = 300,
     approval_timeout: float | None = None,
+    enable_subagents: bool = True,
     max_subagents: int = 5,
-    _include_subagent_task_tool: bool = True,
 )
 ```
 
@@ -1007,21 +967,21 @@ Initialize the agent.
 
 Parameters:
 
-| Name                          | Type                                   | Description                                                                                                      | Default                                                                                                                                                                                            |
-| ----------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`                          | `str`                                  | Identifier for this agent instance.                                                                              | *required*                                                                                                                                                                                         |
-| `model`                       | \`str                                  | Model\`                                                                                                          | LLM model identifier or pydantic-ai Model instance.                                                                                                                                                |
-| `model_settings`              | `ModelSettings`                        | Temperature, max tokens, and other model params.                                                                 | *required*                                                                                                                                                                                         |
-| `system_prompt`               | `str`                                  | Instructions defining agent behavior.                                                                            | *required*                                                                                                                                                                                         |
-| `mcp_server_factory`          | \`Callable\[[], dict[str, MCPServer]\] | None\`                                                                                                           | Factory function that creates fresh MCP server connections for each agent instance. Subagents get their own connections by using the same factory.                                                 |
-| `kernel_env`                  | \`dict[str, str]                       | None\`                                                                                                           | Environment variables passed to the IPython kernel.                                                                                                                                                |
-| `sandbox`                     | `bool`                                 | Run the kernel in sandbox mode.                                                                                  | `False`                                                                                                                                                                                            |
-| `sandbox_config`              | \`Path                                 | None\`                                                                                                           | Path to custom sandbox configuration.                                                                                                                                                              |
-| `images_dir`                  | \`Path                                 | None\`                                                                                                           | Directory for saving generated images.                                                                                                                                                             |
-| `execution_timeout`           | \`float                                | None\`                                                                                                           | Maximum time in seconds for code execution. Approval wait time is excluded from this timeout budget. If None, no timeout is applied. Defaults to 300 seconds.                                      |
-| `approval_timeout`            | \`float                                | None\`                                                                                                           | Timeout in seconds for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. If None, no timeout is applied. |
-| `max_subagents`               | `int`                                  | Maximum number of concurrent subagents. Defaults to 5.                                                           | `5`                                                                                                                                                                                                |
-| `_include_subagent_task_tool` | `bool`                                 | Whether to include the subagent task tool for spawning subagents. Set to False for subagents to prevent nesting. | `True`                                                                                                                                                                                             |
+| Name                | Type                          | Description                                             | Default                                                                                                                                                                                                                   |
+| ------------------- | ----------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`             | \`str                         | Model\`                                                 | LLM model identifier or pydantic-ai Model instance.                                                                                                                                                                       |
+| `model_settings`    | `ModelSettings`               | Temperature, max tokens, and other model params.        | *required*                                                                                                                                                                                                                |
+| `system_prompt`     | `str`                         | Instructions defining agent behavior.                   | *required*                                                                                                                                                                                                                |
+| `agent_id`          | `str`                         | Identifier for this agent instance. Defaults to "main". | `'main'`                                                                                                                                                                                                                  |
+| `mcp_servers`       | \`dict\[str, dict[str, Any]\] | None\`                                                  | Raw MCP server configurations. Each key is a server name, each value is a config dict with command or url and optional excluded_tools. Used during startup and passed to subagents so each gets its own server processes. |
+| `kernel_env`        | \`dict[str, str]              | None\`                                                  | Environment variables passed to the IPython kernel.                                                                                                                                                                       |
+| `sandbox`           | `bool`                        | Run the kernel in sandbox mode.                         | `False`                                                                                                                                                                                                                   |
+| `sandbox_config`    | \`Path                        | None\`                                                  | Path to custom sandbox configuration.                                                                                                                                                                                     |
+| `images_dir`        | \`Path                        | None\`                                                  | Directory for saving generated images.                                                                                                                                                                                    |
+| `execution_timeout` | \`float                       | None\`                                                  | Maximum time in seconds for code execution. Approval wait time is excluded from this timeout budget. If None, no timeout is applied. Defaults to 300 seconds.                                                             |
+| `approval_timeout`  | \`float                       | None\`                                                  | Timeout in seconds for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. If None, no timeout is applied.                        |
+| `enable_subagents`  | `bool`                        | Whether to enable subagent delegation.                  | `True`                                                                                                                                                                                                                    |
+| `max_subagents`     | `int`                         | Maximum number of concurrent subagents. Defaults to 5.  | `5`                                                                                                                                                                                                                       |
 
 ### start
 
@@ -1208,27 +1168,22 @@ Configuration loader for the `.freeact/` directory structure.
 
 Loads and parses all configuration on instantiation: skills metadata, system prompts, MCP servers (JSON tool calls), and PTC servers (programmatic tool calling).
 
+Internal MCP servers (pytools, filesystem) are defined as constants in this module. User-defined servers from `config.json` override internal configs when they share the same key.
+
 Attributes:
 
-| Name              | Type | Description                                                |
-| ----------------- | ---- | ---------------------------------------------------------- |
-| `working_dir`     |      | Agent's working directory.                                 |
-| `freeact_dir`     |      | Path to .freeact/ configuration directory.                 |
-| `plans_dir`       |      | Path to .freeact/plans/ for plan storage.                  |
-| `model`           |      | LLM model name or instance.                                |
-| `model_settings`  |      | Model-specific settings (e.g., thinking config).           |
-| `skills_metadata` |      | Parsed skill definitions from .freeact/skills/\*/SKILL.md. |
-| `system_prompt`   |      | Rendered system prompt from .freeact/prompts/system.md.    |
-| `mcp_servers`     |      | MCPServer instances used for JSON tool calling.            |
-| `ptc_servers`     |      | Raw PTC server configs for programmatic tool generation.   |
-
-### create_mcp_servers
-
-```
-create_mcp_servers() -> dict[str, MCPServer]
-```
-
-Load and instantiate MCP servers.
+| Name              | Type  | Description                                                     |
+| ----------------- | ----- | --------------------------------------------------------------- |
+| `working_dir`     |       | Agent's working directory.                                      |
+| `freeact_dir`     |       | Path to .freeact/ configuration directory.                      |
+| `plans_dir`       |       | Path to .freeact/plans/ for plan storage.                       |
+| `model`           |       | LLM model name or instance.                                     |
+| `model_settings`  |       | Model-specific settings (e.g., thinking config).                |
+| `tool_search`     | `str` | Tool discovery mode read from config.json.                      |
+| `skills_metadata` |       | Parsed skill definitions from .freeact/skills/\*/SKILL.md.      |
+| `system_prompt`   |       | Rendered system prompt loaded from package resources.           |
+| `mcp_servers`     |       | Merged MCP server configs (internal defaults + user overrides). |
+| `ptc_servers`     |       | Raw PTC server configs loaded from config.json.                 |
 
 ## freeact.agent.config.SkillMetadata
 
@@ -1241,22 +1196,18 @@ Metadata parsed from a skill's SKILL.md frontmatter.
 ## freeact.agent.config.init_config
 
 ```
-init_config(
-    working_dir: Path | None = None,
-    tool_search: Literal["basic", "hybrid"] = "basic",
-) -> None
+init_config(working_dir: Path | None = None) -> None
 ```
 
 Initialize `.freeact/` config directory from templates.
 
-Copies template files that don't already exist, preserving user modifications. Enforces the pytools server configuration based on the tool_search setting.
+Copies template files that don't already exist, preserving user modifications.
 
 Parameters:
 
-| Name          | Type                         | Description                                                                                                                                                             | Default                                                |
-| ------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| `working_dir` | \`Path                       | None\`                                                                                                                                                                  | Base directory. Defaults to current working directory. |
-| `tool_search` | `Literal['basic', 'hybrid']` | Tool discovery mode. "basic" uses category browsing via list_categories and list_tools. "hybrid" uses BM25/vector search via search_tools for natural language queries. | `'basic'`                                              |
+| Name          | Type   | Description | Default                                                |
+| ------------- | ------ | ----------- | ------------------------------------------------------ |
+| `working_dir` | \`Path | None\`      | Base directory. Defaults to current working directory. |
 
 ## freeact.agent.config.DEFAULT_MODEL
 
@@ -1273,6 +1224,64 @@ DEFAULT_MODEL_SETTINGS = GoogleModelSettings(
         "include_thoughts": True,
     }
 )
+```
+
+## freeact.agent.config.PYTOOLS_BASIC_CONFIG
+
+```
+PYTOOLS_BASIC_CONFIG: dict[str, Any] = {
+    "command": "python",
+    "args": [
+        "-m",
+        "freeact.agent.tools.pytools.search.basic",
+    ],
+}
+```
+
+## freeact.agent.config.PYTOOLS_HYBRID_CONFIG
+
+```
+PYTOOLS_HYBRID_CONFIG: dict[str, Any] = {
+    "command": "python",
+    "args": [
+        "-m",
+        "freeact.agent.tools.pytools.search.hybrid",
+    ],
+    "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+        "PYTOOLS_DIR": "${PYTOOLS_DIR}",
+        "PYTOOLS_DB_PATH": "${PYTOOLS_DB_PATH}",
+        "PYTOOLS_EMBEDDING_MODEL": "${PYTOOLS_EMBEDDING_MODEL}",
+        "PYTOOLS_EMBEDDING_DIM": "${PYTOOLS_EMBEDDING_DIM}",
+        "PYTOOLS_SYNC": "${PYTOOLS_SYNC}",
+        "PYTOOLS_WATCH": "${PYTOOLS_WATCH}",
+        "PYTOOLS_BM25_WEIGHT": "${PYTOOLS_BM25_WEIGHT}",
+        "PYTOOLS_VEC_WEIGHT": "${PYTOOLS_VEC_WEIGHT}",
+    },
+}
+```
+
+## freeact.agent.config.FILESYSTEM_CONFIG
+
+```
+FILESYSTEM_CONFIG: dict[str, Any] = {
+    "command": "npx",
+    "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        ".",
+    ],
+    "excluded_tools": [
+        "create_directory",
+        "list_directory",
+        "list_directory_with_sizes",
+        "directory_tree",
+        "move_file",
+        "search_files",
+        "list_allowed_directories",
+        "read_file",
+    ],
+}
 ```
 
 ## freeact.agent.tools.pytools.apigen.generate_mcp_sources

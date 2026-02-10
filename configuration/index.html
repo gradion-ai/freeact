@@ -510,19 +510,30 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#mcp-servers" class="md-nav__link">
+  <a href="#configuration-file" class="md-nav__link">
     <span class="md-ellipsis">
       
-        MCP Servers
+        Configuration File
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="MCP Servers">
+    <nav class="md-nav" aria-label="Configuration File">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#mcp-servers_1" class="md-nav__link">
+  <a href="#tool-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tool-search
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mcp-servers" class="md-nav__link">
     <span class="md-ellipsis">
       
         mcp-servers
@@ -537,6 +548,17 @@
     <span class="md-ellipsis">
       
         ptc-servers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#server-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Server Formats
       
     </span>
   </a>
@@ -1301,19 +1323,30 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#mcp-servers" class="md-nav__link">
+  <a href="#configuration-file" class="md-nav__link">
     <span class="md-ellipsis">
       
-        MCP Servers
+        Configuration File
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="MCP Servers">
+    <nav class="md-nav" aria-label="Configuration File">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#mcp-servers_1" class="md-nav__link">
+  <a href="#tool-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tool-search
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mcp-servers" class="md-nav__link">
     <span class="md-ellipsis">
       
         mcp-servers
@@ -1328,6 +1361,17 @@
     <span class="md-ellipsis">
       
         ptc-servers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#server-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Server Formats
       
     </span>
   </a>
@@ -1505,63 +1549,53 @@
 <p>This allows safe customization: edit any configuration file, and your changes remain intact. If you delete a file, it is recreated from the default template on next initialization.</p>
 <h2 id="directory-structure">Directory Structure</h2>
 <div class="highlight"><pre><span></span><code>.freeact/
-├── prompts/
-│   └── system.md        # System prompt template
-├── servers.json         # MCP server configurations
-├── skills/              # Agent skills
+├── config.json         # Configuration and MCP server definitions
+├── skills/             # Agent skills
 │   └── &lt;skill-name&gt;/
-│       ├── SKILL.md     # Skill metadata and instructions
-│       └── ...          # Further skill resources
-├── plans/               # Task plan storage
-└── permissions.json     # Persisted approval decisions
+│       ├── SKILL.md    # Skill metadata and instructions
+│       └── ...         # Further skill resources
+├── plans/              # Task plan storage
+└── permissions.json    # Persisted approval decisions
 </code></pre></div>
-<h2 id="mcp-servers">MCP Servers</h2>
-<p>The <code>servers.json</code> file configures two types of MCP servers:</p>
+<h2 id="configuration-file">Configuration File</h2>
+<p>The <code>config.json</code> file contains settings and user-defined MCP server configurations:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;mcp-servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;server-name&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">}</span>
-<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;tool-search&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;basic&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;mcp-servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
 <span class="w">  </span><span class="nt">&quot;ptc-servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;server-name&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>Both sections support stdio servers and streamable HTTP servers.</p>
-<h3 id="mcp-servers_1"><code>mcp-servers</code></h3>
-<p>These are MCP servers that are called directly via JSON. This section is primarily for freeact-internal servers. The default configuration includes the bundled <code>pytools</code> MCP server (for tool discovery) and the <code>filesystem</code> MCP server.</p>
-<p>The <code>pytools</code> server configuration depends on the <a href="../cli/#hybrid-search"><code>--tool-search</code></a> mode:</p>
-<p><strong>Basic mode</strong> (default):</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;mcp-servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;pytools&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;python&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;freeact.agent.tools.pytools.search.basic&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="nt">&quot;filesystem&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;npx&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;-y&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;@modelcontextprotocol/server-filesystem&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;.&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="p">}</span>
-<span class="w">  </span><span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div>
-<p><strong>Hybrid mode</strong> (<code>--tool-search hybrid</code>):</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;mcp-servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;pytools&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;python&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;freeact.agent.tools.pytools.search.hybrid&quot;</span><span class="p">],</span>
-<span class="w">      </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;GEMINI_API_KEY&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${GEMINI_API_KEY}&quot;</span><span class="p">}</span>
-<span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="nt">&quot;filesystem&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;npx&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;-y&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;@modelcontextprotocol/server-filesystem&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;.&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="p">}</span>
-<span class="w">  </span><span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div>
-<p>The <code>--tool-search</code> CLI option automatically updates the <code>pytools</code> entry in <code>servers.json</code> to use the selected mode. See <a href="#hybrid-search">Hybrid Search</a> for environment variables.</p>
+<h3 id="tool-search"><code>tool-search</code></h3>
+<p>Controls how the agent discovers Python tools:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>basic</code></td>
+<td>Category browsing with <code>pytools_list_categories</code> and <code>pytools_list_tools</code></td>
+</tr>
+<tr>
+<td><code>hybrid</code></td>
+<td>BM25/vector search with <code>pytools_search_tools</code> for natural language queries</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>tool-search</code> setting also selects the matching system prompt template (see <a href="#system-prompt">System Prompt</a>). For hybrid mode environment variables, see <a href="#hybrid-search">Hybrid Search</a>.</p>
+<h3 id="mcp-servers"><code>mcp-servers</code></h3>
+<p>MCP servers called directly via JSON tool calls. Internal servers (<code>pytools</code> for tool discovery and <code>filesystem</code> for file operations) are provided automatically and do not need to be configured. User-defined servers in this section are merged with the internal defaults. If a user entry uses the same key as an internal server, the user entry takes precedence.</p>
+<div class="admonition tip">
+<p class="admonition-title">Custom MCP servers</p>
+<p>Application-specific MCP servers for JSON tool calls can be added to this section as needed.</p>
+</div>
 <h3 id="ptc-servers"><code>ptc-servers</code></h3>
-<p>These are MCP servers called programmatically via Python APIs. Python APIs must be generated from <code>ptc-servers</code> to <code>mcptools/&lt;server-name&gt;/&lt;tool&gt;.py</code> before the agent can use them. The <a href="../cli/">CLI tool</a> handles this automatically. When using the <a href="../sdk/">Python SDK</a>, call <a class="autorefs autorefs-internal" href="../api/generate/#freeact.agent.tools.pytools.apigen.generate_mcp_sources"><code>generate_mcp_sources()</code></a> explicitly. Code actions can then import and call the generated APIs.</p>
+<p>MCP servers called programmatically via Python APIs. Python APIs must be generated from <code>ptc-servers</code> to <code>mcptools/&lt;server-name&gt;/&lt;tool&gt;.py</code> before the agent can use them. The <a href="../cli/">CLI tool</a> handles this automatically. When using the <a href="../sdk/">Python SDK</a>, call <a class="autorefs autorefs-internal" href="../api/generate/#freeact.agent.tools.pytools.apigen.generate_mcp_sources"><code>generate_mcp_sources()</code></a> explicitly. Code actions can then import and call the generated APIs.</p>
 <p>The default configuration includes the bundled <code>google</code> MCP server (web search via Gemini):</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;ptc-servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1577,10 +1611,12 @@
 <p class="admonition-title">Custom MCP servers</p>
 <p>Application-specific MCP servers can be added as needed to <code>ptc-servers</code> for programmatic tool calling.</p>
 </div>
+<h3 id="server-formats">Server Formats</h3>
+<p>Both <code>mcp-servers</code> and <code>ptc-servers</code> support stdio servers and streamable HTTP servers.</p>
 <h3 id="environment-variables">Environment Variables</h3>
 <p>Server configurations support environment variable references using <code>${VAR_NAME}</code> syntax. <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config"><code>Config()</code></a> validates that all referenced variables are set. If a variable is missing, loading fails with an error.</p>
 <h2 id="hybrid-search">Hybrid Search</h2>
-<p>When using <a href="../cli/#hybrid-search"><code>--tool-search hybrid</code></a> or <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.init_config"><code>init_config(tool_search="hybrid")</code></a>, the hybrid search server reads configuration from environment variables. These are set via the <code>env</code> section of the <code>pytools</code> server in <code>servers.json</code>.</p>
+<p>When <code>tool-search</code> is set to <code>"hybrid"</code> in <code>config.json</code>, the hybrid search server reads additional configuration from environment variables. Default values are provided for all optional variables:</p>
 <table>
 <thead>
 <tr>
@@ -1590,6 +1626,11 @@
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>GEMINI_API_KEY</code></td>
+<td><em>(required)</em></td>
+<td>API key for the default embedding model</td>
+</tr>
 <tr>
 <td><code>PYTOOLS_DIR</code></td>
 <td><code>.</code></td>
@@ -1632,13 +1673,13 @@
 </tr>
 </tbody>
 </table>
-<p>The default embedding model requires <code>GEMINI_API_KEY</code> to be set. To use a different embedding provider, change <code>PYTOOLS_EMBEDDING_MODEL</code> to a supported <a href="https://ai.pydantic.dev/embeddings/" target="_blank">pydantic-ai embedder</a> identifier.</p>
+<p>To use a different embedding provider, change <code>PYTOOLS_EMBEDDING_MODEL</code> to a supported <a href="https://ai.pydantic.dev/embeddings/" target="_blank">pydantic-ai embedder</a> identifier.</p>
 <div class="admonition tip">
 <p class="admonition-title">Testing without an API key</p>
 <p>Set <code>PYTOOLS_EMBEDDING_MODEL=test</code> to use a test embedder that generates deterministic embeddings. This is useful for development and testing but produces meaningless search results.</p>
 </div>
 <h2 id="system-prompt">System Prompt</h2>
-<p>The system prompt template is stored in <code>.freeact/prompts/</code>. The template used depends on the <a href="../cli/#hybrid-search"><code>--tool-search</code></a> mode:</p>
+<p>The system prompt is an internal resource bundled with the package. The template used depends on the <code>tool-search</code> setting in <code>config.json</code>:</p>
 <table>
 <thead>
 <tr>
@@ -1679,11 +1720,7 @@
 </tr>
 </tbody>
 </table>
-<p>See the default templates for <a href="https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/templates/prompts/system-basic.md">basic</a> and <a href="https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/templates/prompts/system-hybrid.md">hybrid</a> modes.</p>
-<div class="admonition tip">
-<p class="admonition-title">Custom system prompt</p>
-<p>The system prompt can be extended or modified to specialize agent behavior for specific applications.</p>
-</div>
+<p>See the templates for <a href="https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-basic.md">basic</a> and <a href="https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-hybrid.md">hybrid</a> modes.</p>
 <h2 id="skills">Skills</h2>
 <p>Skills are filesystem-based capability packages that specialize agent behavior. A skill is a directory containing a <code>SKILL.md</code> file with metadata in YAML frontmatter, and optionally further skill resources. Skills follow the <a href="https://agentskills.io/specification/">agentskills.io</a> specification.</p>
 <h3 id="bundled-skills">Bundled Skills</h3>

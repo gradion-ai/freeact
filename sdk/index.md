@@ -9,7 +9,7 @@ The Python SDK provides four main APIs:
 
 ## Configuration API
 
-Use init_config() to initialize the `.freeact/` directory from default templates. The optional `tool_search` parameter selects the tool discovery mode (`"basic"` or `"hybrid"`). The Config() constructor loads all configuration from it:
+Use init_config() to initialize the `.freeact/` directory from default templates. The Config() constructor loads all configuration from it:
 
 ```
 from freeact.agent.config import Config, init_config
@@ -25,7 +25,7 @@ See the [Configuration](https://gradion-ai.github.io/freeact/configuration/index
 
 ## Generation API
 
-MCP servers [configured](https://gradion-ai.github.io/freeact/configuration/#mcp-servers) as `ptc-servers` in `servers.json` require Python API generation with generate_mcp_sources() before the agent can call their tools programmatically:
+MCP servers [configured](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) as `ptc-servers` in `config.json` require Python API generation with generate_mcp_sources() before the agent can call their tools programmatically:
 
 ```
 from freeact.agent.tools.pytools.apigen import generate_mcp_sources
@@ -46,7 +46,7 @@ result = run(Params(query="python async tutorial"))
 
 ## Agent API
 
-The Agent class implements the agentic code action loop, handling code action generation, code execution, tool calls, and the approval workflow. The constructor requires an agent ID as the first argument (for example `"main"` in apps using a single top-level agent). Each stream() call runs a single agent turn, with the agent managing conversation history across calls. Use `stream()` to iterate over [events](#events) and handle them with pattern matching:
+The Agent class implements the agentic code action loop, handling code action generation, code execution, tool calls, and the approval workflow. Each stream() call runs a single agent turn, with the agent managing conversation history across calls. Use `stream()` to iterate over [events](#events) and handle them with pattern matching:
 
 ```
 from freeact.agent import (
@@ -59,11 +59,10 @@ from freeact.agent import (
 )
 
 async with Agent(
-    "main",
     model=config.model,
     model_settings=config.model_settings,
     system_prompt=config.system_prompt,
-    mcp_server_factory=config.create_mcp_servers,
+    mcp_servers=config.mcp_servers,
 ) as agent:
     prompt = "Who is the F1 world champion 2025?"
 
@@ -157,10 +156,10 @@ For code actions, `tool_name` is `ipybox_execute_ipython_cell` and `tool_args` c
 
 ### Lifecycle
 
-The agent manages MCP server connections and an IPython kernel via [ipybox](https://gradion-ai.github.io/ipybox/). On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calling connect. MCP servers configured for programmatic tool calling connect lazily on first tool call. When constructing agents directly, pass `mcp_server_factory` (a callable returning fresh MCP server instances) rather than pre-instantiated server objects.
+The agent manages MCP server connections and an IPython kernel via [ipybox](https://gradion-ai.github.io/ipybox/). On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calling connect. MCP servers configured for programmatic tool calling connect lazily on first tool call.
 
 ```
-async with Agent("main", ...) as agent:
+async with Agent(...) as agent:
     async for event in agent.stream(prompt):
         ...
 # Connections closed, kernel stopped
@@ -169,7 +168,7 @@ async with Agent("main", ...) as agent:
 Without using the async context manager:
 
 ```
-agent = Agent("main", ...)
+agent = Agent(...)
 await agent.start()
 try:
     async for event in agent.stream(prompt):
@@ -187,7 +186,6 @@ The agent supports two timeout configurations:
 
 ```
 agent = Agent(
-    "main",
     model="anthropic:claude-sonnet-4-20250514",
     model_settings=model_settings,
     system_prompt=config.system_prompt,
