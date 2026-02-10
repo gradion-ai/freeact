@@ -4,7 +4,7 @@ import os
 import re
 import uuid
 from asyncio import Future
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence, Set
 from contextlib import suppress
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -12,8 +12,9 @@ from typing import Any, AsyncIterator
 
 import ipybox
 from aiostream.stream import merge
+from mcp import types as mcp_types
 from pydantic_ai.direct import model_request_stream
-from pydantic_ai.mcp import MCPServer, ToolResult
+from pydantic_ai.mcp import MCPServer, MCPServerStdio, MCPServerStreamableHTTP, ToolResult
 from pydantic_ai.messages import (
     ModelMessage,
     ModelRequest,
@@ -158,6 +159,18 @@ class ApprovalRequest(AgentEvent):
         return await self._future
 
 
+class _MCPServerStdioFiltered(MCPServerStdio):
+    """MCPServerStdio that filters out specified tools."""
+
+    def __init__(self, excluded_tools: Set[str], **kwargs: Any):
+        super().__init__(**kwargs)
+        self._excluded_tools = excluded_tools
+
+    async def list_tools(self) -> list[mcp_types.Tool]:
+        tools = await super().list_tools()
+        return [t for t in tools if t.name not in self._excluded_tools]
+
+
 class _ResourceSupervisor:
     """Keeps a single async context manager running in its own task."""
 
@@ -265,7 +278,7 @@ class Agent:
         model: str | Model,
         model_settings: ModelSettings,
         system_prompt: str,
-        mcp_server_factory: Callable[[], dict[str, MCPServer]] | None = None,
+        mcp_server_configs: dict[str, dict[str, Any]] | None = None,
         kernel_env: dict[str, str] | None = None,
         sandbox: bool = False,
         sandbox_config: Path | None = None,
@@ -282,9 +295,11 @@ class Agent:
             model: LLM model identifier or pydantic-ai Model instance.
             model_settings: Temperature, max tokens, and other model params.
             system_prompt: Instructions defining agent behavior.
-            mcp_server_factory: Factory function that creates fresh MCP server
-                connections for each agent instance. Subagents get their own
-                connections by using the same factory.
+            mcp_server_configs: Raw MCP server configurations from
+                `servers.json`. Each key is a server name, each value is
+                a config dict with `command` or `url` and optional
+                `excluded_tools`. Used during startup and passed to
+                subagents so each gets its own server processes.
             kernel_env: Environment variables passed to the IPython kernel.
             sandbox: Run the kernel in sandbox mode.
             sandbox_config: Path to custom sandbox configuration.
@@ -306,7 +321,7 @@ class Agent:
         self._system_prompt = system_prompt
         self._execution_timeout = execution_timeout
         self._with_subagents = with_subagents
-        self._mcp_server_factory = mcp_server_factory
+        self._mcp_server_configs = mcp_server_configs
         self._subagent_semaphore = asyncio.Semaphore(max_subagents)
         self._sandbox = sandbox
         self._sandbox_config = sandbox_config
@@ -357,7 +372,7 @@ class Agent:
         if self._resource_supervisors:
             return
 
-        self._mcp_servers = self._mcp_server_factory() if self._mcp_server_factory else {}
+        self._mcp_servers = self._create_mcp_servers()
 
         resource_supervisors = [_ResourceSupervisor(self._code_executor, "code-executor")]
         for name, server in self._mcp_servers.items():
@@ -414,6 +429,29 @@ class Agent:
                 raise errors[0]
             raise ExceptionGroup("Multiple errors while stopping agent resources", errors)
         self._mcp_servers = {}
+
+    def _create_mcp_servers(self) -> dict[str, MCPServer]:
+        """Create MCP server instances from raw config."""
+        if not self._mcp_server_configs:
+            return {}
+        servers: dict[str, MCPServer] = {}
+        for name, raw_cfg in self._mcp_server_configs.items():
+            cfg = dict(raw_cfg)
+            excluded_tools = cfg.pop("excluded_tools", None)
+            match cfg:
+                case {"command": _}:
+                    if excluded_tools:
+                        servers[name] = _MCPServerStdioFiltered(
+                            excluded_tools=frozenset(excluded_tools),
+                            **cfg,
+                        )
+                    else:
+                        servers[name] = MCPServerStdio(**cfg)
+                case {"url": _}:
+                    servers[name] = MCPServerStreamableHTTP(**cfg)
+                case _:
+                    raise ValueError(f"Invalid server config for {name}: must have 'command' or 'url'")
+        return servers
 
     def _create_model_request(self, user_prompt: str | Sequence[UserContent]) -> ModelRequest:
         parts: list[SystemPromptPart | UserPromptPart] = []
@@ -580,7 +618,7 @@ class Agent:
             model=self.model,
             model_settings=self.model_settings,
             system_prompt=self._system_prompt,
-            mcp_server_factory=self._mcp_server_factory,
+            mcp_server_configs=self._mcp_server_configs,
             kernel_env=dict(self._kernel_env),
             sandbox=self._sandbox,
             sandbox_config=self._sandbox_config,

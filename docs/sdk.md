@@ -37,7 +37,7 @@ result = run(Params(query="python async tutorial"))
 
 ## Agent API
 
-The [`Agent`][freeact.agent.Agent] class implements the agentic code action loop, handling code action generation, code execution, tool calls, and the approval workflow. The constructor requires an agent ID as the first argument (for example `"main"` in apps using a single top-level agent). Each [`stream()`][freeact.agent.Agent.stream] call runs a single agent turn, with the agent managing conversation history across calls. Use `stream()` to iterate over [events](#events) and handle them with pattern matching:
+The [`Agent`][freeact.agent.Agent] class implements the agentic code action loop, handling code action generation, code execution, tool calls, and the approval workflow. Each [`stream()`][freeact.agent.Agent.stream] call runs a single agent turn, with the agent managing conversation history across calls. Use `stream()` to iterate over [events](#events) and handle them with pattern matching:
 
 ```python
 --8<-- "examples/basic_agent.py:agent-imports"
@@ -115,7 +115,7 @@ async for event in agent.stream(prompt):
 
 ### Lifecycle
 
-The agent manages MCP server connections and an IPython kernel via [ipybox](https://gradion-ai.github.io/ipybox/). On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calling connect. MCP servers configured for programmatic tool calling connect lazily on first tool call. When constructing agents directly, pass `mcp_server_factory` (a callable returning fresh MCP server instances) rather than pre-instantiated server objects.
+The agent manages MCP server connections and an IPython kernel via [ipybox](https://gradion-ai.github.io/ipybox/). On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calling connect. MCP servers configured for programmatic tool calling connect lazily on first tool call.
 
 ```python
 async with Agent("main", ...) as agent:

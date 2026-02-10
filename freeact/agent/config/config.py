@@ -1,14 +1,11 @@
 import json
 import os
-from collections.abc import Set
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import yaml
 from ipybox.vars import replace_variables
-from mcp import types as mcp_types
-from pydantic_ai.mcp import MCPServer, MCPServerStdio, MCPServerStreamableHTTP
 from pydantic_ai.models import Model, ModelSettings
 from pydantic_ai.models.google import GoogleModelSettings
 
@@ -19,31 +16,6 @@ DEFAULT_MODEL_SETTINGS = GoogleModelSettings(
         "include_thoughts": True,
     },
 )
-
-_EXCLUDED_FILESYSTEM_TOOLS = frozenset(
-    {
-        "create_directory",
-        "list_directory",
-        "list_directory_with_sizes",
-        "directory_tree",
-        "move_file",
-        "search_files",
-        "list_allowed_directories",
-        "read_file",
-    }
-)
-
-
-class _MCPServerStdioFiltered(MCPServerStdio):
-    """MCPServerStdio that filters out specified tools."""
-
-    def __init__(self, excluded_tools: Set[str], **kwargs: Any):
-        super().__init__(**kwargs)
-        self._excluded_tools = excluded_tools
-
-    async def list_tools(self) -> list[mcp_types.Tool]:
-        tools = await super().list_tools()
-        return [t for t in tools if t.name not in self._excluded_tools]
 
 
 @dataclass
@@ -70,8 +42,8 @@ class Config:
         model_settings: Model-specific settings (e.g., thinking config).
         skills_metadata: Parsed skill definitions from `.freeact/skills/*/SKILL.md`.
         system_prompt: Rendered system prompt from `.freeact/prompts/system.md`.
-        mcp_servers: `MCPServer` instances used for JSON tool calling.
-        ptc_servers: Raw PTC server configs for programmatic tool generation.
+        mcp_servers: Raw MCP server configs loaded from `servers.json`.
+        ptc_servers: Raw PTC server configs loaded from `servers.json`..
     """
 
     def __init__(
@@ -89,7 +61,7 @@ class Config:
 
         # Load all data
         self.skills_metadata = self._load_skills_metadata()
-        self.mcp_servers = self.create_mcp_servers()
+        self.mcp_servers = self._load_mcp_servers()
         self.ptc_servers = self._load_ptc_servers()
         self.system_prompt = self._load_system_prompt()
 
@@ -143,10 +115,8 @@ class Config:
 
     def _is_hybrid_search_enabled(self) -> bool:
         """Check if pytools server uses hybrid search module."""
-        pytools_server = self.mcp_servers.get("pytools")
-        if not isinstance(pytools_server, MCPServerStdio):
-            return False
-        return "freeact.agent.tools.pytools.search.hybrid" in pytools_server.args
+        pytools_config = self.mcp_servers.get("pytools", {})
+        return "freeact.agent.tools.pytools.search.hybrid" in pytools_config.get("args", [])
 
     def _load_system_prompt(self) -> str:
         """Load and render system prompt template."""
@@ -170,8 +140,8 @@ class Config:
         with open(config_file) as f:
             return json.load(f)
 
-    def create_mcp_servers(self) -> dict[str, MCPServer]:
-        """Load and instantiate MCP servers."""
+    def _load_mcp_servers(self) -> dict[str, dict[str, Any]]:
+        """Load MCP server configs (validates env vars, resolves placeholders)."""
         raw_config = self._load_servers_json()
         config = raw_config.get("mcp-servers", {})
         if not config:
@@ -181,23 +151,7 @@ class Config:
         if result.missing_variables:
             raise ValueError(f"Missing environment variables for mcp-servers: {result.missing_variables}")
 
-        servers: dict[str, MCPServer] = {}
-        for name, cfg in result.replaced.items():
-            match cfg:
-                case {"command": _}:
-                    if name == "filesystem":
-                        servers[name] = _MCPServerStdioFiltered(
-                            excluded_tools=_EXCLUDED_FILESYSTEM_TOOLS,
-                            **cfg,
-                        )
-                    else:
-                        servers[name] = MCPServerStdio(**cfg)
-                case {"url": _}:
-                    servers[name] = MCPServerStreamableHTTP(**cfg)
-                case _:
-                    raise ValueError(f"Invalid server config for {name}: must have 'command' or 'url'")
-
-        return servers
+        return result.replaced
 
     def _load_ptc_servers(self) -> dict[str, dict[str, Any]]:
         """Load PTC server configs (validates env vars, keeps placeholders for ipybox)."""

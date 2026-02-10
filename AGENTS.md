@@ -42,7 +42,7 @@ The `Agent` class is the central orchestration point. It uses pydantic-ai's `mod
 Subagents are spawned via the `subagent_task` JSON tool call:
 
 - `_execute_subagent_task()` creates a new `Agent` with `with_subagents=False` (prevents nesting).
-- Each subagent gets its own ipybox kernel, MCP server connections (via `mcp_server_factory`), and message history.
+- Each subagent gets its own ipybox kernel, MCP server connections (via `mcp_server_configs`), and message history.
 - `_SubagentRunner` wraps the subagent in a background task with a queue-based event bridge, enabling safe streaming from a separate task.
 - Subagent events bubble transparently through the parent's stream. Events carry `agent_id` (prefixed `sub-`) to distinguish from parent events.
 - The final `ToolOutput` carrying the subagent's last response uses the parent's `agent_id`.
@@ -50,7 +50,7 @@ Subagents are spawned via the `subagent_task` JSON tool call:
 
 ### Configuration (`freeact/agent/config/`)
 
-- `config.py`: `Config` class loads `.freeact/` directory (skills, system prompt, server configs). `create_mcp_servers()` is a public factory method used both by Config itself and passed as `mcp_server_factory` to agents.
+- `config.py`: `Config` class loads `.freeact/` directory (skills, system prompt, server configs). Raw MCP server configs (`mcp_servers`) are passed directly to agents, which create their own pydantic-ai `MCPServer` instances.
 - `init.py`: Initializes `.freeact/` from templates on first run.
 
 ### Tool System

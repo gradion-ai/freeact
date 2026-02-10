@@ -198,33 +198,7 @@ class TestLoadServersJson:
 
 
 class TestLoadMcpServers:
-    """Tests for MCP server loading."""
-
-    def test_creates_stdio_server_from_command(self, tmp_path: Path, freeact_dir: Path):
-        """Creates MCPServerStdio from command-based config."""
-        from pydantic_ai.mcp import MCPServerStdio
-
-        (freeact_dir / "servers.json").write_text(
-            json.dumps({"mcp-servers": {"test-server": {"command": "python", "args": ["-m", "test"]}}})
-        )
-
-        config = Config(working_dir=tmp_path)
-
-        assert "test-server" in config.mcp_servers
-        assert isinstance(config.mcp_servers["test-server"], MCPServerStdio)
-
-    def test_creates_http_server_from_url(self, tmp_path: Path, freeact_dir: Path):
-        """Creates MCPServerStreamableHTTP from url-based config."""
-        from pydantic_ai.mcp import MCPServerStreamableHTTP
-
-        (freeact_dir / "servers.json").write_text(
-            json.dumps({"mcp-servers": {"http-server": {"url": "http://localhost:8080"}}})
-        )
-
-        config = Config(working_dir=tmp_path)
-
-        assert "http-server" in config.mcp_servers
-        assert isinstance(config.mcp_servers["http-server"], MCPServerStreamableHTTP)
+    """Tests for MCP server config loading."""
 
     def test_raises_on_missing_env_variables(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
         """Raises ValueError when ${VAR} references missing env var."""
@@ -236,15 +210,6 @@ class TestLoadMcpServers:
         monkeypatch.delenv("MISSING_ENV_VAR", raising=False)
 
         with pytest.raises(ValueError, match="Missing environment variables"):
-            Config(working_dir=tmp_path)
-
-    def test_raises_on_invalid_config(self, tmp_path: Path, freeact_dir: Path):
-        """Raises ValueError for config without command or url."""
-        (freeact_dir / "servers.json").write_text(
-            json.dumps({"mcp-servers": {"invalid-server": {"invalid_key": "value"}}})
-        )
-
-        with pytest.raises(ValueError, match="must have 'command' or 'url'"):
             Config(working_dir=tmp_path)
 
     def test_returns_empty_when_no_mcp_servers(self, tmp_path: Path, freeact_dir: Path):
