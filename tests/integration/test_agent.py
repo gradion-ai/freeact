@@ -124,18 +124,18 @@ class TestMcpToolExecution:
     """Tests for MCP tool calls via _call_mcp_tool."""
 
     @pytest.fixture
-    def mcp_server_configs(self):
+    def mcp_servers(self):
         return {"test": {"command": "python", "args": [str(STDIO_SERVER_PATH)]}}
 
     @pytest.mark.asyncio
-    async def test_mcp_tool_called(self, mcp_server_configs):
+    async def test_mcp_tool_called(self, mcp_servers):
         """Verify an MCP tool is called via _call_mcp_tool."""
         stream_function = create_stream_function(
             tool_name="test_tool_2",
             tool_args={"s": "hello"},
         )
 
-        async with patched_agent(stream_function, mcp_server_configs=mcp_server_configs) as agent:
+        async with patched_agent(stream_function, mcp_servers=mcp_servers) as agent:
             assert "test_tool-1" in agent.tool_names
             assert "test_tool_2" in agent.tool_names
             assert "test_tool_3" in agent.tool_names
@@ -146,14 +146,14 @@ class TestMcpToolExecution:
             assert "You passed to tool 2: hello" in str(results.tool_outputs[0].content)
 
     @pytest.mark.asyncio
-    async def test_approval_accepted(self, mcp_server_configs):
+    async def test_approval_accepted(self, mcp_servers):
         """Verify tool call is executed when approval request is accepted."""
         stream_function = create_stream_function(
             tool_name="test_tool_2",
             tool_args={"s": "approved"},
         )
 
-        async with patched_agent(stream_function, mcp_server_configs=mcp_server_configs) as agent:
+        async with patched_agent(stream_function, mcp_servers=mcp_servers) as agent:
             results = await collect_stream(agent, "test prompt")
 
             assert len(results.approvals) == 1
@@ -163,14 +163,14 @@ class TestMcpToolExecution:
             assert "You passed to tool 2: approved" in str(results.tool_outputs[0].content)
 
     @pytest.mark.asyncio
-    async def test_approval_rejected(self, mcp_server_configs):
+    async def test_approval_rejected(self, mcp_servers):
         """Verify tool call is not executed when approval request is rejected."""
         stream_function = create_stream_function(
             tool_name="test_tool_2",
             tool_args={"s": "should not run"},
         )
 
-        async with patched_agent(stream_function, mcp_server_configs=mcp_server_configs) as agent:
+        async with patched_agent(stream_function, mcp_servers=mcp_servers) as agent:
             results = await collect_stream(agent, "test prompt", approve_function=lambda _: False)
 
             # ToolResult is not yielded if rejected
@@ -254,23 +254,23 @@ class TestMcpToolException:
     """Tests for MCP tool call exception handling."""
 
     @pytest.fixture
-    def mcp_server_configs(self):
+    def mcp_servers(self):
         return {"test": {"command": "python", "args": [str(STDIO_SERVER_PATH)]}}
 
     @pytest.mark.asyncio
-    async def test_mcp_tool_exception_returns_error(self, mcp_server_configs):
+    async def test_mcp_tool_exception_returns_error(self, mcp_servers):
         """MCP tool exception returns error message."""
         stream_function = create_stream_function(
             tool_name="test_tool_2",
             tool_args={"s": "test"},
         )
 
-        async with patched_agent(stream_function, mcp_server_configs=mcp_server_configs) as agent:
+        async with patched_agent(stream_function, mcp_servers=mcp_servers) as agent:
             # Mock direct_call_tool to raise an exception
             async def failing_call(*args, **kwargs):
                 raise RuntimeError("Connection failed")
 
-            agent._tool_servers["test_tool_2"].direct_call_tool = failing_call
+            agent._tool_mapping["test_tool_2"].direct_call_tool = failing_call
 
             results = await collect_stream(agent, "test")
 

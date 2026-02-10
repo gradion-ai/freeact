@@ -278,7 +278,7 @@ class Agent:
         model: str | Model,
         model_settings: ModelSettings,
         system_prompt: str,
-        mcp_server_configs: dict[str, dict[str, Any]] | None = None,
+        mcp_servers: dict[str, dict[str, Any]] | None = None,
         kernel_env: dict[str, str] | None = None,
         sandbox: bool = False,
         sandbox_config: Path | None = None,
@@ -295,11 +295,10 @@ class Agent:
             model: LLM model identifier or pydantic-ai Model instance.
             model_settings: Temperature, max tokens, and other model params.
             system_prompt: Instructions defining agent behavior.
-            mcp_server_configs: Raw MCP server configurations from
-                `servers.json`. Each key is a server name, each value is
-                a config dict with `command` or `url` and optional
-                `excluded_tools`. Used during startup and passed to
-                subagents so each gets its own server processes.
+            mcp_servers: Raw MCP server configurations. Each key is
+                a server name, each value is a config dict with `command` or
+                `url` and optional `excluded_tools`. Used during startup and
+                passed to subagents so each gets its own server processes.
             kernel_env: Environment variables passed to the IPython kernel.
             sandbox: Run the kernel in sandbox mode.
             sandbox_config: Path to custom sandbox configuration.
@@ -321,15 +320,15 @@ class Agent:
         self._system_prompt = system_prompt
         self._execution_timeout = execution_timeout
         self._with_subagents = with_subagents
-        self._mcp_server_configs = mcp_server_configs
+        self._mcp_servers = mcp_servers
         self._subagent_semaphore = asyncio.Semaphore(max_subagents)
         self._sandbox = sandbox
         self._sandbox_config = sandbox_config
         self._images_dir = images_dir
         self._approval_timeout = approval_timeout
 
-        self._mcp_servers: dict[str, MCPServer] = {}
-        self._tool_servers: dict[str, MCPServer] = {}
+        self._mcp_server_instances: dict[str, MCPServer] = {}
+        self._tool_mapping: dict[str, MCPServer] = {}
         self._tool_definitions: list[ToolDefinition] = []
 
         _kernel_env = dict(kernel_env) if kernel_env else {}
@@ -372,10 +371,10 @@ class Agent:
         if self._resource_supervisors:
             return
 
-        self._mcp_servers = self._create_mcp_servers()
+        self._mcp_server_instances = self._create_mcp_servers()
 
         resource_supervisors = [_ResourceSupervisor(self._code_executor, "code-executor")]
-        for name, server in self._mcp_servers.items():
+        for name, server in self._mcp_server_instances.items():
             logger.info(f"Starting MCP server: {name}")
             server.tool_prefix = name
             resource_supervisors.append(_ResourceSupervisor(server, f"mcp-server-{name}"))
@@ -396,13 +395,13 @@ class Agent:
             if self._with_subagents:
                 self._tool_definitions.extend(await load_subagent_task_tool_definitions())
 
-            for server in self._mcp_servers.values():
+            for server in self._mcp_server_instances.values():
                 for tool_def in await get_tool_definitions(server):
                     self._tool_definitions.append(tool_def)
-                    self._tool_servers[tool_def.name] = server
+                    self._tool_mapping[tool_def.name] = server
         except Exception:
             self._tool_definitions = []
-            self._tool_servers = {}
+            self._tool_mapping = {}
             await self.stop()
             raise
 
@@ -412,7 +411,7 @@ class Agent:
         Automatically called when exiting the async context manager.
         """
         self._tool_definitions = []
-        self._tool_servers = {}
+        self._tool_mapping = {}
 
         resource_supervisors = self._resource_supervisors
         self._resource_supervisors = []
@@ -428,14 +427,14 @@ class Agent:
             if len(errors) == 1:
                 raise errors[0]
             raise ExceptionGroup("Multiple errors while stopping agent resources", errors)
-        self._mcp_servers = {}
+        self._mcp_server_instances = {}
 
     def _create_mcp_servers(self) -> dict[str, MCPServer]:
         """Create MCP server instances from raw config."""
-        if not self._mcp_server_configs:
+        if not self._mcp_servers:
             return {}
         servers: dict[str, MCPServer] = {}
-        for name, raw_cfg in self._mcp_server_configs.items():
+        for name, raw_cfg in self._mcp_servers.items():
             cfg = dict(raw_cfg)
             excluded_tools = cfg.pop("excluded_tools", None)
             match cfg:
@@ -618,7 +617,7 @@ class Agent:
             model=self.model,
             model_settings=self.model_settings,
             system_prompt=self._system_prompt,
-            mcp_server_configs=self._mcp_server_configs,
+            mcp_servers=self._mcp_servers,
             kernel_env=dict(self._kernel_env),
             sandbox=self._sandbox,
             sandbox_config=self._sandbox_config,
@@ -689,7 +688,7 @@ class Agent:
 
     async def _call_mcp_tool(self, tool_name: str, tool_args: dict[str, object]) -> ToolResult:
         try:
-            mcp_server = self._tool_servers[tool_name]
+            mcp_server = self._tool_mapping[tool_name]
             return await mcp_server.direct_call_tool(
                 name=tool_name.removeprefix(f"{mcp_server.tool_prefix}_"),
                 args=tool_args,
