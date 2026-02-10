@@ -622,7 +622,7 @@ class Agent:
             model_settings=self.model_settings,
             system_prompt=self._system_prompt,
             agent_id=f"sub-{uuid.uuid4().hex[:4]}",
-            mcp_servers=self._mcp_servers,
+            mcp_servers=_subagent_mcp_servers(self._mcp_servers),
             kernel_env=dict(self._kernel_env),
             sandbox=self._sandbox,
             sandbox_config=self._sandbox_config,
@@ -700,3 +700,19 @@ class Agent:
             )
         except Exception as e:
             return f"MCP tool call failed: {str(e)}"
+
+
+def _subagent_mcp_servers(
+    mcp_servers: dict[str, dict[str, Any]] | None,
+) -> dict[str, dict[str, Any]] | None:
+    """Create MCP server config copy for subagents with pytools sync/watch disabled."""
+    if mcp_servers is None:
+        return None
+
+    import copy
+
+    servers = copy.deepcopy(mcp_servers)
+    if "pytools" in servers and "env" in servers["pytools"]:
+        servers["pytools"]["env"]["PYTOOLS_SYNC"] = "false"
+        servers["pytools"]["env"]["PYTOOLS_WATCH"] = "false"
+    return servers
