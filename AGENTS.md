@@ -12,6 +12,10 @@ uv run invoke ut             # Run unit tests only
 uv run invoke it             # Run integration tests only
 uv run invoke test --cov     # Run tests with coverage
 
+# Parallel test execution (uses pytest-xdist)
+uv run invoke it --parallel
+uv run invoke test --parallel
+
 # Single test file
 uv run pytest -xsv tests/integration/test_agent.py
 
@@ -24,6 +28,8 @@ uv run invoke serve-docs     # Serve docs at localhost:8000
 ```
 
 **Note:** `invoke cc` only checks files under version control. Run `git add` on new files first.
+
+**Note:** Integration tests are significantly faster with the `--parallel` option. All tests are isolated (each gets its own ipybox kernel on a random port) so parallel execution is safe.
 
 ## Architecture
 
@@ -41,8 +47,8 @@ The `Agent` class is the central orchestration point. It uses pydantic-ai's `mod
 
 Subagents are spawned via the `subagent_task` JSON tool call:
 
-- `_execute_subagent_task()` creates a new `Agent` with `_include_subagent_task_tool=False` (prevents nesting).
-- Each subagent gets its own ipybox kernel, MCP server connections (via `mcp_server_factory`), and message history.
+- `_execute_subagent_task()` creates a new `Agent` with `enable_subagents=False` (prevents nesting).
+- Each subagent gets its own ipybox kernel, MCP server connections (via `mcp_servers`), and message history.
 - `_SubagentRunner` wraps the subagent in a background task with a queue-based event bridge, enabling safe streaming from a separate task.
 - Subagent events bubble transparently through the parent's stream. Events carry `agent_id` (prefixed `sub-`) to distinguish from parent events.
 - The final `ToolOutput` carrying the subagent's last response uses the parent's `agent_id`.
@@ -50,15 +56,15 @@ Subagents are spawned via the `subagent_task` JSON tool call:
 
 ### Configuration (`freeact/agent/config/`)
 
-- `config.py`: `Config` class loads `.freeact/` directory (skills, system prompt, server configs). `create_mcp_servers()` is a public factory method used both by Config itself and passed as `mcp_server_factory` to agents.
+- `config.py`: `Config` class loads `.freeact/` directory (skills, system prompt, server configs). Raw MCP server configs (`mcp_servers`) are passed directly to agents, which create their own pydantic-ai `MCPServer` instances.
 - `init.py`: Initializes `.freeact/` from templates on first run.
 
 ### Tool System
 
 - **ipybox tools**: Tool definitions cached in `freeact/agent/tools/ipybox.json` and `subagent_task.json`. Loaded via `load_ipybox_tool_definitions()` and `load_subagent_task_tool_definitions()`.
-- **MCP servers** (`mcp-servers` in `servers.json`): Called directly via JSON tool calls. Server connections managed by `_ResourceSupervisor` for lifecycle management.
-- **PTC servers** (`ptc-servers` in `servers.json`): Python APIs auto-generated to `mcptools/<server>/` at startup via `ipybox.generate_mcp_sources()`. Agent writes code importing these APIs.
-- **Tool search**: Two modes via `--tool-search {basic|hybrid}`. Basic provides `list_categories`/`list_tools` MCP tools. Hybrid adds BM25 + vector search (`search/hybrid/`).
+- **MCP servers** (`mcp-servers` in `config.json`): Called directly via JSON tool calls. Server connections managed by `_ResourceSupervisor` for lifecycle management.
+- **PTC servers** (`ptc-servers` in `config.json`): Python APIs auto-generated to `mcptools/<server>/` at startup via `ipybox.generate_mcp_sources()`. Agent writes code importing these APIs.
+- **Tool search**: Two modes via `tool-search` in `config.json`. Basic provides `list_categories`/`list_tools` MCP tools. Hybrid adds BM25 + vector search (`search/hybrid/`).
 
 ### Approval Flow
 

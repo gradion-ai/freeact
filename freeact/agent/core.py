@@ -4,7 +4,7 @@ import os
 import re
 import uuid
 from asyncio import Future
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence, Set
 from contextlib import suppress
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -12,8 +12,9 @@ from typing import Any, AsyncIterator
 
 import ipybox
 from aiostream.stream import merge
+from mcp import types as mcp_types
 from pydantic_ai.direct import model_request_stream
-from pydantic_ai.mcp import MCPServer, ToolResult
+from pydantic_ai.mcp import MCPServer, MCPServerStdio, MCPServerStreamableHTTP, ToolResult
 from pydantic_ai.messages import (
     ModelMessage,
     ModelRequest,
@@ -158,6 +159,18 @@ class ApprovalRequest(AgentEvent):
         return await self._future
 
 
+class _MCPServerStdioFiltered(MCPServerStdio):
+    """MCPServerStdio that filters out specified tools."""
+
+    def __init__(self, excluded_tools: Set[str], **kwargs: Any):
+        super().__init__(**kwargs)
+        self._excluded_tools = excluded_tools
+
+    async def list_tools(self) -> list[mcp_types.Tool]:
+        tools = await super().list_tools()
+        return [t for t in tools if t.name not in self._excluded_tools]
+
+
 class _ResourceSupervisor:
     """Keeps a single async context manager running in its own task."""
 
@@ -261,30 +274,31 @@ class Agent:
 
     def __init__(
         self,
-        id: str,
         model: str | Model,
         model_settings: ModelSettings,
         system_prompt: str,
-        mcp_server_factory: Callable[[], dict[str, MCPServer]] | None = None,
+        agent_id: str = "main",
+        mcp_servers: dict[str, dict[str, Any]] | None = None,
         kernel_env: dict[str, str] | None = None,
         sandbox: bool = False,
         sandbox_config: Path | None = None,
         images_dir: Path | None = None,
         execution_timeout: float | None = 300,
         approval_timeout: float | None = None,
+        enable_subagents: bool = True,
         max_subagents: int = 5,
-        _include_subagent_task_tool: bool = True,
     ):
         """Initialize the agent.
 
         Args:
-            id: Identifier for this agent instance.
             model: LLM model identifier or pydantic-ai Model instance.
             model_settings: Temperature, max tokens, and other model params.
             system_prompt: Instructions defining agent behavior.
-            mcp_server_factory: Factory function that creates fresh MCP server
-                connections for each agent instance. Subagents get their own
-                connections by using the same factory.
+            agent_id: Identifier for this agent instance. Defaults to ``"main"``.
+            mcp_servers: Raw MCP server configurations. Each key is
+                a server name, each value is a config dict with `command` or
+                `url` and optional `excluded_tools`. Used during startup and
+                passed to subagents so each gets its own server processes.
             kernel_env: Environment variables passed to the IPython kernel.
             sandbox: Run the kernel in sandbox mode.
             sandbox_config: Path to custom sandbox configuration.
@@ -296,27 +310,25 @@ class Agent:
                 programmatic tool calls. If an approval request is not accepted
                 or rejected within this time, the tool call fails.
                 If None, no timeout is applied.
+            enable_subagents: Whether to enable subagent delegation.
             max_subagents: Maximum number of concurrent subagents. Defaults to 5.
-            _include_subagent_task_tool: Whether to include the subagent task
-                tool for spawning subagents. Set to False for subagents to
-                prevent nesting.
         """
-        self.agent_id = id
+        self.agent_id = agent_id
         self.model = model
         self.model_settings = model_settings
 
         self._system_prompt = system_prompt
         self._execution_timeout = execution_timeout
-        self._include_subagent_task_tool = _include_subagent_task_tool
-        self._mcp_server_factory = mcp_server_factory
+        self._enable_subagents = enable_subagents
+        self._mcp_servers = mcp_servers
         self._subagent_semaphore = asyncio.Semaphore(max_subagents)
         self._sandbox = sandbox
         self._sandbox_config = sandbox_config
         self._images_dir = images_dir
         self._approval_timeout = approval_timeout
 
-        self._mcp_servers: dict[str, MCPServer] = {}
-        self._tool_servers: dict[str, MCPServer] = {}
+        self._mcp_server_instances: dict[str, MCPServer] = {}
+        self._tool_mapping: dict[str, MCPServer] = {}
         self._tool_definitions: list[ToolDefinition] = []
 
         _kernel_env = dict(kernel_env) if kernel_env else {}
@@ -359,10 +371,10 @@ class Agent:
         if self._resource_supervisors:
             return
 
-        self._mcp_servers = self._mcp_server_factory() if self._mcp_server_factory else {}
+        self._mcp_server_instances = self._create_mcp_servers()
 
         resource_supervisors = [_ResourceSupervisor(self._code_executor, "code-executor")]
-        for name, server in self._mcp_servers.items():
+        for name, server in self._mcp_server_instances.items():
             logger.info(f"Starting MCP server: {name}")
             server.tool_prefix = name
             resource_supervisors.append(_ResourceSupervisor(server, f"mcp-server-{name}"))
@@ -380,16 +392,16 @@ class Agent:
 
         try:
             self._tool_definitions = await load_ipybox_tool_definitions()
-            if self._include_subagent_task_tool:
+            if self._enable_subagents:
                 self._tool_definitions.extend(await load_subagent_task_tool_definitions())
 
-            for server in self._mcp_servers.values():
+            for server in self._mcp_server_instances.values():
                 for tool_def in await get_tool_definitions(server):
                     self._tool_definitions.append(tool_def)
-                    self._tool_servers[tool_def.name] = server
+                    self._tool_mapping[tool_def.name] = server
         except Exception:
             self._tool_definitions = []
-            self._tool_servers = {}
+            self._tool_mapping = {}
             await self.stop()
             raise
 
@@ -399,7 +411,7 @@ class Agent:
         Automatically called when exiting the async context manager.
         """
         self._tool_definitions = []
-        self._tool_servers = {}
+        self._tool_mapping = {}
 
         resource_supervisors = self._resource_supervisors
         self._resource_supervisors = []
@@ -415,7 +427,35 @@ class Agent:
             if len(errors) == 1:
                 raise errors[0]
             raise ExceptionGroup("Multiple errors while stopping agent resources", errors)
-        self._mcp_servers = {}
+        self._mcp_server_instances = {}
+
+    def _create_mcp_servers(self) -> dict[str, MCPServer]:
+        from ipybox.vars import replace_variables
+
+        if not self._mcp_servers:
+            return {}
+
+        resolved = replace_variables(self._mcp_servers, os.environ).replaced
+        servers: dict[str, MCPServer] = {}
+
+        for name, raw_cfg in resolved.items():
+            cfg = dict(raw_cfg)
+            excluded_tools = cfg.pop("excluded_tools", None)
+            match cfg:
+                case {"command": _}:
+                    if excluded_tools:
+                        servers[name] = _MCPServerStdioFiltered(
+                            excluded_tools=frozenset(excluded_tools),
+                            **cfg,
+                        )
+                    else:
+                        servers[name] = MCPServerStdio(**cfg)
+                case {"url": _}:
+                    servers[name] = MCPServerStreamableHTTP(**cfg)
+                case _:
+                    raise ValueError(f"Invalid server config for {name}: must have 'command' or 'url'")
+
+        return servers
 
     def _create_model_request(self, user_prompt: str | Sequence[UserContent]) -> ModelRequest:
         parts: list[SystemPromptPart | UserPromptPart] = []
@@ -578,18 +618,18 @@ class Agent:
 
     async def _execute_subagent_task(self, prompt: str, max_turns: int) -> AsyncIterator[AgentEvent]:
         subagent = Agent(
-            f"sub-{uuid.uuid4().hex[:4]}",
             model=self.model,
             model_settings=self.model_settings,
             system_prompt=self._system_prompt,
-            mcp_server_factory=self._mcp_server_factory,
+            agent_id=f"sub-{uuid.uuid4().hex[:4]}",
+            mcp_servers=self._mcp_servers,
             kernel_env=dict(self._kernel_env),
             sandbox=self._sandbox,
             sandbox_config=self._sandbox_config,
             images_dir=self._images_dir,
             execution_timeout=self._execution_timeout,
             approval_timeout=self._approval_timeout,
-            _include_subagent_task_tool=False,
+            enable_subagents=False,
         )
         runner = _SubagentRunner(subagent=subagent, semaphore=self._subagent_semaphore)
 
@@ -653,7 +693,7 @@ class Agent:
 
     async def _call_mcp_tool(self, tool_name: str, tool_args: dict[str, object]) -> ToolResult:
         try:
-            mcp_server = self._tool_servers[tool_name]
+            mcp_server = self._tool_mapping[tool_name]
             return await mcp_server.direct_call_tool(
                 name=tool_name.removeprefix(f"{mcp_server.tool_prefix}_"),
                 args=tool_args,

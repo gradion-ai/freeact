@@ -29,8 +29,8 @@ jobs:
 
       - name: Run unit tests
         run: |
-          uv run pytest -s tests/unit
+          uv run invoke ut
 
       - name: Run integration tests
         run: |
-          uv run pytest -s tests/integration
+          uv run invoke it --parallel

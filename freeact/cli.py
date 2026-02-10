@@ -66,13 +66,6 @@ def create_parser() -> argparse.ArgumentParser:
         help="Title of the recording",
     )
     parser.add_argument(
-        "--tool-search",
-        type=str,
-        default="basic",
-        choices=["basic", "hybrid"],
-        help="Tool search mode: basic (list-based) or hybrid (BM25+vector)",
-    )
-    parser.add_argument(
         "--execution-timeout",
         type=float,
         default=300,
@@ -117,7 +110,7 @@ def configure_logging(level: str) -> None:
 
 def create_config(namespace: argparse.Namespace) -> Config:
     """Initialize and load configuration from `.freeact/` directory."""
-    init_config(tool_search=namespace.tool_search)
+    init_config()
     return Config()
 
 
@@ -137,11 +130,10 @@ async def run(namespace: argparse.Namespace) -> None:
 
     config: Config = await arun(create_config, namespace)
     agent = Agent(
-        "main",
         model=config.model,
         model_settings=config.model_settings,
         system_prompt=config.system_prompt,
-        mcp_server_factory=config.create_mcp_servers,
+        mcp_servers=config.mcp_servers,
         sandbox=namespace.sandbox,
         sandbox_config=namespace.sandbox_config,
         execution_timeout=namespace.execution_timeout,
@@ -174,7 +166,7 @@ def main() -> None:
     configure_logging(namespace.log_level)
 
     if namespace.command == "init":
-        init_config(tool_search=namespace.tool_search)
+        init_config()
         logger.info("Initialized .freeact/ configuration directory")
         return
 

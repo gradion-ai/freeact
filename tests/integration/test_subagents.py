@@ -17,10 +17,9 @@ from tests.conftest import (
 
 
 @asynccontextmanager
-async def unpatched_agent(stream_function, agent_id: str = "main"):
+async def unpatched_agent(stream_function):
     """Context manager for an agent with real code executor."""
     agent = Agent(
-        agent_id,
         model=FunctionModel(stream_function=stream_function),
         model_settings={},
         system_prompt="Test system prompt",
@@ -49,15 +48,14 @@ class TestAgentIdentity:
             assert agent.agent_id == "main"
 
     @pytest.mark.asyncio
-    async def test_two_agents_have_different_ids(self):
-        """Two agents with different constructor IDs keep distinct IDs."""
+    async def test_agent_has_default_id(self):
+        """Agent uses 'main' as default agent_id."""
 
         async def noop(messages: list[ModelMessage], info: AgentInfo) -> AsyncIterator[str]:
             yield "hello"
 
-        async with unpatched_agent(noop, agent_id="main-1") as agent1:
-            async with unpatched_agent(noop, agent_id="main-2") as agent2:
-                assert agent1.agent_id != agent2.agent_id
+        async with unpatched_agent(noop) as agent:
+            assert agent.agent_id == "main"
 
     @pytest.mark.asyncio
     async def test_events_carry_agent_id(self):

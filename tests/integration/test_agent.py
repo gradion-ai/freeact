@@ -6,7 +6,6 @@ from contextlib import asynccontextmanager
 import ipybox
 import pytest
 import pytest_asyncio
-from pydantic_ai.mcp import MCPServerStdio
 from pydantic_ai.messages import ModelMessage
 from pydantic_ai.models.function import AgentInfo, DeltaThinkingPart, DeltaToolCall, FunctionModel
 
@@ -28,7 +27,6 @@ from tests.integration.mcp_server import STDIO_SERVER_PATH
 async def unpatched_agent(stream_function):
     """Context manager that creates and yields an agent with a real code executor."""
     agent = Agent(
-        "main",
         model=FunctionModel(stream_function=stream_function),
         model_settings={},
         system_prompt="Test system prompt",
@@ -126,7 +124,7 @@ class TestMcpToolExecution:
 
     @pytest.fixture
     def mcp_servers(self):
-        return {"test": MCPServerStdio("python", args=[str(STDIO_SERVER_PATH)])}
+        return {"test": {"command": "python", "args": [str(STDIO_SERVER_PATH)]}}
 
     @pytest.mark.asyncio
     async def test_mcp_tool_called(self, mcp_servers):
@@ -136,7 +134,7 @@ class TestMcpToolExecution:
             tool_args={"s": "hello"},
         )
 
-        async with patched_agent(stream_function, mcp_server_factory=lambda: mcp_servers) as agent:
+        async with patched_agent(stream_function, mcp_servers=mcp_servers) as agent:
             assert "test_tool-1" in agent.tool_names
             assert "test_tool_2" in agent.tool_names
             assert "test_tool_3" in agent.tool_names
@@ -154,7 +152,7 @@ class TestMcpToolExecution:
             tool_args={"s": "approved"},
         )
 
-        async with patched_agent(stream_function, mcp_server_factory=lambda: mcp_servers) as agent:
+        async with patched_agent(stream_function, mcp_servers=mcp_servers) as agent:
             results = await collect_stream(agent, "test prompt")
 
             assert len(results.approvals) == 1
@@ -171,7 +169,7 @@ class TestMcpToolExecution:
             tool_args={"s": "should not run"},
         )
 
-        async with patched_agent(stream_function, mcp_server_factory=lambda: mcp_servers) as agent:
+        async with patched_agent(stream_function, mcp_servers=mcp_servers) as agent:
             results = await collect_stream(agent, "test prompt", approve_function=lambda _: False)
 
             # ToolResult is not yielded if rejected
@@ -256,7 +254,7 @@ class TestMcpToolException:
 
     @pytest.fixture
     def mcp_servers(self):
-        return {"test": MCPServerStdio("python", args=[str(STDIO_SERVER_PATH)])}
+        return {"test": {"command": "python", "args": [str(STDIO_SERVER_PATH)]}}
 
     @pytest.mark.asyncio
     async def test_mcp_tool_exception_returns_error(self, mcp_servers):
@@ -266,12 +264,12 @@ class TestMcpToolException:
             tool_args={"s": "test"},
         )
 
-        async with patched_agent(stream_function, mcp_server_factory=lambda: mcp_servers) as agent:
+        async with patched_agent(stream_function, mcp_servers=mcp_servers) as agent:
             # Mock direct_call_tool to raise an exception
             async def failing_call(*args, **kwargs):
                 raise RuntimeError("Connection failed")
 
-            agent._tool_servers["test_tool_2"].direct_call_tool = failing_call
+            agent._tool_mapping["test_tool_2"].direct_call_tool = failing_call
 
             results = await collect_stream(agent, "test")
 
@@ -383,7 +381,6 @@ class TestTimeouts:
         )
 
         agent = Agent(
-            "main",
             model=FunctionModel(stream_function=stream_function),
             model_settings={},
             system_prompt="Test system prompt",
@@ -418,7 +415,6 @@ tool_2.run(tool_2.Params(s="test"))
         # than the execution timeout. If approval wait counted toward timeout,
         # this would fail.
         agent = Agent(
-            "main",
             model=FunctionModel(stream_function=stream_function),
             model_settings={},
             system_prompt="Test system prompt",
@@ -467,7 +463,6 @@ tool_2.run(tool_2.Params(s="test"))
         )
 
         agent = Agent(
-            "main",
             model=FunctionModel(stream_function=stream_function),
             model_settings={},
             system_prompt="Test system prompt",
