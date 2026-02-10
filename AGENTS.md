@@ -12,6 +12,10 @@ uv run invoke ut             # Run unit tests only
 uv run invoke it             # Run integration tests only
 uv run invoke test --cov     # Run tests with coverage
 
+# Parallel test execution (uses pytest-xdist)
+uv run invoke it --parallel
+uv run invoke test --parallel
+
 # Single test file
 uv run pytest -xsv tests/integration/test_agent.py
 
@@ -24,6 +28,8 @@ uv run invoke serve-docs     # Serve docs at localhost:8000
 ```
 
 **Note:** `invoke cc` only checks files under version control. Run `git add` on new files first.
+
+**Note:** Integration tests are significantly faster with the `--parallel` option. All tests are isolated (each gets its own ipybox kernel on a random port) so parallel execution is safe.
 
 ## Architecture
 

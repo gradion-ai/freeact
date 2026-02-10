@@ -16,22 +16,23 @@ def code_check(c):
 
 
 @task
-def test(c, cov=False):
-    _run_pytest(c, "tests", cov)
+def test(c, cov=False, parallel=False):
+    _run_pytest(c, "tests", cov, parallel)
 
 
 @task(aliases=["ut"])
-def unit_test(c, cov=False):
-    _run_pytest(c, "tests/unit", cov)
+def unit_test(c, cov=False, parallel=False):
+    _run_pytest(c, "tests/unit", cov, parallel)
 
 
 @task(aliases=["it"])
-def integration_test(c, cov=False):
-    _run_pytest(c, "tests/integration", cov)
+def integration_test(c, cov=False, parallel=False):
+    _run_pytest(c, "tests/integration", cov, parallel)
 
 
-def _run_pytest(c, test_dir, cov=False):
-    c.run(f"pytest -xsv {test_dir} {_pytest_cov_options(cov)}", pty=_use_pty())
+def _run_pytest(c, test_dir, cov=False, parallel=False):
+    _pytest_options = "-n auto --dist loadfile" if parallel else "-xsv"
+    c.run(f"pytest {_pytest_options} {test_dir} {_pytest_cov_options(cov)}", pty=_use_pty())
 
 
 def _use_pty():
