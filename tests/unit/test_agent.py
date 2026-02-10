@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput
+from freeact.agent.core import _subagent_mcp_servers
 from tests.conftest import (
     CodeExecFunction,
     collect_stream,
@@ -399,3 +400,72 @@ class TestSubagentConfigPropagation:
         assert captured["sandbox_config"] == Path("/tmp/sandbox.cfg")
         assert captured["images_dir"] == Path("/tmp/images")
         assert captured["approval_timeout"] == 42
+
+
+class TestSubagentMcpServers:
+    """Tests for _subagent_mcp_servers helper."""
+
+    def test_disables_sync_and_watch_for_pytools(self):
+        """Overrides PYTOOLS_SYNC and PYTOOLS_WATCH to 'false' for pytools server."""
+        mcp_servers: dict[str, dict[str, Any]] = {
+            "pytools": {
+                "command": "python",
+                "args": ["-m", "freeact.agent.tools.pytools.search.hybrid"],
+                "env": {
+                    "PYTOOLS_SYNC": "${PYTOOLS_SYNC}",
+                    "PYTOOLS_WATCH": "${PYTOOLS_WATCH}",
+                    "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+                },
+            },
+        }
+        result = _subagent_mcp_servers(mcp_servers)
+        assert result is not None
+        assert result["pytools"]["env"]["PYTOOLS_SYNC"] == "false"
+        assert result["pytools"]["env"]["PYTOOLS_WATCH"] == "false"
+        assert result["pytools"]["env"]["GEMINI_API_KEY"] == "${GEMINI_API_KEY}"
+
+    def test_leaves_other_servers_unchanged(self):
+        """Other MCP servers in the config are not modified."""
+        mcp_servers: dict[str, dict[str, Any]] = {
+            "pytools": {
+                "command": "python",
+                "args": ["-m", "some.module"],
+                "env": {"PYTOOLS_SYNC": "true", "PYTOOLS_WATCH": "true"},
+            },
+            "filesystem": {
+                "command": "npx",
+                "args": ["-y", "@modelcontextprotocol/server-filesystem"],
+            },
+        }
+        result = _subagent_mcp_servers(mcp_servers)
+        assert result is not None
+        assert result["filesystem"] == mcp_servers["filesystem"]
+
+    def test_handles_missing_pytools_key(self):
+        """Returns config unchanged when pytools key is absent."""
+        mcp_servers: dict[str, dict[str, Any]] = {
+            "filesystem": {"command": "npx", "args": ["server"]},
+        }
+        result = _subagent_mcp_servers(mcp_servers)
+        assert result == mcp_servers
+
+    def test_handles_pytools_without_env(self):
+        """Returns config unchanged when pytools has no env key."""
+        mcp_servers: dict[str, dict[str, Any]] = {
+            "pytools": {"command": "python", "args": ["-m", "some.module"]},
+        }
+        result = _subagent_mcp_servers(mcp_servers)
+        assert result == mcp_servers
+
+    def test_does_not_mutate_original(self):
+        """Original config dict is not modified."""
+        mcp_servers: dict[str, dict[str, Any]] = {
+            "pytools": {
+                "command": "python",
+                "args": ["-m", "some.module"],
+                "env": {"PYTOOLS_SYNC": "true", "PYTOOLS_WATCH": "true"},
+            },
+        }
+        _subagent_mcp_servers(mcp_servers)
+        assert mcp_servers["pytools"]["env"]["PYTOOLS_SYNC"] == "true"
+        assert mcp_servers["pytools"]["env"]["PYTOOLS_WATCH"] == "true"
