@@ -430,10 +430,15 @@ class Agent:
         self._mcp_server_instances = {}
 
     def _create_mcp_servers(self) -> dict[str, MCPServer]:
+        from ipybox.vars import replace_variables
+
         if not self._mcp_servers:
             return {}
+
+        resolved = replace_variables(self._mcp_servers, os.environ).replaced
         servers: dict[str, MCPServer] = {}
-        for name, raw_cfg in self._mcp_servers.items():
+
+        for name, raw_cfg in resolved.items():
             cfg = dict(raw_cfg)
             excluded_tools = cfg.pop("excluded_tools", None)
             match cfg:
@@ -449,6 +454,7 @@ class Agent:
                     servers[name] = MCPServerStreamableHTTP(**cfg)
                 case _:
                     raise ValueError(f"Invalid server config for {name}: must have 'command' or 'url'")
+
         return servers
 
     def _create_model_request(self, user_prompt: str | Sequence[UserContent]) -> ModelRequest:

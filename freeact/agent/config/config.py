@@ -61,8 +61,8 @@ class Config:
 
         # Load all data
         self.skills_metadata = self._load_skills_metadata()
-        self.mcp_servers = self._load_mcp_servers()
-        self.ptc_servers = self._load_ptc_servers()
+        self.mcp_servers = self._load_servers("mcp-servers")
+        self.ptc_servers = self._load_servers("ptc-servers")
         self.system_prompt = self._load_system_prompt()
 
     def _load_skills_metadata(self) -> list[SkillMetadata]:
@@ -132,6 +132,19 @@ class Config:
             skills=self._render_skills_section(),
         )
 
+    def _load_servers(self, key: str) -> dict[str, dict[str, Any]]:
+        """Load server configs, validating env vars but keeping placeholders."""
+        raw_config = self._load_servers_json()
+        config = raw_config.get(key, {})
+        if not config:
+            return {}
+
+        result = replace_variables(config, os.environ)
+        if result.missing_variables:
+            raise ValueError(f"Missing environment variables for {key}: {result.missing_variables}")
+
+        return config
+
     def _load_servers_json(self) -> dict[str, Any]:
         """Load servers.json file."""
         config_file = self.freeact_dir / "servers.json"
@@ -139,29 +152,3 @@ class Config:
             return {}
         with open(config_file) as f:
             return json.load(f)
-
-    def _load_mcp_servers(self) -> dict[str, dict[str, Any]]:
-        """Load MCP server configs (validates env vars, resolves placeholders)."""
-        raw_config = self._load_servers_json()
-        config = raw_config.get("mcp-servers", {})
-        if not config:
-            return {}
-
-        result = replace_variables(config, os.environ)
-        if result.missing_variables:
-            raise ValueError(f"Missing environment variables for mcp-servers: {result.missing_variables}")
-
-        return result.replaced
-
-    def _load_ptc_servers(self) -> dict[str, dict[str, Any]]:
-        """Load PTC server configs (validates env vars, keeps placeholders for ipybox)."""
-        raw_config = self._load_servers_json()
-        config = raw_config.get("ptc-servers", {})
-        if not config:
-            return {}
-
-        result = replace_variables(config, os.environ)
-        if result.missing_variables:
-            raise ValueError(f"Missing environment variables for ptc-servers: {result.missing_variables}")
-
-        return config
