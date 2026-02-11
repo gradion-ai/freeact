@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 from dataclasses import dataclass
@@ -93,9 +94,16 @@ class Config:
         model: LLM model name or instance.
         model_settings: Model-specific settings (e.g., thinking config).
         tool_search: Tool discovery mode read from `config.json`.
+        agent_id: Identifier for this agent instance.
+        images_dir: Directory for saving generated images.
+        execution_timeout: Maximum time in seconds for code execution.
+        approval_timeout: Timeout in seconds for PTC approval requests.
+        enable_subagents: Whether to enable subagent delegation.
+        max_subagents: Maximum number of concurrent subagents.
+        kernel_env: Environment variables passed to the IPython kernel.
         skills_metadata: Parsed skill definitions from `.freeact/skills/*/SKILL.md`.
         system_prompt: Rendered system prompt loaded from package resources.
-        mcp_servers: Merged MCP server configs (internal defaults + user overrides).
+        mcp_servers: Merged and resolved MCP server configs.
         ptc_servers: Raw PTC server configs loaded from `config.json`.
     """
 
@@ -118,9 +126,17 @@ class Config:
         if self.tool_search == "hybrid":
             self._ensure_hybrid_env_defaults()
 
+        self.agent_id: str = self._config_data.get("agent-id", "main")
+        self.images_dir: Path | None = Path(d) if (d := self._config_data.get("images-dir")) else None
+        self.execution_timeout: float | None = self._config_data.get("execution-timeout", 300)
+        self.approval_timeout: float | None = self._config_data.get("approval-timeout")
+        self.enable_subagents: bool = self._config_data.get("enable-subagents", True)
+        self.max_subagents: int = self._config_data.get("max-subagents", 5)
+        self.kernel_env: dict[str, str] = self._load_kernel_env()
+
         self.skills_metadata = self._load_skills_metadata()
         self.mcp_servers = self._load_mcp_servers()
-        self.ptc_servers = self._load_servers("ptc-servers")
+        self.ptc_servers = self._load_ptc_servers()
         self.system_prompt = self._load_system_prompt()
 
     @property
@@ -137,6 +153,32 @@ class Config:
     def search_db_path(self) -> Path:
         """Hybrid search database path."""
         return self.freeact_dir / "search.db"
+
+    def for_subagent(self, agent_id: str) -> "Config":
+        """Create a subagent configuration from this config.
+
+        Returns a shallow copy with subagent-specific overrides:
+        agent_id set to the given value, subagents disabled,
+        mcp_servers deep-copied with pytools sync/watch disabled,
+        and kernel_env shallow-copied for independence.
+
+        Args:
+            agent_id: Identifier for the subagent.
+        """
+        config = copy.copy(self)
+        config.agent_id = agent_id
+        config.enable_subagents = False
+        config.mcp_servers = self._subagent_mcp_servers()
+        config.kernel_env = dict(self.kernel_env)
+        return config
+
+    def _subagent_mcp_servers(self) -> dict[str, dict[str, Any]]:
+        """Create MCP server config copy for subagents with pytools sync/watch disabled."""
+        servers = copy.deepcopy(self.mcp_servers)
+        if "pytools" in servers and "env" in servers["pytools"]:
+            servers["pytools"]["env"]["PYTOOLS_SYNC"] = "false"
+            servers["pytools"]["env"]["PYTOOLS_WATCH"] = "false"
+        return servers
 
     def _ensure_pytools_env_defaults(self) -> None:
         """Set path-related env var defaults for pytools (basic and hybrid).
@@ -166,6 +208,34 @@ class Config:
             return {}
         with open(config_file) as f:
             return json.load(f)
+
+    def _load_kernel_env(self) -> dict[str, str]:
+        """Load kernel environment variables from config.json.
+
+        Auto-adds defaults for PYTHONPATH and HOME, then validates
+        and resolves ``${VAR}`` placeholders against ``os.environ``.
+        User values in config.json take precedence over auto-defaults.
+        """
+        env: dict[str, str] = {}
+
+        # Auto-defaults (lowest priority)
+        env["PYTHONPATH"] = str(self.generated_dir)
+        home = os.environ.get("HOME")
+        if home:
+            env["HOME"] = home
+
+        # User values from config.json (highest priority)
+        user_env = self._config_data.get("kernel-env", {})
+        env.update(user_env)
+
+        if not env:
+            return {}
+
+        result = replace_variables(env, os.environ)
+        if result.missing_variables:
+            raise ValueError(f"Missing environment variables for kernel-env: {result.missing_variables}")
+
+        return result.replaced
 
     def _load_skills_metadata(self) -> list[SkillMetadata]:
         """Load skill metadata from all SKILL.md files."""
@@ -237,20 +307,30 @@ class Config:
         """Load MCP servers: internal defaults merged with user overrides.
 
         User-defined servers from `config.json` take precedence over
-        internal configs for the same key.
+        internal configs for the same key. All ``${VAR}`` placeholders
+        are validated and resolved against ``os.environ``.
         """
         internal = self._internal_mcp_servers()
-        user = self._load_servers("mcp-servers")
-        return {**internal, **user}
+        user = self._config_data.get("mcp-servers", {})
+        merged = {**internal, **user}
 
-    def _load_servers(self, key: str) -> dict[str, dict[str, Any]]:
-        """Load server configs, validating env vars but keeping placeholders."""
-        config = self._config_data.get(key, {})
+        if not merged:
+            return {}
+
+        result = replace_variables(merged, os.environ)
+        if result.missing_variables:
+            raise ValueError(f"Missing environment variables for mcp-servers: {result.missing_variables}")
+
+        return result.replaced
+
+    def _load_ptc_servers(self) -> dict[str, dict[str, Any]]:
+        """Load PTC server configs, validating env vars but keeping placeholders."""
+        config = self._config_data.get("ptc-servers", {})
         if not config:
             return {}
 
         result = replace_variables(config, os.environ)
         if result.missing_variables:
-            raise ValueError(f"Missing environment variables for {key}: {result.missing_variables}")
+            raise ValueError(f"Missing environment variables for ptc-servers: {result.missing_variables}")
 
         return config

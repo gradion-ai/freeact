@@ -38,12 +38,7 @@ async def main() -> None:
     # --8<-- [end:apigen]
 
     # --8<-- [start:agent]
-    async with Agent(
-        model=config.model,
-        model_settings=config.model_settings,
-        system_prompt=config.system_prompt,
-        mcp_servers=config.mcp_servers,
-    ) as agent:
+    async with Agent(config=config) as agent:
         prompt = "Who is the F1 world champion 2025?"
 
         async for event in agent.stream(prompt):

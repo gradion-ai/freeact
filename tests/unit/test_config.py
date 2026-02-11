@@ -1,14 +1,12 @@
 """Tests for freeact/agent/config/config.py."""
 
 import json
+import os
 from pathlib import Path
 
 import pytest
 
 from freeact.agent.config.config import (
-    FILESYSTEM_CONFIG,
-    PYTOOLS_BASIC_CONFIG,
-    PYTOOLS_HYBRID_CONFIG,
     Config,
 )
 
@@ -168,8 +166,6 @@ class TestPytoolsEnvDefaults:
 
         config = Config(working_dir=tmp_path)
 
-        import os
-
         assert os.environ["PYTOOLS_DIR"] == str(config.generated_dir)
         assert os.environ["PYTOOLS_DB_PATH"] == str(config.search_db_path)
 
@@ -178,8 +174,6 @@ class TestPytoolsEnvDefaults:
         monkeypatch.delenv("PYTOOLS_DIR", raising=False)
 
         Config(working_dir=tmp_path)
-
-        import os
 
         assert "PYTOOLS_DIR" in os.environ
 
@@ -191,8 +185,6 @@ class TestPytoolsEnvDefaults:
 
         Config(working_dir=tmp_path)
 
-        import os
-
         assert os.environ["PYTOOLS_EMBEDDING_MODEL"] == "google-gla:gemini-embedding-001"
 
     def test_preserves_existing_env_vars(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
@@ -201,8 +193,6 @@ class TestPytoolsEnvDefaults:
         monkeypatch.setenv("PYTOOLS_DB_PATH", "/custom/db.sqlite")
 
         Config(working_dir=tmp_path)
-
-        import os
 
         assert os.environ["PYTOOLS_DIR"] == "/custom/path"
         assert os.environ["PYTOOLS_DB_PATH"] == "/custom/db.sqlite"
@@ -248,8 +238,8 @@ class TestLoadMcpServers:
 
         assert "pytools" in config.mcp_servers
         assert "filesystem" in config.mcp_servers
-        assert config.mcp_servers["pytools"] == PYTOOLS_BASIC_CONFIG
-        assert config.mcp_servers["filesystem"] == FILESYSTEM_CONFIG
+        # Resolved values, not raw placeholders
+        assert "${PYTOOLS_DIR}" not in str(config.mcp_servers["pytools"])
 
     def test_hybrid_pytools_when_hybrid_tool_search(
         self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch
@@ -260,7 +250,9 @@ class TestLoadMcpServers:
 
         config = Config(working_dir=tmp_path)
 
-        assert config.mcp_servers["pytools"] == PYTOOLS_HYBRID_CONFIG
+        # Resolved, so env values should be present instead of placeholders
+        assert "pytools" in config.mcp_servers
+        assert "${GEMINI_API_KEY}" not in str(config.mcp_servers["pytools"])
 
     def test_user_pytools_overrides_internal(self, tmp_path: Path, freeact_dir: Path):
         """User pytools config in config.json overrides internal default."""
@@ -297,8 +289,8 @@ class TestLoadMcpServers:
 
         config = Config(working_dir=tmp_path)
 
-        assert config.mcp_servers["pytools"] == PYTOOLS_BASIC_CONFIG
-        assert config.mcp_servers["filesystem"] == FILESYSTEM_CONFIG
+        assert "pytools" in config.mcp_servers
+        assert "filesystem" in config.mcp_servers
 
     def test_raises_on_missing_env_variables(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
         """Raises ValueError when ${VAR} references missing env var."""
@@ -311,6 +303,17 @@ class TestLoadMcpServers:
 
         with pytest.raises(ValueError, match="Missing environment variables"):
             Config(working_dir=tmp_path)
+
+    def test_mcp_servers_are_resolved(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
+        """MCP server ${VAR} placeholders are resolved in stored config."""
+        monkeypatch.setenv("MY_API_KEY", "resolved-key")
+        (freeact_dir / "config.json").write_text(
+            json.dumps({"mcp-servers": {"test": {"command": "python", "env": {"API_KEY": "${MY_API_KEY}"}}}})
+        )
+
+        config = Config(working_dir=tmp_path)
+
+        assert config.mcp_servers["test"]["env"]["API_KEY"] == "resolved-key"
 
 
 class TestLoadPtcServers:
@@ -350,6 +353,199 @@ class TestLoadPtcServers:
         config = Config(working_dir=tmp_path)
 
         assert config.ptc_servers == {}
+
+
+class TestLoadKernelEnv:
+    """Tests for kernel environment variable loading."""
+
+    def test_pythonpath_auto_default(self, tmp_path: Path, freeact_dir: Path):
+        """PYTHONPATH is auto-set to generated_dir."""
+        config = Config(working_dir=tmp_path)
+
+        assert config.kernel_env["PYTHONPATH"] == str(config.generated_dir)
+
+    def test_home_auto_default(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
+        """HOME is auto-set from os.environ."""
+        monkeypatch.setenv("HOME", "/home/testuser")
+
+        config = Config(working_dir=tmp_path)
+
+        assert config.kernel_env["HOME"] == "/home/testuser"
+
+    def test_home_not_added_when_missing(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
+        """HOME is not added when missing from os.environ."""
+        monkeypatch.delenv("HOME", raising=False)
+
+        config = Config(working_dir=tmp_path)
+
+        assert "HOME" not in config.kernel_env
+
+    def test_user_overrides_auto_defaults(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
+        """User values in config.json override auto-defaults."""
+        monkeypatch.setenv("HOME", "/home/testuser")
+        (freeact_dir / "config.json").write_text(
+            json.dumps({"kernel-env": {"PYTHONPATH": "/custom/path", "HOME": "/custom/home"}})
+        )
+
+        config = Config(working_dir=tmp_path)
+
+        assert config.kernel_env["PYTHONPATH"] == "/custom/path"
+        assert config.kernel_env["HOME"] == "/custom/home"
+
+    def test_resolves_placeholders(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
+        """${VAR} placeholders are resolved in kernel_env."""
+        monkeypatch.setenv("MY_CUSTOM_VAR", "resolved-value")
+        (freeact_dir / "config.json").write_text(json.dumps({"kernel-env": {"CUSTOM": "${MY_CUSTOM_VAR}"}}))
+
+        config = Config(working_dir=tmp_path)
+
+        assert config.kernel_env["CUSTOM"] == "resolved-value"
+
+    def test_raises_on_missing_env_variables(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
+        """Raises ValueError when ${VAR} references missing env var."""
+        (freeact_dir / "config.json").write_text(json.dumps({"kernel-env": {"KEY": "${MISSING_KERNEL_ENV_VAR}"}}))
+        monkeypatch.delenv("MISSING_KERNEL_ENV_VAR", raising=False)
+
+        with pytest.raises(ValueError, match="Missing environment variables for kernel-env"):
+            Config(working_dir=tmp_path)
+
+    def test_empty_kernel_env_uses_defaults(self, tmp_path: Path, freeact_dir: Path):
+        """Empty kernel-env in config.json still gets auto-defaults."""
+        (freeact_dir / "config.json").write_text(json.dumps({"kernel-env": {}}))
+
+        config = Config(working_dir=tmp_path)
+
+        assert "PYTHONPATH" in config.kernel_env
+
+
+class TestForSubagent:
+    """Tests for Config.for_subagent() method."""
+
+    def test_sets_agent_id(self, tmp_path: Path, freeact_dir: Path):
+        """Subagent config has the specified agent_id."""
+        config = Config(working_dir=tmp_path)
+        sub = config.for_subagent("sub-1234")
+
+        assert sub.agent_id == "sub-1234"
+
+    def test_disables_subagents(self, tmp_path: Path, freeact_dir: Path):
+        """Subagent config has enable_subagents=False."""
+        config = Config(working_dir=tmp_path)
+        sub = config.for_subagent("sub-1234")
+
+        assert sub.enable_subagents is False
+
+    def test_kernel_env_is_independent(self, tmp_path: Path, freeact_dir: Path):
+        """Subagent kernel_env is a separate dict."""
+        config = Config(working_dir=tmp_path)
+        sub = config.for_subagent("sub-1234")
+
+        assert sub.kernel_env is not config.kernel_env
+        assert sub.kernel_env == config.kernel_env
+
+    def test_mcp_servers_have_sync_watch_disabled(self, tmp_path: Path, freeact_dir: Path):
+        """Subagent mcp_servers have pytools sync/watch disabled."""
+        config = Config(working_dir=tmp_path)
+        sub = config.for_subagent("sub-1234")
+
+        if "pytools" in sub.mcp_servers and "env" in sub.mcp_servers["pytools"]:
+            assert sub.mcp_servers["pytools"]["env"]["PYTOOLS_SYNC"] == "false"
+            assert sub.mcp_servers["pytools"]["env"]["PYTOOLS_WATCH"] == "false"
+
+    def test_parent_not_mutated(self, tmp_path: Path, freeact_dir: Path):
+        """Parent config is not modified by for_subagent()."""
+        config = Config(working_dir=tmp_path)
+        original_agent_id = config.agent_id
+        original_enable_subagents = config.enable_subagents
+
+        config.for_subagent("sub-1234")
+
+        assert config.agent_id == original_agent_id
+        assert config.enable_subagents == original_enable_subagents
+
+    def test_shares_model_and_system_prompt(self, tmp_path: Path, freeact_dir: Path):
+        """Subagent shares model and system_prompt with parent."""
+        config = Config(working_dir=tmp_path)
+        sub = config.for_subagent("sub-1234")
+
+        assert sub.model is config.model
+        assert sub.system_prompt is config.system_prompt
+
+
+class TestNewConfigFields:
+    """Tests for new config.json fields with defaults."""
+
+    def test_default_agent_id(self, tmp_path: Path, freeact_dir: Path):
+        """Default agent-id is 'main'."""
+        config = Config(working_dir=tmp_path)
+        assert config.agent_id == "main"
+
+    def test_custom_agent_id(self, tmp_path: Path, freeact_dir: Path):
+        """Custom agent-id from config.json."""
+        (freeact_dir / "config.json").write_text(json.dumps({"agent-id": "custom"}))
+        config = Config(working_dir=tmp_path)
+        assert config.agent_id == "custom"
+
+    def test_default_images_dir(self, tmp_path: Path, freeact_dir: Path):
+        """Default images-dir is None."""
+        config = Config(working_dir=tmp_path)
+        assert config.images_dir is None
+
+    def test_custom_images_dir(self, tmp_path: Path, freeact_dir: Path):
+        """Custom images-dir from config.json."""
+        (freeact_dir / "config.json").write_text(json.dumps({"images-dir": "/tmp/images"}))
+        config = Config(working_dir=tmp_path)
+        assert config.images_dir == Path("/tmp/images")
+
+    def test_default_execution_timeout(self, tmp_path: Path, freeact_dir: Path):
+        """Default execution-timeout is 300."""
+        config = Config(working_dir=tmp_path)
+        assert config.execution_timeout == 300
+
+    def test_custom_execution_timeout(self, tmp_path: Path, freeact_dir: Path):
+        """Custom execution-timeout from config.json."""
+        (freeact_dir / "config.json").write_text(json.dumps({"execution-timeout": 60}))
+        config = Config(working_dir=tmp_path)
+        assert config.execution_timeout == 60
+
+    def test_null_execution_timeout(self, tmp_path: Path, freeact_dir: Path):
+        """Null execution-timeout from config.json."""
+        (freeact_dir / "config.json").write_text(json.dumps({"execution-timeout": None}))
+        config = Config(working_dir=tmp_path)
+        assert config.execution_timeout is None
+
+    def test_default_approval_timeout(self, tmp_path: Path, freeact_dir: Path):
+        """Default approval-timeout is None."""
+        config = Config(working_dir=tmp_path)
+        assert config.approval_timeout is None
+
+    def test_custom_approval_timeout(self, tmp_path: Path, freeact_dir: Path):
+        """Custom approval-timeout from config.json."""
+        (freeact_dir / "config.json").write_text(json.dumps({"approval-timeout": 30}))
+        config = Config(working_dir=tmp_path)
+        assert config.approval_timeout == 30
+
+    def test_default_enable_subagents(self, tmp_path: Path, freeact_dir: Path):
+        """Default enable-subagents is True."""
+        config = Config(working_dir=tmp_path)
+        assert config.enable_subagents is True
+
+    def test_custom_enable_subagents(self, tmp_path: Path, freeact_dir: Path):
+        """Custom enable-subagents from config.json."""
+        (freeact_dir / "config.json").write_text(json.dumps({"enable-subagents": False}))
+        config = Config(working_dir=tmp_path)
+        assert config.enable_subagents is False
+
+    def test_default_max_subagents(self, tmp_path: Path, freeact_dir: Path):
+        """Default max-subagents is 5."""
+        config = Config(working_dir=tmp_path)
+        assert config.max_subagents == 5
+
+    def test_custom_max_subagents(self, tmp_path: Path, freeact_dir: Path):
+        """Custom max-subagents from config.json."""
+        (freeact_dir / "config.json").write_text(json.dumps({"max-subagents": 10}))
+        config = Config(working_dir=tmp_path)
+        assert config.max_subagents == 10
 
 
 class TestConfigInit:

@@ -65,20 +65,6 @@ def create_parser() -> argparse.ArgumentParser:
         default="Conversation",
         help="Title of the recording",
     )
-    parser.add_argument(
-        "--execution-timeout",
-        type=float,
-        default=300,
-        metavar="SECONDS",
-        help="Maximum time in seconds for code execution (default: 300). Approval wait time is excluded.",
-    )
-    parser.add_argument(
-        "--approval-timeout",
-        type=float,
-        default=None,
-        metavar="SECONDS",
-        help="Timeout in seconds for PTC approval requests (default: None, no timeout)",
-    )
     return parser
 
 
@@ -130,17 +116,9 @@ async def run(namespace: argparse.Namespace) -> None:
 
     config: Config = await arun(create_config, namespace)
     agent = Agent(
-        model=config.model,
-        model_settings=config.model_settings,
-        system_prompt=config.system_prompt,
-        mcp_servers=config.mcp_servers,
+        config=config,
         sandbox=namespace.sandbox,
         sandbox_config=namespace.sandbox_config,
-        execution_timeout=namespace.execution_timeout,
-        approval_timeout=namespace.approval_timeout,
-        kernel_env={
-            "PYTHONPATH": str(config.generated_dir),
-        },
     )
 
     if config.ptc_servers:

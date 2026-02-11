@@ -1,7 +1,9 @@
 import asyncio
 import json
+import tempfile
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import ipybox
 import pytest
@@ -10,6 +12,7 @@ from pydantic_ai.messages import ModelMessage
 from pydantic_ai.models.function import AgentInfo, DeltaThinkingPart, DeltaToolCall, FunctionModel
 
 from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput, Response
+from freeact.agent.config import Config
 from freeact.agent.tools.pytools import MCPTOOLS_DIR
 from tests.conftest import (
     DeltaThinkingCalls,
@@ -23,14 +26,25 @@ from tests.conftest import (
 from tests.integration.mcp_server import STDIO_SERVER_PATH
 
 
+def _create_unpatched_config(stream_function) -> Config:
+    """Create a Config for unpatched agent tests."""
+    tmp_dir = Path(tempfile.mkdtemp())
+    freeact_dir = tmp_dir / ".freeact"
+    freeact_dir.mkdir()
+    (freeact_dir / "config.json").write_text(json.dumps({}))
+
+    return Config(
+        working_dir=tmp_dir,
+        model=FunctionModel(stream_function=stream_function),
+        model_settings={},
+    )
+
+
 @asynccontextmanager
 async def unpatched_agent(stream_function):
     """Context manager that creates and yields an agent with a real code executor."""
-    agent = Agent(
-        model=FunctionModel(stream_function=stream_function),
-        model_settings={},
-        system_prompt="Test system prompt",
-    )
+    config = _create_unpatched_config(stream_function)
+    agent = Agent(config=config)
     async with agent:
         yield agent
 
@@ -380,12 +394,9 @@ class TestTimeouts:
             tool_args={"code": slow_code},
         )
 
-        agent = Agent(
-            model=FunctionModel(stream_function=stream_function),
-            model_settings={},
-            system_prompt="Test system prompt",
-            execution_timeout=0.5,  # 500ms timeout
-        )
+        config = _create_unpatched_config(stream_function)
+        config.execution_timeout = 0.5  # 500ms timeout
+        agent = Agent(config=config)
         async with agent:
             results = await collect_stream(agent, "run slow code")
 
@@ -414,12 +425,9 @@ tool_2.run(tool_2.Params(s="test"))
         # The key is that we delay PTC approval by 15 seconds, which is longer
         # than the execution timeout. If approval wait counted toward timeout,
         # this would fail.
-        agent = Agent(
-            model=FunctionModel(stream_function=stream_function),
-            model_settings={},
-            system_prompt="Test system prompt",
-            execution_timeout=10,  # 10 second timeout for actual execution
-        )
+        config = _create_unpatched_config(stream_function)
+        config.execution_timeout = 10  # 10 second timeout for actual execution
+        agent = Agent(config=config)
 
         async def delayed_ptc_approve(agent, prompt):
             """Collect stream, approve code action immediately, delay PTC approval."""
@@ -462,12 +470,9 @@ tool_2.run(tool_2.Params(s="test"))
             tool_args={"code": fast_code},
         )
 
-        agent = Agent(
-            model=FunctionModel(stream_function=stream_function),
-            model_settings={},
-            system_prompt="Test system prompt",
-            execution_timeout=10,  # Generous timeout
-        )
+        config = _create_unpatched_config(stream_function)
+        config.execution_timeout = 10  # Generous timeout
+        agent = Agent(config=config)
         async with agent:
             results = await collect_stream(agent, "run code")
 

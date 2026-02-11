@@ -28,7 +28,7 @@ class TestInitConfig:
         assert plans_dir.is_dir()
 
     def test_copies_config_json_template(self, tmp_path: Path):
-        """Copies config.json with tool-search, mcp-servers and ptc-servers keys."""
+        """Copies config.json with all expected keys."""
         init_config(tmp_path)
 
         config_json = tmp_path / ".freeact" / "config.json"
@@ -37,6 +37,20 @@ class TestInitConfig:
         config = json.loads(config_json.read_text())
         assert "tool-search" in config
         assert config["tool-search"] == "basic"
+        assert "agent-id" in config
+        assert config["agent-id"] == "main"
+        assert "images-dir" in config
+        assert config["images-dir"] is None
+        assert "execution-timeout" in config
+        assert config["execution-timeout"] == 300
+        assert "approval-timeout" in config
+        assert config["approval-timeout"] is None
+        assert "enable-subagents" in config
+        assert config["enable-subagents"] is True
+        assert "max-subagents" in config
+        assert config["max-subagents"] == 5
+        assert "kernel-env" in config
+        assert config["kernel-env"] == {}
         assert "mcp-servers" in config
         assert config["mcp-servers"] == {}
         assert "ptc-servers" in config
