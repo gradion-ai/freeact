@@ -188,6 +188,42 @@ The agent supports two timeout settings in [`config.json`](https://gradion-ai.gi
 }
 ```
 
+### Persistence
+
+SessionStore persists agent message history to `.freeact/sessions/<session-uuid>/<agent-id>.jsonl`. Each agent turn appends messages incrementally, so the history is durable even if the process terminates mid-session.
+
+```
+from freeact.agent.store import SessionStore
+
+# Create a session store with a new session ID
+session_id = str(uuid.uuid4())
+session_store = SessionStore(config.sessions_dir, session_id)
+```
+
+Pass the store to Agent to enable persistence.
+
+```
+# Run agent with session persistence
+async with Agent(config=config, session_store=session_store) as agent:
+    await handle_events(agent, "What is the capital of France?")
+    await handle_events(agent, "What about Germany?")
+```
+
+To resume a session, create a new `SessionStore` with the same `session_id`. The agent loads the persisted message history on startup and continues from where it left off.
+
+```
+# Resume session with the same session ID
+session_store = SessionStore(config.sessions_dir, session_id)
+
+async with Agent(config=config, session_store=session_store) as agent:
+    # Previous message history is restored automatically
+    await handle_events(agent, "And what was the first country we discussed?")
+```
+
+Only the main agent's message history (`main.jsonl`) is loaded on resume. Subagent messages are persisted to separate files (`sub-xxxx.jsonl`) for auditing but are not rehydrated.
+
+The [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) accepts `--session-id` to resume a session from the command line.
+
 ## Permissions API
 
 The agent requests approval for each code action and tool call but doesn't remember past decisions. PermissionManager adds memory: `allow_always()` persists to `.freeact/permissions.json`, while `allow_session()` stores in-memory until the session ends:

@@ -281,6 +281,10 @@ This allows safe customization: edit any configuration file, and your changes re
 │   ├── mcptools/       # Generated Python APIs from ptc-servers
 │   └── gentools/       # User-defined tools saved from code actions
 ├── plans/              # Task plan storage
+├── sessions/           # Session trace storage
+│   └── <session-uuid>/
+│       ├── main.jsonl
+│       └── sub-xxxx.jsonl
 └── permissions.json    # Persisted approval decisions
 ```
 
@@ -291,7 +295,6 @@ The `config.json` file contains agent settings and MCP server configurations:
 ```
 {
   "tool-search": "basic",
-  "agent-id": "main",
   "images-dir": null,
   "execution-timeout": 300,
   "approval-timeout": null,
@@ -307,15 +310,14 @@ The `config.json` file contains agent settings and MCP server configurations:
 
 ### Agent Settings
 
-| Setting             | Default  | Description                                                                                                               |
-| ------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `agent-id`          | `"main"` | Identifier for the agent                                                                                                  |
-| `images-dir`        | `null`   | Directory for saving generated images to disk. `null` defaults to `images` in the working directory.                      |
-| `execution-timeout` | `300`    | Maximum time in seconds for code execution. Approval wait time is excluded. `null` means no timeout.                      |
-| `approval-timeout`  | `null`   | Timeout in seconds for PTC approval requests. `null` means no timeout.                                                    |
-| `enable-subagents`  | `true`   | Whether to enable subagent delegation                                                                                     |
-| `max-subagents`     | `5`      | Maximum number of concurrent subagents                                                                                    |
-| `kernel-env`        | `{}`     | Environment variables passed to the IPython kernel. Supports `${VAR}` placeholders resolved against the host environment. |
+| Setting             | Default | Description                                                                                                               |
+| ------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `images-dir`        | `null`  | Directory for saving generated images to disk. `null` defaults to `images` in the working directory.                      |
+| `execution-timeout` | `300`   | Maximum time in seconds for code execution. Approval wait time is excluded. `null` means no timeout.                      |
+| `approval-timeout`  | `null`  | Timeout in seconds for PTC approval requests. `null` means no timeout.                                                    |
+| `enable-subagents`  | `true`  | Whether to enable subagent delegation                                                                                     |
+| `max-subagents`     | `5`     | Maximum number of concurrent subagents                                                                                    |
+| `kernel-env`        | `{}`    | Environment variables passed to the IPython kernel. Supports `${VAR}` placeholders resolved against the host environment. |
 
 ### `tool-search`
 
@@ -813,6 +815,42 @@ The agent supports two timeout settings in [`config.json`](https://gradion-ai.gi
 }
 ```
 
+### Persistence
+
+SessionStore persists agent message history to `.freeact/sessions/<session-uuid>/<agent-id>.jsonl`. Each agent turn appends messages incrementally, so the history is durable even if the process terminates mid-session.
+
+```
+from freeact.agent.store import SessionStore
+
+# Create a session store with a new session ID
+session_id = str(uuid.uuid4())
+session_store = SessionStore(config.sessions_dir, session_id)
+```
+
+Pass the store to Agent to enable persistence.
+
+```
+# Run agent with session persistence
+async with Agent(config=config, session_store=session_store) as agent:
+    await handle_events(agent, "What is the capital of France?")
+    await handle_events(agent, "What about Germany?")
+```
+
+To resume a session, create a new `SessionStore` with the same `session_id`. The agent loads the persisted message history on startup and continues from where it left off.
+
+```
+# Resume session with the same session ID
+session_store = SessionStore(config.sessions_dir, session_id)
+
+async with Agent(config=config, session_store=session_store) as agent:
+    # Previous message history is restored automatically
+    await handle_events(agent, "And what was the first country we discussed?")
+```
+
+Only the main agent's message history (`main.jsonl`) is loaded on resume. Subagent messages are persisted to separate files (`sub-xxxx.jsonl`) for auditing but are not rehydrated.
+
+The [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) accepts `--session-id` to resume a session from the command line.
+
 ## Permissions API
 
 The agent requests approval for each code action and tool call but doesn't remember past decisions. PermissionManager adds memory: `allow_always()` persists to `.freeact/permissions.json`, while `allow_session()` stores in-memory until the session ends:
@@ -864,6 +902,7 @@ freeact init
 | ----------------------- | -------------------------------------------------------------------------------------------- |
 | `--sandbox`             | Run code execution in [sandbox mode](https://gradion-ai.github.io/freeact/sandbox/index.md). |
 | `--sandbox-config PATH` | Path to sandbox configuration file.                                                          |
+| `--session-id UUID`     | Resume a previous session by its UUID. Generates a new UUID if omitted.                      |
 | `--log-level LEVEL`     | Set logging level: `debug`, `info` (default), `warning`, `error`, `critical`.                |
 | `--record`              | Record the conversation as SVG and HTML files.                                               |
 | `--record-dir PATH`     | Output directory for recordings (default: `output`).                                         |
@@ -881,6 +920,12 @@ Running with a [custom sandbox configuration](https://gradion-ai.github.io/freea
 
 ```
 freeact --sandbox --sandbox-config sandbox-config.json
+```
+
+Resuming a previous [session](https://gradion-ai.github.io/freeact/sdk/#persistence):
+
+```
+freeact --session-id 550e8400-e29b-41d4-a716-446655440000
 ```
 
 Recording a session for documentation:
@@ -946,8 +991,10 @@ See [Permissions API](https://gradion-ai.github.io/freeact/sdk/#permissions-api)
 ```
 Agent(
     config: Config,
+    agent_id: str | None = None,
     sandbox: bool = False,
     sandbox_config: Path | None = None,
+    session_store: SessionStore | None = None,
 )
 ```
 
@@ -966,11 +1013,12 @@ Initialize the agent.
 
 Parameters:
 
-| Name             | Type     | Description                                                                                                    | Default                               |
-| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| `config`         | `Config` | Agent configuration containing model, system prompt, MCP servers, kernel env, timeouts, and subagent settings. | *required*                            |
-| `sandbox`        | `bool`   | Run the kernel in sandbox mode.                                                                                | `False`                               |
-| `sandbox_config` | \`Path   | None\`                                                                                                         | Path to custom sandbox configuration. |
+| Name             | Type     | Description                                                                                                    | Default                                                                   |
+| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `config`         | `Config` | Agent configuration containing model, system prompt, MCP servers, kernel env, timeouts, and subagent settings. | *required*                                                                |
+| `agent_id`       | \`str    | None\`                                                                                                         | Identifier for this agent instance. Defaults to "main" when not provided. |
+| `sandbox`        | `bool`   | Run the kernel in sandbox mode.                                                                                | `False`                                                                   |
+| `sandbox_config` | \`Path   | None\`                                                                                                         | Path to custom sandbox configuration.                                     |
 
 ### start
 
@@ -1143,6 +1191,18 @@ Bases: `AgentEvent`
 
 Result from a tool or built-in agent operation.
 
+## freeact.agent.store.SessionStore
+
+```
+SessionStore(
+    sessions_root: Path,
+    session_id: str,
+    flush_after_append: bool = False,
+)
+```
+
+Persists per-agent pydantic-ai message history as JSONL envelopes.
+
 ## freeact.agent.config.Config
 
 ```
@@ -1168,7 +1228,6 @@ Attributes:
 | `model`             |                  | LLM model name or instance.                                |
 | `model_settings`    |                  | Model-specific settings (e.g., thinking config).           |
 | `tool_search`       | `str`            | Tool discovery mode read from config.json.                 |
-| `agent_id`          | `str`            | Identifier for this agent instance.                        |
 | `images_dir`        | \`Path           | None\`                                                     |
 | `execution_timeout` | \`float          | None\`                                                     |
 | `approval_timeout`  | \`float          | None\`                                                     |
@@ -1179,6 +1238,7 @@ Attributes:
 | `system_prompt`     |                  | Rendered system prompt loaded from package resources.      |
 | `mcp_servers`       |                  | Merged and resolved MCP server configs.                    |
 | `ptc_servers`       |                  | Raw PTC server configs loaded from config.json.            |
+| `sessions_dir`      | `Path`           | Session trace storage directory.                           |
 
 ### freeact_dir
 
@@ -1212,6 +1272,14 @@ search_db_file: Path
 
 Hybrid search database path.
 
+### sessions_dir
+
+```
+sessions_dir: Path
+```
+
+Session trace storage directory.
+
 ### working_dir
 
 ```
@@ -1223,18 +1291,12 @@ Agent's working directory.
 ### for_subagent
 
 ```
-for_subagent(agent_id: str) -> Config
+for_subagent() -> Config
 ```
 
 Create a subagent configuration from this config.
 
-Returns a shallow copy with subagent-specific overrides: agent_id set to the given value, subagents disabled, mcp_servers deep-copied with pytools sync/watch disabled, and kernel_env shallow-copied for independence.
-
-Parameters:
-
-| Name       | Type  | Description                  | Default    |
-| ---------- | ----- | ---------------------------- | ---------- |
-| `agent_id` | `str` | Identifier for the subagent. | *required* |
+Returns a shallow copy with subagent-specific overrides: subagents disabled, mcp_servers deep-copied with pytools sync/watch disabled, and kernel_env shallow-copied for independence.
 
 ### init
 

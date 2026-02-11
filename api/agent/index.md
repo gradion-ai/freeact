@@ -3,8 +3,10 @@
 ```
 Agent(
     config: Config,
+    agent_id: str | None = None,
     sandbox: bool = False,
     sandbox_config: Path | None = None,
+    session_store: SessionStore | None = None,
 )
 ```
 
@@ -23,11 +25,12 @@ Initialize the agent.
 
 Parameters:
 
-| Name             | Type     | Description                                                                                                    | Default                               |
-| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| `config`         | `Config` | Agent configuration containing model, system prompt, MCP servers, kernel env, timeouts, and subagent settings. | *required*                            |
-| `sandbox`        | `bool`   | Run the kernel in sandbox mode.                                                                                | `False`                               |
-| `sandbox_config` | \`Path   | None\`                                                                                                         | Path to custom sandbox configuration. |
+| Name             | Type     | Description                                                                                                    | Default                                                                   |
+| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `config`         | `Config` | Agent configuration containing model, system prompt, MCP servers, kernel env, timeouts, and subagent settings. | *required*                                                                |
+| `agent_id`       | \`str    | None\`                                                                                                         | Identifier for this agent instance. Defaults to "main" when not provided. |
+| `sandbox`        | `bool`   | Run the kernel in sandbox mode.                                                                                | `False`                                                                   |
+| `sandbox_config` | \`Path   | None\`                                                                                                         | Path to custom sandbox configuration.                                     |
 
 ### start
 
@@ -199,3 +202,15 @@ ToolOutput(content: ToolResult, *, agent_id: str = '')
 Bases: `AgentEvent`
 
 Result from a tool or built-in agent operation.
+
+## freeact.agent.store.SessionStore
+
+```
+SessionStore(
+    sessions_root: Path,
+    session_id: str,
+    flush_after_append: bool = False,
+)
+```
+
+Persists per-agent pydantic-ai message history as JSONL envelopes.

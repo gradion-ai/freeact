@@ -1147,6 +1147,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#freeact.agent.store.SessionStore" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SessionStore
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1448,6 +1459,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#freeact.agent.store.SessionStore" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SessionStore
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1481,8 +1503,10 @@
 </h2>
 <div class="doc-signature highlight"><pre><span></span><code><span class="nf">Agent</span><span class="p">(</span>
     <span class="n">config</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" href="../config/#freeact.agent.config.Config">Config</a></span><span class="p">,</span>
+    <span class="n">agent_id</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">sandbox</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">sandbox_config</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">session_store</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" href="#freeact.agent.store.SessionStore">SessionStore</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
 
@@ -1534,6 +1558,23 @@ MCP servers, kernel env, timeouts, and subagent settings.</p>
             </td>
             <td>
                 <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>agent_id</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Identifier for this agent instance. Defaults to
+<code>"main"</code> when not provided.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
             </td>
           </tr>
           <tr class="doc-section-item">
@@ -2288,6 +2329,57 @@ executing any tool. The agent is suspended until <code>approve()</code> is calle
 
 
         <p>Result from a tool or built-in agent operation.</p>
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="freeact.agent.store.SessionStore" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">freeact.agent.store.SessionStore</span>
+
+
+</h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">SessionStore</span><span class="p">(</span>
+    <span class="n">sessions_root</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span><span class="p">,</span>
+    <span class="n">session_id</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
+    <span class="n">flush_after_append</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+
+
+
+        <p>Persists per-agent pydantic-ai message history as JSONL envelopes.</p>
 
 
 

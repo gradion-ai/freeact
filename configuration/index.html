@@ -1580,13 +1580,16 @@
 │   ├── mcptools/       # Generated Python APIs from ptc-servers
 │   └── gentools/       # User-defined tools saved from code actions
 ├── plans/              # Task plan storage
+├── sessions/           # Session trace storage
+│   └── &lt;session-uuid&gt;/
+│       ├── main.jsonl
+│       └── sub-xxxx.jsonl
 └── permissions.json    # Persisted approval decisions
 </code></pre></div>
 <h2 id="configuration-file">Configuration File</h2>
 <p>The <code>config.json</code> file contains agent settings and MCP server configurations:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;tool-search&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;basic&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;agent-id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;main&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;images-dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;execution-timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">300</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;approval-timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
@@ -1609,11 +1612,6 @@
 </tr>
 </thead>
 <tbody>
-<tr>
-<td><code>agent-id</code></td>
-<td><code>"main"</code></td>
-<td>Identifier for the agent</td>
-</tr>
 <tr>
 <td><code>images-dir</code></td>
 <td><code>null</code></td>

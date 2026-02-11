@@ -23,7 +23,6 @@ Attributes:
 | `model`             |                  | LLM model name or instance.                                |
 | `model_settings`    |                  | Model-specific settings (e.g., thinking config).           |
 | `tool_search`       | `str`            | Tool discovery mode read from config.json.                 |
-| `agent_id`          | `str`            | Identifier for this agent instance.                        |
 | `images_dir`        | \`Path           | None\`                                                     |
 | `execution_timeout` | \`float          | None\`                                                     |
 | `approval_timeout`  | \`float          | None\`                                                     |
@@ -34,6 +33,7 @@ Attributes:
 | `system_prompt`     |                  | Rendered system prompt loaded from package resources.      |
 | `mcp_servers`       |                  | Merged and resolved MCP server configs.                    |
 | `ptc_servers`       |                  | Raw PTC server configs loaded from config.json.            |
+| `sessions_dir`      | `Path`           | Session trace storage directory.                           |
 
 ### freeact_dir
 
@@ -67,6 +67,14 @@ search_db_file: Path
 
 Hybrid search database path.
 
+### sessions_dir
+
+```
+sessions_dir: Path
+```
+
+Session trace storage directory.
+
 ### working_dir
 
 ```
@@ -78,18 +86,12 @@ Agent's working directory.
 ### for_subagent
 
 ```
-for_subagent(agent_id: str) -> Config
+for_subagent() -> Config
 ```
 
 Create a subagent configuration from this config.
 
-Returns a shallow copy with subagent-specific overrides: agent_id set to the given value, subagents disabled, mcp_servers deep-copied with pytools sync/watch disabled, and kernel_env shallow-copied for independence.
-
-Parameters:
-
-| Name       | Type  | Description                  | Default    |
-| ---------- | ----- | ---------------------------- | ---------- |
-| `agent_id` | `str` | Identifier for the subagent. | *required* |
+Returns a shallow copy with subagent-specific overrides: subagents disabled, mcp_servers deep-copied with pytools sync/watch disabled, and kernel_env shallow-copied for independence.
 
 ### init
 

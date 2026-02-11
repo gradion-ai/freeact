@@ -1317,6 +1317,10 @@
 <td>Path to sandbox configuration file.</td>
 </tr>
 <tr>
+<td><code>--session-id UUID</code></td>
+<td>Resume a previous session by its UUID. Generates a new UUID if omitted.</td>
+</tr>
+<tr>
 <td><code>--log-level LEVEL</code></td>
 <td>Set logging level: <code>debug</code>, <code>info</code> (default), <code>warning</code>, <code>error</code>, <code>critical</code>.</td>
 </tr>
@@ -1340,6 +1344,9 @@
 </code></pre></div>
 <p>Running with a <a href="../sandbox/#custom-configuration">custom sandbox configuration</a>:</p>
 <div class="highlight"><pre><span></span><code>freeact<span class="w"> </span>--sandbox<span class="w"> </span>--sandbox-config<span class="w"> </span>sandbox-config.json
+</code></pre></div>
+<p>Resuming a previous <a href="../sdk/#persistence">session</a>:</p>
+<div class="highlight"><pre><span></span><code>freeact<span class="w"> </span>--session-id<span class="w"> </span>550e8400-e29b-41d4-a716-446655440000
 </code></pre></div>
 <p>Recording a session for documentation:</p>
 <div class="highlight"><pre><span></span><code>freeact<span class="w"> </span>--record<span class="w"> </span>--record-dir<span class="w"> </span>docs/recordings/demo<span class="w"> </span>--record-title<span class="w"> </span><span class="s2">&quot;Demo Session&quot;</span>

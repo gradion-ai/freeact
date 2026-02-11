@@ -1055,6 +1055,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#freeact.agent.config.Config.sessions_dir" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sessions_dir
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#freeact.agent.config.Config.working_dir" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1311,6 +1322,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#freeact.agent.config.Config.sessions_dir" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sessions_dir
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#freeact.agent.config.Config.working_dir" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1529,17 +1551,6 @@ configs when they share the same key.</p>
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code><span title="freeact.agent.config.Config.agent_id">agent_id</span></code></td>
-            <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Identifier for this agent instance.</p>
-              </div>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
             <td><code><span title="freeact.agent.config.Config.images_dir">images_dir</span></code></td>
             <td>
                   <code><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a> | None</code>
@@ -1642,6 +1653,17 @@ configs when they share the same key.</p>
             <td>
               <div class="doc-md-description">
                 <p>Raw PTC server configs loaded from <code>config.json</code>.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><a class="autorefs autorefs-internal" href="#freeact.agent.config.Config.sessions_dir">sessions_dir</a></code></td>
+            <td>
+                  <code><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Session trace storage directory.</p>
               </div>
             </td>
           </tr>
@@ -1766,6 +1788,30 @@ configs when they share the same key.</p>
 
 
 
+<h3 id="freeact.agent.config.Config.sessions_dir" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">sessions_dir</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">sessions_dir</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Session trace storage directory.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
 <h3 id="freeact.agent.config.Config.working_dir" class="doc doc-heading">
             <span class="doc doc-object-name doc-attribute-name">working_dir</span>
 
@@ -1797,47 +1843,16 @@ configs when they share the same key.</p>
 
 
 </h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">for_subagent</span><span class="p">(</span><span class="n">agent_id</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" href="#freeact.agent.config.Config">Config</a></span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">for_subagent</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" href="#freeact.agent.config.Config">Config</a></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
 
         <p>Create a subagent configuration from this config.</p>
 <p>Returns a shallow copy with subagent-specific overrides:
-agent_id set to the given value, subagents disabled,
-mcp_servers deep-copied with pytools sync/watch disabled,
-and kernel_env shallow-copied for independence.</p>
-
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>agent_id</code>
-            </td>
-            <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Identifier for the subagent.</p>
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-      </tbody>
-    </table>
+subagents disabled, mcp_servers deep-copied with pytools
+sync/watch disabled, and kernel_env shallow-copied for
+independence.</p>
 
 
     </div>
