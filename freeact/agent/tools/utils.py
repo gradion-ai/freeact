@@ -7,9 +7,9 @@ from ipybox.utils import arun
 from pydantic_ai.mcp import MCPServer, MCPServerStdio
 from pydantic_ai.tools import ToolDefinition
 
-IPYBOX_TOOL_DEFS_PATH = Path(__file__).parent / "ipybox.json"
-SUBAGENT_TASK_TOOL_DEFS_PATH = Path(__file__).parent / "subagent_task.json"
 IPYBOX_TOOL_PREFIX = "ipybox"
+IPYBOX_TOOL_DEFS_PATH = Path(__file__).parent / "ipybox.json"
+SUBAGENT_TOOL_DEFS_PATH = Path(__file__).parent / "subagent.json"
 
 
 async def get_tool_definitions(server: MCPServer) -> list[ToolDefinition]:
@@ -66,7 +66,7 @@ async def load_ipybox_tool_definitions() -> list[ToolDefinition]:
 
 async def load_subagent_task_tool_definitions() -> list[ToolDefinition]:
     """Load cached subagent task tool definitions from the bundled JSON file."""
-    return await arun(load_tool_definitions, SUBAGENT_TASK_TOOL_DEFS_PATH)
+    return await arun(load_tool_definitions, SUBAGENT_TOOL_DEFS_PATH)
 
 
 async def save_ipybox_tool_definitions() -> None:
