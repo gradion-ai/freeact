@@ -422,24 +422,17 @@ class TestLoadKernelEnv:
 class TestForSubagent:
     """Tests for Config.for_subagent() method."""
 
-    def test_sets_agent_id(self, tmp_path: Path, freeact_dir: Path):
-        """Subagent config has the specified agent_id."""
-        config = Config(working_dir=tmp_path)
-        sub = config.for_subagent("sub-1234")
-
-        assert sub.agent_id == "sub-1234"
-
     def test_disables_subagents(self, tmp_path: Path, freeact_dir: Path):
         """Subagent config has enable_subagents=False."""
         config = Config(working_dir=tmp_path)
-        sub = config.for_subagent("sub-1234")
+        sub = config.for_subagent()
 
         assert sub.enable_subagents is False
 
     def test_kernel_env_is_independent(self, tmp_path: Path, freeact_dir: Path):
         """Subagent kernel_env is a separate dict."""
         config = Config(working_dir=tmp_path)
-        sub = config.for_subagent("sub-1234")
+        sub = config.for_subagent()
 
         assert sub.kernel_env is not config.kernel_env
         assert sub.kernel_env == config.kernel_env
@@ -447,7 +440,7 @@ class TestForSubagent:
     def test_mcp_servers_have_sync_watch_disabled(self, tmp_path: Path, freeact_dir: Path):
         """Subagent mcp_servers have pytools sync/watch disabled."""
         config = Config(working_dir=tmp_path)
-        sub = config.for_subagent("sub-1234")
+        sub = config.for_subagent()
 
         if "pytools" in sub.mcp_servers and "env" in sub.mcp_servers["pytools"]:
             assert sub.mcp_servers["pytools"]["env"]["PYTOOLS_SYNC"] == "false"
@@ -456,18 +449,16 @@ class TestForSubagent:
     def test_parent_not_mutated(self, tmp_path: Path, freeact_dir: Path):
         """Parent config is not modified by for_subagent()."""
         config = Config(working_dir=tmp_path)
-        original_agent_id = config.agent_id
         original_enable_subagents = config.enable_subagents
 
-        config.for_subagent("sub-1234")
+        config.for_subagent()
 
-        assert config.agent_id == original_agent_id
         assert config.enable_subagents == original_enable_subagents
 
     def test_shares_model_and_system_prompt(self, tmp_path: Path, freeact_dir: Path):
         """Subagent shares model and system_prompt with parent."""
         config = Config(working_dir=tmp_path)
-        sub = config.for_subagent("sub-1234")
+        sub = config.for_subagent()
 
         assert sub.model is config.model
         assert sub.system_prompt is config.system_prompt
@@ -475,17 +466,6 @@ class TestForSubagent:
 
 class TestNewConfigFields:
     """Tests for new config.json fields with defaults."""
-
-    def test_default_agent_id(self, tmp_path: Path, freeact_dir: Path):
-        """Default agent-id is 'main'."""
-        config = Config(working_dir=tmp_path)
-        assert config.agent_id == "main"
-
-    def test_custom_agent_id(self, tmp_path: Path, freeact_dir: Path):
-        """Custom agent-id from config.json."""
-        (freeact_dir / "config.json").write_text(json.dumps({"agent-id": "custom"}))
-        config = Config(working_dir=tmp_path)
-        assert config.agent_id == "custom"
 
     def test_default_images_dir(self, tmp_path: Path, freeact_dir: Path):
         """Default images-dir is None."""

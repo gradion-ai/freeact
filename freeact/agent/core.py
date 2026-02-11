@@ -47,7 +47,7 @@ logger = logging.getLogger("freeact")
 class AgentEvent:
     """Base class for all agent stream events.
 
-    Carries the ``agent_id`` of the agent that produced the event, allowing
+    Carries the `agent_id` of the agent that produced the event, allowing
     callers to distinguish events from a parent agent vs. its subagents.
     """
 
@@ -275,6 +275,7 @@ class Agent:
     def __init__(
         self,
         config: Config,
+        agent_id: str | None = None,
         sandbox: bool = False,
         sandbox_config: Path | None = None,
         session_store: SessionStore | None = None,
@@ -284,12 +285,14 @@ class Agent:
         Args:
             config: Agent configuration containing model, system prompt,
                 MCP servers, kernel env, timeouts, and subagent settings.
+            agent_id: Identifier for this agent instance. Defaults to
+                `"main"` when not provided.
             sandbox: Run the kernel in sandbox mode.
             sandbox_config: Path to custom sandbox configuration.
         """
         self._config = config
 
-        self.agent_id = config.agent_id
+        self.agent_id = agent_id or "main"
         self.model = config.model
         self.model_settings = config.model_settings
 
@@ -595,9 +598,10 @@ class Agent:
         )
 
     async def _execute_subagent_task(self, prompt: str, max_turns: int) -> AsyncIterator[AgentEvent]:
-        subagent_config = self._config.for_subagent(agent_id=f"sub-{uuid.uuid4().hex[:4]}")
+        subagent_config = self._config.for_subagent()
         subagent = Agent(
             config=subagent_config,
+            agent_id=f"sub-{uuid.uuid4().hex[:4]}",
             sandbox=self._sandbox,
             sandbox_config=self._sandbox_config,
             session_store=self._session_store,
