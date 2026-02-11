@@ -1,6 +1,12 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 ## Project Overview
 
 Freeact is a lightweight, general-purpose agent that acts via [code actions](https://machinelearning.apple.com/research/codeact) rather than JSON tool calls. It writes executable Python code in a sandboxed IPython kernel ([ipybox](https://gradion-ai.github.io/ipybox/)), where variables persist across executions. Tools can be called programmatically (via generated Python APIs) or through JSON tool calls (via MCP servers).
+
+Key dependencies: pydantic-ai (LLM orchestration), ipybox (sandboxed kernel execution), aiostream (parallel async streaming). Python >=3.11,<3.15.
 
 ## Development Commands
 
@@ -65,6 +71,14 @@ Subagents are spawned via the `subagent_task` JSON tool call:
 - **MCP servers** (`mcp-servers` in `config.json`): Called directly via JSON tool calls. Server connections managed by `_ResourceSupervisor` for lifecycle management.
 - **PTC servers** (`ptc-servers` in `config.json`): Python APIs auto-generated to `mcptools/<server>/` at startup via `ipybox.generate_mcp_sources()`. Agent writes code importing these APIs.
 - **Tool search**: Two modes via `tool-search` in `config.json`. Basic provides `list_categories`/`list_tools` MCP tools. Hybrid adds BM25 + vector search (`search/hybrid/`).
+
+### Session Persistence (`freeact/agent/store.py`)
+
+`SessionStore` persists pydantic-ai message history as JSONL envelopes to `.freeact/sessions/<session-uuid>/<agent-id>.jsonl`. Each line is an envelope: `{"v": 1, "message": {...}, "meta": {"ts": "..."}}`.
+
+- Messages are appended incrementally at three points: initial user request, aggregated model response, and tool return request.
+- On resume (`--session-id <uuid>`), only `main.jsonl` is loaded into the agent's history. Subagent files are persisted for audit but not rehydrated.
+- Corruption handling: malformed trailing line is ignored; malformed non-tail lines cause a load failure.
 
 ### Approval Flow
 

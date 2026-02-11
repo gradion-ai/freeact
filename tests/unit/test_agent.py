@@ -1,4 +1,3 @@
-import json
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -19,10 +18,6 @@ from tests.conftest import (
 def _create_test_config(**overrides: Any) -> Config:
     """Create a Config with a temp .freeact dir and optional attribute overrides."""
     tmp_dir = Path(tempfile.mkdtemp())
-    freeact_dir = tmp_dir / ".freeact"
-    freeact_dir.mkdir()
-    (freeact_dir / "config.json").write_text(json.dumps({}))
-
     config = Config(
         working_dir=tmp_dir,
         model="test",
@@ -318,10 +313,11 @@ class TestSubagentConfigPropagation:
         captured: dict[str, Any] = {}
 
         class FakeSubagent:
-            def __init__(self, config: Config, **kwargs: Any):
+            def __init__(self, config: Config, agent_id: str | None = None, **kwargs: Any):
                 captured["config"] = config
+                captured["agent_id"] = agent_id
                 captured.update(kwargs)
-                self.agent_id = config.agent_id
+                self.agent_id = agent_id or "main"
 
             async def __aenter__(self):
                 return self
@@ -354,7 +350,7 @@ class TestSubagentConfigPropagation:
         sub_config = captured["config"]
         assert sub_config.kernel_env == {"HOME": "/custom/home", "OTHER": "value"}
         assert sub_config.kernel_env is not config.kernel_env
-        assert sub_config.agent_id.startswith("sub-")
+        assert captured["agent_id"].startswith("sub-")
         assert sub_config.enable_subagents is False
         assert captured["sandbox"] is True
         assert captured["sandbox_config"] == Path("/tmp/sandbox.cfg")

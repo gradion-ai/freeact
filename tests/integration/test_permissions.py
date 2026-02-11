@@ -3,13 +3,14 @@ from pathlib import Path
 
 import pytest
 
+from freeact.agent.config.config import _ConfigPaths
 from freeact.permissions import PermissionManager
 
 
 @pytest.fixture
 def freeact_dir(tmp_path: Path) -> Path:
     """Return the .freeact directory path (not yet created)."""
-    return tmp_path / ".freeact"
+    return _ConfigPaths(tmp_path).freeact_dir
 
 
 @pytest.fixture

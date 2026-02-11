@@ -18,6 +18,7 @@ freeact init
 |--------|-------------|
 | `--sandbox` | Run code execution in [sandbox mode](sandbox.md). |
 | `--sandbox-config PATH` | Path to sandbox configuration file. |
+| `--session-id UUID` | Resume a previous session by its UUID. Generates a new UUID if omitted. |
 | `--log-level LEVEL` | Set logging level: `debug`, `info` (default), `warning`, `error`, `critical`. |
 | `--record` | Record the conversation as SVG and HTML files. |
 | `--record-dir PATH` | Output directory for recordings (default: `output`). |
@@ -35,6 +36,12 @@ Running with a [custom sandbox configuration](sandbox.md#custom-configuration):
 
 ```bash
 freeact --sandbox --sandbox-config sandbox-config.json
+```
+
+Resuming a previous [session](sdk.md#persistence):
+
+```bash
+freeact --session-id 550e8400-e29b-41d4-a716-446655440000
 ```
 
 Recording a session for documentation:

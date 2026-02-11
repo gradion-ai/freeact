@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import logging
+import uuid
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -8,6 +9,7 @@ from rich.console import Console
 
 from freeact.agent import Agent
 from freeact.agent.config import Config
+from freeact.agent.store import SessionStore
 from freeact.agent.tools.pytools.apigen import generate_mcp_sources
 from freeact.terminal import Terminal
 from freeact.terminal.recording import save_conversation
@@ -64,6 +66,12 @@ def create_parser() -> argparse.ArgumentParser:
         default="Conversation",
         help="Title of the recording",
     )
+    parser.add_argument(
+        "--session-id",
+        type=uuid.UUID,
+        metavar="UUID",
+        help="Session UUID to resume (default: generate a new UUID)",
+    )
     return parser
 
 
@@ -114,10 +122,13 @@ async def run(namespace: argparse.Namespace) -> None:
         console = None
 
     config = await create_config(namespace)
+    session_id = str(namespace.session_id or uuid.uuid4())
+    session_store = SessionStore(config.sessions_dir, session_id)
     agent = Agent(
         config=config,
         sandbox=namespace.sandbox,
         sandbox_config=namespace.sandbox_config,
+        session_store=session_store,
     )
 
     if config.ptc_servers:

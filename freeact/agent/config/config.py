@@ -106,6 +106,10 @@ class _ConfigPaths:
         return self.freeact_dir / "generated"
 
     @property
+    def sessions_dir(self) -> Path:
+        return self.freeact_dir / "sessions"
+
+    @property
     def search_db_file(self) -> Path:
         return self.freeact_dir / "search.db"
 
@@ -135,7 +139,6 @@ class Config:
         model: LLM model name or instance.
         model_settings: Model-specific settings (e.g., thinking config).
         tool_search: Tool discovery mode read from `config.json`.
-        agent_id: Identifier for this agent instance.
         images_dir: Directory for saving generated images.
         execution_timeout: Maximum time in seconds for code execution.
         approval_timeout: Timeout in seconds for PTC approval requests.
@@ -146,6 +149,7 @@ class Config:
         system_prompt: Rendered system prompt loaded from package resources.
         mcp_servers: Merged and resolved MCP server configs.
         ptc_servers: Raw PTC server configs loaded from `config.json`.
+        sessions_dir: Session trace storage directory.
     """
 
     def __init__(
@@ -165,7 +169,6 @@ class Config:
         if self.tool_search == "hybrid":
             self._ensure_hybrid_env_defaults()
 
-        self.agent_id: str = self._config_data.get("agent-id", "main")
         self.images_dir: Path | None = Path(d) if (d := self._config_data.get("images-dir")) else None
         self.execution_timeout: float | None = self._config_data.get("execution-timeout", 300)
         self.approval_timeout: float | None = self._config_data.get("approval-timeout")
@@ -223,6 +226,7 @@ class Config:
 
         paths.plans_dir.mkdir(parents=True, exist_ok=True)
         paths.generated_dir.mkdir(parents=True, exist_ok=True)
+        paths.sessions_dir.mkdir(parents=True, exist_ok=True)
 
     @property
     def working_dir(self) -> Path:
@@ -245,23 +249,24 @@ class Config:
         return self._config_paths.generated_dir
 
     @property
+    def sessions_dir(self) -> Path:
+        """Session trace storage directory."""
+        return self._config_paths.sessions_dir
+
+    @property
     def search_db_file(self) -> Path:
         """Hybrid search database path."""
         return self._config_paths.search_db_file
 
-    def for_subagent(self, agent_id: str) -> "Config":
+    def for_subagent(self) -> "Config":
         """Create a subagent configuration from this config.
 
         Returns a shallow copy with subagent-specific overrides:
-        agent_id set to the given value, subagents disabled,
-        mcp_servers deep-copied with pytools sync/watch disabled,
-        and kernel_env shallow-copied for independence.
-
-        Args:
-            agent_id: Identifier for the subagent.
+        subagents disabled, mcp_servers deep-copied with pytools
+        sync/watch disabled, and kernel_env shallow-copied for
+        independence.
         """
         config = copy.copy(self)
-        config.agent_id = agent_id
         config.enable_subagents = False
         config.mcp_servers = self._subagent_mcp_servers()
         config.kernel_env = dict(self.kernel_env)
@@ -308,7 +313,7 @@ class Config:
         """Load kernel environment variables from config.json.
 
         Auto-adds defaults for PYTHONPATH and HOME, then validates
-        and resolves ``${VAR}`` placeholders against ``os.environ``.
+        and resolves `${VAR}` placeholders against `os.environ`.
         User values in config.json take precedence over auto-defaults.
         """
         env: dict[str, str] = {}
