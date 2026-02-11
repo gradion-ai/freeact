@@ -33,7 +33,6 @@ from pydantic_ai.messages import (
 from pydantic_ai.models import Model, ModelRequestParameters, ModelSettings
 from pydantic_ai.tools import ToolDefinition
 
-from freeact.agent.tools.pytools import GENERATED_DIR, MCPTOOLS_DIR
 from freeact.agent.tools.utils import (
     get_tool_definitions,
     load_ipybox_tool_definitions,
@@ -587,12 +586,6 @@ class Agent:
                                     content = "Tool call rejected"
                                 case CodeExecutionOutput():
                                     content = item.format(max_chars=tool_args.get("max_output_chars", 5000))
-                    case "ipybox_register_mcp_server":
-                        content = await self._ipybox_register_mcp_server(
-                            server_name=tool_args["server_name"],
-                            server_params=tool_args["server_params"],
-                        )
-                        yield ToolOutput(content=content, agent_id=self.agent_id)
                     case "ipybox_reset":
                         content = await self._ipybox_reset()
                         yield ToolOutput(content=content, agent_id=self.agent_id)
@@ -675,13 +668,6 @@ class Agent:
         except Exception as e:
             yield CodeExecutionOutputChunk(text=str(e), agent_id=self.agent_id)
             yield CodeExecutionOutput(text=str(e), images=[], agent_id=self.agent_id)
-
-    async def _ipybox_register_mcp_server(self, server_name: str, server_params: dict[str, Any]) -> str:
-        try:
-            tool_names = await ipybox.generate_mcp_sources(server_name, server_params, GENERATED_DIR / MCPTOOLS_DIR)
-            return f"Registered MCP server {server_name} with tools: {', '.join(tool_names)}"
-        except Exception as e:
-            return f"Registration of MCP server {server_name} failed: {str(e)}"
 
     async def _ipybox_reset(self) -> str:
         try:

@@ -10,7 +10,6 @@ from freeact.agent.config.config import (
     PYTOOLS_BASIC_CONFIG,
     PYTOOLS_HYBRID_CONFIG,
     Config,
-    _ensure_hybrid_env_defaults,
 )
 
 
@@ -157,29 +156,51 @@ class TestToolSearchConfig:
         assert config.tool_search == "hybrid"
 
 
-class TestHybridEnvDefaults:
-    """Tests for _ensure_hybrid_env_defaults."""
+class TestPytoolsEnvDefaults:
+    """Tests for pytools env var defaults set by Config."""
 
-    def test_sets_missing_env_vars(self, monkeypatch: pytest.MonkeyPatch):
-        """Sets default values for env vars that are not already set."""
+    def test_sets_absolute_paths_for_pytools_dir(
+        self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """Sets PYTOOLS_DIR as absolute path derived from working_dir."""
         monkeypatch.delenv("PYTOOLS_DIR", raising=False)
         monkeypatch.delenv("PYTOOLS_DB_PATH", raising=False)
-        monkeypatch.delenv("PYTOOLS_EMBEDDING_MODEL", raising=False)
 
-        _ensure_hybrid_env_defaults()
+        config = Config(working_dir=tmp_path)
 
         import os
 
-        assert os.environ["PYTOOLS_DIR"] == ".freeact/generated"
-        assert os.environ["PYTOOLS_DB_PATH"] == ".freeact/search.db"
+        assert os.environ["PYTOOLS_DIR"] == str(config.generated_dir)
+        assert os.environ["PYTOOLS_DB_PATH"] == str(config.search_db_path)
+
+    def test_sets_pytools_dir_in_basic_mode(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
+        """PYTOOLS_DIR is set even in basic mode."""
+        monkeypatch.delenv("PYTOOLS_DIR", raising=False)
+
+        Config(working_dir=tmp_path)
+
+        import os
+
+        assert "PYTOOLS_DIR" in os.environ
+
+    def test_sets_hybrid_specific_defaults(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
+        """Sets hybrid-specific defaults when tool-search is hybrid."""
+        monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+        monkeypatch.delenv("PYTOOLS_EMBEDDING_MODEL", raising=False)
+        (freeact_dir / "config.json").write_text('{"tool-search": "hybrid"}')
+
+        Config(working_dir=tmp_path)
+
+        import os
+
         assert os.environ["PYTOOLS_EMBEDDING_MODEL"] == "google-gla:gemini-embedding-001"
 
-    def test_preserves_existing_env_vars(self, monkeypatch: pytest.MonkeyPatch):
+    def test_preserves_existing_env_vars(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
         """Does not overwrite env vars that are already set."""
         monkeypatch.setenv("PYTOOLS_DIR", "/custom/path")
         monkeypatch.setenv("PYTOOLS_DB_PATH", "/custom/db.sqlite")
 
-        _ensure_hybrid_env_defaults()
+        Config(working_dir=tmp_path)
 
         import os
 
@@ -357,6 +378,8 @@ class TestConfigInit:
         assert config.working_dir == tmp_path
         assert config.freeact_dir == freeact_dir
         assert config.plans_dir == freeact_dir / "plans"
+        assert config.generated_dir == freeact_dir / "generated"
+        assert config.search_db_path == freeact_dir / "search.db"
         assert len(config.skills_metadata) == 1
         assert config.skills_metadata[0].name == "test-skill"
         assert str(tmp_path) in config.system_prompt

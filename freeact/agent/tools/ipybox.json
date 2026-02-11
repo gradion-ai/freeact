@@ -1,28 +1,5 @@
 [
   {
-    "name": "ipybox_register_mcp_server",
-    "parameters_json_schema": {
-      "properties": {
-        "server_name": {
-          "title": "Server Name",
-          "type": "string"
-        },
-        "server_params": {
-          "additionalProperties": true,
-          "title": "Server Params",
-          "type": "object"
-        }
-      },
-      "required": [
-        "server_name",
-        "server_params"
-      ],
-      "type": "object"
-    },
-    "description": "Register an MCP server and generate importable Python tool functions.\n\nConnects to an MCP server, generates a package at mcptools/{server_name}/ with\ntype-safe client functions. Use generated tools via:\n    from mcptools.{server_name} import {tool_name}\n    result = {tool_name}.run({tool_name}.Params(...))\n\n- Environment variable placeholders like {API_KEY} in server_params are auto-replaced\n- Re-registering overwrites previous; call reset() to re-import updated tools\n- Generated mcptools/ persists across reset() calls\n\nArgs:\n    server_name: Package name (valid Python identifier: lowercase, underscores, no leading digit).\n    server_params: Server config - stdio: {\"command\", \"args\", \"env\"} or http: {\"url\", \"headers\"}.\n\nReturns:\n    List of tool names available for import from mcptools.{server_name}.\n",
-    "sequential": true
-  },
-  {
     "name": "ipybox_execute_ipython_cell",
     "parameters_json_schema": {
       "properties": {

@@ -1,5 +1,4 @@
 import asyncio
-from pathlib import Path
 
 # --8<-- [start:agent-imports]
 from freeact.agent import (
@@ -34,8 +33,8 @@ async def main() -> None:
     # --8<-- [start:apigen]
     # Generate Python APIs for MCP servers in ptc_servers
     for server_name, params in config.ptc_servers.items():
-        if not Path(f"mcptools/{server_name}").exists():
-            await generate_mcp_sources({server_name: params})
+        if not (config.generated_dir / "mcptools" / server_name).exists():
+            await generate_mcp_sources({server_name: params}, config.generated_dir)
     # --8<-- [end:apigen]
 
     # --8<-- [start:agent]

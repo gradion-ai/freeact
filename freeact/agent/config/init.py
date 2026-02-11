@@ -4,8 +4,6 @@ import shutil
 from importlib.resources import as_file, files
 from pathlib import Path
 
-from freeact.agent.tools.pytools import GENERATED_DIR
-
 
 def init_config(working_dir: Path | None = None) -> None:
     """Initialize `.freeact/` config directory from templates.
@@ -39,4 +37,4 @@ def init_config(working_dir: Path | None = None) -> None:
     plans_dir.mkdir(parents=True, exist_ok=True)
 
     # Create generated directory
-    (working_dir / GENERATED_DIR).mkdir(parents=True, exist_ok=True)
+    (freeact_dir / "generated").mkdir(parents=True, exist_ok=True)

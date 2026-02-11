@@ -10,8 +10,6 @@ from ipybox.vars import replace_variables
 from pydantic_ai.models import Model, ModelSettings
 from pydantic_ai.models.google import GoogleModelSettings
 
-from freeact.agent.tools.pytools import GENERATED_DIR
-
 DEFAULT_MODEL = "gemini-3-flash-preview"
 DEFAULT_MODEL_SETTINGS = GoogleModelSettings(
     google_thinking_config={
@@ -23,6 +21,9 @@ DEFAULT_MODEL_SETTINGS = GoogleModelSettings(
 PYTOOLS_BASIC_CONFIG: dict[str, Any] = {
     "command": "python",
     "args": ["-m", "freeact.agent.tools.pytools.search.basic"],
+    "env": {
+        "PYTOOLS_DIR": "${PYTOOLS_DIR}",
+    },
 }
 
 PYTOOLS_HYBRID_CONFIG: dict[str, Any] = {
@@ -42,8 +43,6 @@ PYTOOLS_HYBRID_CONFIG: dict[str, Any] = {
 }
 
 _HYBRID_ENV_DEFAULTS: dict[str, str] = {
-    "PYTOOLS_DIR": str(GENERATED_DIR),
-    "PYTOOLS_DB_PATH": ".freeact/search.db",
     "PYTOOLS_EMBEDDING_MODEL": "google-gla:gemini-embedding-001",
     "PYTOOLS_EMBEDDING_DIM": "3072",
     "PYTOOLS_SYNC": "true",
@@ -66,18 +65,6 @@ FILESYSTEM_CONFIG: dict[str, Any] = {
         "read_file",
     ],
 }
-
-
-def _ensure_hybrid_env_defaults() -> None:
-    """Set default values in `os.environ` for hybrid search env vars.
-
-    Called when `tool-search` is `"hybrid"`. Each variable uses
-    `os.environ.setdefault` so user-provided values take precedence.
-    `GEMINI_API_KEY` is intentionally omitted -- it has no default and
-    validation will catch it if missing.
-    """
-    for key, default in _HYBRID_ENV_DEFAULTS.items():
-        os.environ.setdefault(key, default)
 
 
 @dataclass
@@ -103,7 +90,6 @@ class Config:
     Attributes:
         working_dir: Agent's working directory.
         freeact_dir: Path to `.freeact/` configuration directory.
-        plans_dir: Path to `.freeact/plans/` for plan storage.
         model: LLM model name or instance.
         model_settings: Model-specific settings (e.g., thinking config).
         tool_search: Tool discovery mode read from `config.json`.
@@ -121,7 +107,6 @@ class Config:
     ):
         self.working_dir = working_dir or Path.cwd()
         self.freeact_dir = self.working_dir / ".freeact"
-        self.plans_dir = self.freeact_dir / "plans"
 
         self.model = model
         self.model_settings = model_settings
@@ -129,13 +114,50 @@ class Config:
         self._config_data = self._load_config_json()
         self.tool_search: str = self._config_data.get("tool-search", "basic")
 
+        self._ensure_pytools_env_defaults()
         if self.tool_search == "hybrid":
-            _ensure_hybrid_env_defaults()
+            self._ensure_hybrid_env_defaults()
 
         self.skills_metadata = self._load_skills_metadata()
         self.mcp_servers = self._load_mcp_servers()
         self.ptc_servers = self._load_servers("ptc-servers")
         self.system_prompt = self._load_system_prompt()
+
+    @property
+    def plans_dir(self) -> Path:
+        """Path to `.freeact/plans/` for plan storage."""
+        return self.freeact_dir / "plans"
+
+    @property
+    def generated_dir(self) -> Path:
+        """Path to `.freeact/generated/` for generated tool sources."""
+        return self.freeact_dir / "generated"
+
+    @property
+    def search_db_path(self) -> Path:
+        """Path to `.freeact/search.db` for hybrid search database."""
+        return self.freeact_dir / "search.db"
+
+    def _ensure_pytools_env_defaults(self) -> None:
+        """Set path-related env var defaults for pytools (basic and hybrid).
+
+        Sets `PYTOOLS_DIR` unconditionally (used by both basic and hybrid
+        search modes) and `PYTOOLS_DB_PATH` for hybrid mode. Uses absolute
+        paths derived from `self.freeact_dir`.
+        """
+        os.environ.setdefault("PYTOOLS_DIR", str(self.generated_dir))
+        os.environ.setdefault("PYTOOLS_DB_PATH", str(self.search_db_path))
+
+    def _ensure_hybrid_env_defaults(self) -> None:
+        """Set default values in `os.environ` for hybrid-specific env vars.
+
+        Called when `tool-search` is `"hybrid"`. Each variable uses
+        `os.environ.setdefault` so user-provided values take precedence.
+        `GEMINI_API_KEY` is intentionally omitted -- it has no default and
+        validation will catch it if missing.
+        """
+        for key, default in _HYBRID_ENV_DEFAULTS.items():
+            os.environ.setdefault(key, default)
 
     def _load_config_json(self) -> dict[str, Any]:
         """Load config.json file."""

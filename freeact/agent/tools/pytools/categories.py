@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from freeact.agent.tools.pytools import GENERATED_DIR, GENTOOLS_DIR, MCPTOOLS_DIR
+from freeact.agent.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
 
 
 class Categories(BaseModel):
@@ -12,7 +12,7 @@ class Categories(BaseModel):
     mcptools: list[str] = Field(description="Categories in mcptools/")
 
 
-def list_categories(base_dir: str | Path = GENERATED_DIR) -> Categories:
+def list_categories(base_dir: str | Path) -> Categories:
     """Discover tool category directories in `gentools/` and `mcptools/`.
 
     Scans for subdirectories (excluding those starting with `_`).

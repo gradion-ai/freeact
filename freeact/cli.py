@@ -9,7 +9,6 @@ from rich.console import Console
 
 from freeact.agent import Agent
 from freeact.agent.config import Config, init_config
-from freeact.agent.tools.pytools import GENERATED_DIR
 from freeact.agent.tools.pytools.apigen import generate_mcp_sources
 from freeact.terminal import Terminal
 from freeact.terminal.recording import save_conversation
@@ -140,12 +139,12 @@ async def run(namespace: argparse.Namespace) -> None:
         execution_timeout=namespace.execution_timeout,
         approval_timeout=namespace.approval_timeout,
         kernel_env={
-            "PYTHONPATH": str(config.working_dir / GENERATED_DIR),
+            "PYTHONPATH": str(config.generated_dir),
         },
     )
 
     if config.ptc_servers:
-        await generate_mcp_sources(config.ptc_servers)
+        await generate_mcp_sources(config.ptc_servers, config.generated_dir)
 
     terminal = Terminal(agent=agent, console=console)
     await terminal.run()

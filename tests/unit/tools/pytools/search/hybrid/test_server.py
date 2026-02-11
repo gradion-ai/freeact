@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from freeact.agent.tools.pytools import GENERATED_DIR, GENTOOLS_DIR, MCPTOOLS_DIR
+from freeact.agent.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
 from freeact.agent.tools.pytools.search.hybrid.database import SearchResult, ToolEntry
 from freeact.agent.tools.pytools.search.hybrid.server import (
     ServerState,
@@ -76,6 +77,7 @@ def server_state(
         embedder=mock_embedder,
         indexer=mock_indexer,
         search_engine=mock_search_engine,
+        tools_dir=Path(".freeact/generated"),
     )
 
 
@@ -114,14 +116,14 @@ class TestToolResult:
             category="github",
             source=MCPTOOLS_DIR,
             description="Create a new issue",
-            path=f"{GENERATED_DIR}/{MCPTOOLS_DIR}/github/create_issue.py",
+            path=f".freeact/generated/{MCPTOOLS_DIR}/github/create_issue.py",
         )
 
         assert result.name == "create_issue"
         assert result.category == "github"
         assert result.source == MCPTOOLS_DIR
         assert result.description == "Create a new issue"
-        assert result.path == f"{GENERATED_DIR}/{MCPTOOLS_DIR}/github/create_issue.py"
+        assert result.path == f".freeact/generated/{MCPTOOLS_DIR}/github/create_issue.py"
 
     def test_tool_result_source_literal(self) -> None:
         """Test ToolResult source must be gentools or mcptools."""
@@ -130,10 +132,10 @@ class TestToolResult:
             category="cat",
             source=GENTOOLS_DIR,
             description="desc",
-            path=f"{GENERATED_DIR}/{GENTOOLS_DIR}/cat/tool/api.py",
+            path=f".freeact/generated/{GENTOOLS_DIR}/cat/tool/api.py",
         )
         assert result.source == GENTOOLS_DIR
-        assert result.path == f"{GENERATED_DIR}/{GENTOOLS_DIR}/cat/tool/api.py"
+        assert result.path == f".freeact/generated/{GENTOOLS_DIR}/cat/tool/api.py"
 
 
 class TestSearchToolsBM25Mode:
@@ -172,7 +174,7 @@ class TestSearchToolsBM25Mode:
         assert results[0].name == "create_issue"
         assert results[0].category == "github"
         assert results[0].source == MCPTOOLS_DIR
-        assert results[0].path == f"{GENERATED_DIR}/{MCPTOOLS_DIR}/github/create_issue.py"
+        assert results[0].path == f".freeact/generated/{MCPTOOLS_DIR}/github/create_issue.py"
 
 
 class TestSearchToolsVectorMode:
@@ -216,7 +218,7 @@ class TestSearchToolsVectorMode:
         assert results[0].name == "csv_parser"
         assert results[0].category == "data"
         assert results[0].source == GENTOOLS_DIR
-        assert results[0].path == f"{GENERATED_DIR}/{GENTOOLS_DIR}/data/csv_parser/api.py"
+        assert results[0].path == f".freeact/generated/{GENTOOLS_DIR}/data/csv_parser/api.py"
 
 
 class TestSearchToolsHybridMode:

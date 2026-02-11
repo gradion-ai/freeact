@@ -1,14 +1,17 @@
 """MCP server for searching tool categories."""
 
+import os
 from pathlib import Path
 from typing import Annotated
 
 from mcp.server.fastmcp import FastMCP
 from pydantic import BaseModel, Field
 
-from freeact.agent.tools.pytools import GENERATED_DIR, GENTOOLS_DIR, MCPTOOLS_DIR
+from freeact.agent.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
 from freeact.agent.tools.pytools.categories import Categories
 from freeact.agent.tools.pytools.categories import list_categories as _list_categories
+
+_PYTOOLS_DIR = Path(os.environ.get("PYTOOLS_DIR", ".freeact/generated"))
 
 
 class Tools(BaseModel):
@@ -31,14 +34,9 @@ mcp = FastMCP("pytools_mcp", log_level="ERROR")
         "openWorldHint": False,
     },
 )
-def list_categories(
-    base_dir: Annotated[
-        str,
-        Field(description="Base directory containing gentools/mcptools directories"),
-    ] = str(GENERATED_DIR),
-) -> Categories:
+def list_categories() -> Categories:
     """List all tool categories in `gentools/` and `mcptools/` directories."""
-    return _list_categories(base_dir)
+    return _list_categories(_PYTOOLS_DIR)
 
 
 @mcp.tool(
@@ -56,13 +54,9 @@ def list_tools(
         str | list[str],
         Field(description="Category name or list of category names (e.g., 'github' or ['github', 'slack'])"),
     ],
-    base_dir: Annotated[
-        str,
-        Field(description="Base directory containing gentools/mcptools directories"),
-    ] = str(GENERATED_DIR),
 ) -> dict[str, Tools]:
     """List all tools in one or more categories under `gentools/` and `mcptools/` directories."""
-    base = Path(base_dir)
+    base = _PYTOOLS_DIR
 
     if isinstance(categories, str):
         categories = [categories]
