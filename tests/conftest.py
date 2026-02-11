@@ -1,8 +1,10 @@
 import json
+import tempfile
 import types
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from pydantic_ai.messages import (
@@ -13,6 +15,7 @@ from pydantic_ai.messages import (
 from pydantic_ai.models.function import AgentInfo, DeltaThinkingPart, DeltaToolCall, FunctionModel
 
 from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput, Response, ToolOutput
+from freeact.agent.config import Config
 from freeact.agent.core import ResponseChunk, Thoughts, ThoughtsChunk
 
 DeltaToolCalls = dict[int, DeltaToolCall]
@@ -60,6 +63,29 @@ def create_stream_function(
 # Agent creation
 
 
+def _create_test_config(
+    stream_function: Any,
+    mcp_servers: dict[str, dict[str, Any]] | None = None,
+    execution_timeout: float | None = 300,
+    approval_timeout: float | None = None,
+) -> Config:
+    """Create a Config for test agents with a temporary working directory."""
+    tmp_dir = Path(tempfile.mkdtemp())
+    freeact_dir = tmp_dir / ".freeact"
+    freeact_dir.mkdir()
+    (freeact_dir / "config.json").write_text(json.dumps({}))
+
+    config = Config(
+        working_dir=tmp_dir,
+        model=FunctionModel(stream_function=stream_function),
+        model_settings={},
+    )
+    config.mcp_servers = mcp_servers if mcp_servers is not None else {}
+    config.execution_timeout = execution_timeout
+    config.approval_timeout = approval_timeout
+    return config
+
+
 @asynccontextmanager
 async def _mock_code_executor():
     """No-op async context manager to replace heavy CodeExecutor."""
@@ -75,14 +101,13 @@ async def patched_agent(
     approval_timeout: float | None = None,
 ):
     """Context manager that creates and yields a patched agent with mocked code execution."""
-    agent = Agent(
-        model=FunctionModel(stream_function=stream_function),
-        model_settings={},
-        system_prompt="Test system prompt",
+    config = _create_test_config(
+        stream_function,
         mcp_servers=mcp_servers,
         execution_timeout=execution_timeout,
         approval_timeout=approval_timeout,
     )
+    agent = Agent(config=config)
     agent._code_executor = _mock_code_executor()
     if code_exec_function is not None:
         agent._ipybox_execute_ipython_cell = types.MethodType(code_exec_function, agent)  # type: ignore[method-assign]

@@ -1,5 +1,4 @@
 import asyncio
-from pathlib import Path
 
 # --8<-- [start:agent-imports]
 from freeact.agent import (
@@ -13,7 +12,7 @@ from freeact.agent import (
 
 # --8<-- [end:agent-imports]
 # --8<-- [start:config-imports]
-from freeact.agent.config import Config, init_config
+from freeact.agent.config import Config
 
 # --8<-- [end:config-imports]
 # --8<-- [start:apigen-imports]
@@ -24,8 +23,8 @@ from freeact.agent.tools.pytools.apigen import generate_mcp_sources
 
 async def main() -> None:
     # --8<-- [start:config]
-    # Initialize .freeact/ config directory if needed
-    init_config()
+    # Scaffold .freeact/ config directory if needed
+    await Config.init()
 
     # Load configuration from .freeact/
     config = Config()
@@ -34,17 +33,12 @@ async def main() -> None:
     # --8<-- [start:apigen]
     # Generate Python APIs for MCP servers in ptc_servers
     for server_name, params in config.ptc_servers.items():
-        if not Path(f"mcptools/{server_name}").exists():
-            await generate_mcp_sources({server_name: params})
+        if not (config.generated_dir / "mcptools" / server_name).exists():
+            await generate_mcp_sources({server_name: params}, config.generated_dir)
     # --8<-- [end:apigen]
 
     # --8<-- [start:agent]
-    async with Agent(
-        model=config.model,
-        model_settings=config.model_settings,
-        system_prompt=config.system_prompt,
-        mcp_servers=config.mcp_servers,
-    ) as agent:
+    async with Agent(config=config) as agent:
         prompt = "Who is the F1 world champion 2025?"
 
         async for event in agent.stream(prompt):

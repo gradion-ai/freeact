@@ -1,12 +1,15 @@
 import json
+import tempfile
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import pytest
 from pydantic_ai.messages import ModelMessage
 from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
 
 from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput, Response, ToolOutput
+from freeact.agent.config import Config
 from freeact.agent.core import AgentEvent, ResponseChunk
 from tests.conftest import (
     DeltaToolCalls,
@@ -16,14 +19,27 @@ from tests.conftest import (
 )
 
 
+def _create_unpatched_config(stream_function) -> Config:
+    """Create a Config for unpatched agent tests."""
+    tmp_dir = Path(tempfile.mkdtemp())
+    freeact_dir = tmp_dir / ".freeact"
+    freeact_dir.mkdir()
+    (freeact_dir / "config.json").write_text(json.dumps({}))
+
+    config = Config(
+        working_dir=tmp_dir,
+        model=FunctionModel(stream_function=stream_function),
+        model_settings={},
+    )
+    config.mcp_servers = {}
+    return config
+
+
 @asynccontextmanager
 async def unpatched_agent(stream_function):
     """Context manager for an agent with real code executor."""
-    agent = Agent(
-        model=FunctionModel(stream_function=stream_function),
-        model_settings={},
-        system_prompt="Test system prompt",
-    )
+    config = _create_unpatched_config(stream_function)
+    agent = Agent(config=config)
     async with agent:
         yield agent
 

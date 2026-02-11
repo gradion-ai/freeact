@@ -1,4 +1,5 @@
-import os
+import json
+import tempfile
 from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
@@ -6,13 +7,31 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput
-from freeact.agent.core import _subagent_mcp_servers
+from freeact.agent.config import Config
 from tests.conftest import (
     CodeExecFunction,
     collect_stream,
     create_stream_function,
     patched_agent,
 )
+
+
+def _create_test_config(**overrides: Any) -> Config:
+    """Create a Config with a temp .freeact dir and optional attribute overrides."""
+    tmp_dir = Path(tempfile.mkdtemp())
+    freeact_dir = tmp_dir / ".freeact"
+    freeact_dir.mkdir()
+    (freeact_dir / "config.json").write_text(json.dumps({}))
+
+    config = Config(
+        working_dir=tmp_dir,
+        model="test",
+        model_settings={},
+    )
+    config.mcp_servers = {}
+    for key, value in overrides.items():
+        setattr(config, key, value)
+    return config
 
 
 class TestCodeExecutionOutput:
@@ -229,45 +248,30 @@ class TestTimeoutParameters:
     def test_default_execution_timeout(self):
         """Default execution_timeout is 300 seconds."""
         with patch("freeact.agent.core.ipybox.CodeExecutor"):
-            agent = Agent(
-                model="test",
-                model_settings={},
-                system_prompt="test",
-            )
+            config = _create_test_config()
+            agent = Agent(config=config)
             assert agent._execution_timeout == 300
 
     def test_custom_execution_timeout(self):
         """Custom execution_timeout is stored."""
         with patch("freeact.agent.core.ipybox.CodeExecutor"):
-            agent = Agent(
-                model="test",
-                model_settings={},
-                system_prompt="test",
-                execution_timeout=60,
-            )
+            config = _create_test_config(execution_timeout=60)
+            agent = Agent(config=config)
             assert agent._execution_timeout == 60
 
     def test_none_execution_timeout(self):
         """None execution_timeout disables timeout."""
         with patch("freeact.agent.core.ipybox.CodeExecutor"):
-            agent = Agent(
-                model="test",
-                model_settings={},
-                system_prompt="test",
-                execution_timeout=None,
-            )
+            config = _create_test_config(execution_timeout=None)
+            agent = Agent(config=config)
             assert agent._execution_timeout is None
 
     def test_approval_timeout_passed_to_executor(self):
         """approval_timeout is passed to CodeExecutor."""
         with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
             mock_executor.return_value = MagicMock()
-            Agent(
-                model="test",
-                model_settings={},
-                system_prompt="test",
-                approval_timeout=30,
-            )
+            config = _create_test_config(approval_timeout=30)
+            Agent(config=config)
             mock_executor.assert_called_once()
             call_kwargs = mock_executor.call_args.kwargs
             assert call_kwargs["approval_timeout"] == 30
@@ -276,11 +280,8 @@ class TestTimeoutParameters:
         """Default approval_timeout is None."""
         with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
             mock_executor.return_value = MagicMock()
-            Agent(
-                model="test",
-                model_settings={},
-                system_prompt="test",
-            )
+            config = _create_test_config()
+            Agent(config=config)
             call_kwargs = mock_executor.call_args.kwargs
             assert call_kwargs["approval_timeout"] is None
 
@@ -289,67 +290,23 @@ class TestKernelEnvHome:
     """Tests for default HOME environment variable in kernel_env."""
 
     def test_default_home_env_var(self):
-        """HOME from os.environ is added to kernel_env when not provided."""
-        with (
-            patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor,
-            patch.dict(os.environ, {"HOME": "/home/testuser"}),
-        ):
+        """HOME from os.environ is added to kernel_env by Config."""
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
             mock_executor.return_value = MagicMock()
-            Agent(
-                model="test",
-                model_settings={},
-                system_prompt="test",
-            )
+            config = _create_test_config()
+            Agent(config=config)
             call_kwargs = mock_executor.call_args.kwargs
-            assert call_kwargs["kernel_env"]["HOME"] == "/home/testuser"
+            # HOME is auto-added by Config._load_kernel_env()
+            assert "HOME" in call_kwargs["kernel_env"]
 
     def test_home_env_var_not_overridden(self):
-        """Caller-provided HOME in kernel_env is not overwritten."""
-        with (
-            patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor,
-            patch.dict(os.environ, {"HOME": "/home/testuser"}),
-        ):
+        """User-provided HOME in kernel_env is not overwritten."""
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
             mock_executor.return_value = MagicMock()
-            Agent(
-                model="test",
-                model_settings={},
-                system_prompt="test",
-                kernel_env={"HOME": "/custom/home"},
-            )
+            config = _create_test_config(kernel_env={"HOME": "/custom/home"})
+            Agent(config=config)
             call_kwargs = mock_executor.call_args.kwargs
             assert call_kwargs["kernel_env"]["HOME"] == "/custom/home"
-
-    def test_home_env_var_with_existing_env(self):
-        """HOME is added alongside other kernel_env vars."""
-        with (
-            patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor,
-            patch.dict(os.environ, {"HOME": "/home/testuser"}),
-        ):
-            mock_executor.return_value = MagicMock()
-            Agent(
-                model="test",
-                model_settings={},
-                system_prompt="test",
-                kernel_env={"OTHER": "value"},
-            )
-            call_kwargs = mock_executor.call_args.kwargs
-            assert call_kwargs["kernel_env"]["HOME"] == "/home/testuser"
-            assert call_kwargs["kernel_env"]["OTHER"] == "value"
-
-    def test_home_env_var_missing_from_environ(self):
-        """HOME is not added when it is not in os.environ."""
-        with (
-            patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor,
-            patch.dict(os.environ, {}, clear=True),
-        ):
-            mock_executor.return_value = MagicMock()
-            Agent(
-                model="test",
-                model_settings={},
-                system_prompt="test",
-            )
-            call_kwargs = mock_executor.call_args.kwargs
-            assert "HOME" not in call_kwargs["kernel_env"]
 
 
 class TestSubagentConfigPropagation:
@@ -357,13 +314,14 @@ class TestSubagentConfigPropagation:
 
     @pytest.mark.asyncio
     async def test_execute_subagent_task_propagates_runtime_and_safety_settings(self):
-        """_execute_subagent_task forwards parent execution config to spawned subagents."""
+        """_execute_subagent_task forwards parent config to spawned subagents."""
         captured: dict[str, Any] = {}
 
         class FakeSubagent:
-            def __init__(self, **kwargs: Any):
+            def __init__(self, config: Config, **kwargs: Any):
+                captured["config"] = config
                 captured.update(kwargs)
-                self.agent_id = kwargs.get("agent_id", "main")
+                self.agent_id = config.agent_id
 
             async def __aenter__(self):
                 return self
@@ -378,94 +336,25 @@ class TestSubagentConfigPropagation:
 
         with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
             mock_executor.return_value = MagicMock()
-            agent = Agent(
-                model="test",
-                model_settings={},
-                system_prompt="test",
+            config = _create_test_config(
                 kernel_env={"HOME": "/custom/home", "OTHER": "value"},
-                sandbox=True,
-                sandbox_config=Path("/tmp/sandbox.cfg"),
                 images_dir=Path("/tmp/images"),
                 approval_timeout=42,
+            )
+            agent = Agent(
+                config=config,
+                sandbox=True,
+                sandbox_config=Path("/tmp/sandbox.cfg"),
             )
 
         with patch("freeact.agent.core.Agent", FakeSubagent):
             events = [event async for event in agent._execute_subagent_task("subtask", max_turns=3)]
 
         assert len(events) >= 1
-        assert captured["kernel_env"] == {"HOME": "/custom/home", "OTHER": "value"}
-        assert captured["kernel_env"] is not agent._kernel_env
-        assert captured["agent_id"].startswith("sub-")
+        sub_config = captured["config"]
+        assert sub_config.kernel_env == {"HOME": "/custom/home", "OTHER": "value"}
+        assert sub_config.kernel_env is not config.kernel_env
+        assert sub_config.agent_id.startswith("sub-")
+        assert sub_config.enable_subagents is False
         assert captured["sandbox"] is True
         assert captured["sandbox_config"] == Path("/tmp/sandbox.cfg")
-        assert captured["images_dir"] == Path("/tmp/images")
-        assert captured["approval_timeout"] == 42
-
-
-class TestSubagentMcpServers:
-    """Tests for _subagent_mcp_servers helper."""
-
-    def test_disables_sync_and_watch_for_pytools(self):
-        """Overrides PYTOOLS_SYNC and PYTOOLS_WATCH to 'false' for pytools server."""
-        mcp_servers: dict[str, dict[str, Any]] = {
-            "pytools": {
-                "command": "python",
-                "args": ["-m", "freeact.agent.tools.pytools.search.hybrid"],
-                "env": {
-                    "PYTOOLS_SYNC": "${PYTOOLS_SYNC}",
-                    "PYTOOLS_WATCH": "${PYTOOLS_WATCH}",
-                    "GEMINI_API_KEY": "${GEMINI_API_KEY}",
-                },
-            },
-        }
-        result = _subagent_mcp_servers(mcp_servers)
-        assert result is not None
-        assert result["pytools"]["env"]["PYTOOLS_SYNC"] == "false"
-        assert result["pytools"]["env"]["PYTOOLS_WATCH"] == "false"
-        assert result["pytools"]["env"]["GEMINI_API_KEY"] == "${GEMINI_API_KEY}"
-
-    def test_leaves_other_servers_unchanged(self):
-        """Other MCP servers in the config are not modified."""
-        mcp_servers: dict[str, dict[str, Any]] = {
-            "pytools": {
-                "command": "python",
-                "args": ["-m", "some.module"],
-                "env": {"PYTOOLS_SYNC": "true", "PYTOOLS_WATCH": "true"},
-            },
-            "filesystem": {
-                "command": "npx",
-                "args": ["-y", "@modelcontextprotocol/server-filesystem"],
-            },
-        }
-        result = _subagent_mcp_servers(mcp_servers)
-        assert result is not None
-        assert result["filesystem"] == mcp_servers["filesystem"]
-
-    def test_handles_missing_pytools_key(self):
-        """Returns config unchanged when pytools key is absent."""
-        mcp_servers: dict[str, dict[str, Any]] = {
-            "filesystem": {"command": "npx", "args": ["server"]},
-        }
-        result = _subagent_mcp_servers(mcp_servers)
-        assert result == mcp_servers
-
-    def test_handles_pytools_without_env(self):
-        """Returns config unchanged when pytools has no env key."""
-        mcp_servers: dict[str, dict[str, Any]] = {
-            "pytools": {"command": "python", "args": ["-m", "some.module"]},
-        }
-        result = _subagent_mcp_servers(mcp_servers)
-        assert result == mcp_servers
-
-    def test_does_not_mutate_original(self):
-        """Original config dict is not modified."""
-        mcp_servers: dict[str, dict[str, Any]] = {
-            "pytools": {
-                "command": "python",
-                "args": ["-m", "some.module"],
-                "env": {"PYTOOLS_SYNC": "true", "PYTOOLS_WATCH": "true"},
-            },
-        }
-        _subagent_mcp_servers(mcp_servers)
-        assert mcp_servers["pytools"]["env"]["PYTOOLS_SYNC"] == "true"
-        assert mcp_servers["pytools"]["env"]["PYTOOLS_WATCH"] == "true"

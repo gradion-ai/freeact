@@ -12,7 +12,7 @@ class Categories(BaseModel):
     mcptools: list[str] = Field(description="Categories in mcptools/")
 
 
-def list_categories(base_dir: str = ".") -> Categories:
+def list_categories(base_dir: str | Path) -> Categories:
     """Discover tool category directories in `gentools/` and `mcptools/`.
 
     Scans for subdirectories (excluding those starting with `_`).

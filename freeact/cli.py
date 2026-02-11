@@ -4,11 +4,10 @@ import logging
 from pathlib import Path
 
 from dotenv import load_dotenv
-from ipybox.utils import arun
 from rich.console import Console
 
 from freeact.agent import Agent
-from freeact.agent.config import Config, init_config
+from freeact.agent.config import Config
 from freeact.agent.tools.pytools.apigen import generate_mcp_sources
 from freeact.terminal import Terminal
 from freeact.terminal.recording import save_conversation
@@ -65,20 +64,6 @@ def create_parser() -> argparse.ArgumentParser:
         default="Conversation",
         help="Title of the recording",
     )
-    parser.add_argument(
-        "--execution-timeout",
-        type=float,
-        default=300,
-        metavar="SECONDS",
-        help="Maximum time in seconds for code execution (default: 300). Approval wait time is excluded.",
-    )
-    parser.add_argument(
-        "--approval-timeout",
-        type=float,
-        default=None,
-        metavar="SECONDS",
-        help="Timeout in seconds for PTC approval requests (default: None, no timeout)",
-    )
     return parser
 
 
@@ -108,9 +93,9 @@ def configure_logging(level: str) -> None:
     logger.addHandler(handler)
 
 
-def create_config(namespace: argparse.Namespace) -> Config:
+async def create_config(namespace: argparse.Namespace) -> Config:
     """Initialize and load configuration from `.freeact/` directory."""
-    init_config()
+    await Config.init()
     return Config()
 
 
@@ -128,20 +113,15 @@ async def run(namespace: argparse.Namespace) -> None:
     else:
         console = None
 
-    config: Config = await arun(create_config, namespace)
+    config = await create_config(namespace)
     agent = Agent(
-        model=config.model,
-        model_settings=config.model_settings,
-        system_prompt=config.system_prompt,
-        mcp_servers=config.mcp_servers,
+        config=config,
         sandbox=namespace.sandbox,
         sandbox_config=namespace.sandbox_config,
-        execution_timeout=namespace.execution_timeout,
-        approval_timeout=namespace.approval_timeout,
     )
 
     if config.ptc_servers:
-        await generate_mcp_sources(config.ptc_servers)
+        await generate_mcp_sources(config.ptc_servers, config.generated_dir)
 
     terminal = Terminal(agent=agent, console=console)
     await terminal.run()
@@ -166,7 +146,7 @@ def main() -> None:
     configure_logging(namespace.log_level)
 
     if namespace.command == "init":
-        init_config()
+        asyncio.run(Config.init())
         logger.info("Initialized .freeact/ configuration directory")
         return
 

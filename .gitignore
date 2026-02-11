@@ -11,8 +11,5 @@ site/
 .env
 .coverage
 /sandbox.*
-/gentools/
-/mcptools/
-/mcpparse/
 /images/
 /output/

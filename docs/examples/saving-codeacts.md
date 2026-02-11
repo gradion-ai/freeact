@@ -33,7 +33,7 @@ After code action execution, we instruct the agent to save it as a reusable tool
 The agent:
 
 1. Loads the `saving-codeacts` skill
-2. Creates a `gentools/github/commits_of_top_repos/` package
+2. Creates a `gentools/github/commits_of_top_repos/` package under `.freeact/generated/`
 3. Saves the tool API with a parameterized `run()` function to [`api.py`](https://github.com/gradion-ai/ipybox/blob/main/docs/generated/gentools/github/commits_of_top_repos/api.py)
 4. Saves the implementation to [`impl.py`](https://github.com/gradion-ai/ipybox/blob/main/docs/generated/gentools/github/commits_of_top_repos/impl.py), lazily imported by `run()`
 5. Tests the saved tool to verify it works
@@ -41,7 +41,7 @@ The agent:
 The structure of the saved tool is:
 
 ```
-gentools/
+.freeact/generated/gentools/
 └── github/
     └── commits_of_top_repos/
         ├── __init__.py

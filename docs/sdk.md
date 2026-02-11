@@ -9,7 +9,7 @@ The Python SDK provides four main APIs:
 
 ## Configuration API
 
-Use [`init_config()`][freeact.agent.config.init_config] to initialize the `.freeact/` directory from default templates. The [`Config()`][freeact.agent.config.Config] constructor loads all configuration from it:
+Use [`Config.init()`][freeact.agent.config.Config.init] to scaffold the `.freeact/` directory from default templates. The [`Config()`][freeact.agent.config.Config] constructor loads all configuration from it:
 
 ```python
 --8<-- "examples/basic_agent.py:config-imports"
@@ -27,7 +27,7 @@ MCP servers [configured](configuration.md#ptc-servers) as `ptc-servers` in `conf
 --8<-- "examples/basic_agent.py:apigen"
 ```
 
-Generated APIs are stored as `mcptools/<server_name>/<tool>.py` modules and persist across agent sessions. After generation, the agent can import them for programmatic tool calling:
+Generated APIs are stored as `.freeact/generated/mcptools/<server_name>/<tool>.py` modules and persist across agent sessions. The `.freeact/generated/` directory is on the kernel's `PYTHONPATH`, so the agent can import them directly:
 
 ```python
 from mcptools.google.web_search import run, Params
@@ -88,7 +88,7 @@ async for event in agent.stream(prompt):
             print(f"[{agent_id}] {content}")
 ```
 
-Subagent IDs use the form `sub-xxxx`. Each delegated task defaults to `max_turns=100`. Use `max_subagents` on the parent to limit concurrent subagents (default 5).
+Subagent IDs use the form `sub-xxxx`. Each delegated task defaults to `max_turns=100`. The [`max-subagents`](configuration.md#agent-settings) setting in `config.json` limits concurrent subagents (default 5).
 
 ### Approval
 
@@ -118,7 +118,8 @@ async for event in agent.stream(prompt):
 The agent manages MCP server connections and an IPython kernel via [ipybox](https://gradion-ai.github.io/ipybox/). On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calling connect. MCP servers configured for programmatic tool calling connect lazily on first tool call.
 
 ```python
-async with Agent(...) as agent:
+config = Config()
+async with Agent(config=config) as agent:
     async for event in agent.stream(prompt):
         ...
 # Connections closed, kernel stopped
@@ -127,7 +128,8 @@ async with Agent(...) as agent:
 Without using the async context manager:
 
 ```python
-agent = Agent(...)
+config = Config()
+agent = Agent(config=config)
 await agent.start()
 try:
     async for event in agent.stream(prompt):
@@ -138,19 +140,16 @@ finally:
 
 ### Timeouts
 
-The agent supports two timeout configurations:
+The agent supports two timeout settings in [`config.json`](configuration.md#agent-settings):
 
-- **execution_timeout**: Maximum time in seconds for each code execution. Approval wait time is excluded from this budget, so the timeout only counts actual execution time. Defaults to 300 seconds. Set to `None` to disable.
-- **approval_timeout**: Timeout for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. Defaults to `None` (no timeout).
+- **`execution-timeout`**: Maximum time in seconds for each code execution. Approval wait time is excluded from this budget, so the timeout only counts actual execution time. Defaults to 300 seconds. Set to `null` to disable.
+- **`approval-timeout`**: Timeout for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. Defaults to `null` (no timeout).
 
-```python
-agent = Agent(
-    model="anthropic:claude-sonnet-4-20250514",
-    model_settings=model_settings,
-    system_prompt=config.system_prompt,
-    execution_timeout=60,     # 60 second execution limit (excludes approval wait)
-    approval_timeout=30,      # 30 second approval limit
-)
+```json
+{
+  "execution-timeout": 60,
+  "approval-timeout": 30
+}
 ```
 
 ## Permissions API

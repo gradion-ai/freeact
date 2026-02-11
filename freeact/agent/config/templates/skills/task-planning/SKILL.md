@@ -29,10 +29,10 @@ Revise the plan based on user feedback. Continue the proposal-feedback loop unti
 
 ### 4. Save Confirmed Plan
 
-Write the confirmed plan to `.freeact/plans/<task-name>.md` where:
+Write the confirmed plan to `{plans_rel_dir}/<task-name>.md` where:
 - `<task-name>` is a descriptive kebab-case name
-- Example: `.freeact/plans/add-user-authentication.md`
-- The `.freeact/plans/` directory already exists
+- Example: `{plans_rel_dir}/add-user-authentication.md`
+- The `{plans_rel_dir}/` directory already exists
 
 ## Execution Phase
 

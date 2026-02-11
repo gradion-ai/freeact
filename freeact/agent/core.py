@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import os
 import re
 import uuid
 from asyncio import Future
@@ -30,10 +29,10 @@ from pydantic_ai.messages import (
     UserContent,
     UserPromptPart,
 )
-from pydantic_ai.models import Model, ModelRequestParameters, ModelSettings
+from pydantic_ai.models import ModelRequestParameters
 from pydantic_ai.tools import ToolDefinition
 
-from freeact.agent.tools.pytools import MCPTOOLS_DIR
+from freeact.agent.config import Config
 from freeact.agent.tools.utils import (
     get_tool_definitions,
     load_ipybox_tool_definitions,
@@ -274,77 +273,45 @@ class Agent:
 
     def __init__(
         self,
-        model: str | Model,
-        model_settings: ModelSettings,
-        system_prompt: str,
-        agent_id: str = "main",
-        mcp_servers: dict[str, dict[str, Any]] | None = None,
-        kernel_env: dict[str, str] | None = None,
+        config: Config,
         sandbox: bool = False,
         sandbox_config: Path | None = None,
-        images_dir: Path | None = None,
-        execution_timeout: float | None = 300,
-        approval_timeout: float | None = None,
-        enable_subagents: bool = True,
-        max_subagents: int = 5,
     ):
         """Initialize the agent.
 
         Args:
-            model: LLM model identifier or pydantic-ai Model instance.
-            model_settings: Temperature, max tokens, and other model params.
-            system_prompt: Instructions defining agent behavior.
-            agent_id: Identifier for this agent instance. Defaults to ``"main"``.
-            mcp_servers: Raw MCP server configurations. Each key is
-                a server name, each value is a config dict with `command` or
-                `url` and optional `excluded_tools`. Used during startup and
-                passed to subagents so each gets its own server processes.
-            kernel_env: Environment variables passed to the IPython kernel.
+            config: Agent configuration containing model, system prompt,
+                MCP servers, kernel env, timeouts, and subagent settings.
             sandbox: Run the kernel in sandbox mode.
             sandbox_config: Path to custom sandbox configuration.
-            images_dir: Directory for saving generated images.
-            execution_timeout: Maximum time in seconds for code execution.
-                Approval wait time is excluded from this timeout budget.
-                If None, no timeout is applied. Defaults to 300 seconds.
-            approval_timeout: Timeout in seconds for approval requests during
-                programmatic tool calls. If an approval request is not accepted
-                or rejected within this time, the tool call fails.
-                If None, no timeout is applied.
-            enable_subagents: Whether to enable subagent delegation.
-            max_subagents: Maximum number of concurrent subagents. Defaults to 5.
         """
-        self.agent_id = agent_id
-        self.model = model
-        self.model_settings = model_settings
+        self._config = config
 
-        self._system_prompt = system_prompt
-        self._execution_timeout = execution_timeout
-        self._enable_subagents = enable_subagents
-        self._mcp_servers = mcp_servers
-        self._subagent_semaphore = asyncio.Semaphore(max_subagents)
+        self.agent_id = config.agent_id
+        self.model = config.model
+        self.model_settings = config.model_settings
+
+        self._system_prompt = config.system_prompt
+        self._execution_timeout = config.execution_timeout
+        self._enable_subagents = config.enable_subagents
+        self._mcp_servers = config.mcp_servers
+        self._subagent_semaphore = asyncio.Semaphore(config.max_subagents)
         self._sandbox = sandbox
         self._sandbox_config = sandbox_config
-        self._images_dir = images_dir
-        self._approval_timeout = approval_timeout
 
         self._mcp_server_instances: dict[str, MCPServer] = {}
         self._tool_mapping: dict[str, MCPServer] = {}
         self._tool_definitions: list[ToolDefinition] = []
 
-        _kernel_env = dict(kernel_env) if kernel_env else {}
-        if "HOME" not in _kernel_env:
-            home = os.environ.get("HOME")
-            if home:
-                _kernel_env["HOME"] = home
-        self._kernel_env = _kernel_env
+        self._kernel_env = config.kernel_env
 
         self._code_executor_lock = asyncio.Lock()
         self._code_executor = ipybox.CodeExecutor(
-            kernel_env=_kernel_env,
+            kernel_env=config.kernel_env,
             sandbox=sandbox,
             sandbox_config=sandbox_config,
-            images_dir=images_dir,
-            approval_timeout=approval_timeout,
+            images_dir=config.images_dir,
+            approval_timeout=config.approval_timeout,
             log_level="ERROR",
         )
 
@@ -430,15 +397,12 @@ class Agent:
         self._mcp_server_instances = {}
 
     def _create_mcp_servers(self) -> dict[str, MCPServer]:
-        from ipybox.vars import replace_variables
-
         if not self._mcp_servers:
             return {}
 
-        resolved = replace_variables(self._mcp_servers, os.environ).replaced
         servers: dict[str, MCPServer] = {}
 
-        for name, raw_cfg in resolved.items():
+        for name, raw_cfg in self._mcp_servers.items():
             cfg = dict(raw_cfg)
             excluded_tools = cfg.pop("excluded_tools", None)
             match cfg:
@@ -587,12 +551,6 @@ class Agent:
                                     content = "Tool call rejected"
                                 case CodeExecutionOutput():
                                     content = item.format(max_chars=tool_args.get("max_output_chars", 5000))
-                    case "ipybox_register_mcp_server":
-                        content = await self._ipybox_register_mcp_server(
-                            server_name=tool_args["server_name"],
-                            server_params=tool_args["server_params"],
-                        )
-                        yield ToolOutput(content=content, agent_id=self.agent_id)
                     case "ipybox_reset":
                         content = await self._ipybox_reset()
                         yield ToolOutput(content=content, agent_id=self.agent_id)
@@ -617,19 +575,11 @@ class Agent:
         )
 
     async def _execute_subagent_task(self, prompt: str, max_turns: int) -> AsyncIterator[AgentEvent]:
+        subagent_config = self._config.for_subagent(agent_id=f"sub-{uuid.uuid4().hex[:4]}")
         subagent = Agent(
-            model=self.model,
-            model_settings=self.model_settings,
-            system_prompt=self._system_prompt,
-            agent_id=f"sub-{uuid.uuid4().hex[:4]}",
-            mcp_servers=_subagent_mcp_servers(self._mcp_servers),
-            kernel_env=dict(self._kernel_env),
+            config=subagent_config,
             sandbox=self._sandbox,
             sandbox_config=self._sandbox_config,
-            images_dir=self._images_dir,
-            execution_timeout=self._execution_timeout,
-            approval_timeout=self._approval_timeout,
-            enable_subagents=False,
         )
         runner = _SubagentRunner(subagent=subagent, semaphore=self._subagent_semaphore)
 
@@ -676,13 +626,6 @@ class Agent:
             yield CodeExecutionOutputChunk(text=str(e), agent_id=self.agent_id)
             yield CodeExecutionOutput(text=str(e), images=[], agent_id=self.agent_id)
 
-    async def _ipybox_register_mcp_server(self, server_name: str, server_params: dict[str, Any]) -> str:
-        try:
-            tool_names = await ipybox.generate_mcp_sources(server_name, server_params, Path(MCPTOOLS_DIR))
-            return f"Registered MCP server {server_name} with tools: {', '.join(tool_names)}"
-        except Exception as e:
-            return f"Registration of MCP server {server_name} failed: {str(e)}"
-
     async def _ipybox_reset(self) -> str:
         try:
             async with self._code_executor_lock:
@@ -700,19 +643,3 @@ class Agent:
             )
         except Exception as e:
             return f"MCP tool call failed: {str(e)}"
-
-
-def _subagent_mcp_servers(
-    mcp_servers: dict[str, dict[str, Any]] | None,
-) -> dict[str, dict[str, Any]] | None:
-    """Create MCP server config copy for subagents with pytools sync/watch disabled."""
-    if mcp_servers is None:
-        return None
-
-    import copy
-
-    servers = copy.deepcopy(mcp_servers)
-    if "pytools" in servers and "env" in servers["pytools"]:
-        servers["pytools"]["env"]["PYTOOLS_SYNC"] = "false"
-        servers["pytools"]["env"]["PYTOOLS_WATCH"] = "false"
-    return servers

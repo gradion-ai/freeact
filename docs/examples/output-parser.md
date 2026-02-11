@@ -36,7 +36,7 @@ Add the [GitHub MCP server](https://github.com/github/github-mcp-server) to [`pt
 
 Set your GitHub personal access token (PAT) as the `GITHUB_API_KEY` environment variable or add it to `.env`. 
 
-Then start the [CLI tool](../cli.md) to automatically generate Python APIs to `mcptools/github/`:
+Then start the [CLI tool](../cli.md) to automatically generate Python APIs to `.freeact/generated/mcptools/github/`:
 
 ```bash
 uvx freeact
@@ -52,7 +52,7 @@ the agent
 2. Calls the `search_repositories.run()` function with example inputs to observe outputs
 3. Identifies parseable JSON with fields like `name`, `description`, `stargazers_count`, etc.
 4. Creates an [enhanced](https://github.com/gradion-ai/ipybox/blob/main/docs/generated/mcptools/github/search_repositories.py) tool API with `ParseResult`, `Repository` and `run_parsed()`
-5. Saves the [parser](https://github.com/gradion-ai/ipybox/blob/main/docs/generated/mcpparse/github/search_repositories.py) to a separate `mcpparse/github/search_repositories.py`
+5. Saves the [parser](https://github.com/gradion-ai/ipybox/blob/main/docs/generated/mcpparse/github/search_repositories.py) to a separate `.freeact/generated/mcpparse/github/search_repositories.py`
 6. Resets the IPython kernel to re-import the tool for testing `run_parsed()`
 
 [![Interactive mode](../recordings/output-parser/conversation.svg)](../recordings/output-parser/conversation.html){target="_blank" #recording}

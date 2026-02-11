@@ -1,5 +1,12 @@
 {
   "tool-search": "basic",
+  "agent-id": "main",
+  "images-dir": null,
+  "execution-timeout": 300,
+  "approval-timeout": null,
+  "enable-subagents": true,
+  "max-subagents": 5,
+  "kernel-env": {},
   "mcp-servers": {},
   "ptc-servers": {
     "google": {
