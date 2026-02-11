@@ -10,7 +10,7 @@ Save executed Python code as a tool for later reuse.
 ## Package Structure
 
 ```
-.freeact/generated/gentools/<category>/<tool>/
+{generated_rel_dir}/gentools/<category>/<tool>/
 ├── __init__.py          # Empty file
 ├── api.py              # Public interface with structured models
 └── impl.py             # Implementation details
@@ -21,7 +21,7 @@ Save executed Python code as a tool for later reuse.
 ### 1. Create Package Directory
 
 ```bash
-mkdir -p .freeact/generated/gentools/<category>/<tool>
+mkdir -p {generated_rel_dir}/gentools/<category>/<tool>
 ```
 
 Create empty `__init__.py` files in both `<category>` and `<tool>` directories.
@@ -58,7 +58,7 @@ Requirements:
 - Create `run()` function with typed parameters
 - Use lazy import from `impl.py` inside `run()`
 - Include comprehensive docstring
-- Export `OutputModel` and `run` in `.freeact/generated/gentools/<category>/<tool>/__init__.py`:
+- Export `OutputModel` and `run` in `{generated_rel_dir}/gentools/<category>/<tool>/__init__.py`:
 
 ```python
 from .api import OutputModel, run

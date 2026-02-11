@@ -9,16 +9,26 @@ def init_config(working_dir: Path | None = None) -> None:
     """Initialize `.freeact/` config directory from templates.
 
     Copies template files that don't already exist, preserving user modifications.
+    Skill templates have ``{generated_rel_dir}`` and ``{plans_rel_dir}``
+    placeholders rendered before writing.
 
     Args:
         working_dir: Base directory. Defaults to current working directory.
     """
     working_dir = working_dir or Path.cwd()
     freeact_dir = working_dir / ".freeact"
+    freeact_rel = Path(".freeact")
+
+    skill_placeholders = {
+        "generated_rel_dir": str(freeact_rel / "generated"),
+        "plans_rel_dir": str(freeact_rel / "plans"),
+    }
 
     template_files = files("freeact.agent.config").joinpath("templates")
 
     with as_file(template_files) as template_dir:
+        skills_template_dir = template_dir / "skills"
+
         for template_file in template_dir.rglob("*"):
             if not template_file.is_file():
                 continue
@@ -30,7 +40,12 @@ def init_config(working_dir: Path | None = None) -> None:
                 continue
 
             target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(template_file, target)
+
+            if template_file.is_relative_to(skills_template_dir):
+                content = template_file.read_text()
+                target.write_text(content.format(**skill_placeholders))
+            else:
+                shutil.copy2(template_file, target)
 
     # Create plans directory
     plans_dir = freeact_dir / "plans"

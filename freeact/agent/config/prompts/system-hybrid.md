@@ -14,7 +14,7 @@ The current working directory is `{working_dir}`. All paths are relative to this
 
 ## PYTHONPATH
 
-The `.freeact/generated` dir is on the PYTHONPATH.
+The `{generated_rel_dir}` dir is on the PYTHONPATH.
 
 ## Tool Usage Restrictions
 
@@ -22,8 +22,8 @@ You are restricted to these tools only:
 
 ### Python Tools
 
-- `.freeact/generated/mcptools/<category>/<tool>.py` (use `run_parsed` if defined, otherwise `run`)
-- `.freeact/generated/gentools/<category>/<tool>/api.py`
+- `{generated_rel_dir}/mcptools/<category>/<tool>.py` (use `run_parsed` if defined, otherwise `run`)
+- `{generated_rel_dir}/gentools/<category>/<tool>/api.py`
 
 You must inspect the source code of these tools before using them in generated code.
 

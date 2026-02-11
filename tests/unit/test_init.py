@@ -89,6 +89,16 @@ class TestInitConfig:
         freeact_dir = tmp_path / ".freeact"
         assert freeact_dir.exists()
 
+    def test_renders_skill_placeholders(self, tmp_path: Path):
+        """Renders placeholders in skill templates during copy."""
+        init_config(tmp_path)
+
+        skills_dir = tmp_path / ".freeact" / "skills"
+        for skill_file in skills_dir.rglob("SKILL.md"):
+            content = skill_file.read_text()
+            assert "{generated_rel_dir}" not in content
+            assert "{plans_rel_dir}" not in content
+
     def test_idempotent_multiple_calls(self, tmp_path: Path):
         """Multiple calls do not fail or duplicate content."""
         init_config(tmp_path)

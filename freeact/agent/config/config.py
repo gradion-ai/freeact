@@ -125,17 +125,17 @@ class Config:
 
     @property
     def plans_dir(self) -> Path:
-        """Path to `.freeact/plans/` for plan storage."""
+        """Plan storage directory."""
         return self.freeact_dir / "plans"
 
     @property
     def generated_dir(self) -> Path:
-        """Path to `.freeact/generated/` for generated tool sources."""
+        """Generated MCP tool sources directory."""
         return self.freeact_dir / "generated"
 
     @property
     def search_db_path(self) -> Path:
-        """Path to `.freeact/search.db` for hybrid search database."""
+        """Hybrid search database path."""
         return self.freeact_dir / "search.db"
 
     def _ensure_pytools_env_defaults(self) -> None:
@@ -225,6 +225,7 @@ class Config:
         return template.format(
             working_dir=self.working_dir,
             skills=self._render_skills_section(),
+            generated_rel_dir=self.generated_dir.relative_to(self.working_dir),
         )
 
     def _internal_mcp_servers(self) -> dict[str, dict[str, Any]]:
