@@ -5,7 +5,7 @@ import pytest
 from pydantic_ai.messages import ModelRequest, ModelResponse, TextPart, UserPromptPart
 from pydantic_core import to_jsonable_python
 
-from freeact.agent.session import SessionStore
+from freeact.agent.store import SessionStore
 
 
 def _sample_messages() -> list[ModelRequest | ModelResponse]:

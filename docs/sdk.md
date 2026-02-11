@@ -152,6 +152,31 @@ The agent supports two timeout settings in [`config.json`](configuration.md#agen
 }
 ```
 
+### Persistence
+
+[`SessionStore`][freeact.agent.store.SessionStore] persists agent message history to `.freeact/sessions/<session-uuid>/<agent-id>.jsonl`. Each agent turn appends messages incrementally, so the history is durable even if the process terminates mid-session.
+
+```python
+--8<-- "examples/persistent_agent.py:session-imports"
+--8<-- "examples/persistent_agent.py:session-create"
+```
+
+Pass the store to [`Agent`][freeact.agent.Agent] to enable persistence.
+
+```python
+--8<-- "examples/persistent_agent.py:session-run"
+```
+
+To resume a session, create a new `SessionStore` with the same `session_id`. The agent loads the persisted message history on startup and continues from where it left off.
+
+```python
+--8<-- "examples/persistent_agent.py:session-resume"
+```
+
+Only the main agent's message history (`main.jsonl`) is loaded on resume. Subagent messages are persisted to separate files (`sub-xxxx.jsonl`) for auditing but are not rehydrated.
+
+The [CLI tool](cli.md) accepts `--session-id` to resume a session from the command line.
+
 ## Permissions API
 
 The agent requests approval for each code action and tool call but doesn't remember past decisions. [`PermissionManager`][freeact.permissions.PermissionManager] adds memory: `allow_always()` persists to `.freeact/permissions.json`, while `allow_session()` stores in-memory until the session ends:

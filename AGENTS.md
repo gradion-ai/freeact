@@ -72,7 +72,7 @@ Subagents are spawned via the `subagent_task` JSON tool call:
 - **PTC servers** (`ptc-servers` in `config.json`): Python APIs auto-generated to `mcptools/<server>/` at startup via `ipybox.generate_mcp_sources()`. Agent writes code importing these APIs.
 - **Tool search**: Two modes via `tool-search` in `config.json`. Basic provides `list_categories`/`list_tools` MCP tools. Hybrid adds BM25 + vector search (`search/hybrid/`).
 
-### Session Persistence (`freeact/agent/session.py`)
+### Session Persistence (`freeact/agent/store.py`)
 
 `SessionStore` persists pydantic-ai message history as JSONL envelopes to `.freeact/sessions/<session-uuid>/<agent-id>.jsonl`. Each line is an envelope: `{"v": 1, "message": {...}, "meta": {"ts": "..."}}`.
 

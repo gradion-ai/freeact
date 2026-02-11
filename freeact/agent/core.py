@@ -33,7 +33,7 @@ from pydantic_ai.models import ModelRequestParameters
 from pydantic_ai.tools import ToolDefinition
 
 from freeact.agent.config import Config
-from freeact.agent.session import SessionStore
+from freeact.agent.store import SessionStore
 from freeact.agent.tools.utils import (
     get_tool_definitions,
     load_ipybox_tool_definitions,

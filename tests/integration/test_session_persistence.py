@@ -10,7 +10,7 @@ from pydantic_core import to_jsonable_python
 
 from freeact.agent import Agent
 from freeact.agent.config import Config
-from freeact.agent.session import SessionStore
+from freeact.agent.store import SessionStore
 from tests.conftest import DeltaToolCalls, collect_stream, get_tool_return_parts
 
 

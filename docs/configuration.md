@@ -33,6 +33,10 @@ This allows safe customization: edit any configuration file, and your changes re
 │   ├── mcptools/       # Generated Python APIs from ptc-servers
 │   └── gentools/       # User-defined tools saved from code actions
 ├── plans/              # Task plan storage
+├── sessions/           # Session trace storage
+│   └── <session-uuid>/
+│       ├── main.jsonl
+│       └── sub-xxxx.jsonl
 └── permissions.json    # Persisted approval decisions
 ```
 
@@ -43,7 +47,6 @@ The `config.json` file contains agent settings and MCP server configurations:
 ```json
 {
   "tool-search": "basic",
-  "agent-id": "main",
   "images-dir": null,
   "execution-timeout": 300,
   "approval-timeout": null,
@@ -61,7 +64,6 @@ The `config.json` file contains agent settings and MCP server configurations:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `agent-id` | `"main"` | Identifier for the agent |
 | `images-dir` | `null` | Directory for saving generated images to disk. `null` defaults to `images` in the working directory. |
 | `execution-timeout` | `300` | Maximum time in seconds for code execution. Approval wait time is excluded. `null` means no timeout. |
 | `approval-timeout` | `null` | Timeout in seconds for PTC approval requests. `null` means no timeout. |
