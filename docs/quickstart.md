@@ -20,7 +20,7 @@ See [Installation](installation.md) for alternative setup options and sandbox mo
 
 ### Generating MCP Tool APIs
 
-On first start, the CLI tool auto-generates Python APIs for [configured](configuration.md#ptc-servers) MCP servers. For example, it creates `mcptools/google/web_search.py` for the `web_search` tool of the bundled `google` MCP server. With the generated Python API, the agent can import and call this tool programmatically. 
+On first start, the CLI tool auto-generates Python APIs for [configured](configuration.md#ptc-servers) MCP servers. For example, it creates `.freeact/generated/mcptools/google/web_search.py` for the `web_search` tool of the bundled `google` MCP server. With the generated Python API, the agent can import and call this tool programmatically.
 
 !!! tip "Custom MCP servers"
 
