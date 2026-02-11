@@ -16,18 +16,96 @@ Internal MCP servers (pytools, filesystem) are defined as constants in this modu
 
 Attributes:
 
-| Name              | Type  | Description                                                     |
-| ----------------- | ----- | --------------------------------------------------------------- |
-| `working_dir`     |       | Agent's working directory.                                      |
-| `freeact_dir`     |       | Path to .freeact/ configuration directory.                      |
-| `plans_dir`       |       | Path to .freeact/plans/ for plan storage.                       |
-| `model`           |       | LLM model name or instance.                                     |
-| `model_settings`  |       | Model-specific settings (e.g., thinking config).                |
-| `tool_search`     | `str` | Tool discovery mode read from config.json.                      |
-| `skills_metadata` |       | Parsed skill definitions from .freeact/skills/\*/SKILL.md.      |
-| `system_prompt`   |       | Rendered system prompt loaded from package resources.           |
-| `mcp_servers`     |       | Merged MCP server configs (internal defaults + user overrides). |
-| `ptc_servers`     |       | Raw PTC server configs loaded from config.json.                 |
+| Name                | Type             | Description                                                |
+| ------------------- | ---------------- | ---------------------------------------------------------- |
+| `working_dir`       | `Path`           | Agent's working directory.                                 |
+| `freeact_dir`       | `Path`           | Path to .freeact/ configuration directory.                 |
+| `model`             |                  | LLM model name or instance.                                |
+| `model_settings`    |                  | Model-specific settings (e.g., thinking config).           |
+| `tool_search`       | `str`            | Tool discovery mode read from config.json.                 |
+| `agent_id`          | `str`            | Identifier for this agent instance.                        |
+| `images_dir`        | \`Path           | None\`                                                     |
+| `execution_timeout` | \`float          | None\`                                                     |
+| `approval_timeout`  | \`float          | None\`                                                     |
+| `enable_subagents`  | `bool`           | Whether to enable subagent delegation.                     |
+| `max_subagents`     | `int`            | Maximum number of concurrent subagents.                    |
+| `kernel_env`        | `dict[str, str]` | Environment variables passed to the IPython kernel.        |
+| `skills_metadata`   |                  | Parsed skill definitions from .freeact/skills/\*/SKILL.md. |
+| `system_prompt`     |                  | Rendered system prompt loaded from package resources.      |
+| `mcp_servers`       |                  | Merged and resolved MCP server configs.                    |
+| `ptc_servers`       |                  | Raw PTC server configs loaded from config.json.            |
+
+### freeact_dir
+
+```
+freeact_dir: Path
+```
+
+Path to `.freeact/` configuration directory.
+
+### generated_dir
+
+```
+generated_dir: Path
+```
+
+Generated MCP tool sources directory.
+
+### plans_dir
+
+```
+plans_dir: Path
+```
+
+Plan storage directory.
+
+### search_db_file
+
+```
+search_db_file: Path
+```
+
+Hybrid search database path.
+
+### working_dir
+
+```
+working_dir: Path
+```
+
+Agent's working directory.
+
+### for_subagent
+
+```
+for_subagent(agent_id: str) -> Config
+```
+
+Create a subagent configuration from this config.
+
+Returns a shallow copy with subagent-specific overrides: agent_id set to the given value, subagents disabled, mcp_servers deep-copied with pytools sync/watch disabled, and kernel_env shallow-copied for independence.
+
+Parameters:
+
+| Name       | Type  | Description                  | Default    |
+| ---------- | ----- | ---------------------------- | ---------- |
+| `agent_id` | `str` | Identifier for the subagent. | *required* |
+
+### init
+
+```
+init(working_dir: Path | None = None) -> None
+```
+
+Scaffold `.freeact/` directory from bundled templates.
+
+Copies template files that don't already exist, preserving user modifications. Runs blocking I/O in a separate thread.
+
+Parameters:
+
+| Name          | Type   | Description | Default                                                |
+| ------------- | ------ | ----------- | ------------------------------------------------------ |
+| `working_dir` | \`Path | None\`      | Base directory. Defaults to current working directory. |
 
 ## freeact.agent.config.SkillMetadata
 
@@ -36,22 +114,6 @@ SkillMetadata(name: str, description: str, path: Path)
 ```
 
 Metadata parsed from a skill's SKILL.md frontmatter.
-
-## freeact.agent.config.init_config
-
-```
-init_config(working_dir: Path | None = None) -> None
-```
-
-Initialize `.freeact/` config directory from templates.
-
-Copies template files that don't already exist, preserving user modifications.
-
-Parameters:
-
-| Name          | Type   | Description | Default                                                |
-| ------------- | ------ | ----------- | ------------------------------------------------------ |
-| `working_dir` | \`Path | None\`      | Base directory. Defaults to current working directory. |
 
 ## freeact.agent.config.DEFAULT_MODEL
 
@@ -79,6 +141,7 @@ PYTOOLS_BASIC_CONFIG: dict[str, Any] = {
         "-m",
         "freeact.agent.tools.pytools.search.basic",
     ],
+    "env": {"PYTOOLS_DIR": "${PYTOOLS_DIR}"},
 }
 ```
 

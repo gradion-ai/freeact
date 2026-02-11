@@ -1197,13 +1197,13 @@
 <p>The agent:</p>
 <ol>
 <li>Loads the <code>saving-codeacts</code> skill</li>
-<li>Creates a <code>gentools/github/commits_of_top_repos/</code> package</li>
+<li>Creates a <code>gentools/github/commits_of_top_repos/</code> package under <code>.freeact/generated/</code></li>
 <li>Saves the tool API with a parameterized <code>run()</code> function to <a href="https://github.com/gradion-ai/ipybox/blob/main/docs/generated/gentools/github/commits_of_top_repos/api.py"><code>api.py</code></a></li>
 <li>Saves the implementation to <a href="https://github.com/gradion-ai/ipybox/blob/main/docs/generated/gentools/github/commits_of_top_repos/impl.py"><code>impl.py</code></a>, lazily imported by <code>run()</code></li>
 <li>Tests the saved tool to verify it works</li>
 </ol>
 <p>The structure of the saved tool is:</p>
-<div class="highlight"><pre><span></span><code>gentools/
+<div class="highlight"><pre><span></span><code>.freeact/generated/gentools/
 └── github/
     └── commits_of_top_repos/
         ├── __init__.py

@@ -20,7 +20,7 @@ See [Installation](https://gradion-ai.github.io/freeact/installation/index.md) f
 
 ### Generating MCP Tool APIs
 
-On first start, the CLI tool auto-generates Python APIs for [configured](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) MCP servers. For example, it creates `mcptools/google/web_search.py` for the `web_search` tool of the bundled `google` MCP server. With the generated Python API, the agent can import and call this tool programmatically.
+On first start, the CLI tool auto-generates Python APIs for [configured](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) MCP servers. For example, it creates `.freeact/generated/mcptools/google/web_search.py` for the `web_search` tool of the bundled `google` MCP server. With the generated Python API, the agent can import and call this tool programmatically.
 
 Custom MCP servers
 
@@ -48,7 +48,6 @@ The CLI tool is built on a [Python SDK](https://gradion-ai.github.io/freeact/sdk
 
 ```
 import asyncio
-from pathlib import Path
 
 from freeact.agent import (
     Agent,
@@ -59,30 +58,25 @@ from freeact.agent import (
     ToolOutput,
 )
 
-from freeact.agent.config import Config, init_config
+from freeact.agent.config import Config
 
 from freeact.agent.tools.pytools.apigen import generate_mcp_sources
 
 
 
 async def main() -> None:
-    # Initialize .freeact/ config directory if needed
-    init_config()
+    # Scaffold .freeact/ config directory if needed
+    await Config.init()
 
     # Load configuration from .freeact/
     config = Config()
 
     # Generate Python APIs for MCP servers in ptc_servers
     for server_name, params in config.ptc_servers.items():
-        if not Path(f"mcptools/{server_name}").exists():
-            await generate_mcp_sources({server_name: params})
+        if not (config.generated_dir / "mcptools" / server_name).exists():
+            await generate_mcp_sources({server_name: params}, config.generated_dir)
 
-    async with Agent(
-        model=config.model,
-        model_settings=config.model_settings,
-        system_prompt=config.system_prompt,
-        mcp_servers=config.mcp_servers,
-    ) as agent:
+    async with Agent(config=config) as agent:
         prompt = "Who is the F1 world champion 2025?"
 
         async for event in agent.stream(prompt):

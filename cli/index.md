@@ -14,16 +14,14 @@ freeact init
 
 ## Options
 
-| Option                        | Description                                                                                  |
-| ----------------------------- | -------------------------------------------------------------------------------------------- |
-| `--sandbox`                   | Run code execution in [sandbox mode](https://gradion-ai.github.io/freeact/sandbox/index.md). |
-| `--sandbox-config PATH`       | Path to sandbox configuration file.                                                          |
-| `--execution-timeout SECONDS` | Maximum time for code execution (default: 300). Approval wait time is excluded.              |
-| `--approval-timeout SECONDS`  | Timeout for PTC approval requests (default: None, no timeout).                               |
-| `--log-level LEVEL`           | Set logging level: `debug`, `info` (default), `warning`, `error`, `critical`.                |
-| `--record`                    | Record the conversation as SVG and HTML files.                                               |
-| `--record-dir PATH`           | Output directory for recordings (default: `output`).                                         |
-| `--record-title TEXT`         | Title for the recording (default: `Conversation`).                                           |
+| Option                  | Description                                                                                  |
+| ----------------------- | -------------------------------------------------------------------------------------------- |
+| `--sandbox`             | Run code execution in [sandbox mode](https://gradion-ai.github.io/freeact/sandbox/index.md). |
+| `--sandbox-config PATH` | Path to sandbox configuration file.                                                          |
+| `--log-level LEVEL`     | Set logging level: `debug`, `info` (default), `warning`, `error`, `critical`.                |
+| `--record`              | Record the conversation as SVG and HTML files.                                               |
+| `--record-dir PATH`     | Output directory for recordings (default: `output`).                                         |
+| `--record-title TEXT`   | Title for the recording (default: `Conversation`).                                           |
 
 ## Examples
 

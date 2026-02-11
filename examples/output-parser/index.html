@@ -1175,7 +1175,7 @@ uvx<span class="w"> </span>freeact<span class="w"> </span>init
 <span class="p">}</span>
 </code></pre></div>
 <p>Set your GitHub personal access token (PAT) as the <code>GITHUB_API_KEY</code> environment variable or add it to <code>.env</code>. </p>
-<p>Then start the <a href="../../cli/">CLI tool</a> to automatically generate Python APIs to <code>mcptools/github/</code>:</p>
+<p>Then start the <a href="../../cli/">CLI tool</a> to automatically generate Python APIs to <code>.freeact/generated/mcptools/github/</code>:</p>
 <div class="highlight"><pre><span></span><code>uvx<span class="w"> </span>freeact
 </code></pre></div>
 <p>When asked to </p>
@@ -1188,7 +1188,7 @@ uvx<span class="w"> </span>freeact<span class="w"> </span>init
 <li>Calls the <code>search_repositories.run()</code> function with example inputs to observe outputs</li>
 <li>Identifies parseable JSON with fields like <code>name</code>, <code>description</code>, <code>stargazers_count</code>, etc.</li>
 <li>Creates an <a href="https://github.com/gradion-ai/ipybox/blob/main/docs/generated/mcptools/github/search_repositories.py">enhanced</a> tool API with <code>ParseResult</code>, <code>Repository</code> and <code>run_parsed()</code></li>
-<li>Saves the <a href="https://github.com/gradion-ai/ipybox/blob/main/docs/generated/mcpparse/github/search_repositories.py">parser</a> to a separate <code>mcpparse/github/search_repositories.py</code></li>
+<li>Saves the <a href="https://github.com/gradion-ai/ipybox/blob/main/docs/generated/mcpparse/github/search_repositories.py">parser</a> to a separate <code>.freeact/generated/mcpparse/github/search_repositories.py</code></li>
 <li>Resets the IPython kernel to re-import the tool for testing <code>run_parsed()</code></li>
 </ol>
 <p><a href="../../recordings/output-parser/conversation.html" id="recording" target="_blank"><img alt="Interactive mode" src="../../recordings/output-parser/conversation.svg" /></a></p>

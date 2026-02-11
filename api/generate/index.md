@@ -2,7 +2,7 @@
 
 ```
 generate_mcp_sources(
-    config: dict[str, dict[str, Any]],
+    config: dict[str, dict[str, Any]], generated_dir: Path
 ) -> None
 ```
 
@@ -12,6 +12,7 @@ For servers not already in `mcptools/` categories, generates Python API using `i
 
 Parameters:
 
-| Name     | Type                        | Description                                               | Default    |
-| -------- | --------------------------- | --------------------------------------------------------- | ---------- |
-| `config` | `dict[str, dict[str, Any]]` | Dictionary mapping server names to server configurations. | *required* |
+| Name            | Type                        | Description                                               | Default    |
+| --------------- | --------------------------- | --------------------------------------------------------- | ---------- |
+| `config`        | `dict[str, dict[str, Any]]` | Dictionary mapping server names to server configurations. | *required* |
+| `generated_dir` | `Path`                      | Directory for generated tool sources.                     | *required* |

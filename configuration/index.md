@@ -10,7 +10,7 @@ The `.freeact/` directory is created and populated from bundled templates throug
 | -------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `freeact` or `freeact run` | Creates config with [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) before starting the agent  |
 | `freeact init`             | Creates config with [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) without starting the agent |
-| init_config()              | Creates config programmatically without starting the agent                                                   |
+| Config.init()              | Creates config programmatically without starting the agent                                                   |
 
 All three entry points share the same behavior:
 
@@ -29,23 +29,45 @@ This allows safe customization: edit any configuration file, and your changes re
 │   └── <skill-name>/
 │       ├── SKILL.md    # Skill metadata and instructions
 │       └── ...         # Further skill resources
+├── generated/          # Generated tool sources (on PYTHONPATH)
+│   ├── mcptools/       # Generated Python APIs from ptc-servers
+│   └── gentools/       # User-defined tools saved from code actions
 ├── plans/              # Task plan storage
 └── permissions.json    # Persisted approval decisions
 ```
 
 ## Configuration File
 
-The `config.json` file contains settings and user-defined MCP server configurations:
+The `config.json` file contains agent settings and MCP server configurations:
 
 ```
 {
   "tool-search": "basic",
+  "agent-id": "main",
+  "images-dir": null,
+  "execution-timeout": 300,
+  "approval-timeout": null,
+  "enable-subagents": true,
+  "max-subagents": 5,
+  "kernel-env": {},
   "mcp-servers": {},
   "ptc-servers": {
     "server-name": { ... }
   }
 }
 ```
+
+### Agent Settings
+
+| Setting             | Default  | Description                                                                                                               |
+| ------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `agent-id`          | `"main"` | Identifier for the agent                                                                                                  |
+| `images-dir`        | `null`   | Directory for saving generated images to disk. `null` defaults to `images` in the working directory.                      |
+| `execution-timeout` | `300`    | Maximum time in seconds for code execution. Approval wait time is excluded. `null` means no timeout.                      |
+| `approval-timeout`  | `null`   | Timeout in seconds for PTC approval requests. `null` means no timeout.                                                    |
+| `enable-subagents`  | `true`   | Whether to enable subagent delegation                                                                                     |
+| `max-subagents`     | `5`      | Maximum number of concurrent subagents                                                                                    |
+| `kernel-env`        | `{}`     | Environment variables passed to the IPython kernel. Supports `${VAR}` placeholders resolved against the host environment. |
 
 ### `tool-search`
 
@@ -68,7 +90,7 @@ Application-specific MCP servers for JSON tool calls can be added to this sectio
 
 ### `ptc-servers`
 
-MCP servers called programmatically via Python APIs. Python APIs must be generated from `ptc-servers` to `mcptools/<server-name>/<tool>.py` before the agent can use them. The [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) handles this automatically. When using the [Python SDK](https://gradion-ai.github.io/freeact/sdk/index.md), call generate_mcp_sources() explicitly. Code actions can then import and call the generated APIs.
+MCP servers called programmatically via Python APIs. Python APIs must be generated from `ptc-servers` to `.freeact/generated/mcptools/<server-name>/<tool>.py` before the agent can use them. The [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) handles this automatically. When using the [Python SDK](https://gradion-ai.github.io/freeact/sdk/index.md), call generate_mcp_sources() explicitly. Code actions can then import and call the generated APIs because `.freeact/generated/` is on the kernel's `PYTHONPATH`.
 
 The default configuration includes the bundled `google` MCP server (web search via Gemini):
 
@@ -103,7 +125,7 @@ When `tool-search` is set to `"hybrid"` in `config.json`, the hybrid search serv
 | Variable                  | Default                           | Description                                           |
 | ------------------------- | --------------------------------- | ----------------------------------------------------- |
 | `GEMINI_API_KEY`          | *(required)*                      | API key for the default embedding model               |
-| `PYTOOLS_DIR`             | `.`                               | Base directory containing `mcptools/` and `gentools/` |
+| `PYTOOLS_DIR`             | `.freeact/generated`              | Base directory containing `mcptools/` and `gentools/` |
 | `PYTOOLS_DB_PATH`         | `.freeact/search.db`              | Path to SQLite database for search index              |
 | `PYTOOLS_EMBEDDING_MODEL` | `google-gla:gemini-embedding-001` | Embedding model identifier                            |
 | `PYTOOLS_EMBEDDING_DIM`   | `3072`                            | Embedding vector dimensions                           |
@@ -129,10 +151,11 @@ The system prompt is an internal resource bundled with the package. The template
 
 The template supports placeholders:
 
-| Placeholder     | Description                                         |
-| --------------- | --------------------------------------------------- |
-| `{working_dir}` | The agent's workspace directory                     |
-| `{skills}`      | Rendered metadata from skills in `.freeact/skills/` |
+| Placeholder           | Description                                           |
+| --------------------- | ----------------------------------------------------- |
+| `{working_dir}`       | The agent's workspace directory                       |
+| `{generated_rel_dir}` | Relative path to the generated tool sources directory |
+| `{skills}`            | Rendered metadata from skills in `.freeact/skills/`   |
 
 See the templates for [basic](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-basic.md) and [hybrid](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-hybrid.md) modes.
 
@@ -171,14 +194,14 @@ Tools in `allowed_tools` are auto-approved by the [CLI tool](https://gradion-ai.
 
 ## Tool Directories
 
-The agent discovers tools from two directories:
+The agent discovers tools from two directories under `.freeact/generated/`:
 
 ### `mcptools/`
 
 Generated Python APIs from `ptc-servers` schemas:
 
 ```
-mcptools/
+.freeact/generated/mcptools/
 └── <server-name>/
     └── <tool>.py        # Generated tool module
 ```
@@ -188,7 +211,7 @@ mcptools/
 User-defined tools saved from successful code actions:
 
 ```
-gentools/
+.freeact/generated/gentools/
 └── <category>/
     └── <tool>/
         ├── __init__.py

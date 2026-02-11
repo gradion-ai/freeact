@@ -522,6 +522,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#agent-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent Settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#tool-search" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1335,6 +1346,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#agent-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent Settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#tool-search" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1535,7 +1557,7 @@
 <td>Creates config with <a href="../cli/">CLI tool</a> without starting the agent</td>
 </tr>
 <tr>
-<td><a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.init_config"><code>init_config()</code></a></td>
+<td><a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config.init"><code>Config.init()</code></a></td>
 <td>Creates config programmatically without starting the agent</td>
 </tr>
 </tbody>
@@ -1554,19 +1576,76 @@
 │   └── &lt;skill-name&gt;/
 │       ├── SKILL.md    # Skill metadata and instructions
 │       └── ...         # Further skill resources
+├── generated/          # Generated tool sources (on PYTHONPATH)
+│   ├── mcptools/       # Generated Python APIs from ptc-servers
+│   └── gentools/       # User-defined tools saved from code actions
 ├── plans/              # Task plan storage
 └── permissions.json    # Persisted approval decisions
 </code></pre></div>
 <h2 id="configuration-file">Configuration File</h2>
-<p>The <code>config.json</code> file contains settings and user-defined MCP server configurations:</p>
+<p>The <code>config.json</code> file contains agent settings and MCP server configurations:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;tool-search&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;basic&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;agent-id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;main&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;images-dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;execution-timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">300</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;approval-timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;enable-subagents&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;max-subagents&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;kernel-env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
 <span class="w">  </span><span class="nt">&quot;mcp-servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
 <span class="w">  </span><span class="nt">&quot;ptc-servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;server-name&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
+<h3 id="agent-settings">Agent Settings</h3>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>agent-id</code></td>
+<td><code>"main"</code></td>
+<td>Identifier for the agent</td>
+</tr>
+<tr>
+<td><code>images-dir</code></td>
+<td><code>null</code></td>
+<td>Directory for saving generated images to disk. <code>null</code> defaults to <code>images</code> in the working directory.</td>
+</tr>
+<tr>
+<td><code>execution-timeout</code></td>
+<td><code>300</code></td>
+<td>Maximum time in seconds for code execution. Approval wait time is excluded. <code>null</code> means no timeout.</td>
+</tr>
+<tr>
+<td><code>approval-timeout</code></td>
+<td><code>null</code></td>
+<td>Timeout in seconds for PTC approval requests. <code>null</code> means no timeout.</td>
+</tr>
+<tr>
+<td><code>enable-subagents</code></td>
+<td><code>true</code></td>
+<td>Whether to enable subagent delegation</td>
+</tr>
+<tr>
+<td><code>max-subagents</code></td>
+<td><code>5</code></td>
+<td>Maximum number of concurrent subagents</td>
+</tr>
+<tr>
+<td><code>kernel-env</code></td>
+<td><code>{}</code></td>
+<td>Environment variables passed to the IPython kernel. Supports <code>${VAR}</code> placeholders resolved against the host environment.</td>
+</tr>
+</tbody>
+</table>
 <h3 id="tool-search"><code>tool-search</code></h3>
 <p>Controls how the agent discovers Python tools:</p>
 <table>
@@ -1595,7 +1674,7 @@
 <p>Application-specific MCP servers for JSON tool calls can be added to this section as needed.</p>
 </div>
 <h3 id="ptc-servers"><code>ptc-servers</code></h3>
-<p>MCP servers called programmatically via Python APIs. Python APIs must be generated from <code>ptc-servers</code> to <code>mcptools/&lt;server-name&gt;/&lt;tool&gt;.py</code> before the agent can use them. The <a href="../cli/">CLI tool</a> handles this automatically. When using the <a href="../sdk/">Python SDK</a>, call <a class="autorefs autorefs-internal" href="../api/generate/#freeact.agent.tools.pytools.apigen.generate_mcp_sources"><code>generate_mcp_sources()</code></a> explicitly. Code actions can then import and call the generated APIs.</p>
+<p>MCP servers called programmatically via Python APIs. Python APIs must be generated from <code>ptc-servers</code> to <code>.freeact/generated/mcptools/&lt;server-name&gt;/&lt;tool&gt;.py</code> before the agent can use them. The <a href="../cli/">CLI tool</a> handles this automatically. When using the <a href="../sdk/">Python SDK</a>, call <a class="autorefs autorefs-internal" href="../api/generate/#freeact.agent.tools.pytools.apigen.generate_mcp_sources"><code>generate_mcp_sources()</code></a> explicitly. Code actions can then import and call the generated APIs because <code>.freeact/generated/</code> is on the kernel's <code>PYTHONPATH</code>.</p>
 <p>The default configuration includes the bundled <code>google</code> MCP server (web search via Gemini):</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;ptc-servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1633,7 +1712,7 @@
 </tr>
 <tr>
 <td><code>PYTOOLS_DIR</code></td>
-<td><code>.</code></td>
+<td><code>.freeact/generated</code></td>
 <td>Base directory containing <code>mcptools/</code> and <code>gentools/</code></td>
 </tr>
 <tr>
@@ -1715,6 +1794,10 @@
 <td>The agent's workspace directory</td>
 </tr>
 <tr>
+<td><code>{generated_rel_dir}</code></td>
+<td>Relative path to the generated tool sources directory</td>
+</tr>
+<tr>
 <td><code>{skills}</code></td>
 <td>Rendered metadata from skills in <code>.freeact/skills/</code></td>
 </tr>
@@ -1762,16 +1845,16 @@
 </code></pre></div>
 <p>Tools in <code>allowed_tools</code> are auto-approved by the <a href="../cli/">CLI tool</a> without prompting. Selecting <code>"a"</code> at the approval prompt adds the tool to this list.</p>
 <h2 id="tool-directories">Tool Directories</h2>
-<p>The agent discovers tools from two directories:</p>
+<p>The agent discovers tools from two directories under <code>.freeact/generated/</code>:</p>
 <h3 id="mcptools"><code>mcptools/</code></h3>
 <p>Generated Python APIs from <code>ptc-servers</code> schemas:</p>
-<div class="highlight"><pre><span></span><code>mcptools/
+<div class="highlight"><pre><span></span><code>.freeact/generated/mcptools/
 └── &lt;server-name&gt;/
     └── &lt;tool&gt;.py        # Generated tool module
 </code></pre></div>
 <h3 id="gentools"><code>gentools/</code></h3>
 <p>User-defined tools saved from successful code actions:</p>
-<div class="highlight"><pre><span></span><code>gentools/
+<div class="highlight"><pre><span></span><code>.freeact/generated/gentools/
 └── &lt;category&gt;/
     └── &lt;tool&gt;/
         ├── __init__.py

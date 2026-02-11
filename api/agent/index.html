@@ -1480,19 +1480,9 @@
 
 </h2>
 <div class="doc-signature highlight"><pre><span></span><code><span class="nf">Agent</span><span class="p">(</span>
-    <span class="n">model</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="n"><span title="pydantic_ai.models.Model">Model</span></span><span class="p">,</span>
-    <span class="n">model_settings</span><span class="p">:</span> <span class="n"><span title="pydantic_ai.models.ModelSettings">ModelSettings</span></span><span class="p">,</span>
-    <span class="n">system_prompt</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
-    <span class="n">agent_id</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;main&quot;</span><span class="p">,</span>
-    <span class="n">mcp_servers</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/reference/expressions.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/reference/expressions.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">kernel_env</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/reference/expressions.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">config</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" href="../config/#freeact.agent.config.Config">Config</a></span><span class="p">,</span>
     <span class="n">sandbox</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">sandbox_config</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">images_dir</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">execution_timeout</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="mi">300</span><span class="p">,</span>
-    <span class="n">approval_timeout</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">enable_subagents</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">max_subagents</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
 
@@ -1531,101 +1521,19 @@ be resolved before execution proceeds.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                <code>model</code>
+                <code>config</code>
             </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a> | <span title="pydantic_ai.models.Model">Model</span></code>
+                  <code><a class="autorefs autorefs-internal" href="../config/#freeact.agent.config.Config">Config</a></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>LLM model identifier or pydantic-ai Model instance.</p>
+                <p>Agent configuration containing model, system prompt,
+MCP servers, kernel env, timeouts, and subagent settings.</p>
               </div>
             </td>
             <td>
                 <em>required</em>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>model_settings</code>
-            </td>
-            <td>
-                  <code><span title="pydantic_ai.models.ModelSettings">ModelSettings</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Temperature, max tokens, and other model params.</p>
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>system_prompt</code>
-            </td>
-            <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Instructions defining agent behavior.</p>
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>agent_id</code>
-            </td>
-            <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Identifier for this agent instance. Defaults to <code>"main"</code>.</p>
-              </div>
-            </td>
-            <td>
-                  <code>&#39;main&#39;</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>mcp_servers</code>
-            </td>
-            <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/reference/expressions.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3/reference/expressions.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a>]] | None</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Raw MCP server configurations. Each key is
-a server name, each value is a config dict with <code>command</code> or
-<code>url</code> and optional <code>excluded_tools</code>. Used during startup and
-passed to subagents so each gets its own server processes.</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>kernel_env</code>
-            </td>
-            <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/reference/expressions.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>] | None</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Environment variables passed to the IPython kernel.</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
             </td>
           </tr>
           <tr class="doc-section-item">
@@ -1658,91 +1566,6 @@ passed to subagents so each gets its own server processes.</p>
             </td>
             <td>
                   <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>images_dir</code>
-            </td>
-            <td>
-                  <code><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a> | None</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Directory for saving generated images.</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>execution_timeout</code>
-            </td>
-            <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a> | None</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Maximum time in seconds for code execution.
-Approval wait time is excluded from this timeout budget.
-If None, no timeout is applied. Defaults to 300 seconds.</p>
-              </div>
-            </td>
-            <td>
-                  <code>300</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>approval_timeout</code>
-            </td>
-            <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a> | None</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Timeout in seconds for approval requests during
-programmatic tool calls. If an approval request is not accepted
-or rejected within this time, the tool call fails.
-If None, no timeout is applied.</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>enable_subagents</code>
-            </td>
-            <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Whether to enable subagent delegation.</p>
-              </div>
-            </td>
-            <td>
-                  <code>True</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>max_subagents</code>
-            </td>
-            <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Maximum number of concurrent subagents. Defaults to 5.</p>
-              </div>
-            </td>
-            <td>
-                  <code>5</code>
             </td>
           </tr>
       </tbody>
