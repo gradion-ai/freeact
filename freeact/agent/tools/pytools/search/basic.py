@@ -6,7 +6,7 @@ from typing import Annotated
 from mcp.server.fastmcp import FastMCP
 from pydantic import BaseModel, Field
 
-from freeact.agent.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
+from freeact.agent.tools.pytools import GENERATED_DIR, GENTOOLS_DIR, MCPTOOLS_DIR
 from freeact.agent.tools.pytools.categories import Categories
 from freeact.agent.tools.pytools.categories import list_categories as _list_categories
 
@@ -35,7 +35,7 @@ def list_categories(
     base_dir: Annotated[
         str,
         Field(description="Base directory containing gentools/mcptools directories"),
-    ] = ".",
+    ] = str(GENERATED_DIR),
 ) -> Categories:
     """List all tool categories in `gentools/` and `mcptools/` directories."""
     return _list_categories(base_dir)
@@ -59,7 +59,7 @@ def list_tools(
     base_dir: Annotated[
         str,
         Field(description="Base directory containing gentools/mcptools directories"),
-    ] = ".",
+    ] = str(GENERATED_DIR),
 ) -> dict[str, Tools]:
     """List all tools in one or more categories under `gentools/` and `mcptools/` directories."""
     base = Path(base_dir)

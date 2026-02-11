@@ -12,7 +12,7 @@ from typing import Annotated, Literal
 from mcp.server.fastmcp import Context, FastMCP
 from pydantic import BaseModel, Field
 
-from freeact.agent.tools.pytools import MCPTOOLS_DIR
+from freeact.agent.tools.pytools import GENERATED_DIR, MCPTOOLS_DIR
 from freeact.agent.tools.pytools.search.hybrid.database import Database
 from freeact.agent.tools.pytools.search.hybrid.embed import ToolEmbedder
 from freeact.agent.tools.pytools.search.hybrid.extract import parse_tool_id
@@ -47,7 +47,7 @@ def _get_env_config() -> tuple[Path, str, str, int, bool, bool, float, float]:
         Tuple of (tools_dir, db_path, embedding_model, embedding_dim,
         sync_enabled, watch_enabled, bm25_weight, vec_weight).
     """
-    tools_dir = Path(os.environ.get("PYTOOLS_DIR", "."))
+    tools_dir = Path(os.environ.get("PYTOOLS_DIR", str(GENERATED_DIR)))
     db_path = os.environ.get("PYTOOLS_DB_PATH", ".freeact/search.db")
     embedding_model = os.environ.get("PYTOOLS_EMBEDDING_MODEL", "google-gla:gemini-embedding-001")
     embedding_dim = int(os.environ.get("PYTOOLS_EMBEDDING_DIM", "3072"))
@@ -159,9 +159,9 @@ async def search_tools(
 
         # Construct path based on source type
         if source == MCPTOOLS_DIR:
-            path = f"{source}/{category}/{name}.py"
+            path = f"{GENERATED_DIR}/{source}/{category}/{name}.py"
         else:  # gentools
-            path = f"{source}/{category}/{name}/api.py"
+            path = f"{GENERATED_DIR}/{source}/{category}/{name}/api.py"
 
         tool_results.append(
             ToolResult(

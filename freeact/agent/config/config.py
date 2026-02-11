@@ -10,6 +10,8 @@ from ipybox.vars import replace_variables
 from pydantic_ai.models import Model, ModelSettings
 from pydantic_ai.models.google import GoogleModelSettings
 
+from freeact.agent.tools.pytools import GENERATED_DIR
+
 DEFAULT_MODEL = "gemini-3-flash-preview"
 DEFAULT_MODEL_SETTINGS = GoogleModelSettings(
     google_thinking_config={
@@ -40,7 +42,7 @@ PYTOOLS_HYBRID_CONFIG: dict[str, Any] = {
 }
 
 _HYBRID_ENV_DEFAULTS: dict[str, str] = {
-    "PYTOOLS_DIR": ".",
+    "PYTOOLS_DIR": str(GENERATED_DIR),
     "PYTOOLS_DB_PATH": ".freeact/search.db",
     "PYTOOLS_EMBEDDING_MODEL": "google-gla:gemini-embedding-001",
     "PYTOOLS_EMBEDDING_DIM": "3072",

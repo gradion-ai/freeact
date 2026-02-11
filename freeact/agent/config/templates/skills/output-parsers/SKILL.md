@@ -45,7 +45,7 @@ Docstring guidelines:
 - `run_parsed()` docstring must be exactly the same as the `run()` docstring
 - Field descriptions should explain what each field contains
 
-Add to `mcptools/<category>/<tool>.py`:
+Add to `.freeact/generated/mcptools/<category>/<tool>.py`:
 
 1. A `ParseResult` model:
 
@@ -74,7 +74,7 @@ def run_parsed(params: Params) -> ParseResult:
 
 ### 4. Create parser module
 
-Create `mcpparse/<category>/<tool>.py` with:
+Create `.freeact/generated/mcpparse/<category>/<tool>.py` with:
 
 ```python
 from mcptools.<category>.<tool> import ParseResult

@@ -170,7 +170,7 @@ class TestHybridEnvDefaults:
 
         import os
 
-        assert os.environ["PYTOOLS_DIR"] == "."
+        assert os.environ["PYTOOLS_DIR"] == ".freeact/generated"
         assert os.environ["PYTOOLS_DB_PATH"] == ".freeact/search.db"
         assert os.environ["PYTOOLS_EMBEDDING_MODEL"] == "google-gla:gemini-embedding-001"
 

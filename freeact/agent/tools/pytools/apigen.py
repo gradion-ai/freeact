@@ -1,10 +1,9 @@
 import logging
-from pathlib import Path
 from typing import Any
 
 import ipybox
 
-from freeact.agent.tools.pytools import MCPTOOLS_DIR
+from freeact.agent.tools.pytools import GENERATED_DIR, MCPTOOLS_DIR
 from freeact.agent.tools.pytools.categories import Categories, list_categories
 
 logger = logging.getLogger("freeact")
@@ -22,10 +21,10 @@ async def generate_mcp_sources(config: dict[str, dict[str, Any]]) -> None:
     if not config:
         return
 
-    categories: Categories = list_categories()
+    categories: Categories = list_categories(base_dir=GENERATED_DIR)
     categories_mcptools = set(categories.mcptools)
 
     for name, params in config.items():
         if name not in categories_mcptools:
             logger.info(f"Generating Python API for MCP server: {name}")
-            await ipybox.generate_mcp_sources(name, params, Path(MCPTOOLS_DIR))
+            await ipybox.generate_mcp_sources(name, params, GENERATED_DIR / MCPTOOLS_DIR)
