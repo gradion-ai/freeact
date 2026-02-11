@@ -7,7 +7,6 @@ from .config import (
     Config,
     SkillMetadata,
 )
-from .init import init_config
 
 __all__ = [
     "Config",
@@ -17,5 +16,4 @@ __all__ = [
     "PYTOOLS_BASIC_CONFIG",
     "PYTOOLS_HYBRID_CONFIG",
     "SkillMetadata",
-    "init_config",
 ]

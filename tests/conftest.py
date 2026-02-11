@@ -80,8 +80,7 @@ def _create_test_config(
         model=FunctionModel(stream_function=stream_function),
         model_settings={},
     )
-    if mcp_servers is not None:
-        config.mcp_servers = mcp_servers
+    config.mcp_servers = mcp_servers if mcp_servers is not None else {}
     config.execution_timeout = execution_timeout
     config.approval_timeout = approval_timeout
     return config

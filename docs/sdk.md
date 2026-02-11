@@ -9,7 +9,7 @@ The Python SDK provides four main APIs:
 
 ## Configuration API
 
-Use [`init_config()`][freeact.agent.config.init_config] to initialize the `.freeact/` directory from default templates. The [`Config()`][freeact.agent.config.Config] constructor loads all configuration from it:
+Use [`Config.init()`][freeact.agent.config.Config.init] to scaffold the `.freeact/` directory from default templates. The [`Config()`][freeact.agent.config.Config] constructor loads all configuration from it:
 
 ```python
 --8<-- "examples/basic_agent.py:config-imports"

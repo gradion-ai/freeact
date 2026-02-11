@@ -4,11 +4,10 @@ import logging
 from pathlib import Path
 
 from dotenv import load_dotenv
-from ipybox.utils import arun
 from rich.console import Console
 
 from freeact.agent import Agent
-from freeact.agent.config import Config, init_config
+from freeact.agent.config import Config
 from freeact.agent.tools.pytools.apigen import generate_mcp_sources
 from freeact.terminal import Terminal
 from freeact.terminal.recording import save_conversation
@@ -94,9 +93,9 @@ def configure_logging(level: str) -> None:
     logger.addHandler(handler)
 
 
-def create_config(namespace: argparse.Namespace) -> Config:
+async def create_config(namespace: argparse.Namespace) -> Config:
     """Initialize and load configuration from `.freeact/` directory."""
-    init_config()
+    await Config.init()
     return Config()
 
 
@@ -114,7 +113,7 @@ async def run(namespace: argparse.Namespace) -> None:
     else:
         console = None
 
-    config: Config = await arun(create_config, namespace)
+    config = await create_config(namespace)
     agent = Agent(
         config=config,
         sandbox=namespace.sandbox,
@@ -147,7 +146,7 @@ def main() -> None:
     configure_logging(namespace.log_level)
 
     if namespace.command == "init":
-        init_config()
+        asyncio.run(Config.init())
         logger.info("Initialized .freeact/ configuration directory")
         return
 

@@ -10,7 +10,7 @@ The `.freeact/` directory is created and populated from bundled templates throug
 |-------------|-------------|
 | `freeact` or<br/> `freeact run` | Creates config with [CLI tool](cli.md) before starting the agent |
 | `freeact init` | Creates config with [CLI tool](cli.md) without starting the agent |
-| [`init_config()`][freeact.agent.config.init.init_config] | Creates config programmatically without starting the agent |
+| [`Config.init()`][freeact.agent.config.Config.init] | Creates config programmatically without starting the agent |
 
 All three entry points share the same behavior:
 

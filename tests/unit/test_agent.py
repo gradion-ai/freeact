@@ -28,6 +28,7 @@ def _create_test_config(**overrides: Any) -> Config:
         model="test",
         model_settings={},
     )
+    config.mcp_servers = {}
     for key, value in overrides.items():
         setattr(config, key, value)
     return config

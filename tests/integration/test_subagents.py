@@ -26,11 +26,13 @@ def _create_unpatched_config(stream_function) -> Config:
     freeact_dir.mkdir()
     (freeact_dir / "config.json").write_text(json.dumps({}))
 
-    return Config(
+    config = Config(
         working_dir=tmp_dir,
         model=FunctionModel(stream_function=stream_function),
         model_settings={},
     )
+    config.mcp_servers = {}
+    return config
 
 
 @asynccontextmanager

@@ -1,12 +1,14 @@
 import copy
 import json
 import os
+import shutil
 from dataclasses import dataclass
 from importlib.resources import as_file, files
 from pathlib import Path
 from typing import Any
 
 import yaml
+from ipybox.utils import arun
 from ipybox.vars import replace_variables
 from pydantic_ai.models import Model, ModelSettings
 from pydantic_ai.models.google import GoogleModelSettings
@@ -77,6 +79,45 @@ class SkillMetadata:
     path: Path
 
 
+@dataclass
+class _ConfigPaths:
+    """All paths derived from the working directory.
+
+    Centralizes path construction used by both ``Config.__init__()``
+    and ``Config.init()``.
+    """
+
+    working_dir: Path
+
+    @property
+    def freeact_dir(self) -> Path:
+        return self.working_dir / ".freeact"
+
+    @property
+    def skills_dir(self) -> Path:
+        return self.freeact_dir / "skills"
+
+    @property
+    def plans_dir(self) -> Path:
+        return self.freeact_dir / "plans"
+
+    @property
+    def generated_dir(self) -> Path:
+        return self.freeact_dir / "generated"
+
+    @property
+    def search_db_file(self) -> Path:
+        return self.freeact_dir / "search.db"
+
+    @property
+    def generated_rel_dir(self) -> Path:
+        return self.generated_dir.relative_to(self.working_dir)
+
+    @property
+    def plans_rel_dir(self) -> Path:
+        return self.plans_dir.relative_to(self.working_dir)
+
+
 class Config:
     """Configuration loader for the `.freeact/` directory structure.
 
@@ -113,13 +154,11 @@ class Config:
         model: str | Model = DEFAULT_MODEL,
         model_settings: ModelSettings = DEFAULT_MODEL_SETTINGS,
     ):
-        self.working_dir = working_dir or Path.cwd()
-        self.freeact_dir = self.working_dir / ".freeact"
+        self._config_paths = _ConfigPaths(working_dir or Path.cwd())
+        self._config_data = self._load_config_json()
 
         self.model = model
         self.model_settings = model_settings
-
-        self._config_data = self._load_config_json()
         self.tool_search: str = self._config_data.get("tool-search", "basic")
 
         self._ensure_pytools_env_defaults()
@@ -139,20 +178,76 @@ class Config:
         self.ptc_servers = self._load_ptc_servers()
         self.system_prompt = self._load_system_prompt()
 
+    @classmethod
+    async def init(cls, working_dir: Path | None = None) -> None:
+        """Scaffold `.freeact/` directory from bundled templates.
+
+        Copies template files that don't already exist, preserving user
+        modifications. Runs blocking I/O in a separate thread.
+
+        Args:
+            working_dir: Base directory. Defaults to current working directory.
+        """
+        paths = _ConfigPaths(working_dir or Path.cwd())
+        await arun(cls._scaffold, paths)
+
+    @staticmethod
+    def _scaffold(paths: _ConfigPaths) -> None:
+        skill_placeholders = {
+            "generated_rel_dir": str(paths.generated_rel_dir),
+            "plans_rel_dir": str(paths.plans_rel_dir),
+        }
+
+        template_files = files("freeact.agent.config").joinpath("templates")
+
+        with as_file(template_files) as template_dir:
+            skills_template_dir = template_dir / "skills"
+
+            for template_file in template_dir.rglob("*"):
+                if not template_file.is_file():
+                    continue
+
+                relative = template_file.relative_to(template_dir)
+                target = paths.freeact_dir / relative
+
+                if target.exists():
+                    continue
+
+                target.parent.mkdir(parents=True, exist_ok=True)
+
+                if template_file.is_relative_to(skills_template_dir):
+                    content = template_file.read_text()
+                    target.write_text(content.format(**skill_placeholders))
+                else:
+                    shutil.copy2(template_file, target)
+
+        paths.plans_dir.mkdir(parents=True, exist_ok=True)
+        paths.generated_dir.mkdir(parents=True, exist_ok=True)
+
+    @property
+    def working_dir(self) -> Path:
+        """Agent's working directory."""
+        return self._config_paths.working_dir
+
+    @property
+    def freeact_dir(self) -> Path:
+        """Path to `.freeact/` configuration directory."""
+        return self._config_paths.freeact_dir
+
     @property
     def plans_dir(self) -> Path:
         """Plan storage directory."""
-        return self.freeact_dir / "plans"
+        return self._config_paths.plans_dir
 
     @property
     def generated_dir(self) -> Path:
         """Generated MCP tool sources directory."""
-        return self.freeact_dir / "generated"
+        return self._config_paths.generated_dir
 
     @property
-    def search_db_path(self) -> Path:
+    def search_db_file(self) -> Path:
         """Hybrid search database path."""
-        return self.freeact_dir / "search.db"
+        return self._config_paths.search_db_file
 
     def for_subagent(self, agent_id: str) -> "Config":
         """Create a subagent configuration from this config.
@@ -188,7 +283,7 @@ class Config:
         paths derived from `self.freeact_dir`.
         """
         os.environ.setdefault("PYTOOLS_DIR", str(self.generated_dir))
-        os.environ.setdefault("PYTOOLS_DB_PATH", str(self.search_db_path))
+        os.environ.setdefault("PYTOOLS_DB_PATH", str(self.search_db_file))
 
     def _ensure_hybrid_env_defaults(self) -> None:
         """Set default values in `os.environ` for hybrid-specific env vars.
@@ -295,7 +390,7 @@ class Config:
         return template.format(
             working_dir=self.working_dir,
             skills=self._render_skills_section(),
-            generated_rel_dir=self.generated_dir.relative_to(self.working_dir),
+            generated_rel_dir=self._config_paths.generated_rel_dir,
         )
 
     def _internal_mcp_servers(self) -> dict[str, dict[str, Any]]:

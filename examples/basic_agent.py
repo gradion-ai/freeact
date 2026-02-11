@@ -12,7 +12,7 @@ from freeact.agent import (
 
 # --8<-- [end:agent-imports]
 # --8<-- [start:config-imports]
-from freeact.agent.config import Config, init_config
+from freeact.agent.config import Config
 
 # --8<-- [end:config-imports]
 # --8<-- [start:apigen-imports]
@@ -23,8 +23,8 @@ from freeact.agent.tools.pytools.apigen import generate_mcp_sources
 
 async def main() -> None:
     # --8<-- [start:config]
-    # Initialize .freeact/ config directory if needed
-    init_config()
+    # Scaffold .freeact/ config directory if needed
+    await Config.init()
 
     # Load configuration from .freeact/
     config = Config()

@@ -167,7 +167,7 @@ class TestPytoolsEnvDefaults:
         config = Config(working_dir=tmp_path)
 
         assert os.environ["PYTOOLS_DIR"] == str(config.generated_dir)
-        assert os.environ["PYTOOLS_DB_PATH"] == str(config.search_db_path)
+        assert os.environ["PYTOOLS_DB_PATH"] == str(config.search_db_file)
 
     def test_sets_pytools_dir_in_basic_mode(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
         """PYTOOLS_DIR is set even in basic mode."""
@@ -575,7 +575,7 @@ class TestConfigInit:
         assert config.freeact_dir == freeact_dir
         assert config.plans_dir == freeact_dir / "plans"
         assert config.generated_dir == freeact_dir / "generated"
-        assert config.search_db_path == freeact_dir / "search.db"
+        assert config.search_db_file == freeact_dir / "search.db"
         assert len(config.skills_metadata) == 1
         assert config.skills_metadata[0].name == "test-skill"
         assert str(tmp_path) in config.system_prompt
