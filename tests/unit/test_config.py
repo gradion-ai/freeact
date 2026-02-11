@@ -8,13 +8,14 @@ import pytest
 
 from freeact.agent.config.config import (
     Config,
+    _ConfigPaths,
 )
 
 
 @pytest.fixture
 def freeact_dir(tmp_path: Path) -> Path:
     """Create minimal .freeact directory structure."""
-    freeact_dir = tmp_path / ".freeact"
+    freeact_dir = _ConfigPaths(tmp_path).freeact_dir
     freeact_dir.mkdir()
     (freeact_dir / "config.json").write_text(json.dumps({}))
     return freeact_dir
@@ -25,7 +26,7 @@ class TestParseSkillFile:
 
     def test_parses_valid_yaml_frontmatter(self, tmp_path: Path, freeact_dir: Path):
         """Parses name and description from YAML frontmatter."""
-        skill_dir = freeact_dir / "skills" / "test-skill"
+        skill_dir = _ConfigPaths(tmp_path).skills_dir / "test-skill"
         skill_dir.mkdir(parents=True)
         (skill_dir / "SKILL.md").write_text(
             """---
@@ -47,7 +48,7 @@ Content here.
 
     def test_skips_file_without_frontmatter(self, tmp_path: Path, freeact_dir: Path):
         """Skips skill files that don't start with ---."""
-        skill_dir = freeact_dir / "skills" / "invalid-skill"
+        skill_dir = _ConfigPaths(tmp_path).skills_dir / "invalid-skill"
         skill_dir.mkdir(parents=True)
         (skill_dir / "SKILL.md").write_text(
             """# Test Skill
@@ -62,7 +63,7 @@ No frontmatter here.
 
     def test_skips_file_with_incomplete_frontmatter(self, tmp_path: Path, freeact_dir: Path):
         """Skips skill files with unclosed frontmatter."""
-        skill_dir = freeact_dir / "skills" / "incomplete-skill"
+        skill_dir = _ConfigPaths(tmp_path).skills_dir / "incomplete-skill"
         skill_dir.mkdir(parents=True)
         (skill_dir / "SKILL.md").write_text("---\nname: test-skill\ndescription: No closing delimiter")
 
@@ -77,7 +78,7 @@ class TestRenderSkillsSection:
     def test_renders_skills_in_system_prompt(self, tmp_path: Path, freeact_dir: Path):
         """Renders skill metadata as markdown in system prompt."""
         for name, desc in [("skill-one", "First description"), ("skill-two", "Second description")]:
-            skill_dir = freeact_dir / "skills" / name
+            skill_dir = _ConfigPaths(tmp_path).skills_dir / name
             skill_dir.mkdir(parents=True)
             (skill_dir / "SKILL.md").write_text(f"---\nname: {name}\ndescription: {desc}\n---\nContent.")
 
@@ -563,25 +564,34 @@ class TestConfigInit:
             )
         )
 
-        skill_dir = freeact_dir / "skills" / "test-skill"
+        paths = _ConfigPaths(tmp_path)
+        skill_dir = paths.skills_dir / "test-skill"
         skill_dir.mkdir(parents=True)
         (skill_dir / "SKILL.md").write_text("---\nname: test-skill\ndescription: Test skill\n---\nContent.")
 
-        (freeact_dir / "plans").mkdir()
+        paths.plans_dir.mkdir()
 
         config = Config(working_dir=tmp_path)
 
         assert config.working_dir == tmp_path
         assert config.freeact_dir == freeact_dir
-        assert config.plans_dir == freeact_dir / "plans"
-        assert config.generated_dir == freeact_dir / "generated"
-        assert config.search_db_file == freeact_dir / "search.db"
+        assert config.plans_dir == paths.plans_dir
+        assert config.generated_dir == paths.generated_dir
+        assert config._config_paths.generated_rel_dir == config.generated_dir.relative_to(config.working_dir)
+        assert config.sessions_dir == paths.sessions_dir
+        assert config.search_db_file == paths.search_db_file
         assert len(config.skills_metadata) == 1
         assert config.skills_metadata[0].name == "test-skill"
         assert str(tmp_path) in config.system_prompt
         assert "pytools" in config.mcp_servers
         assert "filesystem" in config.mcp_servers
         assert "ptc" in config.ptc_servers
+
+    def test_sessions_dir_property(self, tmp_path: Path, freeact_dir: Path):
+        """Sessions directory path is under .freeact/sessions."""
+        config = Config(working_dir=tmp_path)
+
+        assert config.sessions_dir == _ConfigPaths(tmp_path).sessions_dir
 
     def test_uses_cwd_when_working_dir_is_none(
         self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch

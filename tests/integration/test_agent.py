@@ -29,10 +29,6 @@ from tests.integration.mcp_server import STDIO_SERVER_PATH
 def _create_unpatched_config(stream_function) -> Config:
     """Create a Config for unpatched agent tests."""
     tmp_dir = Path(tempfile.mkdtemp())
-    freeact_dir = tmp_dir / ".freeact"
-    freeact_dir.mkdir()
-    (freeact_dir / "config.json").write_text(json.dumps({}))
-
     config = Config(
         working_dir=tmp_dir,
         model=FunctionModel(stream_function=stream_function),

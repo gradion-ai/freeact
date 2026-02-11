@@ -106,6 +106,10 @@ class _ConfigPaths:
         return self.freeact_dir / "generated"
 
     @property
+    def sessions_dir(self) -> Path:
+        return self.freeact_dir / "sessions"
+
+    @property
     def search_db_file(self) -> Path:
         return self.freeact_dir / "search.db"
 
@@ -146,6 +150,7 @@ class Config:
         system_prompt: Rendered system prompt loaded from package resources.
         mcp_servers: Merged and resolved MCP server configs.
         ptc_servers: Raw PTC server configs loaded from `config.json`.
+        sessions_dir: Session trace storage directory.
     """
 
     def __init__(
@@ -223,6 +228,7 @@ class Config:
 
         paths.plans_dir.mkdir(parents=True, exist_ok=True)
         paths.generated_dir.mkdir(parents=True, exist_ok=True)
+        paths.sessions_dir.mkdir(parents=True, exist_ok=True)
 
     @property
     def working_dir(self) -> Path:
@@ -243,6 +249,11 @@ class Config:
     def generated_dir(self) -> Path:
         """Generated MCP tool sources directory."""
         return self._config_paths.generated_dir
+
+    @property
+    def sessions_dir(self) -> Path:
+        """Session trace storage directory."""
+        return self._config_paths.sessions_dir
 
     @property
     def search_db_file(self) -> Path:

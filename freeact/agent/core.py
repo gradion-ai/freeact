@@ -33,6 +33,7 @@ from pydantic_ai.models import ModelRequestParameters
 from pydantic_ai.tools import ToolDefinition
 
 from freeact.agent.config import Config
+from freeact.agent.session import SessionStore
 from freeact.agent.tools.utils import (
     get_tool_definitions,
     load_ipybox_tool_definitions,
@@ -276,6 +277,7 @@ class Agent:
         config: Config,
         sandbox: bool = False,
         sandbox_config: Path | None = None,
+        session_store: SessionStore | None = None,
     ):
         """Initialize the agent.
 
@@ -298,6 +300,7 @@ class Agent:
         self._subagent_semaphore = asyncio.Semaphore(config.max_subagents)
         self._sandbox = sandbox
         self._sandbox_config = sandbox_config
+        self._session_store = session_store
 
         self._mcp_server_instances: dict[str, MCPServer] = {}
         self._tool_mapping: dict[str, MCPServer] = {}
@@ -319,6 +322,20 @@ class Agent:
         self._resource_supervisors: list[_ResourceSupervisor] = []
 
     @property
+    def _history_agent_id(self) -> str:
+        if self.agent_id.startswith("sub-"):
+            return self.agent_id
+        return "main"
+
+    def _append_message_history(self, messages: list[ModelMessage]) -> None:
+        if not messages:
+            return
+
+        self._message_history.extend(messages)
+        if self._session_store is not None:
+            self._session_store.append(agent_id=self._history_agent_id, messages=messages)
+
+    @property
     def tool_names(self) -> list[str]:
         """Names of all registered tools (ipybox tools and MCP server tools)."""
         return [tool_def.name for tool_def in self._tool_definitions]
@@ -337,6 +354,9 @@ class Agent:
         """
         if self._resource_supervisors:
             return
+
+        if self._session_store is not None and self._history_agent_id == "main" and not self._message_history:
+            self._message_history = self._session_store.load(agent_id="main")
 
         self._mcp_server_instances = self._create_mcp_servers()
 
@@ -454,7 +474,7 @@ class Agent:
         request = self._create_model_request(prompt)
         request_params = ModelRequestParameters(function_tools=self._tool_definitions)
 
-        self._message_history.append(request)
+        self._append_message_history([request])
 
         turn = 0
 
@@ -488,7 +508,7 @@ class Agent:
             thoughts = "".join(thinking_parts) if thinking_parts else None
             response = "".join(response_parts)
 
-            self._message_history.append(aggregated)
+            self._append_message_history([aggregated])
 
             if thoughts:
                 yield Thoughts(content=thoughts, agent_id=self.agent_id)
@@ -512,7 +532,7 @@ class Agent:
                         case _:
                             yield item
 
-            self._message_history.append(ModelRequest(parts=tool_returns))
+            self._append_message_history([ModelRequest(parts=tool_returns)])
 
             if any(tool_return.metadata.get("rejected", False) for tool_return in tool_returns):
                 content = "Tool call rejected"
@@ -580,6 +600,7 @@ class Agent:
             config=subagent_config,
             sandbox=self._sandbox,
             sandbox_config=self._sandbox_config,
+            session_store=self._session_store,
         )
         runner = _SubagentRunner(subagent=subagent, semaphore=self._subagent_semaphore)
 

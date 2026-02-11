@@ -71,10 +71,6 @@ def _create_test_config(
 ) -> Config:
     """Create a Config for test agents with a temporary working directory."""
     tmp_dir = Path(tempfile.mkdtemp())
-    freeact_dir = tmp_dir / ".freeact"
-    freeact_dir.mkdir()
-    (freeact_dir / "config.json").write_text(json.dumps({}))
-
     config = Config(
         working_dir=tmp_dir,
         model=FunctionModel(stream_function=stream_function),

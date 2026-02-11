@@ -1,4 +1,3 @@
-import json
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -19,10 +18,6 @@ from tests.conftest import (
 def _create_test_config(**overrides: Any) -> Config:
     """Create a Config with a temp .freeact dir and optional attribute overrides."""
     tmp_dir = Path(tempfile.mkdtemp())
-    freeact_dir = tmp_dir / ".freeact"
-    freeact_dir.mkdir()
-    (freeact_dir / "config.json").write_text(json.dumps({}))
-
     config = Config(
         working_dir=tmp_dir,
         model="test",
