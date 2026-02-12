@@ -58,15 +58,15 @@ Subagents are spawned via the `subagent_task` JSON tool call:
 
 ### Configuration (`freeact/agent/config/`)
 
-- `config.py`: `Config` class loads `.freeact/` directory (skills, system prompt, server configs). Raw MCP server configs (`mcp_servers`) are passed directly to agents, which create their own pydantic-ai `MCPServer` instances.
-- `init.py`: Initializes `.freeact/` from templates on first run.
+- `Config` class loads `.freeact/` directory (skills, system prompt, server configs). Raw MCP server configs (`mcp_servers`) are passed directly to agents, which create their own pydantic-ai `MCPServer` instances.
+- `Config.init()` classmethod scaffolds `.freeact/` from bundled templates on first run, copying only files that don't already exist.
 
 ### Tool System
 
 - **ipybox tools**: Tool definitions cached in `freeact/agent/tools/ipybox.json` and `subagent.json`. Loaded via `load_ipybox_tool_definitions()` and `load_subagent_task_tool_definitions()`.
 - **MCP servers** (`mcp-servers` in `config.json`): Called directly via JSON tool calls. Server connections managed by `_ResourceSupervisor` for lifecycle management.
-- **PTC servers** (`ptc-servers` in `config.json`): Python APIs auto-generated to `mcptools/<server>/` at startup via `ipybox.generate_mcp_sources()`. Agent writes code importing these APIs.
-- **Tool search**: Two modes via `tool-search` in `config.json`. Basic provides `list_categories`/`list_tools` MCP tools. Hybrid adds BM25 + vector search (`search/hybrid/`).
+- **PTC servers** (`ptc-servers` in `config.json`): Python APIs auto-generated to `.freeact/generated/mcptools/<server>/` at startup via `generate_mcp_sources()` in `freeact/agent/tools/pytools/apigen.py`. Agent writes code importing these APIs. User-defined tools go in `.freeact/generated/gentools/`.
+- **Tool search** (`freeact/agent/tools/pytools/search/`): Two modes via `tool-search` in `config.json`. Basic (`search/basic.py`) provides `list_categories`/`list_tools` MCP tools. Hybrid (`search/hybrid/`) adds BM25 + vector search with SQLite storage.
 
 ### Session Persistence (`freeact/agent/store.py`)
 
