@@ -1,7 +1,3 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Project Overview
 
 Freeact is a lightweight, general-purpose agent that acts via [code actions](https://machinelearning.apple.com/research/codeact) rather than JSON tool calls. It writes executable Python code in a sandboxed IPython kernel ([ipybox](https://gradion-ai.github.io/ipybox/)), where variables persist across executions. Tools can be called programmatically (via generated Python APIs) or through JSON tool calls (via MCP servers).
