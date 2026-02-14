@@ -6,47 +6,33 @@ disable-model-invocation: true
 
 # Documentation Style
 
-## Goal
-
-Produce technical documentation that is easy to scan and precise to act on.
+Goal: technical documentation that is easy to scan and precise to act on.
 
 ## Voice
 
-- Use impersonal third person in reference documentation. Subjects are the product, the component, or the specific thing being described. Never "we".
-- Use imperative second person in tutorials and examples for instructional steps ("Create a directory", "Set the API key"). Describe system behavior in third person ("the agent discovers...").
-- Keep voice consistent within a page. Do not mix registers mid-section.
+- Reference docs: impersonal third person. Subjects are the product, component, or thing being described. Never "we".
+- Tutorials/examples: imperative second person for steps ("Create a directory"), third person for system behavior ("the agent discovers...").
+- Consistent voice within a page. No mixing registers mid-section.
 
-## Sentence and Paragraph Patterns
+## Prose
 
-- Short declarative sentences. One idea per sentence. Present tense for current behavior.
-- Lead with the key fact, then qualifiers.
-- Open paragraphs with a single declarative statement that names or defines the subject.
-- Use colons for inline elaboration: "This allows safe customization: edit any file, and changes remain intact."
-- Append qualifiers as compact prepositional phrases: "on first call", "on next initialization", "across restarts".
-- Keep paragraphs compact. Close sections with a cross-reference or consequence, not a summary.
-- Let structured content (code examples, lists, tables) carry primary weight. Prose provides the connective minimum to frame them.
+- Short declarative sentences. One idea per sentence. Present tense.
+- Lead with the key fact, then qualifiers as compact prepositional phrases: "on first call", "across restarts".
+- Open paragraphs with a statement that names or defines the subject. Close with a cross-reference or consequence, not a summary.
+- Colons for inline elaboration: "This allows safe customization: edit any file, and changes remain intact."
+- Let structured content (code, lists, tables) carry primary weight. Prose provides the connective minimum.
+- Prefer templates: `X does Y.` / `If X, Y happens.` / `X defaults to Y.` / `X is required.`
 
-## Information Density
+## Density
 
 - Every sentence adds new information. No restating.
-- Replace broad claims with specific outcomes.
-- Prefer precise verbs: `loads`, `persists`, `fails`, `returns`, `requires`, `generates`.
-- Use parenthetical asides for defaults, examples, and clarifications: "(default 5)", "(e.g., `pandas`)".
-- Fully assertive language. No hedging: "might", "could", "perhaps", "it seems", "should consider".
-- No filler: `simply`, `just`, `easy`, `powerful`, `seamless`.
-- No em-dashes. Use commas, colons, or parentheses.
-
-## Wording Templates
-
-- `X does Y.`
-- `If X, Y happens.`
-- `X defaults to Y.`
-- `X is required.` / `X is optional.`
+- Specific outcomes over broad claims. Precise verbs: `loads`, `persists`, `fails`, `returns`, `generates`.
+- Parenthetical asides for defaults, examples, clarifications: "(default 5)", "(e.g., `pandas`)".
+- No hedging ("might", "could", "perhaps", "should consider"). No filler (`simply`, `just`, `easy`, `powerful`, `seamless`). No em-dashes (use commas, colons, or parentheses).
 
 ## Rewriting Pass
 
 1. Remove filler and duplicate statements.
 2. Replace ambiguous language with explicit behavior.
 3. Break compound sentences into compact declarative lines.
-4. Tighten word choice until each sentence is high-signal.
-5. Stop when further compression would reduce clarity.
+4. Stop when further compression would reduce clarity.
