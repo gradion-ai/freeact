@@ -54,18 +54,6 @@ Recording a session for documentation:
 freeact --record --record-dir docs/recordings/demo --record-title "Demo Session"
 ```
 
-## Tool Search
-
-Tool discovery mode is controlled by the [`tool-search`](configuration.md#tool-search) setting in `.freeact/config.json`.
-
-### Basic search
-
-The default mode. The agent browses tools by category.
-
-### Hybrid search
-
-Uses BM25/vector search for natural language queries. Requires an embedding API. The default configuration uses Gemini embeddings, which requires setting `GEMINI_API_KEY`. See [Hybrid Search](configuration.md#hybrid-search) for configuration details.
-
 ## Interactive Mode
 
 The interactive mode provides a conversation interface with the agent in a terminal window.
