@@ -20,7 +20,7 @@ See the [Configuration](configuration.md) reference for details on the `.freeact
 
 ## Generation API
 
-MCP servers [configured](configuration.md#ptc-servers) as `ptc-servers` in `config.json` require Python API generation with [`generate_mcp_sources()`][freeact.agent.tools.pytools.apigen.generate_mcp_sources] before the agent can call their tools programmatically:
+MCP servers [configured](configuration.md#ptc-servers) as `ptc-servers` in `config.json` require Python API generation with [`generate_mcp_sources()`][freeact.tools.pytools.apigen.generate_mcp_sources] before the agent can call their tools programmatically:
 
 ```python
 --8<-- "examples/basic_agent.py:apigen-imports"

@@ -15,7 +15,7 @@ from freeact.agent.config import Config
 from freeact.agent.store import SessionStore
 
 # --8<-- [end:session-imports]
-from freeact.agent.tools.pytools.apigen import generate_mcp_sources
+from freeact.tools.pytools.apigen import generate_mcp_sources
 
 
 async def handle_events(agent: Agent, prompt: str) -> None:

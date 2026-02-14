@@ -10,9 +10,9 @@ from rich.console import Console
 from freeact.agent import Agent
 from freeact.agent.config import Config
 from freeact.agent.store import SessionStore
-from freeact.agent.tools.pytools.apigen import generate_mcp_sources
 from freeact.terminal import Terminal
 from freeact.terminal.recording import save_conversation
+from freeact.tools.pytools.apigen import generate_mcp_sources
 
 logger = logging.getLogger("freeact")
 

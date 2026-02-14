@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 from pydantic_ai.embeddings import TestEmbeddingModel
 
-from freeact.agent.tools.pytools.search.hybrid.embed import ToolEmbedder
+from freeact.tools.pytools.search.hybrid.embed import ToolEmbedder
 
 
 @pytest.fixture

@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from freeact.agent.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
+from freeact.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
 
 
 class Categories(BaseModel):

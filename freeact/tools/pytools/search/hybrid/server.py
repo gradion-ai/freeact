@@ -12,12 +12,12 @@ from typing import Annotated, Literal
 from mcp.server.fastmcp import Context, FastMCP
 from pydantic import BaseModel, Field
 
-from freeact.agent.tools.pytools import MCPTOOLS_DIR
-from freeact.agent.tools.pytools.search.hybrid.database import Database
-from freeact.agent.tools.pytools.search.hybrid.embed import ToolEmbedder
-from freeact.agent.tools.pytools.search.hybrid.extract import parse_tool_id
-from freeact.agent.tools.pytools.search.hybrid.index import Indexer
-from freeact.agent.tools.pytools.search.hybrid.search import SearchConfig, SearchEngine
+from freeact.tools.pytools import MCPTOOLS_DIR
+from freeact.tools.pytools.search.hybrid.database import Database
+from freeact.tools.pytools.search.hybrid.embed import ToolEmbedder
+from freeact.tools.pytools.search.hybrid.extract import parse_tool_id
+from freeact.tools.pytools.search.hybrid.index import Indexer
+from freeact.tools.pytools.search.hybrid.search import SearchConfig, SearchEngine
 
 
 class ToolResult(BaseModel):

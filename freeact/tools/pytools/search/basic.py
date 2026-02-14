@@ -7,9 +7,9 @@ from typing import Annotated
 from mcp.server.fastmcp import FastMCP
 from pydantic import BaseModel, Field
 
-from freeact.agent.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
-from freeact.agent.tools.pytools.categories import Categories
-from freeact.agent.tools.pytools.categories import list_categories as _list_categories
+from freeact.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
+from freeact.tools.pytools.categories import Categories
+from freeact.tools.pytools.categories import list_categories as _list_categories
 
 _PYTOOLS_DIR = Path(os.environ.get("PYTOOLS_DIR", ".freeact/generated"))
 

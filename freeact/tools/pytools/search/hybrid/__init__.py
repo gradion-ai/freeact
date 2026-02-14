@@ -2,6 +2,6 @@
 
 Run as MCP server::
 
-    python -m freeact.agent.tools.pytools.search.hybrid
+    python -m freeact.tools.pytools.search.hybrid
 
 """

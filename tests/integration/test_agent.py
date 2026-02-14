@@ -13,7 +13,7 @@ from pydantic_ai.models.function import AgentInfo, DeltaThinkingPart, DeltaToolC
 
 from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput, Response
 from freeact.agent.config import Config
-from freeact.agent.tools.pytools import MCPTOOLS_DIR
+from freeact.tools.pytools import MCPTOOLS_DIR
 from tests.conftest import (
     DeltaThinkingCalls,
     DeltaToolCalls,
