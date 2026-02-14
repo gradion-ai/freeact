@@ -28,7 +28,7 @@ See the [Configuration](https://gradion-ai.github.io/freeact/configuration/index
 MCP servers [configured](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) as `ptc-servers` in `config.json` require Python API generation with generate_mcp_sources() before the agent can call their tools programmatically:
 
 ```
-from freeact.agent.tools.pytools.apigen import generate_mcp_sources
+from freeact.tools.pytools.apigen import generate_mcp_sources
 
 # Generate Python APIs for MCP servers in ptc_servers
 for server_name, params in config.ptc_servers.items():

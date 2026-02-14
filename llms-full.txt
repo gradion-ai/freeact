@@ -201,7 +201,7 @@ from freeact.agent import (
 
 from freeact.agent.config import Config
 
-from freeact.agent.tools.pytools.apigen import generate_mcp_sources
+from freeact.tools.pytools.apigen import generate_mcp_sources
 
 
 
@@ -348,7 +348,7 @@ The default configuration includes the bundled `google` MCP server (web search v
   "ptc-servers": {
     "google": {
       "command": "python",
-      "args": ["-m", "freeact.agent.tools.gsearch", "--thinking-level", "medium"],
+      "args": ["-m", "freeact.tools.gsearch", "--thinking-level", "medium"],
       "env": {"GEMINI_API_KEY": "${GEMINI_API_KEY}"}
     }
   }
@@ -736,7 +736,7 @@ See the [Configuration](https://gradion-ai.github.io/freeact/configuration/index
 MCP servers [configured](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) as `ptc-servers` in `config.json` require Python API generation with generate_mcp_sources() before the agent can call their tools programmatically:
 
 ```
-from freeact.agent.tools.pytools.apigen import generate_mcp_sources
+from freeact.tools.pytools.apigen import generate_mcp_sources
 
 # Generate Python APIs for MCP servers in ptc_servers
 for server_name, params in config.ptc_servers.items():
@@ -1438,10 +1438,7 @@ DEFAULT_MODEL_SETTINGS = GoogleModelSettings(
 ```
 PYTOOLS_BASIC_CONFIG: dict[str, Any] = {
     "command": "python",
-    "args": [
-        "-m",
-        "freeact.agent.tools.pytools.search.basic",
-    ],
+    "args": ["-m", "freeact.tools.pytools.search.basic"],
     "env": {"PYTOOLS_DIR": "${PYTOOLS_DIR}"},
 }
 ```
@@ -1451,10 +1448,7 @@ PYTOOLS_BASIC_CONFIG: dict[str, Any] = {
 ```
 PYTOOLS_HYBRID_CONFIG: dict[str, Any] = {
     "command": "python",
-    "args": [
-        "-m",
-        "freeact.agent.tools.pytools.search.hybrid",
-    ],
+    "args": ["-m", "freeact.tools.pytools.search.hybrid"],
     "env": {
         "GEMINI_API_KEY": "${GEMINI_API_KEY}",
         "PYTOOLS_DIR": "${PYTOOLS_DIR}",
@@ -1492,7 +1486,7 @@ FILESYSTEM_CONFIG: dict[str, Any] = {
 }
 ```
 
-## freeact.agent.tools.pytools.apigen.generate_mcp_sources
+## freeact.tools.pytools.apigen.generate_mcp_sources
 
 ```
 generate_mcp_sources(

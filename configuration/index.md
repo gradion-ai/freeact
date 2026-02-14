@@ -103,7 +103,7 @@ The default configuration includes the bundled `google` MCP server (web search v
   "ptc-servers": {
     "google": {
       "command": "python",
-      "args": ["-m", "freeact.agent.tools.gsearch", "--thinking-level", "medium"],
+      "args": ["-m", "freeact.tools.gsearch", "--thinking-level", "medium"],
       "env": {"GEMINI_API_KEY": "${GEMINI_API_KEY}"}
     }
   }

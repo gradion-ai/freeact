@@ -60,7 +60,7 @@ from freeact.agent import (
 
 from freeact.agent.config import Config
 
-from freeact.agent.tools.pytools.apigen import generate_mcp_sources
+from freeact.tools.pytools.apigen import generate_mcp_sources
 
 
 

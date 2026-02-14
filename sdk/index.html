@@ -1450,8 +1450,8 @@
 </code></pre></div>
 <p>See the <a href="../configuration/">Configuration</a> reference for details on the <code>.freeact/</code> directory structure.</p>
 <h2 id="generation-api">Generation API</h2>
-<p>MCP servers <a href="../configuration/#ptc-servers">configured</a> as <code>ptc-servers</code> in <code>config.json</code> require Python API generation with <a class="autorefs autorefs-internal" href="../api/generate/#freeact.agent.tools.pytools.apigen.generate_mcp_sources"><code>generate_mcp_sources()</code></a> before the agent can call their tools programmatically:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent.tools.pytools.apigen</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_mcp_sources</span>
+<p>MCP servers <a href="../configuration/#ptc-servers">configured</a> as <code>ptc-servers</code> in <code>config.json</code> require Python API generation with <a class="autorefs autorefs-internal" href="../api/generate/#freeact.tools.pytools.apigen.generate_mcp_sources"><code>generate_mcp_sources()</code></a> before the agent can call their tools programmatically:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">freeact.tools.pytools.apigen</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_mcp_sources</span>
 
 <span class="c1"># Generate Python APIs for MCP servers in ptc_servers</span>
 <span class="k">for</span> <span class="n">server_name</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">ptc_servers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
