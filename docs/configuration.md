@@ -175,7 +175,7 @@ Freeact contributes three skills to `.freeact/skills/`:
 | [task-planning](https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates/skills/task-planning) | Basic task planning and tracking workflows |
 
 !!! hint "Tool authoring"
-    The `output-parsers` and `saving-codeacts` skills enable tool authoring -- see [Enhancing Tools](examples/output-parser.md) and [Code Action Reuse](examples/saving-codeacts.md) for walkthroughs.
+    The `output-parsers` and `saving-codeacts` skills enable tool authoring. See [Enhancing Tools](examples/output-parser.md) and [Code Action Reuse](examples/saving-codeacts.md) for walkthroughs.
 
 !!! tip "Custom agent skills"
     Custom skills can be added as needed to specialize agent behavior for specific applications.
