@@ -65,7 +65,7 @@ The `config.json` file contains agent settings and MCP server configurations:
 | Setting | Default | Description |
 |---------|---------|-------------|
 | `images-dir` | `null` | Directory for saving generated images to disk. `null` defaults to `images` in the working directory. |
-| `execution-timeout` | `300` | Maximum time in seconds for code execution. Approval wait time is excluded. `null` means no timeout. |
+| `execution-timeout` | `300` | Maximum time in seconds for [code execution](execution.md). Approval wait time is excluded. `null` means no timeout. |
 | `approval-timeout` | `null` | Timeout in seconds for PTC approval requests. `null` means no timeout. |
 | `enable-subagents` | `true` | Whether to enable subagent delegation |
 | `max-subagents` | `5` | Maximum number of concurrent subagents |
@@ -84,14 +84,16 @@ The `tool-search` setting also selects the matching system prompt template (see 
 
 ### `mcp-servers`
 
-MCP servers called directly via JSON tool calls. Internal servers (`pytools` for tool discovery and `filesystem` for file operations) are provided automatically and do not need to be configured. User-defined servers in this section are merged with the internal defaults. If a user entry uses the same key as an internal server, the user entry takes precedence.
+MCP servers called directly via JSON tool calls. Internal servers (`pytools` for [basic][freeact.agent.config.PYTOOLS_BASIC_CONFIG] or [hybrid][freeact.agent.config.PYTOOLS_HYBRID_CONFIG] tool search and [`filesystem`][freeact.agent.config.FILESYSTEM_CONFIG] for file operations) are provided automatically and do not need to be configured. User-defined servers in this section are merged with the internal defaults. If a user entry uses the same key as an internal server, the user entry takes precedence.
 
 !!! tip "Custom MCP servers"
     Application-specific MCP servers for JSON tool calls can be added to this section as needed.
 
 ### `ptc-servers`
 
-MCP servers called programmatically via Python APIs. Python APIs must be generated from `ptc-servers` to `.freeact/generated/mcptools/<server-name>/<tool>.py` before the agent can use them. The [CLI tool](cli.md) handles this automatically. When using the [Python SDK](sdk.md), call [`generate_mcp_sources()`][freeact.agent.tools.pytools.apigen.generate_mcp_sources] explicitly. Code actions can then import and call the generated APIs because `.freeact/generated/` is on the kernel's `PYTHONPATH`.
+MCP servers called programmatically via generated Python APIs. This is freeact's implementation of *code mode*[^1], where the agent calls MCP tools by writing code against generated APIs rather than through JSON tool calls. This allows composing multiple tool calls, processing intermediate results, and using control flow within a single code action.
+
+Python APIs must be generated from `ptc-servers` to `.freeact/generated/mcptools/<server-name>/<tool>.py` before the agent can use them. The [CLI tool](cli.md) handles this automatically. When using the [Agent SDK](sdk.md), call [`generate_mcp_sources()`][freeact.agent.tools.pytools.apigen.generate_mcp_sources] explicitly. Code actions can then import and call the generated APIs because `.freeact/generated/` is on the kernel's `PYTHONPATH`.
 
 The default configuration includes the bundled `google` MCP server (web search via Gemini):
 
@@ -172,6 +174,9 @@ Freeact contributes three skills to `.freeact/skills/`:
 | [saving-codeacts](https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates/skills/saving-codeacts) | Save generated code actions as reusable tools in `gentools/` |
 | [task-planning](https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates/skills/task-planning) | Basic task planning and tracking workflows |
 
+!!! hint "Tool authoring"
+    The `output-parsers` and `saving-codeacts` skills enable tool authoring. See [Enhancing Tools](examples/output-parser.md) and [Code Action Reuse](examples/saving-codeacts.md) for walkthroughs.
+
 !!! tip "Custom agent skills"
     Custom skills can be added as needed to specialize agent behavior for specific applications.
 
@@ -216,3 +221,5 @@ User-defined tools saved from successful code actions:
         ├── api.py       # Public interface
         └── impl.py      # Implementation
 ```
+
+[^1]: [Code Mode: the better way to use MCP](https://blog.cloudflare.com/code-mode/)

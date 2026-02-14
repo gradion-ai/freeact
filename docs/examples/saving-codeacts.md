@@ -26,7 +26,7 @@ With a query like
 
 the agent discovers `search_repositories` and `list_commits` as appropriate tools and inspects their APIs. Because the enhanced `search_repositories` tool now returns typed output via `run_parsed()`, the agent can compose these tools in a single code action, passing repository names from search results as input to `list_commits`[^1].
 
-After code action execution, we instruct the agent to save it as a reusable tool:
+After code action execution, the agent is instructed to save it as a reusable tool:
 
 > save this as tool under category github, with username, top_n_repos, top_n_commits as parameter
 

@@ -1,6 +1,6 @@
 # Sandbox Mode
 
-Freeact can restrict filesystem and network access for code execution and MCP servers using [ipybox sandbox](https://gradion-ai.github.io/ipybox/sandbox/) and Anthropic's [sandbox-runtime](https://github.com/anthropic-experimental/sandbox-runtime).
+Freeact can restrict filesystem and network access for [code execution](execution.md) and MCP servers using [ipybox sandbox](https://gradion-ai.github.io/ipybox/sandbox/) and Anthropic's [sandbox-runtime](https://github.com/anthropic-experimental/sandbox-runtime).
 
 !!! hint "Prerequisites"
 
@@ -8,9 +8,13 @@ Freeact can restrict filesystem and network access for code execution and MCP se
 
 ## Code Execution
 
+!!! info
+
+    Sandbox restrictions apply equally to Python code and shell commands, as both [execute](execution.md) in the same IPython kernel.
+
 ### CLI Tool
 
-The `--sandbox` option enables sandboxed code execution:
+The `--sandbox` option enables sandboxed [code execution](execution.md):
 
 ```bash
 freeact --sandbox
@@ -22,7 +26,7 @@ A custom configuration file can override the [default restrictions](#default-res
 freeact --sandbox --sandbox-config sandbox-config.json
 ```
 
-### Python SDK
+### Agent SDK
 
 The `sandbox` and `sandbox_config` parameters of the [`Agent`][freeact.agent.Agent] constructor provide the same functionality:
 

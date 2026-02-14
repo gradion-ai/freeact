@@ -1,6 +1,6 @@
-# Python SDK
+# Agent SDK
 
-The Python SDK provides four main APIs:
+The Agent SDK provides four main APIs:
 
 - [Configuration API](api/config.md) for initializing and loading configuration from `.freeact/`
 - [Generation API](api/generate.md) for generating Python APIs for MCP server tools
@@ -37,7 +37,7 @@ result = run(Params(query="python async tutorial"))
 
 ## Agent API
 
-The [`Agent`][freeact.agent.Agent] class implements the agentic code action loop, handling code action generation, code execution, tool calls, and the approval workflow. Each [`stream()`][freeact.agent.Agent.stream] call runs a single agent turn, with the agent managing conversation history across calls. Use `stream()` to iterate over [events](#events) and handle them with pattern matching:
+The [`Agent`][freeact.agent.Agent] class implements the agentic code action loop, handling code action generation, [code execution](execution.md), tool calls, and the approval workflow. Each [`stream()`][freeact.agent.Agent.stream] call runs a single agent turn, with the agent managing conversation history across calls. Use `stream()` to iterate over [events](#events) and handle them with pattern matching:
 
 ```python
 --8<-- "examples/basic_agent.py:agent-imports"
@@ -62,6 +62,17 @@ The [`Agent.stream()`][freeact.agent.Agent.stream] method yields events as they 
 | [`ToolOutput`][freeact.agent.ToolOutput] | Tool or built-in operation output |
 
 All yielded events inherit from [`AgentEvent`][freeact.agent.AgentEvent] and carry `agent_id`.
+
+### Internal tools
+
+The agent uses a small set of internal tools for reading and writing files, executing code and commands, spawning subagents, and discovering tools:
+
+| Tool | Implementation | Description |
+|------|---------------|-------------|
+| read, write | [`filesystem`][freeact.agent.config.FILESYSTEM_CONFIG] MCP server | Reading and writing files via JSON tool calls |
+| execute | `ipybox_execute_ipython_cell` | Execution of Python code and shell commands (via `!` prefix), delegated to ipybox's `CodeExecutor` |
+| subagent | [`subagent_task`](#subagents) | Task delegation to child agents |
+| tool search | `pytools` MCP server for [basic search][freeact.agent.config.PYTOOLS_BASIC_CONFIG] and [hybrid search][freeact.agent.config.PYTOOLS_HYBRID_CONFIG] | Tool discovery via category browsing or hybrid search |
 
 ### Turn limits
 
@@ -88,7 +99,7 @@ async for event in agent.stream(prompt):
             print(f"[{agent_id}] {content}")
 ```
 
-Subagent IDs use the form `sub-xxxx`. Each delegated task defaults to `max_turns=100`. The [`max-subagents`](configuration.md#agent-settings) setting in `config.json` limits concurrent subagents (default 5).
+The main agent's `agent_id` is `main`, subagent IDs use the form `sub-xxxx`. Each delegated task defaults to `max_turns=100`. The [`max-subagents`](configuration.md#agent-settings) setting in `config.json` limits concurrent subagents (default 5).
 
 ### Approval
 
@@ -142,7 +153,7 @@ finally:
 
 The agent supports two timeout settings in [`config.json`](configuration.md#agent-settings):
 
-- **`execution-timeout`**: Maximum time in seconds for each code execution. Approval wait time is excluded from this budget, so the timeout only counts actual execution time. Defaults to 300 seconds. Set to `null` to disable.
+- **`execution-timeout`**: Maximum time in seconds for each [code execution](execution.md). Approval wait time is excluded from this budget, so the timeout only counts actual execution time. Defaults to 300 seconds. Set to `null` to disable.
 - **`approval-timeout`**: Timeout for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. Defaults to `null` (no timeout).
 
 ```json

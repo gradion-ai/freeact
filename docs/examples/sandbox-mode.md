@@ -5,7 +5,7 @@
     A [recorded session](../recordings/sandbox-mode/conversation.html) of this example is appended [below](#recording).
 
 
-This example demonstrates running code execution in [sandbox mode](../sandbox.md) with a custom sandbox configuration. It does not cover [sandboxing MCP servers](../sandbox.md#mcp-servers).
+This example demonstrates running [code execution](../execution.md) in [sandbox mode](../sandbox.md) with a custom sandbox configuration. It does not cover [sandboxing MCP servers](../sandbox.md#mcp-servers).
 
 Create a [workspace](../installation.md#option-1-minimal):
 

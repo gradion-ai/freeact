@@ -1,6 +1,6 @@
 # Quickstart
 
-This guide shows how to run your first task with freeact.
+This guide shows how to run a simple task using the freeact [CLI tool](#cli-tool) and the [Agent SDK](#agent-sdk).
 
 ## CLI Tool
 
@@ -44,10 +44,9 @@ The recorded session demonstrates:
 
 The code execution output shows the search result with source URLs. The agent response is a summary of it.
 
-## Python SDK
+## Agent SDK
 
-
-The CLI tool is built on a [Python SDK](sdk.md) that you can use directly in your applications. The following minimal example shows how to run the same task programmatically, with code actions and tool calls auto-approved:
+The CLI tool is built on the [Agent SDK](sdk.md) that you can use directly in your applications. The following minimal example shows how to run the same task programmatically, with code actions and tool calls auto-approved:
 
 ```python
 --8<-- "examples/basic_agent.py"
