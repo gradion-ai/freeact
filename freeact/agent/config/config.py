@@ -23,7 +23,7 @@ DEFAULT_MODEL_SETTINGS = GoogleModelSettings(
 
 PYTOOLS_BASIC_CONFIG: dict[str, Any] = {
     "command": "python",
-    "args": ["-m", "freeact.agent.tools.pytools.search.basic"],
+    "args": ["-m", "freeact.tools.pytools.search.basic"],
     "env": {
         "PYTOOLS_DIR": "${PYTOOLS_DIR}",
     },
@@ -31,7 +31,7 @@ PYTOOLS_BASIC_CONFIG: dict[str, Any] = {
 
 PYTOOLS_HYBRID_CONFIG: dict[str, Any] = {
     "command": "python",
-    "args": ["-m", "freeact.agent.tools.pytools.search.hybrid"],
+    "args": ["-m", "freeact.tools.pytools.search.hybrid"],
     "env": {
         "GEMINI_API_KEY": "${GEMINI_API_KEY}",
         "PYTOOLS_DIR": "${PYTOOLS_DIR}",

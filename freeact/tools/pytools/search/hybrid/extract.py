@@ -6,7 +6,7 @@ import ast
 from dataclasses import dataclass
 from pathlib import Path
 
-from freeact.agent.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
+from freeact.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
 
 
 @dataclass

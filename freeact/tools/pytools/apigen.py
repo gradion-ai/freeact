@@ -4,8 +4,8 @@ from typing import Any
 
 import ipybox
 
-from freeact.agent.tools.pytools import MCPTOOLS_DIR
-from freeact.agent.tools.pytools.categories import Categories, list_categories
+from freeact.tools.pytools import MCPTOOLS_DIR
+from freeact.tools.pytools.categories import Categories, list_categories
 
 logger = logging.getLogger("freeact")
 

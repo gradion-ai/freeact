@@ -34,7 +34,7 @@ from pydantic_ai.tools import ToolDefinition
 
 from freeact.agent.config import Config
 from freeact.agent.store import SessionStore
-from freeact.agent.tools.utils import (
+from freeact.tools.utils import (
     get_tool_definitions,
     load_ipybox_tool_definitions,
     load_subagent_task_tool_definitions,

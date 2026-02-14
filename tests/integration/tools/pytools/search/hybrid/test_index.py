@@ -6,10 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from freeact.agent.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
-from freeact.agent.tools.pytools.search.hybrid.database import Database
-from freeact.agent.tools.pytools.search.hybrid.embed import ToolEmbedder
-from freeact.agent.tools.pytools.search.hybrid.index import Indexer, SyncResult
+from freeact.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
+from freeact.tools.pytools.search.hybrid.database import Database
+from freeact.tools.pytools.search.hybrid.embed import ToolEmbedder
+from freeact.tools.pytools.search.hybrid.index import Indexer, SyncResult
 
 
 class TestSyncResult:

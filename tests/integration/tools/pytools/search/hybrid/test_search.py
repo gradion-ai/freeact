@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from freeact.agent.tools.pytools.search.hybrid.database import Database, ToolEntry
-from freeact.agent.tools.pytools.search.hybrid.search import SearchConfig, SearchEngine
+from freeact.tools.pytools.search.hybrid.database import Database, ToolEntry
+from freeact.tools.pytools.search.hybrid.search import SearchConfig, SearchEngine
 
 
 @pytest.fixture

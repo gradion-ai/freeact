@@ -9,7 +9,7 @@ from types import TracebackType
 
 from watchfiles import Change, awatch
 
-from freeact.agent.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
+from freeact.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
 
 
 class ToolWatcher:

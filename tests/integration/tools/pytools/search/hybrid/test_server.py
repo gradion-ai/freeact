@@ -10,7 +10,7 @@ import pytest
 from pydantic_ai.mcp import MCPServerStdio
 from pydantic_ai.models import _cached_async_http_client
 
-from freeact.agent.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
+from freeact.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
 
 
 @pytest.fixture(autouse=True)
@@ -39,7 +39,7 @@ def mcp_server(tools_dir: Path, db_path: Path) -> MCPServerStdio:
     """Create MCPServerStdio client (not connected) for the hybrid search server."""
     return MCPServerStdio(
         "uv",
-        args=["run", "-m", "freeact.agent.tools.pytools.search.hybrid"],
+        args=["run", "-m", "freeact.tools.pytools.search.hybrid"],
         env={
             "PYTOOLS_DIR": str(tools_dir),
             "PYTOOLS_DB_PATH": str(db_path),
@@ -248,7 +248,7 @@ class TestConcurrentServers:
         def create_readonly_server() -> MCPServerStdio:
             return MCPServerStdio(
                 "uv",
-                args=["run", "-m", "freeact.agent.tools.pytools.search.hybrid"],
+                args=["run", "-m", "freeact.tools.pytools.search.hybrid"],
                 env={
                     "PYTOOLS_DIR": str(tools_dir),
                     "PYTOOLS_DB_PATH": str(db_path),

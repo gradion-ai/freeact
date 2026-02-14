@@ -9,8 +9,8 @@ from pathlib import Path
 import pytest
 from watchfiles import Change
 
-from freeact.agent.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
-from freeact.agent.tools.pytools.search.hybrid.watch import ToolWatcher
+from freeact.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
+from freeact.tools.pytools.search.hybrid.watch import ToolWatcher
 
 
 def create_tool_watcher(

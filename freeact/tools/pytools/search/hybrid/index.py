@@ -9,15 +9,15 @@ from types import TracebackType
 
 from ipybox.utils import arun
 
-from freeact.agent.tools.pytools.search.hybrid.database import Database, ToolEntry
-from freeact.agent.tools.pytools.search.hybrid.embed import ToolEmbedder
-from freeact.agent.tools.pytools.search.hybrid.extract import (
+from freeact.tools.pytools.search.hybrid.database import Database, ToolEntry
+from freeact.tools.pytools.search.hybrid.embed import ToolEmbedder
+from freeact.tools.pytools.search.hybrid.extract import (
     ToolInfo,
     scan_tools,
     tool_id_from_path,
     tool_info_from_path,
 )
-from freeact.agent.tools.pytools.search.hybrid.watch import ToolWatcher
+from freeact.tools.pytools.search.hybrid.watch import ToolWatcher
 
 
 @dataclass

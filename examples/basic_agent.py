@@ -16,7 +16,7 @@ from freeact.agent.config import Config
 
 # --8<-- [end:config-imports]
 # --8<-- [start:apigen-imports]
-from freeact.agent.tools.pytools.apigen import generate_mcp_sources
+from freeact.tools.pytools.apigen import generate_mcp_sources
 
 # --8<-- [end:apigen-imports]
 

@@ -93,7 +93,7 @@ MCP servers called directly via JSON tool calls. Internal servers (`pytools` for
 
 MCP servers called programmatically via generated Python APIs. This is freeact's implementation of *code mode*[^1], where the agent calls MCP tools by writing code against generated APIs rather than through JSON tool calls. This allows composing multiple tool calls, processing intermediate results, and using control flow within a single code action.
 
-Python APIs must be generated from `ptc-servers` to `.freeact/generated/mcptools/<server-name>/<tool>.py` before the agent can use them. The [CLI tool](cli.md) handles this automatically. When using the [Agent SDK](sdk.md), call [`generate_mcp_sources()`][freeact.agent.tools.pytools.apigen.generate_mcp_sources] explicitly. Code actions can then import and call the generated APIs because `.freeact/generated/` is on the kernel's `PYTHONPATH`.
+Python APIs must be generated from `ptc-servers` to `.freeact/generated/mcptools/<server-name>/<tool>.py` before the agent can use them. The [CLI tool](cli.md) handles this automatically. When using the [Agent SDK](sdk.md), call [`generate_mcp_sources()`][freeact.tools.pytools.apigen.generate_mcp_sources] explicitly. Code actions can then import and call the generated APIs because `.freeact/generated/` is on the kernel's `PYTHONPATH`.
 
 The default configuration includes the bundled `google` MCP server (web search via Gemini):
 
@@ -102,7 +102,7 @@ The default configuration includes the bundled `google` MCP server (web search v
   "ptc-servers": {
     "google": {
       "command": "python",
-      "args": ["-m", "freeact.agent.tools.gsearch", "--thinking-level", "medium"],
+      "args": ["-m", "freeact.tools.gsearch", "--thinking-level", "medium"],
       "env": {"GEMINI_API_KEY": "${GEMINI_API_KEY}"}
     }
   }
