@@ -81,6 +81,6 @@ macOS uses the native `sandbox-exec` for process isolation.
 apt-get install bubblewrap socat ripgrep
 ```
 
-Note
+Work in progress
 
 Sandboxing on Linux is currently work in progress.

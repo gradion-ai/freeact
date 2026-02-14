@@ -237,6 +237,10 @@ The [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) accepts `--ses
 
 ## Permissions API
 
+Work in progress
+
+Current permission management is preliminary and will be reimplemented in a future release.
+
 The agent requests approval for each code action and tool call but doesn't remember past decisions. PermissionManager adds memory: `allow_always()` persists to `.freeact/permissions.json`, while `allow_session()` stores in-memory until the session ends:
 
 ```

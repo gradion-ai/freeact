@@ -135,7 +135,7 @@ macOS uses the native `sandbox-exec` for process isolation.
 apt-get install bubblewrap socat ripgrep
 ```
 
-Note
+Work in progress
 
 Sandboxing on Linux is currently work in progress.
 
@@ -556,7 +556,7 @@ Check the installation instructions for [sandbox mode prerequisites](https://gra
 
 ## Code Execution
 
-Info
+Scope
 
 Sandbox restrictions apply equally to Python code and shell commands, as both [execute](https://gradion-ai.github.io/freeact/execution/index.md) in the same IPython kernel.
 
@@ -945,6 +945,10 @@ The [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) accepts `--ses
 
 ## Permissions API
 
+Work in progress
+
+Current permission management is preliminary and will be reimplemented in a future release.
+
 The agent requests approval for each code action and tool call but doesn't remember past decisions. PermissionManager adds memory: `allow_always()` persists to `.freeact/permissions.json`, while `allow_session()` stores in-memory until the session ends:
 
 ```
@@ -976,7 +980,7 @@ async for event in agent.stream(prompt):
 
 # CLI tool
 
-Info
+Work in progress
 
 The [terminal interface](#interactive-mode) is preliminary and will be reimplemented in a future release.
 

@@ -1664,6 +1664,10 @@
 <p>Only the main agent's message history (<code>main.jsonl</code>) is loaded on resume. Subagent messages are persisted to separate files (<code>sub-xxxx.jsonl</code>) for auditing but are not rehydrated.</p>
 <p>The <a href="../cli/">CLI tool</a> accepts <code>--session-id</code> to resume a session from the command line.</p>
 <h2 id="permissions-api">Permissions API</h2>
+<div class="admonition info">
+<p class="admonition-title">Work in progress</p>
+<p>Current permission management is preliminary and will be reimplemented in a future release.</p>
+</div>
 <p>The agent requests approval for each code action and tool call but doesn't remember past decisions. <a class="autorefs autorefs-internal" href="../api/permissions/#freeact.permissions.PermissionManager"><code>PermissionManager</code></a> adds memory: <code>allow_always()</code> persists to <code>.freeact/permissions.json</code>, while <code>allow_session()</code> stores in-memory until the session ends:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">freeact.permissions</span><span class="w"> </span><span class="kn">import</span> <span class="n">PermissionManager</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">ipybox.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">arun</span>

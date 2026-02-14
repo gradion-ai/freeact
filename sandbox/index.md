@@ -8,7 +8,7 @@ Check the installation instructions for [sandbox mode prerequisites](https://gra
 
 ## Code Execution
 
-Info
+Scope
 
 Sandbox restrictions apply equally to Python code and shell commands, as both [execute](https://gradion-ai.github.io/freeact/execution/index.md) in the same IPython kernel.
 
