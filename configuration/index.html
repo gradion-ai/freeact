@@ -16,7 +16,7 @@
         <link rel="prev" href="../quickstart/">
       
       
-        <link rel="next" href="../sandbox/">
+        <link rel="next" href="../execution/">
       
       
         
@@ -708,6 +708,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../sandbox/" class="md-nav__link">
         
   
@@ -743,7 +771,7 @@
   <span class="md-ellipsis">
     
   
-    Python SDK
+    Agent SDK
   
 
     
@@ -808,10 +836,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_8" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_9" >
         
           
-          <label class="md-nav__link" for="__nav_1_8" id="__nav_1_8_label" tabindex="">
+          <label class="md-nav__link" for="__nav_1_9" id="__nav_1_9_label" tabindex="">
             
   
   
@@ -829,8 +857,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_8_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_1_8">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_9">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1011,10 +1039,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_9" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_10" >
         
           
-          <label class="md-nav__link" for="__nav_1_9" id="__nav_1_9_label" tabindex="">
+          <label class="md-nav__link" for="__nav_1_10" id="__nav_1_10_label" tabindex="">
             
   
   
@@ -1032,8 +1060,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_9_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_1_9">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_10">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1620,7 +1648,7 @@
 <tr>
 <td><code>execution-timeout</code></td>
 <td><code>300</code></td>
-<td>Maximum time in seconds for code execution. Approval wait time is excluded. <code>null</code> means no timeout.</td>
+<td>Maximum time in seconds for <a href="../execution/">code execution</a>. Approval wait time is excluded. <code>null</code> means no timeout.</td>
 </tr>
 <tr>
 <td><code>approval-timeout</code></td>
@@ -1666,13 +1694,14 @@
 </table>
 <p>The <code>tool-search</code> setting also selects the matching system prompt template (see <a href="#system-prompt">System Prompt</a>). For hybrid mode environment variables, see <a href="#hybrid-search">Hybrid Search</a>.</p>
 <h3 id="mcp-servers"><code>mcp-servers</code></h3>
-<p>MCP servers called directly via JSON tool calls. Internal servers (<code>pytools</code> for tool discovery and <code>filesystem</code> for file operations) are provided automatically and do not need to be configured. User-defined servers in this section are merged with the internal defaults. If a user entry uses the same key as an internal server, the user entry takes precedence.</p>
+<p>MCP servers called directly via JSON tool calls. Internal servers (<code>pytools</code> for <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.PYTOOLS_BASIC_CONFIG">basic</a> or <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.PYTOOLS_HYBRID_CONFIG">hybrid</a> tool search and <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.FILESYSTEM_CONFIG"><code>filesystem</code></a> for file operations) are provided automatically and do not need to be configured. User-defined servers in this section are merged with the internal defaults. If a user entry uses the same key as an internal server, the user entry takes precedence.</p>
 <div class="admonition tip">
 <p class="admonition-title">Custom MCP servers</p>
 <p>Application-specific MCP servers for JSON tool calls can be added to this section as needed.</p>
 </div>
 <h3 id="ptc-servers"><code>ptc-servers</code></h3>
-<p>MCP servers called programmatically via Python APIs. Python APIs must be generated from <code>ptc-servers</code> to <code>.freeact/generated/mcptools/&lt;server-name&gt;/&lt;tool&gt;.py</code> before the agent can use them. The <a href="../cli/">CLI tool</a> handles this automatically. When using the <a href="../sdk/">Python SDK</a>, call <a class="autorefs autorefs-internal" href="../api/generate/#freeact.agent.tools.pytools.apigen.generate_mcp_sources"><code>generate_mcp_sources()</code></a> explicitly. Code actions can then import and call the generated APIs because <code>.freeact/generated/</code> is on the kernel's <code>PYTHONPATH</code>.</p>
+<p>MCP servers called programmatically via generated Python APIs. This is freeact's implementation of <em>code mode</em><sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup>, where the agent calls MCP tools by writing code against generated APIs rather than through JSON tool calls. This allows composing multiple tool calls, processing intermediate results, and using control flow within a single code action.</p>
+<p>Python APIs must be generated from <code>ptc-servers</code> to <code>.freeact/generated/mcptools/&lt;server-name&gt;/&lt;tool&gt;.py</code> before the agent can use them. The <a href="../cli/">CLI tool</a> handles this automatically. When using the <a href="../sdk/">Agent SDK</a>, call <a class="autorefs autorefs-internal" href="../api/generate/#freeact.agent.tools.pytools.apigen.generate_mcp_sources"><code>generate_mcp_sources()</code></a> explicitly. Code actions can then import and call the generated APIs because <code>.freeact/generated/</code> is on the kernel's <code>PYTHONPATH</code>.</p>
 <p>The default configuration includes the bundled <code>google</code> MCP server (web search via Gemini):</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;ptc-servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1828,6 +1857,10 @@
 </tr>
 </tbody>
 </table>
+<div class="admonition hint">
+<p class="admonition-title">Tool authoring</p>
+<p>The <code>output-parsers</code> and <code>saving-codeacts</code> skills enable tool authoring. See <a href="../examples/output-parser/">Enhancing Tools</a> and <a href="../examples/saving-codeacts/">Code Action Reuse</a> for walkthroughs.</p>
+</div>
 <div class="admonition tip">
 <p class="admonition-title">Custom agent skills</p>
 <p>Custom skills can be added as needed to specialize agent behavior for specific applications.</p>
@@ -1859,6 +1892,14 @@
         ├── api.py       # Public interface
         └── impl.py      # Implementation
 </code></pre></div>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:1">
+<p><a href="https://blog.cloudflare.com/code-mode/">Code Mode: the better way to use MCP</a>&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
 
 
 

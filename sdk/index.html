@@ -27,7 +27,7 @@
     
     
       
-        <title>Python SDK - freeact</title>
+        <title>Agent SDK - freeact</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#python-sdk" class="md-skip">
+        <a href="#agent-sdk" class="md-skip">
           Skip to content
         </a>
       
@@ -113,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Python SDK
+              Agent SDK
             
           </span>
         </div>
@@ -456,6 +456,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../sandbox/" class="md-nav__link">
         
   
@@ -500,7 +528,7 @@
   <span class="md-ellipsis">
     
   
-    Python SDK
+    Agent SDK
   
 
     
@@ -518,7 +546,7 @@
   <span class="md-ellipsis">
     
   
-    Python SDK
+    Agent SDK
   
 
     
@@ -582,6 +610,17 @@
     <span class="md-ellipsis">
       
         Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#internal-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Internal tools
       
     </span>
   </a>
@@ -730,10 +769,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_8" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_9" >
         
           
-          <label class="md-nav__link" for="__nav_1_8" id="__nav_1_8_label" tabindex="">
+          <label class="md-nav__link" for="__nav_1_9" id="__nav_1_9_label" tabindex="">
             
   
   
@@ -751,8 +790,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_8_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_1_8">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_9">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -933,10 +972,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_9" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_10" >
         
           
-          <label class="md-nav__link" for="__nav_1_9" id="__nav_1_9_label" tabindex="">
+          <label class="md-nav__link" for="__nav_1_10" id="__nav_1_10_label" tabindex="">
             
   
   
@@ -954,8 +993,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_9_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_1_9">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_10">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1279,6 +1318,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#internal-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Internal tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#turn-limits" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1380,8 +1430,8 @@
   
 
 
-<h1 id="python-sdk">Python SDK</h1>
-<p>The Python SDK provides four main APIs:</p>
+<h1 id="agent-sdk">Agent SDK</h1>
+<p>The Agent SDK provides four main APIs:</p>
 <ul>
 <li><a href="../api/config/">Configuration API</a> for initializing and loading configuration from <code>.freeact/</code></li>
 <li><a href="../api/generate/">Generation API</a> for generating Python APIs for MCP server tools</li>
@@ -1414,7 +1464,7 @@
 <span class="n">result</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span><span class="n">Params</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">&quot;python async tutorial&quot;</span><span class="p">))</span>
 </code></pre></div>
 <h2 id="agent-api">Agent API</h2>
-<p>The <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.Agent"><code>Agent</code></a> class implements the agentic code action loop, handling code action generation, code execution, tool calls, and the approval workflow. Each <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.Agent.stream"><code>stream()</code></a> call runs a single agent turn, with the agent managing conversation history across calls. Use <code>stream()</code> to iterate over <a href="#events">events</a> and handle them with pattern matching:</p>
+<p>The <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.Agent"><code>Agent</code></a> class implements the agentic code action loop, handling code action generation, <a href="../execution/">code execution</a>, tool calls, and the approval workflow. Each <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.Agent.stream"><code>stream()</code></a> call runs a single agent turn, with the agent managing conversation history across calls. Use <code>stream()</code> to iterate over <a href="#events">events</a> and handle them with pattern matching:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">Agent</span><span class="p">,</span>
     <span class="n">ApprovalRequest</span><span class="p">,</span>
@@ -1491,6 +1541,39 @@
 </tbody>
 </table>
 <p>All yielded events inherit from <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.AgentEvent"><code>AgentEvent</code></a> and carry <code>agent_id</code>.</p>
+<h3 id="internal-tools">Internal tools</h3>
+<p>The agent uses a small set of internal tools for reading and writing files, executing code and commands, spawning subagents, and discovering tools:</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Implementation</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>read, write</td>
+<td><a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.FILESYSTEM_CONFIG"><code>filesystem</code></a> MCP server</td>
+<td>Reading and writing files via JSON tool calls</td>
+</tr>
+<tr>
+<td>execute</td>
+<td><code>ipybox_execute_ipython_cell</code></td>
+<td>Execution of Python code and shell commands (via <code>!</code> prefix), delegated to ipybox's <code>CodeExecutor</code></td>
+</tr>
+<tr>
+<td>subagent</td>
+<td><a href="#subagents"><code>subagent_task</code></a></td>
+<td>Task delegation to child agents</td>
+</tr>
+<tr>
+<td>tool search</td>
+<td><code>pytools</code> MCP server for <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.PYTOOLS_BASIC_CONFIG">basic search</a> and <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.PYTOOLS_HYBRID_CONFIG">hybrid search</a></td>
+<td>Tool discovery via category browsing or hybrid search</td>
+</tr>
+</tbody>
+</table>
 <h3 id="turn-limits">Turn limits</h3>
 <p>Use <code>max_turns</code> to limit the number of tool-execution rounds before the stream stops:</p>
 <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">max_turns</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
@@ -1507,7 +1590,7 @@
         <span class="k">case</span> <span class="n">Response</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span> <span class="n">agent_id</span><span class="o">=</span><span class="n">agent_id</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">agent_id</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
-<p>Subagent IDs use the form <code>sub-xxxx</code>. Each delegated task defaults to <code>max_turns=100</code>. The <a href="../configuration/#agent-settings"><code>max-subagents</code></a> setting in <code>config.json</code> limits concurrent subagents (default 5).</p>
+<p>The main agent's <code>agent_id</code> is <code>main</code>, subagent IDs use the form <code>sub-xxxx</code>. Each delegated task defaults to <code>max_turns=100</code>. The <a href="../configuration/#agent-settings"><code>max-subagents</code></a> setting in <code>config.json</code> limits concurrent subagents (default 5).</p>
 <h3 id="approval">Approval</h3>
 <p>The agent provides a unified approval mechanism. It yields <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.ApprovalRequest"><code>ApprovalRequest</code></a> for all code actions, programmatic tool calls, and JSON tool calls. Execution is suspended until <code>approve()</code> is called. Calling <code>approve(True)</code> executes the code action or tool call; <code>approve(False)</code> rejects it and ends the current agent turn.</p>
 <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">prompt</span><span class="p">):</span>
@@ -1548,7 +1631,7 @@
 <h3 id="timeouts">Timeouts</h3>
 <p>The agent supports two timeout settings in <a href="../configuration/#agent-settings"><code>config.json</code></a>:</p>
 <ul>
-<li><strong><code>execution-timeout</code></strong>: Maximum time in seconds for each code execution. Approval wait time is excluded from this budget, so the timeout only counts actual execution time. Defaults to 300 seconds. Set to <code>null</code> to disable.</li>
+<li><strong><code>execution-timeout</code></strong>: Maximum time in seconds for each <a href="../execution/">code execution</a>. Approval wait time is excluded from this budget, so the timeout only counts actual execution time. Defaults to 300 seconds. Set to <code>null</code> to disable.</li>
 <li><strong><code>approval-timeout</code></strong>: Timeout for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. Defaults to <code>null</code> (no timeout).</li>
 </ul>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>

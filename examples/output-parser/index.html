@@ -456,6 +456,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../sandbox/" class="md-nav__link">
         
   
@@ -491,7 +519,7 @@
   <span class="md-ellipsis">
     
   
-    Python SDK
+    Agent SDK
   
 
     
@@ -558,10 +586,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_8" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_9" checked>
         
           
-          <label class="md-nav__link" for="__nav_1_8" id="__nav_1_8_label" tabindex="">
+          <label class="md-nav__link" for="__nav_1_9" id="__nav_1_9_label" tabindex="">
             
   
   
@@ -579,8 +607,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_8_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_1_8">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_9_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1_9">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -819,10 +847,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_9" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_10" >
         
           
-          <label class="md-nav__link" for="__nav_1_9" id="__nav_1_9_label" tabindex="">
+          <label class="md-nav__link" for="__nav_1_10" id="__nav_1_10_label" tabindex="">
             
   
   
@@ -840,8 +868,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_9_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_1_9">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_10">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1154,7 +1182,7 @@
 <p>Many MCP servers lack output schemas. For example, all tools of the <a href="https://github.com/github/github-mcp-server">GitHub MCP server</a> return a JSON string without defining an output schema. Without an output schema, the <code>run()</code> function of the <a href="../../quickstart/#generating-mcp-tool-apis">generated tool API</a> returns a plain string instead of a structured <code>Result</code> type.</p>
 <p>Without knowing output structure beforehand, an agent cannot reliably write code that processes tool output inside a code action. It must retrieve raw results into context for inspection, then write processing logic in another inference round.</p>
 <p>Freeact's bundled <a href="https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates/skills/output-parsers"><code>output-parsers</code></a> skill solves this by generating output parsers that enhance tool APIs with a <code>run_parsed()</code> function that returns a structured output type. With output types known, the agent can generate processing logic in a single inference round. </p>
-<p>This tool enhancement persists across sessions and is an example of the agent acting as a <a href="../../#beyond-task-execution">toolsmith</a>, enhancing its own tool library rather than just executing tasks.</p>
+<p>This tool enhancement persists across sessions and is an example of the agent acting as a toolsmith, enhancing its own tool library rather than just executing tasks.</p>
 <h2 id="output-parser-generation">Output Parser Generation</h2>
 <div class="admonition hint">
 <p class="admonition-title">Recorded session</p>

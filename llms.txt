@@ -2,25 +2,25 @@
 
 > Freeact code action agent
 
-Freeact is a lightweight, general-purpose agent that acts via code actions rather than JSON tool calls.
-It writes executable Python code that can call multiple tools programmatically, process intermediate
-results, and use loops and conditionals in a single pass, which would otherwise require many inference
-rounds with JSON tool calling.
+Freeact is a lightweight agent that acts by executing Python code and shell commands.
+Code actions are key for an agent to improve its own tool library and codebase.
 
-Beyond executing tools, freeact can develop new tools from successful code actions, evolving its own
-tool library over time. Tools are defined via Python interfaces, progressively discovered and loaded
-from the agent's workspace rather than consuming context upfront. All execution happens locally in a
-secure sandbox via ipybox.
+Freeact has a tiny core, a small system prompt, and is extensible with agent skills.
+It relies on a minimal set of generic tools: read, write, execute, subagent, and tool search.
+
+Code and shell command execution runs locally in a stateful, sandboxed environment.
+Freeact supports utilization of MCP servers by generating Python APIs for their tools.
 
 
 ## User Guide
 
-- [Overview](https://gradion-ai.github.io/freeact/index.md): Overview, features, and toolsmith capabilities
+- [Overview](https://gradion-ai.github.io/freeact/index.md): Overview, usage, and capabilities
 - [Installation](https://gradion-ai.github.io/freeact/installation/index.md): Setup and installation instructions
 - [Quickstart](https://gradion-ai.github.io/freeact/quickstart/index.md): Getting started with code actions and MCP tools
 - [Configuration](https://gradion-ai.github.io/freeact/configuration/index.md): Configuration directory structure and MCP server setup
+- [Code Execution](https://gradion-ai.github.io/freeact/execution/index.md): Code and shell command execution in IPython kernels
 - [Sandbox Mode](https://gradion-ai.github.io/freeact/sandbox/index.md): Sandbox mode for code execution and MCP servers
-- [Python SDK](https://gradion-ai.github.io/freeact/sdk/index.md): Python SDK for agent integration
+- [Agent SDK](https://gradion-ai.github.io/freeact/sdk/index.md): Agent SDK for agent integration
 - [CLI Tool](https://gradion-ai.github.io/freeact/cli/index.md): CLI tool and interactive mode
 
 ## API Reference

@@ -510,10 +510,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#python-sdk" class="md-nav__link">
+  <a href="#agent-sdk" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Python SDK
+        Agent SDK
       
     </span>
   </a>
@@ -544,6 +544,34 @@
     
   
     Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Execution
   
 
     
@@ -599,7 +627,7 @@
   <span class="md-ellipsis">
     
   
-    Python SDK
+    Agent SDK
   
 
     
@@ -664,10 +692,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_8" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_9" >
         
           
-          <label class="md-nav__link" for="__nav_1_8" id="__nav_1_8_label" tabindex="">
+          <label class="md-nav__link" for="__nav_1_9" id="__nav_1_9_label" tabindex="">
             
   
   
@@ -685,8 +713,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_8_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_1_8">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_9">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -867,10 +895,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_9" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_10" >
         
           
-          <label class="md-nav__link" for="__nav_1_9" id="__nav_1_9_label" tabindex="">
+          <label class="md-nav__link" for="__nav_1_10" id="__nav_1_10_label" tabindex="">
             
   
   
@@ -888,8 +916,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_9_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_1_9">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_10">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1218,10 +1246,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#python-sdk" class="md-nav__link">
+  <a href="#agent-sdk" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Python SDK
+        Agent SDK
       
     </span>
   </a>
@@ -1249,7 +1277,7 @@
 
 
 <h1 id="quickstart">Quickstart</h1>
-<p>This guide shows how to run your first task with freeact.</p>
+<p>This guide shows how to run a simple task using the freeact <a href="#cli-tool">CLI tool</a> and the <a href="#agent-sdk">Agent SDK</a>.</p>
 <h2 id="cli-tool">CLI Tool</h2>
 <p>Freeact provides a <a href="../cli/">CLI tool</a> for running the agent in a terminal. </p>
 <h3 id="starting-freeact">Starting Freeact</h3>
@@ -1279,8 +1307,8 @@ uvx<span class="w"> </span>freeact
 <li><strong>Action approval</strong>: The code action and the programmatic <code>web_search</code> tool call are explicitly approved by the user, other tool calls were <a href="../configuration/#permissions">pre-approved</a> for this example.</li>
 </ul>
 <p>The code execution output shows the search result with source URLs. The agent response is a summary of it.</p>
-<h2 id="python-sdk">Python SDK</h2>
-<p>The CLI tool is built on a <a href="../sdk/">Python SDK</a> that you can use directly in your applications. The following minimal example shows how to run the same task programmatically, with code actions and tool calls auto-approved:</p>
+<h2 id="agent-sdk">Agent SDK</h2>
+<p>The CLI tool is built on the <a href="../sdk/">Agent SDK</a> that you can use directly in your applications. The following minimal example shows how to run the same task programmatically, with code actions and tool calls auto-approved:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>

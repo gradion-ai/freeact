@@ -456,6 +456,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../sandbox/" class="md-nav__link">
         
   
@@ -491,7 +519,7 @@
   <span class="md-ellipsis">
     
   
-    Python SDK
+    Agent SDK
   
 
     
@@ -594,13 +622,41 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#hybrid-search" class="md-nav__link">
+  <a href="#tool-search" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Hybrid Search
+        Tool Search
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Tool Search">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic search
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hybrid-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hybrid search
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -686,10 +742,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_8" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_9" >
         
           
-          <label class="md-nav__link" for="__nav_1_8" id="__nav_1_8_label" tabindex="">
+          <label class="md-nav__link" for="__nav_1_9" id="__nav_1_9_label" tabindex="">
             
   
   
@@ -707,8 +763,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_8_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_1_8">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_9">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -889,10 +945,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_9" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_10" >
         
           
-          <label class="md-nav__link" for="__nav_1_9" id="__nav_1_9_label" tabindex="">
+          <label class="md-nav__link" for="__nav_1_10" id="__nav_1_10_label" tabindex="">
             
   
   
@@ -910,8 +966,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_9_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_1_9">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_10">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1212,13 +1268,41 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#hybrid-search" class="md-nav__link">
+  <a href="#tool-search" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Hybrid Search
+        Tool Search
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Tool Search">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic search
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hybrid-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hybrid search
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1293,6 +1377,10 @@
 
 
 <h1 id="cli-tool">CLI tool</h1>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>The <a href="#interactive-mode">terminal interface</a> is preliminary and will be reimplemented in a future release.</p>
+</div>
 <p>The <code>freeact</code> or <code>freeact run</code> command starts the <a href="#interactive-mode">interactive mode</a>:</p>
 <div class="highlight"><pre><span></span><code>freeact
 </code></pre></div>
@@ -1351,9 +1439,12 @@
 <p>Recording a session for documentation:</p>
 <div class="highlight"><pre><span></span><code>freeact<span class="w"> </span>--record<span class="w"> </span>--record-dir<span class="w"> </span>docs/recordings/demo<span class="w"> </span>--record-title<span class="w"> </span><span class="s2">&quot;Demo Session&quot;</span>
 </code></pre></div>
-<h2 id="hybrid-search">Hybrid Search</h2>
-<p>Tool discovery mode is controlled by the <a href="../configuration/#tool-search"><code>tool-search</code></a> setting in <code>.freeact/config.json</code>. The default <code>basic</code> mode uses category browsing with <code>pytools_list_categories</code> and <code>pytools_list_tools</code>. Setting it to <code>hybrid</code> enables BM25/vector search with <code>pytools_search_tools</code> for natural language queries.</p>
-<p>This requires an embedding API. The default configuration uses Gemini embeddings, which requires setting <code>GEMINI_API_KEY</code>. See <a href="../configuration/#hybrid-search">Hybrid Search</a> for environment variables and customization options.</p>
+<h2 id="tool-search">Tool Search</h2>
+<p>Tool discovery mode is controlled by the <a href="../configuration/#tool-search"><code>tool-search</code></a> setting in <code>.freeact/config.json</code>.</p>
+<h3 id="basic-search">Basic search</h3>
+<p>The default mode. The agent browses tools by category.</p>
+<h3 id="hybrid-search">Hybrid search</h3>
+<p>Uses BM25/vector search for natural language queries. Requires an embedding API. The default configuration uses Gemini embeddings, which requires setting <code>GEMINI_API_KEY</code>. See <a href="../configuration/#hybrid-search">Hybrid Search</a> for configuration details.</p>
 <h2 id="interactive-mode">Interactive Mode</h2>
 <p>The interactive mode provides a conversation interface with the agent in a terminal window.</p>
 <p><a href="../recordings/cli/conversation.html" target="_blank"><img alt="Interactive mode" src="../recordings/cli/conversation.svg" /></a></p>
