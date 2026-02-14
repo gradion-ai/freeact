@@ -1,6 +1,6 @@
 # CLI tool
 
-!!! info
+!!! info "Work in progress"
 
     The [terminal interface](#interactive-mode) is preliminary and will be reimplemented in a future release.
 

@@ -190,6 +190,10 @@ The [CLI tool](cli.md) accepts `--session-id` to resume a session from the comma
 
 ## Permissions API
 
+!!! info "Work in progress"
+
+    Current permission management is preliminary and will be reimplemented in a future release.
+
 The agent requests approval for each code action and tool call but doesn't remember past decisions. [`PermissionManager`][freeact.permissions.PermissionManager] adds memory: `allow_always()` persists to `.freeact/permissions.json`, while `allow_session()` stores in-memory until the session ends:
 
 ```python

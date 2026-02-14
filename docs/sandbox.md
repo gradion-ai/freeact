@@ -8,7 +8,7 @@ Freeact can restrict filesystem and network access for [code execution](executio
 
 ## Code Execution
 
-!!! info
+!!! info "Scope"
 
     Sandbox restrictions apply equally to Python code and shell commands, as both [execute](execution.md) in the same IPython kernel.
 
