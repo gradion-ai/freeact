@@ -1,6 +1,6 @@
-# Python SDK
+# Agent SDK
 
-The Python SDK provides four main APIs:
+The Agent SDK provides four main APIs:
 
 - [Configuration API](api/config.md) for initializing and loading configuration from `.freeact/`
 - [Generation API](api/generate.md) for generating Python APIs for MCP server tools
@@ -37,7 +37,7 @@ result = run(Params(query="python async tutorial"))
 
 ## Agent API
 
-The [`Agent`][freeact.agent.Agent] class implements the agentic code action loop, handling code action generation, code execution, tool calls, and the approval workflow. Each [`stream()`][freeact.agent.Agent.stream] call runs a single agent turn, with the agent managing conversation history across calls. Use `stream()` to iterate over [events](#events) and handle them with pattern matching:
+The [`Agent`][freeact.agent.Agent] class implements the agentic code action loop, handling code action generation, [code execution](execution.md), tool calls, and the approval workflow. Each [`stream()`][freeact.agent.Agent.stream] call runs a single agent turn, with the agent managing conversation history across calls. Use `stream()` to iterate over [events](#events) and handle them with pattern matching:
 
 ```python
 --8<-- "examples/basic_agent.py:agent-imports"
@@ -153,7 +153,7 @@ finally:
 
 The agent supports two timeout settings in [`config.json`](configuration.md#agent-settings):
 
-- **`execution-timeout`**: Maximum time in seconds for each code execution. Approval wait time is excluded from this budget, so the timeout only counts actual execution time. Defaults to 300 seconds. Set to `null` to disable.
+- **`execution-timeout`**: Maximum time in seconds for each [code execution](execution.md). Approval wait time is excluded from this budget, so the timeout only counts actual execution time. Defaults to 300 seconds. Set to `null` to disable.
 - **`approval-timeout`**: Timeout for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. Defaults to `null` (no timeout).
 
 ```json
