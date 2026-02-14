@@ -1,6 +1,6 @@
 # Quickstart
 
-This guide shows how to run a simple task with freeact with the [CLI tool](#cli-tool) and the [Agent SDK](#agent-sdk).
+This guide shows how to run a simple task using the freeact [CLI tool](#cli-tool) and the [Agent SDK](#agent-sdk).
 
 ## CLI Tool
 

@@ -28,7 +28,7 @@ Freeact is a lightweight, general-purpose agent that acts via [*code actions*](h
 
 ## Interfaces
 
-Freeact provides a [Python SDK](https://gradion-ai.github.io/freeact/sdk/) for application integration, and a [CLI tool](https://gradion-ai.github.io/freeact/cli/) for running the agent in a terminal.
+Freeact provides an [Agent SDK](https://gradion-ai.github.io/freeact/sdk/) for application integration, and a [CLI tool](https://gradion-ai.github.io/freeact/cli/) for running the agent in a terminal.
 
 ## Features
 

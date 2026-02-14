@@ -1,5 +1,9 @@
 # CLI tool
 
+!!! info
+
+    The [terminal interface](#interactive-mode) is preliminary and will be reimplemented in a future release.
+
 The `freeact` or `freeact run` command starts the [interactive mode](#interactive-mode):
 
 ```bash
@@ -50,11 +54,17 @@ Recording a session for documentation:
 freeact --record --record-dir docs/recordings/demo --record-title "Demo Session"
 ```
 
-## Hybrid Search
+## Tool Search
 
-Tool discovery mode is controlled by the [`tool-search`](configuration.md#tool-search) setting in `.freeact/config.json`. The default `basic` mode uses category browsing with `pytools_list_categories` and `pytools_list_tools`. Setting it to `hybrid` enables BM25/vector search with `pytools_search_tools` for natural language queries.
+Tool discovery mode is controlled by the [`tool-search`](configuration.md#tool-search) setting in `.freeact/config.json`.
 
-This requires an embedding API. The default configuration uses Gemini embeddings, which requires setting `GEMINI_API_KEY`. See [Hybrid Search](configuration.md#hybrid-search) for environment variables and customization options.
+### Basic search
+
+The default mode. The agent browses tools by category.
+
+### Hybrid search
+
+Uses BM25/vector search for natural language queries. Requires an embedding API. The default configuration uses Gemini embeddings, which requires setting `GEMINI_API_KEY`. See [Hybrid Search](configuration.md#hybrid-search) for configuration details.
 
 ## Interactive Mode
 

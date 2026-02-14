@@ -13,10 +13,12 @@ Freeact supports utilization of MCP servers by generating Python APIs for their 
 
     Freeact supports models compatible with [Pydantic AI](https://ai.pydantic.dev/), with `gemini-3-flash-preview` as the current default.
 
-## Interfaces
+## Usage
 
-- [Agent SDK](sdk.md)
-- [CLI tool](cli.md)
+| Name | Description |
+|---|---|
+| [Agent SDK](sdk.md) | Agent harness and Python API for building freeact applications. |
+| [CLI tool](cli.md) | Terminal interface for interactive conversations with a freeact agent. |
 
 ## Capabilities
 
