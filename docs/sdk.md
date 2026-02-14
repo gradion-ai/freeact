@@ -63,6 +63,17 @@ The [`Agent.stream()`][freeact.agent.Agent.stream] method yields events as they 
 
 All yielded events inherit from [`AgentEvent`][freeact.agent.AgentEvent] and carry `agent_id`.
 
+### Internal tools
+
+The agent uses a small set of internal tools for reading and writing files, executing code and commands, spawning subagents, and discovering tools:
+
+| Tool | Implementation | Description |
+|------|---------------|-------------|
+| read, write | [`filesystem`][freeact.agent.config.FILESYSTEM_CONFIG] MCP server | Reading and writing files via JSON tool calls |
+| execute | `ipybox_execute_ipython_cell` | Execution of Python code and shell commands (via `!` prefix), delegated to ipybox's `CodeExecutor` |
+| subagent | [`subagent_task`](#subagents) | Task delegation to child agents |
+| tool search | `pytools` MCP server for [basic search][freeact.agent.config.PYTOOLS_BASIC_CONFIG] and [hybrid search][freeact.agent.config.PYTOOLS_HYBRID_CONFIG] | Tool discovery via category browsing or hybrid search |
+
 ### Turn limits
 
 Use `max_turns` to limit the number of tool-execution rounds before the stream stops:

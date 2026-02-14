@@ -6,7 +6,7 @@ Without knowing output structure beforehand, an agent cannot reliably write code
 
 Freeact's bundled [`output-parsers`](https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates/skills/output-parsers) skill solves this by generating output parsers that enhance tool APIs with a `run_parsed()` function that returns a structured output type. With output types known, the agent can generate processing logic in a single inference round. 
 
-This tool enhancement persists across sessions and is an example of the agent acting as a [toolsmith](../index.md#beyond-task-execution), enhancing its own tool library rather than just executing tasks.
+This tool enhancement persists across sessions and is an example of the agent acting as a toolsmith, enhancing its own tool library rather than just executing tasks.
 
 ## Output Parser Generation
 
