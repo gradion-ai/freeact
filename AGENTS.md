@@ -19,11 +19,13 @@
 ## Documentation Guidelines
 - Use mkdocs-formatter and freeact-docs-style skills for documentation (except `docs/internal/`)
 - Use mkdocs-formatter and mkdocs-docstrings skills for docstrings
+- Do not add module-level docstrings
 
 ## Development Commands
 
 ```bash
 uv sync                          # Install dependencies
+uv add [--dev] <package>         # Add a dependency (--dev for dev-only)
 uv run invoke cc                 # Code checks (auto-fixes formatting, mypy needs manual fix)
 uv run invoke ut                 # Unit tests only
 uv run invoke it --parallel      # Integration tests only

@@ -8,7 +8,7 @@ from pydantic_core import to_jsonable_python
 
 
 class SessionStore:
-    """Persists per-agent pydantic-ai message history as JSONL envelopes."""
+    """Persist and restore per-agent pydantic-ai message history as JSONL."""
 
     def __init__(
         self,
@@ -21,6 +21,16 @@ class SessionStore:
         self._flush_after_append = flush_after_append
 
     def append(self, agent_id: str, messages: list[ModelMessage]) -> None:
+        """Append serialized messages to an agent-specific session log.
+
+        Each message is written as a versioned JSONL envelope with a UTC
+        timestamp. The session file is created on demand.
+
+        Args:
+            agent_id: Logical agent stream name (for example, ``"main"`` or
+                ``"sub-1234"``), used as the JSONL filename stem.
+            messages: Messages to append in order.
+        """
         session_dir = self._sessions_root / self._session_id
         session_dir.mkdir(parents=True, exist_ok=True)
         session_file = session_dir / f"{agent_id}.jsonl"
@@ -38,6 +48,18 @@ class SessionStore:
                 f.flush()
 
     def load(self, agent_id: str) -> list[ModelMessage]:
+        """Load and validate all persisted messages for an agent.
+
+        Returns an empty list when no session file exists. If the final line is
+        truncated (for example from an interrupted write), that line is ignored.
+        Earlier malformed lines raise ``ValueError``.
+
+        Args:
+            agent_id: Logical agent stream name used to locate the JSONL file.
+
+        Returns:
+            Deserialized message history in append order.
+        """
         session_file = self._sessions_root / self._session_id / f"{agent_id}.jsonl"
         if not session_file.exists():
             return []
