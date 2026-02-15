@@ -1295,7 +1295,46 @@ SessionStore(
 )
 ```
 
-Persists per-agent pydantic-ai message history as JSONL envelopes.
+Persist and restore per-agent pydantic-ai message history as JSONL.
+
+### append
+
+```
+append(agent_id: str, messages: list[ModelMessage]) -> None
+```
+
+Append serialized messages to an agent-specific session log.
+
+Each message is written as a versioned JSONL envelope with a UTC timestamp. The session file is created on demand.
+
+Parameters:
+
+| Name       | Type                 | Description                                                                                     | Default    |
+| ---------- | -------------------- | ----------------------------------------------------------------------------------------------- | ---------- |
+| `agent_id` | `str`                | Logical agent stream name (for example, "main" or "sub-1234"), used as the JSONL filename stem. | *required* |
+| `messages` | `list[ModelMessage]` | Messages to append in order.                                                                    | *required* |
+
+### load
+
+```
+load(agent_id: str) -> list[ModelMessage]
+```
+
+Load and validate all persisted messages for an agent.
+
+Returns an empty list when no session file exists. If the final line is truncated (for example from an interrupted write), that line is ignored. Earlier malformed lines raise `ValueError`.
+
+Parameters:
+
+| Name       | Type  | Description                                              | Default    |
+| ---------- | ----- | -------------------------------------------------------- | ---------- |
+| `agent_id` | `str` | Logical agent stream name used to locate the JSONL file. | *required* |
+
+Returns:
+
+| Type                 | Description                                   |
+| -------------------- | --------------------------------------------- |
+| `list[ModelMessage]` | Deserialized message history in append order. |
 
 ## freeact.agent.config.Config
 
