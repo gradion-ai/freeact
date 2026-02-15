@@ -41,6 +41,3 @@ uv run pytest -xsv tests/integration/test_agent.py::test_name  # Single test
 
 ## Commit & Pull Request Guidelines
 - Do not include test plan in PR messages
-
-## Critical Thinking
-- Fix root cause, not band-aid
