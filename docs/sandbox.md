@@ -34,7 +34,6 @@ The `sandbox` and `sandbox_config` parameters of the [`Agent`][freeact.agent.Age
 from pathlib import Path
 
 agent = Agent(
-    "main",
     ...
     sandbox=True,
     sandbox_config=Path("sandbox-config.json"),

@@ -7,7 +7,6 @@
     }
   },
   "tool-search": "basic",
-  "agent-id": "main",
   "images-dir": null,
   "execution-timeout": 300,
   "approval-timeout": null,

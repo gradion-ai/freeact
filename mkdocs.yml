@@ -68,9 +68,9 @@ plugins:
           - installation.md: Setup and installation instructions
           - quickstart.md: Getting started with code actions and MCP tools
           - configuration.md: Configuration directory structure and MCP server setup
-          - models.md: Model configuration, provider settings, and custom providers
           - execution.md: Code and shell command execution in IPython kernels
           - sandbox.md: Sandbox mode for code execution and MCP servers
+          - models.md: Model configuration, provider settings, and custom providers
           - sdk.md: Agent SDK for agent integration
           - cli.md: CLI tool and interactive mode
         API Reference:
@@ -103,9 +103,9 @@ nav:
     - Installation: installation.md
     - Quickstart: quickstart.md
     - Configuration: configuration.md
-    - Models: models.md
     - Code Execution: execution.md
     - Sandbox Mode: sandbox.md
+    - Models: models.md
     - Agent SDK: sdk.md
     - CLI Tool: cli.md
     - Examples:
