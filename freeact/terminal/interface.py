@@ -1,5 +1,6 @@
 """Rich-based terminal interface for the freeact agent."""
 
+import re
 from collections.abc import Sequence
 
 from pydantic_ai import UserContent
@@ -18,6 +19,20 @@ from freeact.agent import (
 from freeact.media import parse_prompt
 from freeact.permissions import PermissionManager
 from freeact.terminal.display import Display
+
+_AT_FILE_PATTERN = re.compile(r"@(\S+)")
+
+
+def convert_at_references(text: str) -> str:
+    """Convert `@path` references to `<path>...</path>` XML tags.
+
+    Args:
+        text: User input text with `@path` references.
+
+    Returns:
+        Text with `@path` references replaced by `<path>path</path>` tags.
+    """
+    return _AT_FILE_PATTERN.sub(r"<path>\1</path>", text)
 
 
 class Terminal:
@@ -66,7 +81,7 @@ class Terminal:
                     self._display.show_empty_input_warning()
                     continue
                 case prompt:
-                    content = parse_prompt(prompt)
+                    content = parse_prompt(convert_at_references(prompt))
                     await self._process_turn(content)
 
     async def _process_turn(self, prompt: str | Sequence[UserContent]) -> None:
