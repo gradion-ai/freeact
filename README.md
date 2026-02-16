@@ -17,7 +17,7 @@ It relies on a minimal set of generic tools: read, write, execute, subagent, and
 Code and shell command execution runs locally in a stateful, sandboxed environment.
 Freeact supports utilization of MCP servers by generating Python APIs for their tools.
 
-**Supported models**: Freeact supports models compatible with [Pydantic AI](https://ai.pydantic.dev/), with `gemini-3-flash-preview` as the current default.
+**Supported models**: Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/), with `gemini-3-flash-preview` as the default. See [Models](https://gradion-ai.github.io/freeact/models/) for provider configuration and examples.
 
 ## Documentation
 

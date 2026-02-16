@@ -16,6 +16,10 @@
   - `tests/unit/`: unit tests
   - `tests/integration/`: integration tests
 
+## Directory-specific Guidelines
+- `docs/AGENTS.md`: documentation authoring
+- `tests/AGENTS.md`: testing conventions and utilities
+
 ## Docstring Guidelines
 - Use mkdocs-formatter and mkdocs-docstrings skills for docstrings
 - Use Markdown formatting, not reST

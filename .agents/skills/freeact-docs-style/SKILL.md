@@ -1,7 +1,6 @@
 ---
 name: freeact-docs-style
 description: Write or rewrite technical documentation in a concise, high-signal style. Use this skill for wording, tone, clarity, and information density. Do not use it for document structure, frontmatter, or markdown-format decisions.
-disable-model-invocation: true
 ---
 
 # Documentation Style
