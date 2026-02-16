@@ -10,16 +10,8 @@ from typing import Any
 import yaml
 from ipybox.utils import arun
 from ipybox.vars import replace_variables
-from pydantic_ai.models import Model, ModelSettings
-from pydantic_ai.models.google import GoogleModelSettings
-
-DEFAULT_MODEL = "gemini-3-flash-preview"
-DEFAULT_MODEL_SETTINGS = GoogleModelSettings(
-    google_thinking_config={
-        "thinking_level": "high",
-        "include_thoughts": True,
-    },
-)
+from pydantic_ai.models import Model, ModelSettings, infer_model
+from pydantic_ai.providers import Provider, infer_provider_class
 
 PYTOOLS_BASIC_CONFIG: dict[str, Any] = {
     "command": "python",
@@ -152,17 +144,11 @@ class Config:
         sessions_dir: Session trace storage directory.
     """
 
-    def __init__(
-        self,
-        working_dir: Path | None = None,
-        model: str | Model = DEFAULT_MODEL,
-        model_settings: ModelSettings = DEFAULT_MODEL_SETTINGS,
-    ):
+    def __init__(self, working_dir: Path | None = None):
         self._config_paths = _ConfigPaths(working_dir or Path.cwd())
         self._config_data = self._load_config_json()
 
-        self.model = model
-        self.model_settings = model_settings
+        self.model, self.model_settings = self._load_model_config()
         self.tool_search: str = self._config_data.get("tool-search", "basic")
 
         self._ensure_pytools_env_defaults()
@@ -308,6 +294,50 @@ class Config:
             return {}
         with open(config_file) as f:
             return json.load(f)
+
+    def _load_model_config(self) -> tuple[str | Model, ModelSettings]:
+        """Load model configuration from config.json.
+
+        Returns:
+            A tuple of (model, model_settings) where model is either a
+            string (resolved lazily by pydantic-ai) or a `Model` instance
+            (when `model-provider` is specified).
+        """
+        model_name = self._config_data.get("model")
+        if model_name is None:
+            raise ValueError("'model' is required in config.json")
+
+        settings: ModelSettings = self._config_data.get("model-settings") or {}
+        provider_config = self._config_data.get("model-provider")
+
+        if provider_config:
+            model: str | Model = self._build_model(model_name, provider_config)
+        else:
+            model = model_name
+
+        return model, settings
+
+    def _build_model(self, model_name: str, provider_config: dict[str, Any]) -> Model:
+        """Build a `Model` instance with a custom provider.
+
+        Resolves `${VAR}` placeholders in `provider_config` against
+        `os.environ`, then creates a provider factory that passes the
+        resolved kwargs to the appropriate provider constructor.
+        """
+        result = replace_variables(provider_config, os.environ)
+        if result.missing_variables:
+            raise ValueError(f"Missing environment variables for model-provider: {result.missing_variables}")
+
+        resolved = result.replaced
+
+        def provider_factory(name: str) -> Provider[Any]:
+            kwargs = dict(resolved)
+            if name in ("google-vertex", "google-gla"):
+                kwargs.setdefault("vertexai", name == "google-vertex")
+            provider_class = infer_provider_class(name)
+            return provider_class(**kwargs)
+
+        return infer_model(model_name, provider_factory=provider_factory)
 
     def _load_kernel_env(self) -> dict[str, str]:
         """Load kernel environment variables from config.json.

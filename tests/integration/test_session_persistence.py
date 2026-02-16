@@ -10,16 +10,18 @@ from pydantic_core import to_jsonable_python
 
 from freeact.agent import Agent
 from freeact.agent.config import Config
+from freeact.agent.config.config import _ConfigPaths
 from freeact.agent.store import SessionStore
 from tests.conftest import DeltaToolCalls, collect_stream, get_tool_return_parts
 
 
 def _create_unpatched_config(stream_function, tmp_path: Path) -> Config:
-    config = Config(
-        working_dir=tmp_path,
-        model=FunctionModel(stream_function=stream_function),
-        model_settings={},
-    )
+    freeact_dir = _ConfigPaths(tmp_path).freeact_dir
+    freeact_dir.mkdir(exist_ok=True)
+    (freeact_dir / "config.json").write_text(json.dumps({"model": "test"}))
+    config = Config(working_dir=tmp_path)
+    config.model = FunctionModel(stream_function=stream_function)
+    config.model_settings = {}
     config.mcp_servers = {}
     return config
 

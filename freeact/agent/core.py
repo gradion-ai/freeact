@@ -499,10 +499,10 @@ class Agent:
                         case PartStartEvent(part=TextPart(content=content)) if content:
                             response_parts.append(content)
                             yield ResponseChunk(content=content, agent_id=self.agent_id)
-                        case PartDeltaEvent(delta=ThinkingPartDelta(content_delta=delta)):
+                        case PartDeltaEvent(delta=ThinkingPartDelta(content_delta=delta)) if delta:
                             thinking_parts.append(delta)
                             yield ThoughtsChunk(content=delta, agent_id=self.agent_id)
-                        case PartDeltaEvent(delta=TextPartDelta(content_delta=delta)):
+                        case PartDeltaEvent(delta=TextPartDelta(content_delta=delta)) if delta:
                             response_parts.append(delta)
                             yield ResponseChunk(content=delta, agent_id=self.agent_id)
 

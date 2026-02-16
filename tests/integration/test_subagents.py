@@ -10,6 +10,7 @@ from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
 
 from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput, Response, ToolOutput
 from freeact.agent.config import Config
+from freeact.agent.config.config import _ConfigPaths
 from freeact.agent.core import AgentEvent, ResponseChunk
 from tests.conftest import (
     DeltaToolCalls,
@@ -22,11 +23,12 @@ from tests.conftest import (
 def _create_unpatched_config(stream_function) -> Config:
     """Create a Config for unpatched agent tests."""
     tmp_dir = Path(tempfile.mkdtemp())
-    config = Config(
-        working_dir=tmp_dir,
-        model=FunctionModel(stream_function=stream_function),
-        model_settings={},
-    )
+    freeact_dir = _ConfigPaths(tmp_dir).freeact_dir
+    freeact_dir.mkdir()
+    (freeact_dir / "config.json").write_text(json.dumps({"model": "test"}))
+    config = Config(working_dir=tmp_dir)
+    config.model = FunctionModel(stream_function=stream_function)
+    config.model_settings = {}
     config.mcp_servers = {}
     return config
 
