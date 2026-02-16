@@ -21,9 +21,6 @@
 - Use Markdown formatting, not reST
 - Do not add module-level docstrings
 
-## Documentation Guidelines
-- Use mkdocs-formatter and freeact-docs-style skills for documentation (except `docs/internal/`)
-
 ## Development Commands
 
 ```bash
