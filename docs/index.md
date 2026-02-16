@@ -11,7 +11,7 @@ Freeact supports utilization of MCP servers by generating Python APIs for their 
 
 !!! note "Supported models"
 
-    Freeact supports models compatible with [Pydantic AI](https://ai.pydantic.dev/), with `gemini-3-flash-preview` as the current default.
+    Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/){target="_blank"}, with `gemini-3-flash-preview` as the default. See [Models](models.md) for provider configuration and examples.
 
 ## Usage
 

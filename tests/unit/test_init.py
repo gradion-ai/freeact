@@ -48,10 +48,9 @@ class TestConfigInit:
         assert config_json.exists()
 
         config = json.loads(config_json.read_text())
+        assert "model" in config
         assert "tool-search" in config
         assert config["tool-search"] == "basic"
-        assert "agent-id" in config
-        assert config["agent-id"] == "main"
         assert "images-dir" in config
         assert config["images-dir"] is None
         assert "execution-timeout" in config

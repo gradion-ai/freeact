@@ -1,6 +1,12 @@
 {
+  "model": "google-gla:gemini-3-flash-preview",
+  "model-settings": {
+    "google_thinking_config": {
+      "thinking_level": "high",
+      "include_thoughts": true
+    }
+  },
   "tool-search": "basic",
-  "agent-id": "main",
   "images-dir": null,
   "execution-timeout": 300,
   "approval-timeout": null,

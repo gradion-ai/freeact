@@ -13,6 +13,7 @@ from pydantic_ai.models.function import AgentInfo, DeltaThinkingPart, DeltaToolC
 
 from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput, Response
 from freeact.agent.config import Config
+from freeact.agent.config.config import _ConfigPaths
 from freeact.tools.pytools import MCPTOOLS_DIR
 from tests.conftest import (
     DeltaThinkingCalls,
@@ -29,11 +30,12 @@ from tests.integration.mcp_server import STDIO_SERVER_PATH
 def _create_unpatched_config(stream_function) -> Config:
     """Create a Config for unpatched agent tests."""
     tmp_dir = Path(tempfile.mkdtemp())
-    config = Config(
-        working_dir=tmp_dir,
-        model=FunctionModel(stream_function=stream_function),
-        model_settings={},
-    )
+    freeact_dir = _ConfigPaths(tmp_dir).freeact_dir
+    freeact_dir.mkdir()
+    (freeact_dir / "config.json").write_text(json.dumps({"model": "test"}))
+    config = Config(working_dir=tmp_dir)
+    config.model = FunctionModel(stream_function=stream_function)
+    config.model_settings = {}
     config.mcp_servers = {}
     return config
 
@@ -342,6 +344,25 @@ class TestExtendedThinking:
             # Should have response
             assert len(results.responses) == 1
             assert "answer" in results.responses[0].content
+
+    @pytest.mark.asyncio
+    async def test_thinking_none_content_ignored(self):
+        """`ThinkingPartDelta` with `None` content does not cause a crash."""
+
+        async def stream_function_with_none_thinking(
+            messages: list[ModelMessage], info: AgentInfo
+        ) -> AsyncIterator[str | DeltaToolCalls | DeltaThinkingCalls]:
+            yield {0: DeltaThinkingPart(content="Thinking")}
+            yield {0: DeltaThinkingPart(content=None)}
+            yield {0: DeltaThinkingPart(content=" more.")}
+            yield "Response text."
+
+        async with patched_agent(stream_function_with_none_thinking) as agent:
+            results = await collect_stream(agent, "test")
+
+            assert len(results.thoughts) == 1
+            assert results.thoughts[0].content == "Thinking more."
+            assert len(results.responses) == 1
 
 
 class TestStreamingDeltas:

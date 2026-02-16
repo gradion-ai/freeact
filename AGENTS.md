@@ -16,16 +16,20 @@
   - `tests/unit/`: unit tests
   - `tests/integration/`: integration tests
 
-## Documentation Guidelines
-- Use mkdocs-formatter and freeact-docs-style skills for documentation (except `docs/internal/`)
+## Directory-specific Guidelines
+- `docs/AGENTS.md`: documentation authoring
+- `tests/AGENTS.md`: testing conventions and utilities
+
+## Docstring Guidelines
 - Use mkdocs-formatter and mkdocs-docstrings skills for docstrings
+- Use Markdown formatting, not reST
 - Do not add module-level docstrings
 
 ## Development Commands
 
 ```bash
 uv sync                          # Install dependencies
-uv add [--dev] <package>         # Add a dependency (--dev for dev-only)
+uv add [--dev] [-U] <package>    # Add a dependency (--dev for dev-only, -U to upgrade)
 uv run invoke cc                 # Code checks (auto-fixes formatting, mypy needs manual fix)
 uv run invoke ut                 # Unit tests only
 uv run invoke it --parallel      # Integration tests only

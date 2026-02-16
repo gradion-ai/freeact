@@ -46,6 +46,8 @@ The `config.json` file contains agent settings and MCP server configurations:
 
 ```json
 {
+  "model": "google-gla:gemini-3-flash-preview",
+  "model-settings": { ... },
   "tool-search": "basic",
   "images-dir": null,
   "execution-timeout": 300,
@@ -64,6 +66,9 @@ The `config.json` file contains agent settings and MCP server configurations:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
+| `model` | `google-gla:gemini-3-flash-preview` | [Model identifier](models.md#model-identifier) in `provider:model-name` format |
+| `model-settings` | `{}` | Provider-specific [model settings](models.md#model-settings) (e.g., thinking config, temperature) |
+| `model-provider` | `null` | Custom API credentials, endpoints, or other [provider-specific options](models.md#model-provider) |
 | `images-dir` | `null` | Directory for saving generated images to disk. `null` defaults to `images` in the working directory. |
 | `execution-timeout` | `300` | Maximum time in seconds for [code execution](execution.md). Approval wait time is excluded. `null` means no timeout. |
 | `approval-timeout` | `null` | Timeout in seconds for PTC approval requests. `null` means no timeout. |

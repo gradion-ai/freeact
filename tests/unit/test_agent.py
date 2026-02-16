@@ -1,3 +1,4 @@
+import json
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -7,6 +8,7 @@ import pytest
 
 from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput
 from freeact.agent.config import Config
+from freeact.agent.config.config import _ConfigPaths
 from tests.conftest import (
     CodeExecFunction,
     collect_stream,
@@ -18,11 +20,10 @@ from tests.conftest import (
 def _create_test_config(**overrides: Any) -> Config:
     """Create a Config with a temp .freeact dir and optional attribute overrides."""
     tmp_dir = Path(tempfile.mkdtemp())
-    config = Config(
-        working_dir=tmp_dir,
-        model="test",
-        model_settings={},
-    )
+    freeact_dir = _ConfigPaths(tmp_dir).freeact_dir
+    freeact_dir.mkdir()
+    (freeact_dir / "config.json").write_text(json.dumps({"model": "test"}))
+    config = Config(working_dir=tmp_dir)
     config.mcp_servers = {}
     for key, value in overrides.items():
         setattr(config, key, value)
