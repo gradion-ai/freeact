@@ -1,11 +1,7 @@
 ## freeact.agent.config.Config
 
 ```
-Config(
-    working_dir: Path | None = None,
-    model: str | Model = DEFAULT_MODEL,
-    model_settings: ModelSettings = DEFAULT_MODEL_SETTINGS,
-)
+Config(working_dir: Path | None = None)
 ```
 
 Configuration loader for the `.freeact/` directory structure.
@@ -20,8 +16,8 @@ Attributes:
 | ------------------- | ---------------- | ---------------------------------------------------------- |
 | `working_dir`       | `Path`           | Agent's working directory.                                 |
 | `freeact_dir`       | `Path`           | Path to .freeact/ configuration directory.                 |
-| `model`             |                  | LLM model name or instance.                                |
-| `model_settings`    |                  | Model-specific settings (e.g., thinking config).           |
+| `model`             | `Path`           | LLM model name or instance.                                |
+| `model_settings`    | `Path`           | Model-specific settings (e.g., thinking config).           |
 | `tool_search`       | `str`            | Tool discovery mode read from config.json.                 |
 | `images_dir`        | \`Path           | None\`                                                     |
 | `execution_timeout` | \`float          | None\`                                                     |
@@ -116,23 +112,6 @@ SkillMetadata(name: str, description: str, path: Path)
 ```
 
 Metadata parsed from a skill's SKILL.md frontmatter.
-
-## freeact.agent.config.DEFAULT_MODEL
-
-```
-DEFAULT_MODEL = 'gemini-3-flash-preview'
-```
-
-## freeact.agent.config.DEFAULT_MODEL_SETTINGS
-
-```
-DEFAULT_MODEL_SETTINGS = GoogleModelSettings(
-    google_thinking_config={
-        "thinking_level": "high",
-        "include_thoughts": True,
-    }
-)
-```
 
 ## freeact.agent.config.PYTOOLS_BASIC_CONFIG
 

@@ -20,6 +20,7 @@ Freeact supports utilization of MCP servers by generating Python APIs for their 
 - [Configuration](https://gradion-ai.github.io/freeact/configuration/index.md): Configuration directory structure and MCP server setup
 - [Code Execution](https://gradion-ai.github.io/freeact/execution/index.md): Code and shell command execution in IPython kernels
 - [Sandbox Mode](https://gradion-ai.github.io/freeact/sandbox/index.md): Sandbox mode for code execution and MCP servers
+- [Models](https://gradion-ai.github.io/freeact/models/index.md): Model configuration, provider settings, and custom providers
 - [Agent SDK](https://gradion-ai.github.io/freeact/sdk/index.md): Agent SDK for agent integration
 - [CLI Tool](https://gradion-ai.github.io/freeact/cli/index.md): CLI tool and interactive mode
 

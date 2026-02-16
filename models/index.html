@@ -10,9 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://gradion-ai.github.io/freeact/internal/">
+        <link rel="canonical" href="https://gradion-ai.github.io/freeact/models/">
       
       
+        <link rel="prev" href="../sandbox/">
+      
+      
+        <link rel="next" href="../sdk/">
       
       
         
@@ -23,7 +27,7 @@
     
     
       
-        <title>Internal Documentation - freeact</title>
+        <title>Models - freeact</title>
       
     
     
@@ -76,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#internal-documentation" class="md-skip">
+        <a href="#models" class="md-skip">
           Skip to content
         </a>
       
@@ -109,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Internal Documentation
+              Models
             
           </span>
         </div>
@@ -194,10 +198,12 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href=".." class="md-tabs__link">
           
   
@@ -278,26 +284,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
         
           
-          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
             
   
   
@@ -315,7 +326,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_1">
             <span class="md-nav__icon md-icon"></span>
             
@@ -498,10 +509,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../models/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -517,6 +555,159 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#model-identifier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model Identifier
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provider-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provider Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Provider Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#google-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Google (default)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anthropic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anthropic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openai" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenAI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openrouter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenRouter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openai-compatible-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenAI-Compatible Endpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model Settings
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Model Settings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#extended-thinking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extended Thinking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model Provider
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -591,17 +782,20 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_10" >
         
           
-          <label class="md-nav__link" for="__nav_1_10" id="__nav_1_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_1_10" id="__nav_1_10_label" tabindex="">
             
   
   
@@ -791,17 +985,20 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_11" >
         
           
-          <label class="md-nav__link" for="__nav_1_11" id="__nav_1_11_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_1_11" id="__nav_1_11_label" tabindex="">
             
   
   
@@ -1092,6 +1289,147 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#model-identifier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model Identifier
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provider-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provider Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Provider Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#google-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Google (default)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anthropic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anthropic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openai" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenAI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openrouter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenRouter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openai-compatible-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenAI-Compatible Endpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model Settings
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Model Settings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#extended-thinking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extended Thinking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model Provider
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1110,9 +1448,198 @@
   
 
 
-<h1 id="internal-documentation">Internal Documentation</h1>
-<p>Agent-optimized reference material. Not published via MkDocs.</p>
-<p>Do not use mkdocs-formatter, mkdocs-docstrings, or freeact-docs-style skills for files in this directory.</p>
+<h1 id="models">Models</h1>
+<p>Freeact supports any model compatible with <a href="https://ai.pydantic.dev/models/" target="_blank">Pydantic AI</a>. The model is configured in <a href="../configuration/#configuration-file"><code>.freeact/config.json</code></a> through three settings:</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>model</code></td>
+<td>yes</td>
+<td>Model identifier in <code>provider:model-name</code> format</td>
+</tr>
+<tr>
+<td><code>model-settings</code></td>
+<td>no</td>
+<td>Provider-specific settings passed to the model (e.g., thinking config, temperature)</td>
+</tr>
+<tr>
+<td><code>model-provider</code></td>
+<td>no</td>
+<td>Provider constructor kwargs for custom endpoints or credentials</td>
+</tr>
+</tbody>
+</table>
+<h2 id="model-identifier">Model Identifier</h2>
+<p>The <code>model</code> field uses Pydantic AI's <code>provider:model-name</code> format. Common providers:</p>
+<table>
+<thead>
+<tr>
+<th>Provider</th>
+<th>Prefix</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Google (Gemini API)</td>
+<td><code>google-gla:</code></td>
+<td><code>google-gla:gemini-3-flash-preview</code></td>
+</tr>
+<tr>
+<td>Google (Vertex AI)</td>
+<td><code>google-vertex:</code></td>
+<td><code>google-vertex:gemini-3-flash-preview</code></td>
+</tr>
+<tr>
+<td>Anthropic</td>
+<td><code>anthropic:</code></td>
+<td><code>anthropic:claude-sonnet-4-5-20250929</code></td>
+</tr>
+<tr>
+<td>OpenAI</td>
+<td><code>openai:</code></td>
+<td><code>openai:gpt-5.2</code></td>
+</tr>
+<tr>
+<td>OpenRouter</td>
+<td><code>openrouter:</code></td>
+<td><code>openrouter:anthropic/claude-sonnet-4-5</code></td>
+</tr>
+</tbody>
+</table>
+<p>See Pydantic AI's <a href="https://ai.pydantic.dev/models/" target="_blank">model documentation</a> for the full list of supported providers and model names.</p>
+<h2 id="provider-examples">Provider Examples</h2>
+<h3 id="google-default">Google (default)</h3>
+<p>The default configuration uses Google's Gemini API with dynamic thinking enabled:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;google-gla:gemini-3-flash-preview&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;google_thinking_config&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;thinking_level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;high&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;include_thoughts&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Set the <code>GEMINI_API_KEY</code> environment variable to authenticate.</p>
+<h3 id="anthropic">Anthropic</h3>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;anthropic:claude-sonnet-4-5-20250929&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;max_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8192</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;anthropic_thinking&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;enabled&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;budget_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2048</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Set the <code>ANTHROPIC_API_KEY</code> environment variable to authenticate.</p>
+<h3 id="openai">OpenAI</h3>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;openai:gpt-5.2&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;openai_reasoning_effort&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;medium&quot;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Set the <code>OPENAI_API_KEY</code> environment variable to authenticate.</p>
+<h3 id="openrouter">OpenRouter</h3>
+<p>Providers like OpenRouter require <code>model-provider</code> to pass constructor kwargs (API key, app metadata) to the provider:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;openrouter:anthropic/claude-sonnet-4-5&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;max_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8192</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;model-provider&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;api_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${OPENROUTER_API_KEY}&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;app_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://my-app.example.com&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;app_title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;freeact&quot;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="openai-compatible-endpoints">OpenAI-Compatible Endpoints</h3>
+<p>Any OpenAI-compatible API can be used by setting <code>base_url</code> in <code>model-provider</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;openai:my-custom-model&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;temperature&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.7</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;model-provider&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;base_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://my-api.example.com/v1&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;api_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${CUSTOM_API_KEY}&quot;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="model-settings">Model Settings</h2>
+<p><code>model-settings</code> is passed directly to Pydantic AI's model request. Available settings depend on the provider.</p>
+<h3 id="extended-thinking">Extended Thinking</h3>
+<p>Freeact streams thinking content when the model supports it. Thinking is configured through provider-specific settings in <code>model-settings</code>.</p>
+<p><strong>Google (Gemini)</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;google_thinking_config&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;thinking_level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;high&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;include_thoughts&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><code>thinking_level</code> accepts <code>"low"</code>, <code>"medium"</code>, or <code>"high"</code>. Set <code>include_thoughts</code> to <code>true</code> to stream thinking content.</p>
+<p><strong>Anthropic</strong> (Sonnet 4.5 and earlier):</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;max_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8192</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;anthropic_thinking&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;enabled&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;budget_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2048</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><code>max_tokens</code> and <code>budget_tokens</code> are both required.</p>
+<p><strong>Anthropic</strong> (Opus 4.6+):</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;anthropic_thinking&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;adaptive&quot;</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;anthropic_effort&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;high&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Adaptive thinking replaces explicit token budgets. The model decides when and how much to think.</p>
+<p><strong>OpenAI</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;openai_reasoning_effort&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;medium&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><code>openai_reasoning_effort</code> accepts <code>"low"</code>, <code>"medium"</code>, or <code>"high"</code>.</p>
+<h3 id="common-settings">Common Settings</h3>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>temperature</code></td>
+<td>Controls randomness (e.g., <code>0.7</code>)</td>
+</tr>
+<tr>
+<td><code>max_tokens</code></td>
+<td>Maximum response tokens</td>
+</tr>
+</tbody>
+</table>
+<p>See Pydantic AI's <a href="https://ai.pydantic.dev/api/settings/" target="_blank">settings documentation</a> for the full reference.</p>
+<h2 id="model-provider">Model Provider</h2>
+<p><code>model-provider</code> configures custom API credentials, endpoints, or other provider-specific options.</p>
+<p>Provider config supports <code>${VAR}</code> placeholders resolved against the host environment. Missing variables cause a startup error.</p>
+<p>When <code>model-provider</code> is omitted, Pydantic AI resolves the provider from the model name prefix and uses its default authentication (typically an environment variable like <code>GEMINI_API_KEY</code> or <code>ANTHROPIC_API_KEY</code>).</p>
 
 
 

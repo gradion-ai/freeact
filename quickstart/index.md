@@ -18,6 +18,10 @@ uvx freeact
 
 See [Installation](https://gradion-ai.github.io/freeact/installation/index.md) for alternative setup options and sandbox mode prerequisites.
 
+Using a different model
+
+Freeact supports any model compatible with Pydantic AI. To switch providers or configure model settings, see [Models](https://gradion-ai.github.io/freeact/models/index.md).
+
 ### Generating MCP Tool APIs
 
 On first start, the CLI tool auto-generates Python APIs for [configured](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) MCP servers. For example, it creates `.freeact/generated/mcptools/google/web_search.py` for the `web_search` tool of the bundled `google` MCP server. With the generated Python API, the agent can import and call this tool programmatically.

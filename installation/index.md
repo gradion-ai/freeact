@@ -41,7 +41,7 @@ This approach lets you install additional packages (e.g., `uv add pandas`) that 
 
 ## API Key
 
-Freeact uses `gemini-3-flash-preview` as the default model. Set the API key in your environment:
+Freeact uses `gemini-3-flash-preview` as the [default model](https://gradion-ai.github.io/freeact/models/index.md). Set the API key in your environment:
 
 ```
 export GEMINI_API_KEY="your-api-key"

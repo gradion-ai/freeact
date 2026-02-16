@@ -34,7 +34,6 @@ The `sandbox` and `sandbox_config` parameters of the Agent constructor provide t
 from pathlib import Path
 
 agent = Agent(
-    "main",
     ...
     sandbox=True,
     sandbox_config=Path("sandbox-config.json"),

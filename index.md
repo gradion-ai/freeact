@@ -8,7 +8,7 @@ Code and shell command execution runs locally in a stateful, sandboxed environme
 
 Supported models
 
-Freeact supports models compatible with [Pydantic AI](https://ai.pydantic.dev/), with `gemini-3-flash-preview` as the current default.
+Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/), with `gemini-3-flash-preview` as the default. See [Models](https://gradion-ai.github.io/freeact/models/index.md) for provider configuration and examples.
 
 ## Usage
 

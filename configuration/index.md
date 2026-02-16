@@ -46,6 +46,8 @@ The `config.json` file contains agent settings and MCP server configurations:
 
 ```
 {
+  "model": "google-gla:gemini-3-flash-preview",
+  "model-settings": { ... },
   "tool-search": "basic",
   "images-dir": null,
   "execution-timeout": 300,
@@ -62,14 +64,17 @@ The `config.json` file contains agent settings and MCP server configurations:
 
 ### Agent Settings
 
-| Setting             | Default | Description                                                                                                                                                     |
-| ------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `images-dir`        | `null`  | Directory for saving generated images to disk. `null` defaults to `images` in the working directory.                                                            |
-| `execution-timeout` | `300`   | Maximum time in seconds for [code execution](https://gradion-ai.github.io/freeact/execution/index.md). Approval wait time is excluded. `null` means no timeout. |
-| `approval-timeout`  | `null`  | Timeout in seconds for PTC approval requests. `null` means no timeout.                                                                                          |
-| `enable-subagents`  | `true`  | Whether to enable subagent delegation                                                                                                                           |
-| `max-subagents`     | `5`     | Maximum number of concurrent subagents                                                                                                                          |
-| `kernel-env`        | `{}`    | Environment variables passed to the IPython kernel. Supports `${VAR}` placeholders resolved against the host environment.                                       |
+| Setting             | Default                             | Description                                                                                                                                                     |
+| ------------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`             | `google-gla:gemini-3-flash-preview` | [Model identifier](https://gradion-ai.github.io/freeact/models/#model-identifier) in `provider:model-name` format                                               |
+| `model-settings`    | `{}`                                | Provider-specific [model settings](https://gradion-ai.github.io/freeact/models/#model-settings) (e.g., thinking config, temperature)                            |
+| `model-provider`    | `null`                              | Custom API credentials, endpoints, or other [provider-specific options](https://gradion-ai.github.io/freeact/models/#model-provider)                            |
+| `images-dir`        | `null`                              | Directory for saving generated images to disk. `null` defaults to `images` in the working directory.                                                            |
+| `execution-timeout` | `300`                               | Maximum time in seconds for [code execution](https://gradion-ai.github.io/freeact/execution/index.md). Approval wait time is excluded. `null` means no timeout. |
+| `approval-timeout`  | `null`                              | Timeout in seconds for PTC approval requests. `null` means no timeout.                                                                                          |
+| `enable-subagents`  | `true`                              | Whether to enable subagent delegation                                                                                                                           |
+| `max-subagents`     | `5`                                 | Maximum number of concurrent subagents                                                                                                                          |
+| `kernel-env`        | `{}`                                | Environment variables passed to the IPython kernel. Supports `${VAR}` placeholders resolved against the host environment.                                       |
 
 ### `tool-search`
 
