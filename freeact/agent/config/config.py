@@ -75,8 +75,8 @@ class SkillMetadata:
 class _ConfigPaths:
     """All paths derived from the working directory.
 
-    Centralizes path construction used by both ``Config.__init__()``
-    and ``Config.init()``.
+    Centralizes path construction used by both `Config.__init__()`
+    and `Config.init()`.
     """
 
     working_dir: Path
@@ -88,6 +88,14 @@ class _ConfigPaths:
     @property
     def skills_dir(self) -> Path:
         return self.freeact_dir / "skills"
+
+    @property
+    def project_instructions_file(self) -> Path:
+        return self.working_dir / "AGENTS.md"
+
+    @property
+    def project_skills_dir(self) -> Path:
+        return self.working_dir / ".agents" / "skills"
 
     @property
     def plans_dir(self) -> Path:
@@ -137,7 +145,7 @@ class Config:
         enable_subagents: Whether to enable subagent delegation.
         max_subagents: Maximum number of concurrent subagents.
         kernel_env: Environment variables passed to the IPython kernel.
-        skills_metadata: Parsed skill definitions from `.freeact/skills/*/SKILL.md`.
+        skills_metadata: Parsed skill definitions from `.freeact/skills/` and `.agents/skills/`.
         system_prompt: Rendered system prompt loaded from package resources.
         mcp_servers: Merged and resolved MCP server configs.
         ptc_servers: Raw PTC server configs loaded from `config.json`.
@@ -369,19 +377,21 @@ class Config:
 
     def _load_skills_metadata(self) -> list[SkillMetadata]:
         """Load skill metadata from all SKILL.md files."""
-        skills_dir = self.freeact_dir / "skills"
-        skills: list[SkillMetadata] = []
+        return self._scan_skills_dir(self._config_paths.skills_dir) + self._scan_skills_dir(
+            self._config_paths.project_skills_dir
+        )
 
+    def _scan_skills_dir(self, skills_dir: Path) -> list[SkillMetadata]:
+        """Scan a single directory for skill subdirectories containing SKILL.md."""
+        skills: list[SkillMetadata] = []
         if not skills_dir.exists():
             return skills
-
         for skill_dir in skills_dir.iterdir():
             if skill_dir.is_dir():
                 skill_file = skill_dir / "SKILL.md"
                 if skill_file.exists():
                     if metadata := self._parse_skill_file(skill_file):
                         skills.append(metadata)
-
         return skills
 
     def _parse_skill_file(self, skill_file: Path) -> SkillMetadata | None:
@@ -406,7 +416,7 @@ class Config:
         """Render a section template with content.
 
         Loads `prompts/section-{section_name}.md` and renders it with the
-        given content. Returns an empty string if content is ``None``.
+        given content. Returns an empty string if content is `None`.
         """
         if content is None:
             return ""
@@ -416,11 +426,11 @@ class Config:
         return template.format(content=content)
 
     def _load_project_instructions_content(self) -> str | None:
-        """Load AGENTS.md from working directory.
+        """Load project instructions from working directory.
 
-        Returns ``None`` if the file is absent or empty.
+        Returns `None` if the file is absent or empty.
         """
-        agents_file = self.working_dir / "AGENTS.md"
+        agents_file = self._config_paths.project_instructions_file
         if not agents_file.exists():
             return None
         content = agents_file.read_text().strip()
@@ -429,7 +439,7 @@ class Config:
     def _load_skills_content(self) -> str | None:
         """Render skills metadata as markdown list.
 
-        Returns ``None`` if no skills are configured.
+        Returns `None` if no skills are configured.
         """
         if not self.skills_metadata:
             return None
@@ -465,8 +475,8 @@ class Config:
         """Load MCP servers: internal defaults merged with user overrides.
 
         User-defined servers from `config.json` take precedence over
-        internal configs for the same key. All ``${VAR}`` placeholders
-        are validated and resolved against ``os.environ``.
+        internal configs for the same key. All `${VAR}` placeholders
+        are validated and resolved against `os.environ`.
         """
         internal = self._internal_mcp_servers()
         user = self._config_data.get("mcp-servers", {})

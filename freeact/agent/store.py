@@ -27,8 +27,8 @@ class SessionStore:
         timestamp. The session file is created on demand.
 
         Args:
-            agent_id: Logical agent stream name (for example, ``"main"`` or
-                ``"sub-1234"``), used as the JSONL filename stem.
+            agent_id: Logical agent stream name (for example, `"main"` or
+                `"sub-1234"`), used as the JSONL filename stem.
             messages: Messages to append in order.
         """
         session_dir = self._sessions_root / self._session_id
@@ -52,7 +52,7 @@ class SessionStore:
 
         Returns an empty list when no session file exists. If the final line is
         truncated (for example from an interrupted write), that line is ignored.
-        Earlier malformed lines raise ``ValueError``.
+        Earlier malformed lines raise `ValueError`.
 
         Args:
             agent_id: Logical agent stream name used to locate the JSONL file.

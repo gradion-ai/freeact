@@ -20,11 +20,6 @@
 - `docs/AGENTS.md`: documentation authoring
 - `tests/AGENTS.md`: testing conventions and utilities
 
-## Docstring Guidelines
-- Use mkdocs-formatter and mkdocs-docstrings skills for docstrings
-- Use Markdown formatting, not reST
-- Do not add module-level docstrings
-
 ## Development Commands
 
 ```bash
@@ -39,6 +34,11 @@ uv run pytest -xsv tests/integration/test_agent.py::test_name  # Single test
 ```
 
 - `invoke cc` only checks files under version control. Run `git add` on new files first.
+
+## Docstring Guidelines
+- Use mkdocs-formatter and mkdocs-docstrings skills for docstrings
+- Use Markdown formatting, not reST
+- Do not add module-level docstrings
 
 ## Coding Style & Naming Conventions
 - All function parameters and return types must have type hints

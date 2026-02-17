@@ -96,13 +96,45 @@ class TestRenderSkillsSection:
 
         assert "## Skills" not in config.system_prompt
 
+    def test_loads_skills_from_agents_dir(self, tmp_path: Path, freeact_dir: Path):
+        """Loads skills from .agents/skills/ directory."""
+        skill_dir = _ConfigPaths(tmp_path).project_skills_dir / "agent-skill"
+        skill_dir.mkdir(parents=True)
+        (skill_dir / "SKILL.md").write_text("---\nname: agent-skill\ndescription: From agents dir\n---\nContent.")
+
+        config = Config(working_dir=tmp_path)
+
+        assert len(config.skills_metadata) == 1
+        assert config.skills_metadata[0].name == "agent-skill"
+
+    def test_freeact_skills_rendered_before_agents_skills(self, tmp_path: Path, freeact_dir: Path):
+        """Skills from .freeact/ appear before skills from .agents/ in metadata and prompt."""
+        paths = _ConfigPaths(tmp_path)
+
+        freeact_skill = paths.skills_dir / "freeact-skill"
+        freeact_skill.mkdir(parents=True)
+        (freeact_skill / "SKILL.md").write_text("---\nname: freeact-skill\ndescription: From freeact\n---\nContent.")
+
+        agents_skill = paths.project_skills_dir / "agents-skill"
+        agents_skill.mkdir(parents=True)
+        (agents_skill / "SKILL.md").write_text("---\nname: agents-skill\ndescription: From agents\n---\nContent.")
+
+        config = Config(working_dir=tmp_path)
+
+        assert len(config.skills_metadata) == 2
+        assert config.skills_metadata[0].name == "freeact-skill"
+        assert config.skills_metadata[1].name == "agents-skill"
+        freeact_pos = config.system_prompt.index("**freeact-skill**")
+        agents_pos = config.system_prompt.index("**agents-skill**")
+        assert freeact_pos < agents_pos
+
 
 class TestProjectInstructions:
     """Tests for project instructions rendering from AGENTS.md."""
 
     def test_renders_agents_md_in_system_prompt(self, tmp_path: Path, freeact_dir: Path):
-        """Renders AGENTS.md content inside project-instructions tags."""
-        (tmp_path / "AGENTS.md").write_text("Use pytest for testing.\nPrefer dataclasses.")
+        """Renders project instructions content inside project-instructions tags."""
+        _ConfigPaths(tmp_path).project_instructions_file.write_text("Use pytest for testing.\nPrefer dataclasses.")
 
         config = Config(working_dir=tmp_path)
 
@@ -112,23 +144,23 @@ class TestProjectInstructions:
         assert "Prefer dataclasses." in config.system_prompt
 
     def test_omits_section_when_no_agents_md(self, tmp_path: Path, freeact_dir: Path):
-        """Omits project instructions section when AGENTS.md does not exist."""
+        """Omits project instructions section when file does not exist."""
         config = Config(working_dir=tmp_path)
 
         assert "## Project Instructions" not in config.system_prompt
         assert "<project-instructions>" not in config.system_prompt
 
     def test_omits_section_when_agents_md_empty(self, tmp_path: Path, freeact_dir: Path):
-        """Omits project instructions section when AGENTS.md is empty."""
-        (tmp_path / "AGENTS.md").write_text("")
+        """Omits project instructions section when file is empty."""
+        _ConfigPaths(tmp_path).project_instructions_file.write_text("")
 
         config = Config(working_dir=tmp_path)
 
         assert "## Project Instructions" not in config.system_prompt
 
     def test_omits_section_when_agents_md_whitespace_only(self, tmp_path: Path, freeact_dir: Path):
-        """Omits project instructions section when AGENTS.md contains only whitespace."""
-        (tmp_path / "AGENTS.md").write_text("  \n\n  ")
+        """Omits project instructions section when file contains only whitespace."""
+        _ConfigPaths(tmp_path).project_instructions_file.write_text("  \n\n  ")
 
         config = Config(working_dir=tmp_path)
 
