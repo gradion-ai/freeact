@@ -24,15 +24,15 @@ _AT_FILE_PATTERN = re.compile(r"@(\S+)")
 
 
 def convert_at_references(text: str) -> str:
-    """Convert `@path` references to `<path>...</path>` XML tags.
+    """Convert `@path` references to `<attachment>...</attachment>` XML tags.
 
     Args:
         text: User input text with `@path` references.
 
     Returns:
-        Text with `@path` references replaced by `<path>path</path>` tags.
+        Text with `@path` references replaced by `<attachment>path</attachment>` tags.
     """
-    return _AT_FILE_PATTERN.sub(r"<path>\1</path>", text)
+    return _AT_FILE_PATTERN.sub(r"<attachment>\1</attachment>", text)
 
 
 class Terminal:

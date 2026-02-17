@@ -1,4 +1,4 @@
-"""User prompt parsing with `<path>` tag extraction."""
+"""User prompt parsing with `<attachment>` tag extraction."""
 
 import re
 from collections.abc import Sequence
@@ -8,23 +8,23 @@ from pydantic_ai import UserContent
 
 from freeact.media.images import collect_images, load_image
 
-_PATH_TAG_PATTERN = re.compile(r"<path>(.*?)</path>")
+_ATTACHMENT_TAG_PATTERN = re.compile(r"<attachment>(.*?)</attachment>")
 
 
 def parse_prompt(text: str, max_image_size: int = 1024) -> str | Sequence[UserContent]:
-    """Extract `<path>...</path>` image references into multimodal content.
+    """Extract `<attachment>...</attachment>` image references into multimodal content.
 
     Returns the original text unchanged if no images are found.
     Otherwise returns labeled images (as binary content) followed by text.
 
     Args:
-        text: User prompt text with `<path>...</path>` references.
+        text: User prompt text with `<attachment>...</attachment>` references.
         max_image_size: Maximum dimension for images (downscaled if larger).
 
     Note:
         Directory references include all images in that directory (non-recursive).
     """
-    matches = list(_PATH_TAG_PATTERN.finditer(text))
+    matches = list(_ATTACHMENT_TAG_PATTERN.finditer(text))
     if not matches:
         return text
 

@@ -14,7 +14,7 @@ def test_no_path_tags_returns_string():
 def test_non_image_path_returns_string(tmp_path: Path):
     txt_file = tmp_path / "notes.txt"
     txt_file.write_text("hello")
-    text = f"Check this <path>{txt_file}</path>"
+    text = f"Check this <attachment>{txt_file}</attachment>"
     assert parse_prompt(text) == text
 
 
@@ -26,7 +26,7 @@ def test_image_path_returns_multimodal(tmp_path: Path):
         patch("freeact.media.prompt.collect_images", return_value=[img_file]),
         patch("freeact.media.prompt.load_image", return_value=sentinel),
     ):
-        text = f"Describe <path>{img_file}</path>"
+        text = f"Describe <attachment>{img_file}</attachment>"
         result = parse_prompt(text)
 
     assert isinstance(result, list)
@@ -46,7 +46,7 @@ def test_multiple_image_paths(tmp_path: Path):
         patch("freeact.media.prompt.collect_images", side_effect=[[img1], [img2]]),
         patch("freeact.media.prompt.load_image", side_effect=[sentinel1, sentinel2]),
     ):
-        text = f"Compare <path>{img1}</path> and <path>{img2}</path>"
+        text = f"Compare <attachment>{img1}</attachment> and <attachment>{img2}</attachment>"
         result = parse_prompt(text)
 
     assert isinstance(result, list)
@@ -62,7 +62,7 @@ def test_home_dir_expansion(tmp_path: Path):
         patch("freeact.media.prompt.collect_images", return_value=[tmp_path / "pic.png"]),
         patch("freeact.media.prompt.load_image", return_value=sentinel),
     ):
-        text = "<path>~/images/pic.png</path> describe this"
+        text = "<attachment>~/images/pic.png</attachment> describe this"
         result = parse_prompt(text)
 
     assert isinstance(result, list)

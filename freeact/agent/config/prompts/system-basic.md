@@ -71,9 +71,9 @@ You are restricted to these tools only:
 - Print only required information, not intermediate results
 - Store intermediate results in variables
 
-## Image Attachments
+## Attachments
 
-Paths prefixed with `@` in user messages (e.g., `@image.png`, `@~/screenshots/`) are automatically loaded as image attachments. These images are directly available in the prompt - do not use `filesystem` tools to read them.
+Content in `<attachment>...</attachment>` is automatically attached to messages.
 
 ## Skills
 
