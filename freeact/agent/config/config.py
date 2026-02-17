@@ -402,17 +402,42 @@ class Config:
             path=skill_file,
         )
 
-    def _render_skills_section(self) -> str:
-        """Render skills as markdown list for system prompt injection."""
-        if not self.skills_metadata:
-            return "No skills available."
+    def _render_section(self, section_name: str, content: str | None) -> str:
+        """Render a section template with content.
 
+        Loads `prompts/section-{section_name}.md` and renders it with the
+        given content. Returns an empty string if content is ``None``.
+        """
+        if content is None:
+            return ""
+        prompt_files = files("freeact.agent.config").joinpath("prompts")
+        with as_file(prompt_files) as prompts_dir:
+            template = (prompts_dir / f"section-{section_name}.md").read_text()
+        return template.format(content=content)
+
+    def _load_project_instructions_content(self) -> str | None:
+        """Load AGENTS.md from working directory.
+
+        Returns ``None`` if the file is absent or empty.
+        """
+        agents_file = self.working_dir / "AGENTS.md"
+        if not agents_file.exists():
+            return None
+        content = agents_file.read_text().strip()
+        return content or None
+
+    def _load_skills_content(self) -> str | None:
+        """Render skills metadata as markdown list.
+
+        Returns ``None`` if no skills are configured.
+        """
+        if not self.skills_metadata:
+            return None
         lines = []
         for skill in self.skills_metadata:
             relative_path = skill.path.relative_to(self.working_dir)
             lines.append(f"- **{skill.name}**: {skill.description}")
             lines.append(f"  - Location: `{relative_path}`")
-
         return "\n".join(lines)
 
     def _load_system_prompt(self) -> str:
@@ -424,8 +449,11 @@ class Config:
 
         return template.format(
             working_dir=self.working_dir,
-            skills=self._render_skills_section(),
             generated_rel_dir=self._config_paths.generated_rel_dir,
+            project_instructions=self._render_section(
+                "project-instructions", self._load_project_instructions_content()
+            ),
+            skills=self._render_section("agent-skills", self._load_skills_content()),
         )
 
     def _internal_mcp_servers(self) -> dict[str, dict[str, Any]]:

@@ -90,22 +90,59 @@ class TestRenderSkillsSection:
         assert "**skill-two**" in config.system_prompt
         assert "Second description" in config.system_prompt
 
-    def test_shows_no_skills_message_when_empty(self, tmp_path: Path, freeact_dir: Path):
-        """Shows 'No skills available.' when no skills exist."""
+    def test_omits_skills_section_when_empty(self, tmp_path: Path, freeact_dir: Path):
+        """Omits skills section entirely when no skills exist."""
         config = Config(working_dir=tmp_path)
 
-        assert "No skills available." in config.system_prompt
+        assert "## Skills" not in config.system_prompt
+
+
+class TestProjectInstructions:
+    """Tests for project instructions rendering from AGENTS.md."""
+
+    def test_renders_agents_md_in_system_prompt(self, tmp_path: Path, freeact_dir: Path):
+        """Renders AGENTS.md content inside project-instructions tags."""
+        (tmp_path / "AGENTS.md").write_text("Use pytest for testing.\nPrefer dataclasses.")
+
+        config = Config(working_dir=tmp_path)
+
+        assert "## Project Instructions" in config.system_prompt
+        assert "<project-instructions>" in config.system_prompt
+        assert "Use pytest for testing." in config.system_prompt
+        assert "Prefer dataclasses." in config.system_prompt
+
+    def test_omits_section_when_no_agents_md(self, tmp_path: Path, freeact_dir: Path):
+        """Omits project instructions section when AGENTS.md does not exist."""
+        config = Config(working_dir=tmp_path)
+
+        assert "## Project Instructions" not in config.system_prompt
+        assert "<project-instructions>" not in config.system_prompt
+
+    def test_omits_section_when_agents_md_empty(self, tmp_path: Path, freeact_dir: Path):
+        """Omits project instructions section when AGENTS.md is empty."""
+        (tmp_path / "AGENTS.md").write_text("")
+
+        config = Config(working_dir=tmp_path)
+
+        assert "## Project Instructions" not in config.system_prompt
+
+    def test_omits_section_when_agents_md_whitespace_only(self, tmp_path: Path, freeact_dir: Path):
+        """Omits project instructions section when AGENTS.md contains only whitespace."""
+        (tmp_path / "AGENTS.md").write_text("  \n\n  ")
+
+        config = Config(working_dir=tmp_path)
+
+        assert "## Project Instructions" not in config.system_prompt
 
 
 class TestLoadSystemPrompt:
     """Tests for system prompt loading from package resources."""
 
     def test_loads_and_renders_placeholders(self, tmp_path: Path, freeact_dir: Path):
-        """Substitutes {working_dir} and {skills} in system prompt."""
+        """Substitutes {working_dir} in system prompt."""
         config = Config(working_dir=tmp_path)
 
         assert str(tmp_path) in config.system_prompt
-        assert "No skills available." in config.system_prompt
 
 
 class TestSystemPromptSelection:

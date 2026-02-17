@@ -75,8 +75,6 @@ You must inspect the source code of these tools before using them in generated c
 
 Content in `<attachment>...</attachment>` is automatically attached to messages.
 
-## Skills
-
-Skills extend your capabilities with specialized knowledge and workflows. When a user request matches a skill's description, read the skill file to load the full instructions before proceeding.
+{project_instructions}
 
 {skills}
