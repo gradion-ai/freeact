@@ -1207,7 +1207,8 @@
 
 
 <h1 id="custom-agent-skills">Custom Agent Skills</h1>
-<p>Freeact supports the <a href="https://agentskills.io/">agentskills.io</a> specification, a lightweight format for extending agent capabilities with specialized knowledge and workflows. Skills that guide code execution are particularly well-suited for freeact's code action approach. Skills are loaded on demand: only metadata is in context initially, full instructions load when relevant.  </p>
+<p>Freeact supports the <a href="https://agentskills.io/">agentskills.io</a> specification, a lightweight format for extending agent capabilities with specialized knowledge and workflows. Skills that guide code execution are particularly well-suited for freeact's code action approach. Skills are loaded on demand: only metadata is in context initially, full instructions load when relevant.</p>
+<p>Custom skills are installed to <code>.agents/skills/</code> in the working directory. Bundled skills in <code>.freeact/skills/</code> are managed automatically (see <a href="../../configuration/#skills">Configuration: Skills</a>).</p>
 <h2 id="pdf-generation">PDF Generation</h2>
 <div class="admonition hint">
 <p class="admonition-title">Recorded session</p>
@@ -1219,8 +1220,8 @@
 </code></pre></div>
 <p>Install the PDF skill:</p>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/anthropics/skills.git<span class="w"> </span>/tmp/skills
-mkdir<span class="w"> </span>-p<span class="w"> </span>.freeact/skills
-cp<span class="w"> </span>-r<span class="w"> </span>/tmp/skills/skills/pdf<span class="w"> </span>.freeact/skills/
+mkdir<span class="w"> </span>-p<span class="w"> </span>.agents/skills
+cp<span class="w"> </span>-r<span class="w"> </span>/tmp/skills/skills/pdf<span class="w"> </span>.agents/skills/
 </code></pre></div>
 <p>Start the <a href="../../cli/">CLI tool</a>:</p>
 <div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>freeact

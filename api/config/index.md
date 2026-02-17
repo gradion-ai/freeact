@@ -12,24 +12,24 @@ Internal MCP servers (pytools, filesystem) are defined as constants in this modu
 
 Attributes:
 
-| Name                | Type             | Description                                                |
-| ------------------- | ---------------- | ---------------------------------------------------------- |
-| `working_dir`       | `Path`           | Agent's working directory.                                 |
-| `freeact_dir`       | `Path`           | Path to .freeact/ configuration directory.                 |
-| `model`             | `Path`           | LLM model name or instance.                                |
-| `model_settings`    | `Path`           | Model-specific settings (e.g., thinking config).           |
-| `tool_search`       | `str`            | Tool discovery mode read from config.json.                 |
-| `images_dir`        | \`Path           | None\`                                                     |
-| `execution_timeout` | \`float          | None\`                                                     |
-| `approval_timeout`  | \`float          | None\`                                                     |
-| `enable_subagents`  | `bool`           | Whether to enable subagent delegation.                     |
-| `max_subagents`     | `int`            | Maximum number of concurrent subagents.                    |
-| `kernel_env`        | `dict[str, str]` | Environment variables passed to the IPython kernel.        |
-| `skills_metadata`   |                  | Parsed skill definitions from .freeact/skills/\*/SKILL.md. |
-| `system_prompt`     |                  | Rendered system prompt loaded from package resources.      |
-| `mcp_servers`       |                  | Merged and resolved MCP server configs.                    |
-| `ptc_servers`       |                  | Raw PTC server configs loaded from config.json.            |
-| `sessions_dir`      | `Path`           | Session trace storage directory.                           |
+| Name                | Type             | Description                                                         |
+| ------------------- | ---------------- | ------------------------------------------------------------------- |
+| `working_dir`       | `Path`           | Agent's working directory.                                          |
+| `freeact_dir`       | `Path`           | Path to .freeact/ configuration directory.                          |
+| `model`             | `Path`           | LLM model name or instance.                                         |
+| `model_settings`    | `Path`           | Model-specific settings (e.g., thinking config).                    |
+| `tool_search`       | `str`            | Tool discovery mode read from config.json.                          |
+| `images_dir`        | \`Path           | None\`                                                              |
+| `execution_timeout` | \`float          | None\`                                                              |
+| `approval_timeout`  | \`float          | None\`                                                              |
+| `enable_subagents`  | `bool`           | Whether to enable subagent delegation.                              |
+| `max_subagents`     | `int`            | Maximum number of concurrent subagents.                             |
+| `kernel_env`        | `dict[str, str]` | Environment variables passed to the IPython kernel.                 |
+| `skills_metadata`   |                  | Parsed skill definitions from .freeact/skills/ and .agents/skills/. |
+| `system_prompt`     |                  | Rendered system prompt loaded from package resources.               |
+| `mcp_servers`       |                  | Merged and resolved MCP server configs.                             |
+| `ptc_servers`       |                  | Raw PTC server configs loaded from config.json.                     |
+| `sessions_dir`      | `Path`           | Session trace storage directory.                                    |
 
 ### freeact_dir
 

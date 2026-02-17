@@ -22,22 +22,31 @@ This allows safe customization: edit any configuration file, and your changes re
 
 ## Directory Structure
 
+Freeact stores agent configuration and runtime state in `.freeact/`. Project-level customization uses `AGENTS.md` for [project instructions](#project-instructions) and `.agents/skills/` for [custom skills](#custom-skills).
+
 ```
-.freeact/
-├── config.json         # Configuration and MCP server definitions
-├── skills/             # Agent skills
-│   └── <skill-name>/
-│       ├── SKILL.md    # Skill metadata and instructions
-│       └── ...         # Further skill resources
-├── generated/          # Generated tool sources (on PYTHONPATH)
-│   ├── mcptools/       # Generated Python APIs from ptc-servers
-│   └── gentools/       # User-defined tools saved from code actions
-├── plans/              # Task plan storage
-├── sessions/           # Session trace storage
-│   └── <session-uuid>/
-│       ├── main.jsonl
-│       └── sub-xxxx.jsonl
-└── permissions.json    # Persisted approval decisions
+<working-dir>/
+├── AGENTS.md               # Project instructions (injected into system prompt)
+├── .agents/
+│   └── skills/             # Custom skills
+│       └── <skill-name>/
+│           ├── SKILL.md
+│           └── ...
+└── .freeact/
+    ├── config.json         # Configuration and MCP server definitions
+    ├── skills/             # Bundled skills
+    │   └── <skill-name>/
+    │       ├── SKILL.md    # Skill metadata and instructions
+    │       └── ...         # Further skill resources
+    ├── generated/          # Generated tool sources (on PYTHONPATH)
+    │   ├── mcptools/       # Generated Python APIs from ptc-servers
+    │   └── gentools/       # User-defined tools saved from code actions
+    ├── plans/              # Task plan storage
+    ├── sessions/           # Session trace storage
+    │   └── <session-uuid>/
+    │       ├── main.jsonl
+    │       └── sub-xxxx.jsonl
+    └── permissions.json    # Persisted approval decisions
 ```
 
 ## Configuration File
@@ -160,21 +169,28 @@ The system prompt is an internal resource bundled with the package. The template
 
 The template supports placeholders:
 
-| Placeholder           | Description                                           |
-| --------------------- | ----------------------------------------------------- |
-| `{working_dir}`       | The agent's workspace directory                       |
-| `{generated_rel_dir}` | Relative path to the generated tool sources directory |
-| `{skills}`            | Rendered metadata from skills in `.freeact/skills/`   |
+| Placeholder              | Description                                                                                                                   |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `{working_dir}`          | The agent's workspace directory                                                                                               |
+| `{generated_rel_dir}`    | Relative path to the generated tool sources directory                                                                         |
+| `{project_instructions}` | Content from `AGENTS.md`, wrapped in `<project-instructions>` tags. Omitted if the file is absent or empty.                   |
+| `{skills}`               | Rendered metadata from bundled skills (`.freeact/skills/`) and custom skills (`.agents/skills/`). Omitted if no skills exist. |
 
 See the templates for [basic](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-basic.md) and [hybrid](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-hybrid.md) modes.
 
+## Project Instructions
+
+The agent loads project-specific instructions from an `AGENTS.md` file in the working directory. If the file exists and is non-empty, its content is injected into the system prompt. If the file is absent or empty, the section is omitted.
+
+`AGENTS.md` provides project context to the agent: domain-specific conventions, workflow preferences, or any instructions relevant to the agent's tasks.
+
 ## Skills
 
-Skills are filesystem-based capability packages that specialize agent behavior. A skill is a directory containing a `SKILL.md` file with metadata in YAML frontmatter, and optionally further skill resources. Skills follow the [agentskills.io](https://agentskills.io/specification/) specification.
+Skills are filesystem-based capability packages that specialize agent behavior. A skill is a directory containing a `SKILL.md` file with metadata in YAML frontmatter, and optionally further skill resources. Skills follow the [agentskills.io](https://agentskills.io/specification/) specification. Skills are loaded on demand: only metadata is in context initially, full instructions load when relevant.
 
 ### Bundled Skills
 
-Freeact contributes three skills to `.freeact/skills/`:
+Freeact contributes three bundled skills to `.freeact/skills/`:
 
 | Skill                                                                                                                    | Description                                                            |
 | ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
@@ -182,13 +198,21 @@ Freeact contributes three skills to `.freeact/skills/`:
 | [saving-codeacts](https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates/skills/saving-codeacts) | Save generated code actions as reusable tools in `gentools/`           |
 | [task-planning](https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates/skills/task-planning)     | Basic task planning and tracking workflows                             |
 
+Bundled skills are auto-created from templates on [initialization](#initialization). User modifications persist across restarts.
+
 Tool authoring
 
 The `output-parsers` and `saving-codeacts` skills enable tool authoring. See [Enhancing Tools](https://gradion-ai.github.io/freeact/examples/output-parser/index.md) and [Code Action Reuse](https://gradion-ai.github.io/freeact/examples/saving-codeacts/index.md) for walkthroughs.
 
-Custom agent skills
+### Custom Skills
 
-Custom skills can be added as needed to specialize agent behavior for specific applications.
+Custom skills are loaded from `.agents/skills/` in the working directory. Each subdirectory containing a `SKILL.md` file is registered as a skill. Metadata of custom skills appears in the system prompt after bundled skills.
+
+The `.agents/skills/` directory is not managed by freeact and is not auto-created.
+
+Example
+
+See [Custom Agent Skills](https://gradion-ai.github.io/freeact/examples/agent-skills/index.md) for a walkthrough of installing and using a custom skill.
 
 ## Permissions
 

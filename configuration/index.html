@@ -615,6 +615,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#project-instructions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project Instructions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#skills" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -631,6 +642,17 @@
     <span class="md-ellipsis">
       
         Bundled Skills
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-skills" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Skills
       
     </span>
   </a>
@@ -1495,6 +1517,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#project-instructions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project Instructions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#skills" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1511,6 +1544,17 @@
     <span class="md-ellipsis">
       
         Bundled Skills
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-skills" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Skills
       
     </span>
   </a>
@@ -1626,21 +1670,29 @@
 </ul>
 <p>This allows safe customization: edit any configuration file, and your changes remain intact. If you delete a file, it is recreated from the default template on next initialization.</p>
 <h2 id="directory-structure">Directory Structure</h2>
-<div class="highlight"><pre><span></span><code>.freeact/
-├── config.json         # Configuration and MCP server definitions
-├── skills/             # Agent skills
-│   └── &lt;skill-name&gt;/
-│       ├── SKILL.md    # Skill metadata and instructions
-│       └── ...         # Further skill resources
-├── generated/          # Generated tool sources (on PYTHONPATH)
-│   ├── mcptools/       # Generated Python APIs from ptc-servers
-│   └── gentools/       # User-defined tools saved from code actions
-├── plans/              # Task plan storage
-├── sessions/           # Session trace storage
-│   └── &lt;session-uuid&gt;/
-│       ├── main.jsonl
-│       └── sub-xxxx.jsonl
-└── permissions.json    # Persisted approval decisions
+<p>Freeact stores agent configuration and runtime state in <code>.freeact/</code>. Project-level customization uses <code>AGENTS.md</code> for <a href="#project-instructions">project instructions</a> and <code>.agents/skills/</code> for <a href="#custom-skills">custom skills</a>.</p>
+<div class="highlight"><pre><span></span><code>&lt;working-dir&gt;/
+├── AGENTS.md               # Project instructions (injected into system prompt)
+├── .agents/
+│   └── skills/             # Custom skills
+│       └── &lt;skill-name&gt;/
+│           ├── SKILL.md
+│           └── ...
+└── .freeact/
+    ├── config.json         # Configuration and MCP server definitions
+    ├── skills/             # Bundled skills
+    │   └── &lt;skill-name&gt;/
+    │       ├── SKILL.md    # Skill metadata and instructions
+    │       └── ...         # Further skill resources
+    ├── generated/          # Generated tool sources (on PYTHONPATH)
+    │   ├── mcptools/       # Generated Python APIs from ptc-servers
+    │   └── gentools/       # User-defined tools saved from code actions
+    ├── plans/              # Task plan storage
+    ├── sessions/           # Session trace storage
+    │   └── &lt;session-uuid&gt;/
+    │       ├── main.jsonl
+    │       └── sub-xxxx.jsonl
+    └── permissions.json    # Persisted approval decisions
 </code></pre></div>
 <h2 id="configuration-file">Configuration File</h2>
 <p>The <code>config.json</code> file contains agent settings and MCP server configurations:</p>
@@ -1870,16 +1922,23 @@
 <td>Relative path to the generated tool sources directory</td>
 </tr>
 <tr>
+<td><code>{project_instructions}</code></td>
+<td>Content from <code>AGENTS.md</code>, wrapped in <code>&lt;project-instructions&gt;</code> tags. Omitted if the file is absent or empty.</td>
+</tr>
+<tr>
 <td><code>{skills}</code></td>
-<td>Rendered metadata from skills in <code>.freeact/skills/</code></td>
+<td>Rendered metadata from bundled skills (<code>.freeact/skills/</code>) and custom skills (<code>.agents/skills/</code>). Omitted if no skills exist.</td>
 </tr>
 </tbody>
 </table>
 <p>See the templates for <a href="https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-basic.md">basic</a> and <a href="https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-hybrid.md">hybrid</a> modes.</p>
+<h2 id="project-instructions">Project Instructions</h2>
+<p>The agent loads project-specific instructions from an <code>AGENTS.md</code> file in the working directory. If the file exists and is non-empty, its content is injected into the system prompt. If the file is absent or empty, the section is omitted.</p>
+<p><code>AGENTS.md</code> provides project context to the agent: domain-specific conventions, workflow preferences, or any instructions relevant to the agent's tasks.</p>
 <h2 id="skills">Skills</h2>
-<p>Skills are filesystem-based capability packages that specialize agent behavior. A skill is a directory containing a <code>SKILL.md</code> file with metadata in YAML frontmatter, and optionally further skill resources. Skills follow the <a href="https://agentskills.io/specification/">agentskills.io</a> specification.</p>
+<p>Skills are filesystem-based capability packages that specialize agent behavior. A skill is a directory containing a <code>SKILL.md</code> file with metadata in YAML frontmatter, and optionally further skill resources. Skills follow the <a href="https://agentskills.io/specification/">agentskills.io</a> specification. Skills are loaded on demand: only metadata is in context initially, full instructions load when relevant.</p>
 <h3 id="bundled-skills">Bundled Skills</h3>
-<p>Freeact contributes three skills to <code>.freeact/skills/</code>:</p>
+<p>Freeact contributes three bundled skills to <code>.freeact/skills/</code>:</p>
 <table>
 <thead>
 <tr>
@@ -1902,13 +1961,17 @@
 </tr>
 </tbody>
 </table>
+<p>Bundled skills are auto-created from templates on <a href="#initialization">initialization</a>. User modifications persist across restarts.</p>
 <div class="admonition hint">
 <p class="admonition-title">Tool authoring</p>
 <p>The <code>output-parsers</code> and <code>saving-codeacts</code> skills enable tool authoring. See <a href="../examples/output-parser/">Enhancing Tools</a> and <a href="../examples/saving-codeacts/">Code Action Reuse</a> for walkthroughs.</p>
 </div>
+<h3 id="custom-skills">Custom Skills</h3>
+<p>Custom skills are loaded from <code>.agents/skills/</code> in the working directory. Each subdirectory containing a <code>SKILL.md</code> file is registered as a skill. Metadata of custom skills appears in the system prompt after bundled skills.</p>
+<p>The <code>.agents/skills/</code> directory is not managed by freeact and is not auto-created.</p>
 <div class="admonition tip">
-<p class="admonition-title">Custom agent skills</p>
-<p>Custom skills can be added as needed to specialize agent behavior for specific applications.</p>
+<p class="admonition-title">Example</p>
+<p>See <a href="../examples/agent-skills/">Custom Agent Skills</a> for a walkthrough of installing and using a custom skill.</p>
 </div>
 <h2 id="permissions">Permissions</h2>
 <p><a href="../sdk/#permissions-api">Tool permissions</a> are stored in <code>.freeact/permissions.json</code> based on tool name:</p>
