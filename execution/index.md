@@ -1,8 +1,8 @@
 # Code Execution
 
-Freeact executes Python code and shell commands in an IPython kernel provided by [ipybox](https://github.com/gradion-ai/ipybox). Both run through the same `ipybox_execute_ipython_cell` [internal tool](https://gradion-ai.github.io/freeact/sdk/#internal-tools), and the kernel is stateful: variables, imports, and function definitions persist across executions within a session.
+Freeact executes Python code and shell commands through an IPython kernel provided by [ipybox](https://github.com/gradion-ai/ipybox). Both are submitted via the same `ipybox_execute_ipython_cell` [internal tool](https://gradion-ai.github.io/freeact/sdk/#internal-tools). Python code runs inside the kernel process, while shell commands (prefixed with `!`, e.g., `!ls`, `!git status`, `!uv pip install`) run in subprocesses spawned by the kernel.
 
-Python code and shell commands share the same kernel, but shell commands use the `!` prefix (e.g., `!ls`, `!git status`, `!uv pip install`). The bundled [system prompts](https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/prompts) provide initial guidance on when to use shell commands versus Python code. More detailed guidance can be given in custom [agent skills](https://gradion-ai.github.io/freeact/configuration/#skills).
+The kernel is stateful: variables, imports, and function definitions persist across executions within a session. The bundled [system prompts](https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/prompts) provide initial guidance on when to use shell commands versus Python code. More detailed guidance can be given in custom [agent skills](https://gradion-ai.github.io/freeact/configuration/#skills).
 
 ## Python Code
 
