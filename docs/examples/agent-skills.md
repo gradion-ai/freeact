@@ -1,6 +1,8 @@
 # Custom Agent Skills
 
-Freeact supports the [agentskills.io](https://agentskills.io/) specification, a lightweight format for extending agent capabilities with specialized knowledge and workflows. Skills that guide code execution are particularly well-suited for freeact's code action approach. Skills are loaded on demand: only metadata is in context initially, full instructions load when relevant.  
+Freeact supports the [agentskills.io](https://agentskills.io/) specification, a lightweight format for extending agent capabilities with specialized knowledge and workflows. Skills that guide code execution are particularly well-suited for freeact's code action approach. Skills are loaded on demand: only metadata is in context initially, full instructions load when relevant.
+
+Custom skills are installed to `.agents/skills/` in the working directory. Bundled skills in `.freeact/skills/` are managed automatically (see [Configuration: Skills](../configuration.md#skills)).
 
 ## PDF Generation
 
@@ -20,8 +22,8 @@ Install the PDF skill:
 
 ```bash
 git clone https://github.com/anthropics/skills.git /tmp/skills
-mkdir -p .freeact/skills
-cp -r /tmp/skills/skills/pdf .freeact/skills/
+mkdir -p .agents/skills
+cp -r /tmp/skills/skills/pdf .agents/skills/
 ```
 
 Start the [CLI tool](../cli.md):
