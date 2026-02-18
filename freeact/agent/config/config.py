@@ -130,7 +130,7 @@ class Config:
     (programmatic tool calling).
 
     Internal MCP servers (pytools, filesystem) are defined as constants in
-    this module. User-defined servers from `config.json` override internal
+    this module. User-defined servers from `agent.json` override internal
     configs when they share the same key.
 
     Attributes:
@@ -138,7 +138,7 @@ class Config:
         freeact_dir: Path to `.freeact/` configuration directory.
         model: LLM model name or instance.
         model_settings: Model-specific settings (e.g., thinking config).
-        tool_search: Tool discovery mode read from `config.json`.
+        tool_search: Tool discovery mode read from `agent.json`.
         images_dir: Directory for saving generated images.
         execution_timeout: Maximum time in seconds for code execution.
         approval_timeout: Timeout in seconds for PTC approval requests.
@@ -148,7 +148,7 @@ class Config:
         skills_metadata: Parsed skill definitions from `.freeact/skills/` and `.agents/skills/`.
         system_prompt: Rendered system prompt loaded from package resources.
         mcp_servers: Merged and resolved MCP server configs.
-        ptc_servers: Raw PTC server configs loaded from `config.json`.
+        ptc_servers: Raw PTC server configs loaded from `agent.json`.
         sessions_dir: Session trace storage directory.
     """
 
@@ -296,15 +296,15 @@ class Config:
             os.environ.setdefault(key, default)
 
     def _load_config_json(self) -> dict[str, Any]:
-        """Load config.json file."""
-        config_file = self.freeact_dir / "config.json"
+        """Load agent.json file."""
+        config_file = self.freeact_dir / "agent.json"
         if not config_file.exists():
             return {}
         with open(config_file) as f:
             return json.load(f)
 
     def _load_model_config(self) -> tuple[str | Model, ModelSettings]:
-        """Load model configuration from config.json.
+        """Load model configuration from agent.json.
 
         Returns:
             A tuple of (model, model_settings) where model is either a
@@ -313,7 +313,7 @@ class Config:
         """
         model_name = self._config_data.get("model")
         if model_name is None:
-            raise ValueError("'model' is required in config.json")
+            raise ValueError("'model' is required in agent.json")
 
         settings: ModelSettings = self._config_data.get("model-settings") or {}
         provider_config = self._config_data.get("model-provider")
@@ -348,11 +348,11 @@ class Config:
         return infer_model(model_name, provider_factory=provider_factory)
 
     def _load_kernel_env(self) -> dict[str, str]:
-        """Load kernel environment variables from config.json.
+        """Load kernel environment variables from agent.json.
 
         Auto-adds defaults for PYTHONPATH and HOME, then validates
         and resolves `${VAR}` placeholders against `os.environ`.
-        User values in config.json take precedence over auto-defaults.
+        User values in agent.json take precedence over auto-defaults.
         """
         env: dict[str, str] = {}
 
@@ -362,7 +362,7 @@ class Config:
         if home:
             env["HOME"] = home
 
-        # User values from config.json (highest priority)
+        # User values from agent.json (highest priority)
         user_env = self._config_data.get("kernel-env", {})
         env.update(user_env)
 
@@ -474,7 +474,7 @@ class Config:
     def _load_mcp_servers(self) -> dict[str, dict[str, Any]]:
         """Load MCP servers: internal defaults merged with user overrides.
 
-        User-defined servers from `config.json` take precedence over
+        User-defined servers from `agent.json` take precedence over
         internal configs for the same key. All `${VAR}` placeholders
         are validated and resolved against `os.environ`.
         """

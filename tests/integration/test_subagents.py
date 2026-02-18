@@ -1,46 +1,20 @@
 import json
-import tempfile
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
-from pathlib import Path
 
 import pytest
 from pydantic_ai.messages import ModelMessage
-from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
+from pydantic_ai.models.function import AgentInfo, DeltaToolCall
 
-from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput, Response, ToolOutput
-from freeact.agent.config import Config
-from freeact.agent.config.config import _ConfigPaths
-from freeact.agent.core import AgentEvent, ResponseChunk
-from tests.conftest import (
+from freeact.agent import ApprovalRequest, CodeExecutionOutput, Response, ToolOutput
+from freeact.agent.events import AgentEvent, ResponseChunk
+from tests.helpers import (
     DeltaToolCalls,
     collect_stream,
     create_stream_function,
+    create_task_stream_function,
     get_tool_return_parts,
+    unpatched_agent,
 )
-
-
-def _create_unpatched_config(stream_function) -> Config:
-    """Create a Config for unpatched agent tests."""
-    tmp_dir = Path(tempfile.mkdtemp())
-    freeact_dir = _ConfigPaths(tmp_dir).freeact_dir
-    freeact_dir.mkdir()
-    (freeact_dir / "config.json").write_text(json.dumps({"model": "test"}))
-    config = Config(working_dir=tmp_dir)
-    config.model = FunctionModel(stream_function=stream_function)
-    config.model_settings = {}
-    config.mcp_servers = {}
-    return config
-
-
-@asynccontextmanager
-async def unpatched_agent(stream_function):
-    """Context manager for an agent with real code executor."""
-    config = _create_unpatched_config(stream_function)
-    agent = Agent(config=config)
-    async with agent:
-        yield agent
-
 
 # ---------------------------------------------------------------------------
 # Step 1: Agent identity
@@ -49,17 +23,6 @@ async def unpatched_agent(stream_function):
 
 class TestAgentIdentity:
     """Agent ID generation and AgentEvent base class."""
-
-    @pytest.mark.asyncio
-    async def test_agent_has_id(self):
-        """Agent keeps the caller-provided ID."""
-
-        async def noop(messages: list[ModelMessage], info: AgentInfo) -> AsyncIterator[str]:
-            yield "hello"
-
-        async with unpatched_agent(noop) as agent:
-            assert hasattr(agent, "agent_id")
-            assert agent.agent_id == "main"
 
     @pytest.mark.asyncio
     async def test_agent_has_default_id(self):
@@ -141,53 +104,17 @@ class TestTaskExecution:
     @pytest.mark.asyncio
     async def test_task_returns_subagent_response(self):
         """Parent calls task tool, subagent returns text, parent gets ToolOutput."""
-
-        async def stream_function(messages: list[ModelMessage], info: AgentInfo) -> AsyncIterator[str | DeltaToolCalls]:
-            tool_names = [t.name for t in info.function_tools]
-            if get_tool_return_parts(messages):
-                yield "Parent done"
-            elif "subagent_task" in tool_names:
-                yield {
-                    0: DeltaToolCall(
-                        name="subagent_task",
-                        json_args=json.dumps({"prompt": "Say hello"}),
-                        tool_call_id="call_task",
-                    )
-                }
-            else:
-                # Subagent: just return text (no tool calls)
-                yield "Hello from subagent"
-
-        async with unpatched_agent(stream_function) as agent:
+        async with unpatched_agent(create_task_stream_function("Hello from subagent")) as agent:
             results = await collect_stream(agent, "run a subtask")
 
-            # Parent should receive a ToolOutput containing the subagent's response
             task_outputs = [e for e in results.all_events if isinstance(e, ToolOutput)]
             assert any("Hello from subagent" in str(out.content) for out in task_outputs)
-
-            # Parent should produce final response after receiving tool result
-            assert any(r.content == "Parent done" for r in results.responses)
+            assert any(r.content == "Done" for r in results.responses)
 
     @pytest.mark.asyncio
     async def test_subagent_events_have_different_agent_id(self):
         """Subagent events carry a different agent_id than parent events."""
-
-        async def stream_function(messages: list[ModelMessage], info: AgentInfo) -> AsyncIterator[str | DeltaToolCalls]:
-            tool_names = [t.name for t in info.function_tools]
-            if get_tool_return_parts(messages):
-                yield "Parent done"
-            elif "subagent_task" in tool_names:
-                yield {
-                    0: DeltaToolCall(
-                        name="subagent_task",
-                        json_args=json.dumps({"prompt": "Do something"}),
-                        tool_call_id="call_task",
-                    )
-                }
-            else:
-                yield "Subagent response"
-
-        async with unpatched_agent(stream_function) as agent:
+        async with unpatched_agent(create_task_stream_function()) as agent:
             results = await collect_stream(agent, "test")
             parent_id = agent.agent_id
 
@@ -208,26 +135,9 @@ class TestTaskExecution:
     @pytest.mark.asyncio
     async def test_tool_output_carries_parent_id(self):
         """The ToolOutput from the task carries the parent's agent_id."""
-
-        async def stream_function(messages: list[ModelMessage], info: AgentInfo) -> AsyncIterator[str | DeltaToolCalls]:
-            tool_names = [t.name for t in info.function_tools]
-            if get_tool_return_parts(messages):
-                yield "Done"
-            elif "subagent_task" in tool_names:
-                yield {
-                    0: DeltaToolCall(
-                        name="subagent_task",
-                        json_args=json.dumps({"prompt": "Do it"}),
-                        tool_call_id="call_task",
-                    )
-                }
-            else:
-                yield "Sub result"
-
-        async with unpatched_agent(stream_function) as agent:
+        async with unpatched_agent(create_task_stream_function("Sub result")) as agent:
             results = await collect_stream(agent, "test")
 
-            # Find the ToolOutput from the task (carries parent's agent_id)
             task_tool_outputs = [
                 e for e in results.all_events if isinstance(e, ToolOutput) and e.agent_id == agent.agent_id
             ]
@@ -270,25 +180,10 @@ class TestTaskExecution:
     async def test_task_approval_rejected(self):
         """Rejecting the task tool approval prevents subagent from running."""
 
-        async def stream_function(messages: list[ModelMessage], info: AgentInfo) -> AsyncIterator[str | DeltaToolCalls]:
-            tool_names = [t.name for t in info.function_tools]
-            if get_tool_return_parts(messages):
-                yield "Done"
-            elif "subagent_task" in tool_names:
-                yield {
-                    0: DeltaToolCall(
-                        name="subagent_task",
-                        json_args=json.dumps({"prompt": "Do it"}),
-                        tool_call_id="call_task",
-                    )
-                }
-            else:
-                yield "Should not appear"
-
         def reject_task(req: ApprovalRequest) -> bool:
             return req.tool_name != "subagent_task"
 
-        async with unpatched_agent(stream_function) as agent:
+        async with unpatched_agent(create_task_stream_function("Should not appear")) as agent:
             results = await collect_stream(agent, "test", approve_function=reject_task)
 
             # Subagent response should not appear in any event
@@ -493,46 +388,6 @@ class TestSubagentMaxTurns:
                 e for e in results.all_events if isinstance(e, CodeExecutionOutput) and e.agent_id != agent.agent_id
             ]
             assert len(subagent_code_outputs) == 1
-
-    @pytest.mark.asyncio
-    async def test_default_max_turns(self):
-        """Task without explicit max_turns uses default of 100."""
-        turn_count = 0
-
-        async def stream_function(messages: list[ModelMessage], info: AgentInfo) -> AsyncIterator[str | DeltaToolCalls]:
-            nonlocal turn_count
-            tool_names = [t.name for t in info.function_tools]
-            if "subagent_task" in tool_names:
-                if get_tool_return_parts(messages):
-                    yield "Parent done"
-                else:
-                    # No max_turns specified -- defaults to 100
-                    yield {
-                        0: DeltaToolCall(
-                            name="subagent_task",
-                            json_args=json.dumps({"prompt": "Loop"}),
-                            tool_call_id="call_task",
-                        )
-                    }
-            else:
-                # Subagent: always call a tool
-                turn_count += 1
-                yield {
-                    0: DeltaToolCall(
-                        name="ipybox_execute_ipython_cell",
-                        json_args=json.dumps({"code": f"print({turn_count})"}),
-                        tool_call_id=f"call_{turn_count}",
-                    )
-                }
-
-        async with unpatched_agent(stream_function) as agent:
-            results = await collect_stream(agent, "test")
-
-            # Default max_turns is 100, so subagent should have 100 code executions
-            subagent_code_outputs = [
-                e for e in results.all_events if isinstance(e, CodeExecutionOutput) and e.agent_id != agent.agent_id
-            ]
-            assert len(subagent_code_outputs) == 100
 
 
 class TestSubagentErrors:

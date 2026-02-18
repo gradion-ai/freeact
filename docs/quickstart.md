@@ -28,7 +28,7 @@ On first start, the CLI tool auto-generates Python APIs for [configured](configu
 
 !!! tip "Custom MCP servers"
 
-    For calling the tools of your own MCP servers programmatically, add them to the [`ptc-servers`](configuration.md#ptc-servers) section in `.freeact/config.json`. Freeact auto-generates a Python API for them when the CLI tool starts.
+    For calling the tools of your own MCP servers programmatically, add them to the [`ptc-servers`](configuration.md#ptc-servers) section in `.freeact/agent.json`. Freeact auto-generates a Python API for them when the CLI tool starts.
 
 ### Running a Task
 

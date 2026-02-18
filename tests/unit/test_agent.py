@@ -1,5 +1,3 @@
-import json
-import tempfile
 from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
@@ -8,26 +6,13 @@ import pytest
 
 from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput
 from freeact.agent.config import Config
-from freeact.agent.config.config import _ConfigPaths
-from tests.conftest import (
+from tests.helpers import (
     CodeExecFunction,
     collect_stream,
     create_stream_function,
+    create_test_config,
     patched_agent,
 )
-
-
-def _create_test_config(**overrides: Any) -> Config:
-    """Create a Config with a temp .freeact dir and optional attribute overrides."""
-    tmp_dir = Path(tempfile.mkdtemp())
-    freeact_dir = _ConfigPaths(tmp_dir).freeact_dir
-    freeact_dir.mkdir()
-    (freeact_dir / "config.json").write_text(json.dumps({"model": "test"}))
-    config = Config(working_dir=tmp_dir)
-    config.mcp_servers = {}
-    for key, value in overrides.items():
-        setattr(config, key, value)
-    return config
 
 
 class TestCodeExecutionOutput:
@@ -132,21 +117,6 @@ class TestIpyboxExecution:
     """Tests for ipybox_execute_ipython_cell tool with mocked code executor."""
 
     @pytest.mark.asyncio
-    async def test_ipybox_execute_ipython_cell_called(self):
-        """Verify ipybox_execute_ipython_cell is called with specific code."""
-        test_code = "x = 5 * 7\nprint(x)"
-        stream_function = create_stream_function(
-            tool_name="ipybox_execute_ipython_cell",
-            tool_args={"code": test_code},
-        )
-
-        async with patched_agent(stream_function, create_code_exec_function("35")) as agent:
-            results = await collect_stream(agent, "Calculate something")
-
-            assert len(results.code_outputs) == 1
-            assert results.code_outputs[0].text == "35"
-
-    @pytest.mark.asyncio
     async def test_approval_accepted(self):
         """Verify tool call is executed when approval request is accepted."""
         test_code = "print('approved execution')"
@@ -244,21 +214,21 @@ class TestTimeoutParameters:
     def test_default_execution_timeout(self):
         """Default execution_timeout is 300 seconds."""
         with patch("freeact.agent.core.ipybox.CodeExecutor"):
-            config = _create_test_config()
+            config = create_test_config()
             agent = Agent(config=config)
             assert agent._execution_timeout == 300
 
     def test_custom_execution_timeout(self):
         """Custom execution_timeout is stored."""
         with patch("freeact.agent.core.ipybox.CodeExecutor"):
-            config = _create_test_config(execution_timeout=60)
+            config = create_test_config(execution_timeout=60)
             agent = Agent(config=config)
             assert agent._execution_timeout == 60
 
     def test_none_execution_timeout(self):
         """None execution_timeout disables timeout."""
         with patch("freeact.agent.core.ipybox.CodeExecutor"):
-            config = _create_test_config(execution_timeout=None)
+            config = create_test_config(execution_timeout=None)
             agent = Agent(config=config)
             assert agent._execution_timeout is None
 
@@ -266,7 +236,7 @@ class TestTimeoutParameters:
         """approval_timeout is passed to CodeExecutor."""
         with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
             mock_executor.return_value = MagicMock()
-            config = _create_test_config(approval_timeout=30)
+            config = create_test_config(approval_timeout=30)
             Agent(config=config)
             mock_executor.assert_called_once()
             call_kwargs = mock_executor.call_args.kwargs
@@ -276,7 +246,7 @@ class TestTimeoutParameters:
         """Default approval_timeout is None."""
         with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
             mock_executor.return_value = MagicMock()
-            config = _create_test_config()
+            config = create_test_config()
             Agent(config=config)
             call_kwargs = mock_executor.call_args.kwargs
             assert call_kwargs["approval_timeout"] is None
@@ -289,7 +259,7 @@ class TestKernelEnvHome:
         """HOME from os.environ is added to kernel_env by Config."""
         with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
             mock_executor.return_value = MagicMock()
-            config = _create_test_config()
+            config = create_test_config()
             Agent(config=config)
             call_kwargs = mock_executor.call_args.kwargs
             # HOME is auto-added by Config._load_kernel_env()
@@ -299,7 +269,7 @@ class TestKernelEnvHome:
         """User-provided HOME in kernel_env is not overwritten."""
         with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
             mock_executor.return_value = MagicMock()
-            config = _create_test_config(kernel_env={"HOME": "/custom/home"})
+            config = create_test_config(kernel_env={"HOME": "/custom/home"})
             Agent(config=config)
             call_kwargs = mock_executor.call_args.kwargs
             assert call_kwargs["kernel_env"]["HOME"] == "/custom/home"
@@ -327,13 +297,13 @@ class TestSubagentConfigPropagation:
                 return None
 
             async def stream(self, prompt: str, max_turns: int | None = None):
-                from freeact.agent.core import Response
+                from freeact.agent.events import Response
 
                 yield Response(content="done", agent_id=self.agent_id)
 
         with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
             mock_executor.return_value = MagicMock()
-            config = _create_test_config(
+            config = create_test_config(
                 kernel_env={"HOME": "/custom/home", "OTHER": "value"},
                 images_dir=Path("/tmp/images"),
                 approval_timeout=42,
@@ -355,3 +325,17 @@ class TestSubagentConfigPropagation:
         assert sub_config.enable_subagents is False
         assert captured["sandbox"] is True
         assert captured["sandbox_config"] == Path("/tmp/sandbox.cfg")
+
+
+class TestSubagentDefaults:
+    """Tests for subagent tool definition defaults."""
+
+    def test_default_max_turns(self):
+        """Default max_turns for subagent_task is 100."""
+        import json
+
+        from freeact.tools.utils import SUBAGENT_TOOL_DEFS_PATH
+
+        schema = json.loads(SUBAGENT_TOOL_DEFS_PATH.read_text())
+        max_turns_schema = schema[0]["parameters_json_schema"]["properties"]["max_turns"]
+        assert max_turns_schema["default"] == 100

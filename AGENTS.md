@@ -25,6 +25,7 @@
 ```bash
 uv sync                          # Install dependencies
 uv add [--dev] [-U] <package>    # Add a dependency (--dev for dev-only, -U to upgrade)
+uv run <command>                 # Run <command> in project's venv (uv run python ..., etc)
 uv run invoke cc                 # Code checks (auto-fixes formatting, mypy needs manual fix)
 uv run invoke ut                 # Unit tests only
 uv run invoke it --parallel      # Integration tests only
@@ -40,7 +41,7 @@ uv run pytest -xsv tests/integration/test_agent.py::test_name  # Single test
 - Use Markdown formatting, not reST
 - Do not add module-level docstrings
 
-## Coding Style & Naming Conventions
+## Coding Guidelines
 - All function parameters and return types must have type hints
 - Modern union syntax: `str | None` instead of `Optional[str]`
 - Prefer `match`/`case` over `isinstance()` for type dispatch

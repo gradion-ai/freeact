@@ -18,7 +18,7 @@ def freeact_dir(tmp_path: Path) -> Path:
     """Create minimal .freeact directory structure."""
     freeact_dir = _ConfigPaths(tmp_path).freeact_dir
     freeact_dir.mkdir()
-    (freeact_dir / "config.json").write_text(json.dumps({"model": "test"}))
+    (freeact_dir / "agent.json").write_text(json.dumps({"model": "test"}))
     return freeact_dir
 
 
@@ -188,7 +188,7 @@ class TestSystemPromptSelection:
 
     def test_loads_basic_prompt_for_basic_tool_search(self, tmp_path: Path, freeact_dir: Path):
         """Loads basic system prompt when tool-search is 'basic'."""
-        (freeact_dir / "config.json").write_text(json.dumps({"model": "test", "tool-search": "basic"}))
+        (freeact_dir / "agent.json").write_text(json.dumps({"model": "test", "tool-search": "basic"}))
 
         config = Config(working_dir=tmp_path)
 
@@ -199,7 +199,7 @@ class TestSystemPromptSelection:
     ):
         """Loads hybrid system prompt when tool-search is 'hybrid'."""
         monkeypatch.setenv("GEMINI_API_KEY", "test-key")
-        (freeact_dir / "config.json").write_text(json.dumps({"model": "test", "tool-search": "hybrid"}))
+        (freeact_dir / "agent.json").write_text(json.dumps({"model": "test", "tool-search": "hybrid"}))
 
         config = Config(working_dir=tmp_path)
 
@@ -207,18 +207,18 @@ class TestSystemPromptSelection:
 
 
 class TestToolSearchConfig:
-    """Tests for tool-search setting from config.json."""
+    """Tests for tool-search setting from agent.json."""
 
     def test_defaults_to_basic(self, tmp_path: Path, freeact_dir: Path):
-        """Defaults to 'basic' when tool-search is not in config.json."""
+        """Defaults to 'basic' when tool-search is not in agent.json."""
         config = Config(working_dir=tmp_path)
 
         assert config.tool_search == "basic"
 
     def test_reads_from_config_json(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
-        """Reads tool-search value from config.json."""
+        """Reads tool-search value from agent.json."""
         monkeypatch.setenv("GEMINI_API_KEY", "test-key")
-        (freeact_dir / "config.json").write_text(json.dumps({"model": "test", "tool-search": "hybrid"}))
+        (freeact_dir / "agent.json").write_text(json.dumps({"model": "test", "tool-search": "hybrid"}))
 
         config = Config(working_dir=tmp_path)
 
@@ -252,7 +252,7 @@ class TestPytoolsEnvDefaults:
         """Sets hybrid-specific defaults when tool-search is hybrid."""
         monkeypatch.setenv("GEMINI_API_KEY", "test-key")
         monkeypatch.delenv("PYTOOLS_EMBEDDING_MODEL", raising=False)
-        (freeact_dir / "config.json").write_text('{"model": "test", "tool-search": "hybrid"}')
+        (freeact_dir / "agent.json").write_text('{"model": "test", "tool-search": "hybrid"}')
 
         Config(working_dir=tmp_path)
 
@@ -270,11 +270,11 @@ class TestPytoolsEnvDefaults:
 
 
 class TestLoadConfigJson:
-    """Tests for config.json loading."""
+    """Tests for agent.json loading."""
 
     def test_loads_config(self, tmp_path: Path, freeact_dir: Path):
-        """Loads and parses config.json file."""
-        (freeact_dir / "config.json").write_text(
+        """Loads and parses agent.json file."""
+        (freeact_dir / "agent.json").write_text(
             json.dumps(
                 {
                     "model": "test",
@@ -290,8 +290,8 @@ class TestLoadConfigJson:
         assert "ptc-test" in config.ptc_servers
 
     def test_handles_missing_config_json(self, tmp_path: Path, freeact_dir: Path):
-        """Raises `ValueError` when config.json is missing (model required)."""
-        (freeact_dir / "config.json").unlink()
+        """Raises `ValueError` when agent.json is missing (model required)."""
+        (freeact_dir / "agent.json").unlink()
 
         with pytest.raises(ValueError, match="'model' is required"):
             Config(working_dir=tmp_path)
@@ -314,7 +314,7 @@ class TestLoadMcpServers:
     ):
         """Uses hybrid pytools config when tool-search is 'hybrid'."""
         monkeypatch.setenv("GEMINI_API_KEY", "test-key")
-        (freeact_dir / "config.json").write_text(json.dumps({"model": "test", "tool-search": "hybrid"}))
+        (freeact_dir / "agent.json").write_text(json.dumps({"model": "test", "tool-search": "hybrid"}))
 
         config = Config(working_dir=tmp_path)
 
@@ -323,20 +323,18 @@ class TestLoadMcpServers:
         assert "${GEMINI_API_KEY}" not in str(config.mcp_servers["pytools"])
 
     def test_user_pytools_overrides_internal(self, tmp_path: Path, freeact_dir: Path):
-        """User pytools config in config.json overrides internal default."""
+        """User pytools config in agent.json overrides internal default."""
         user_pytools = {"command": "custom-pytools", "args": ["--custom"]}
-        (freeact_dir / "config.json").write_text(
-            json.dumps({"model": "test", "mcp-servers": {"pytools": user_pytools}})
-        )
+        (freeact_dir / "agent.json").write_text(json.dumps({"model": "test", "mcp-servers": {"pytools": user_pytools}}))
 
         config = Config(working_dir=tmp_path)
 
         assert config.mcp_servers["pytools"] == user_pytools
 
     def test_user_filesystem_overrides_internal(self, tmp_path: Path, freeact_dir: Path):
-        """User filesystem config in config.json overrides internal default."""
+        """User filesystem config in agent.json overrides internal default."""
         user_filesystem = {"command": "custom-fs", "args": ["--verbose"]}
-        (freeact_dir / "config.json").write_text(
+        (freeact_dir / "agent.json").write_text(
             json.dumps({"model": "test", "mcp-servers": {"filesystem": user_filesystem}})
         )
 
@@ -347,7 +345,7 @@ class TestLoadMcpServers:
     def test_user_adds_custom_server(self, tmp_path: Path, freeact_dir: Path):
         """User can add custom MCP servers alongside internal ones."""
         custom = {"command": "my-server"}
-        (freeact_dir / "config.json").write_text(json.dumps({"model": "test", "mcp-servers": {"custom": custom}}))
+        (freeact_dir / "agent.json").write_text(json.dumps({"model": "test", "mcp-servers": {"custom": custom}}))
 
         config = Config(working_dir=tmp_path)
 
@@ -357,7 +355,7 @@ class TestLoadMcpServers:
 
     def test_empty_mcp_servers_uses_internal_defaults(self, tmp_path: Path, freeact_dir: Path):
         """Empty mcp-servers section uses internal defaults only."""
-        (freeact_dir / "config.json").write_text(json.dumps({"model": "test", "mcp-servers": {}}))
+        (freeact_dir / "agent.json").write_text(json.dumps({"model": "test", "mcp-servers": {}}))
 
         config = Config(working_dir=tmp_path)
 
@@ -366,7 +364,7 @@ class TestLoadMcpServers:
 
     def test_raises_on_missing_env_variables(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
         """Raises ValueError when ${VAR} references missing env var."""
-        (freeact_dir / "config.json").write_text(
+        (freeact_dir / "agent.json").write_text(
             json.dumps(
                 {
                     "model": "test",
@@ -382,7 +380,7 @@ class TestLoadMcpServers:
     def test_mcp_servers_are_resolved(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
         """MCP server ${VAR} placeholders are resolved in stored config."""
         monkeypatch.setenv("MY_API_KEY", "resolved-key")
-        (freeact_dir / "config.json").write_text(
+        (freeact_dir / "agent.json").write_text(
             json.dumps(
                 {"model": "test", "mcp-servers": {"test": {"command": "python", "env": {"API_KEY": "${MY_API_KEY}"}}}}
             )
@@ -399,7 +397,7 @@ class TestLoadPtcServers:
     def test_loads_ptc_config(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
         """Loads PTC server configurations."""
         monkeypatch.setenv("TEST_API_KEY", "test-key-value")
-        (freeact_dir / "config.json").write_text(
+        (freeact_dir / "agent.json").write_text(
             json.dumps(
                 {
                     "model": "test",
@@ -418,7 +416,7 @@ class TestLoadPtcServers:
 
     def test_raises_on_missing_env_variables(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
         """Raises ValueError when env variables are missing."""
-        (freeact_dir / "config.json").write_text(
+        (freeact_dir / "agent.json").write_text(
             json.dumps(
                 {
                     "model": "test",
@@ -464,9 +462,9 @@ class TestLoadKernelEnv:
         assert "HOME" not in config.kernel_env
 
     def test_user_overrides_auto_defaults(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
-        """User values in config.json override auto-defaults."""
+        """User values in agent.json override auto-defaults."""
         monkeypatch.setenv("HOME", "/home/testuser")
-        (freeact_dir / "config.json").write_text(
+        (freeact_dir / "agent.json").write_text(
             json.dumps({"model": "test", "kernel-env": {"PYTHONPATH": "/custom/path", "HOME": "/custom/home"}})
         )
 
@@ -478,7 +476,7 @@ class TestLoadKernelEnv:
     def test_resolves_placeholders(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
         """${VAR} placeholders are resolved in kernel_env."""
         monkeypatch.setenv("MY_CUSTOM_VAR", "resolved-value")
-        (freeact_dir / "config.json").write_text(
+        (freeact_dir / "agent.json").write_text(
             json.dumps({"model": "test", "kernel-env": {"CUSTOM": "${MY_CUSTOM_VAR}"}})
         )
 
@@ -488,7 +486,7 @@ class TestLoadKernelEnv:
 
     def test_raises_on_missing_env_variables(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
         """Raises ValueError when ${VAR} references missing env var."""
-        (freeact_dir / "config.json").write_text(
+        (freeact_dir / "agent.json").write_text(
             json.dumps({"model": "test", "kernel-env": {"KEY": "${MISSING_KERNEL_ENV_VAR}"}})
         )
         monkeypatch.delenv("MISSING_KERNEL_ENV_VAR", raising=False)
@@ -497,8 +495,8 @@ class TestLoadKernelEnv:
             Config(working_dir=tmp_path)
 
     def test_empty_kernel_env_uses_defaults(self, tmp_path: Path, freeact_dir: Path):
-        """Empty kernel-env in config.json still gets auto-defaults."""
-        (freeact_dir / "config.json").write_text(json.dumps({"model": "test", "kernel-env": {}}))
+        """Empty kernel-env in agent.json still gets auto-defaults."""
+        (freeact_dir / "agent.json").write_text(json.dumps({"model": "test", "kernel-env": {}}))
 
         config = Config(working_dir=tmp_path)
 
@@ -551,7 +549,7 @@ class TestForSubagent:
 
 
 class TestNewConfigFields:
-    """Tests for new config.json fields with defaults."""
+    """Tests for new agent.json fields with defaults."""
 
     def test_default_images_dir(self, tmp_path: Path, freeact_dir: Path):
         """Default images-dir is None."""
@@ -559,8 +557,8 @@ class TestNewConfigFields:
         assert config.images_dir is None
 
     def test_custom_images_dir(self, tmp_path: Path, freeact_dir: Path):
-        """Custom images-dir from config.json."""
-        (freeact_dir / "config.json").write_text(json.dumps({"model": "test", "images-dir": "/tmp/images"}))
+        """Custom images-dir from agent.json."""
+        (freeact_dir / "agent.json").write_text(json.dumps({"model": "test", "images-dir": "/tmp/images"}))
         config = Config(working_dir=tmp_path)
         assert config.images_dir == Path("/tmp/images")
 
@@ -570,14 +568,14 @@ class TestNewConfigFields:
         assert config.execution_timeout == 300
 
     def test_custom_execution_timeout(self, tmp_path: Path, freeact_dir: Path):
-        """Custom execution-timeout from config.json."""
-        (freeact_dir / "config.json").write_text(json.dumps({"model": "test", "execution-timeout": 60}))
+        """Custom execution-timeout from agent.json."""
+        (freeact_dir / "agent.json").write_text(json.dumps({"model": "test", "execution-timeout": 60}))
         config = Config(working_dir=tmp_path)
         assert config.execution_timeout == 60
 
     def test_null_execution_timeout(self, tmp_path: Path, freeact_dir: Path):
-        """Null execution-timeout from config.json."""
-        (freeact_dir / "config.json").write_text(json.dumps({"model": "test", "execution-timeout": None}))
+        """Null execution-timeout from agent.json."""
+        (freeact_dir / "agent.json").write_text(json.dumps({"model": "test", "execution-timeout": None}))
         config = Config(working_dir=tmp_path)
         assert config.execution_timeout is None
 
@@ -587,8 +585,8 @@ class TestNewConfigFields:
         assert config.approval_timeout is None
 
     def test_custom_approval_timeout(self, tmp_path: Path, freeact_dir: Path):
-        """Custom approval-timeout from config.json."""
-        (freeact_dir / "config.json").write_text(json.dumps({"model": "test", "approval-timeout": 30}))
+        """Custom approval-timeout from agent.json."""
+        (freeact_dir / "agent.json").write_text(json.dumps({"model": "test", "approval-timeout": 30}))
         config = Config(working_dir=tmp_path)
         assert config.approval_timeout == 30
 
@@ -598,8 +596,8 @@ class TestNewConfigFields:
         assert config.enable_subagents is True
 
     def test_custom_enable_subagents(self, tmp_path: Path, freeact_dir: Path):
-        """Custom enable-subagents from config.json."""
-        (freeact_dir / "config.json").write_text(json.dumps({"model": "test", "enable-subagents": False}))
+        """Custom enable-subagents from agent.json."""
+        (freeact_dir / "agent.json").write_text(json.dumps({"model": "test", "enable-subagents": False}))
         config = Config(working_dir=tmp_path)
         assert config.enable_subagents is False
 
@@ -609,8 +607,8 @@ class TestNewConfigFields:
         assert config.max_subagents == 5
 
     def test_custom_max_subagents(self, tmp_path: Path, freeact_dir: Path):
-        """Custom max-subagents from config.json."""
-        (freeact_dir / "config.json").write_text(json.dumps({"model": "test", "max-subagents": 10}))
+        """Custom max-subagents from agent.json."""
+        (freeact_dir / "agent.json").write_text(json.dumps({"model": "test", "max-subagents": 10}))
         config = Config(working_dir=tmp_path)
         assert config.max_subagents == 10
 
@@ -622,7 +620,7 @@ class TestConfigInit:
         """Full Config initialization with all components."""
         monkeypatch.setenv("TEST_API_KEY", "test-value")
 
-        (freeact_dir / "config.json").write_text(
+        (freeact_dir / "agent.json").write_text(
             json.dumps(
                 {
                     "model": "test",
@@ -672,11 +670,11 @@ class TestConfigInit:
 
 
 class TestLoadModelConfig:
-    """Tests for model configuration loading from config.json."""
+    """Tests for model configuration loading from agent.json."""
 
     def test_reads_model_from_config_json(self, tmp_path: Path, freeact_dir: Path):
-        """Model string loaded from config.json."""
-        (freeact_dir / "config.json").write_text(json.dumps({"model": "test"}))
+        """Model string loaded from agent.json."""
+        (freeact_dir / "agent.json").write_text(json.dumps({"model": "test"}))
 
         config = Config(working_dir=tmp_path)
 
@@ -684,15 +682,15 @@ class TestLoadModelConfig:
 
     def test_raises_when_model_missing(self, tmp_path: Path, freeact_dir: Path):
         """`ValueError` when `model` key absent."""
-        (freeact_dir / "config.json").write_text(json.dumps({}))
+        (freeact_dir / "agent.json").write_text(json.dumps({}))
 
-        with pytest.raises(ValueError, match="'model' is required in config.json"):
+        with pytest.raises(ValueError, match="'model' is required in agent.json"):
             Config(working_dir=tmp_path)
 
     def test_model_settings_from_config_json(self, tmp_path: Path, freeact_dir: Path):
-        """Reads settings dict from config.json."""
+        """Reads settings dict from agent.json."""
         settings = {"temperature": 0.7, "max_tokens": 1024}
-        (freeact_dir / "config.json").write_text(json.dumps({"model": "test", "model-settings": settings}))
+        (freeact_dir / "agent.json").write_text(json.dumps({"model": "test", "model-settings": settings}))
 
         config = Config(working_dir=tmp_path)
 
@@ -700,7 +698,7 @@ class TestLoadModelConfig:
 
     def test_null_model_settings_uses_empty(self, tmp_path: Path, freeact_dir: Path):
         """`model-settings: null` results in empty dict."""
-        (freeact_dir / "config.json").write_text(json.dumps({"model": "test", "model-settings": None}))
+        (freeact_dir / "agent.json").write_text(json.dumps({"model": "test", "model-settings": None}))
 
         config = Config(working_dir=tmp_path)
 
@@ -708,7 +706,7 @@ class TestLoadModelConfig:
 
     def test_missing_model_settings_uses_empty(self, tmp_path: Path, freeact_dir: Path):
         """Omitting `model-settings` results in empty dict."""
-        (freeact_dir / "config.json").write_text(json.dumps({"model": "test"}))
+        (freeact_dir / "agent.json").write_text(json.dumps({"model": "test"}))
 
         config = Config(working_dir=tmp_path)
 
@@ -719,7 +717,7 @@ class TestLoadModelConfig:
     ):
         """Provider config constructs a `Model` instance (not a string)."""
         monkeypatch.setenv("TEST_API_KEY", "test-key-value")
-        (freeact_dir / "config.json").write_text(
+        (freeact_dir / "agent.json").write_text(
             json.dumps(
                 {
                     "model": "openai:gpt-4o",
@@ -735,7 +733,7 @@ class TestLoadModelConfig:
     def test_model_provider_resolves_env_vars(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
         """`${VAR}` in provider config resolved from environment."""
         monkeypatch.setenv("MY_KEY", "resolved-key")
-        (freeact_dir / "config.json").write_text(
+        (freeact_dir / "agent.json").write_text(
             json.dumps(
                 {
                     "model": "openai:gpt-4o",
@@ -753,7 +751,7 @@ class TestLoadModelConfig:
     ):
         """Missing env var in provider config raises `ValueError`."""
         monkeypatch.delenv("NONEXISTENT_KEY", raising=False)
-        (freeact_dir / "config.json").write_text(
+        (freeact_dir / "agent.json").write_text(
             json.dumps(
                 {
                     "model": "openai:gpt-4o",
@@ -767,7 +765,7 @@ class TestLoadModelConfig:
 
     def test_null_model_provider_uses_default(self, tmp_path: Path, freeact_dir: Path):
         """`model-provider: null` returns model as string."""
-        (freeact_dir / "config.json").write_text(json.dumps({"model": "test", "model-provider": None}))
+        (freeact_dir / "agent.json").write_text(json.dumps({"model": "test", "model-provider": None}))
 
         config = Config(working_dir=tmp_path)
 
@@ -780,7 +778,7 @@ class TestModelConfigExamples:
 
     def test_google_config(self, tmp_path: Path, freeact_dir: Path):
         """Google model with thinking config settings."""
-        (freeact_dir / "config.json").write_text(
+        (freeact_dir / "agent.json").write_text(
             json.dumps(
                 {
                     "model": "google-gla:gemini-3-flash-preview",
@@ -801,7 +799,7 @@ class TestModelConfigExamples:
 
     def test_anthropic_config(self, tmp_path: Path, freeact_dir: Path):
         """Anthropic model with extended thinking settings."""
-        (freeact_dir / "config.json").write_text(
+        (freeact_dir / "agent.json").write_text(
             json.dumps(
                 {
                     "model": "anthropic:claude-sonnet-4-5-20250929",
@@ -823,7 +821,7 @@ class TestModelConfigExamples:
     def test_openrouter_config(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
         """OpenRouter model with provider kwargs."""
         monkeypatch.setenv("OPENROUTER_API_KEY", "test-or-key")
-        (freeact_dir / "config.json").write_text(
+        (freeact_dir / "agent.json").write_text(
             json.dumps(
                 {
                     "model": "openrouter:anthropic/claude-sonnet-4-5",
@@ -845,7 +843,7 @@ class TestModelConfigExamples:
     def test_openai_compatible_config(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
         """OpenAI model with custom base_url and api_key."""
         monkeypatch.setenv("CUSTOM_API_KEY", "test-custom-key")
-        (freeact_dir / "config.json").write_text(
+        (freeact_dir / "agent.json").write_text(
             json.dumps(
                 {
                     "model": "openai:my-custom-model",

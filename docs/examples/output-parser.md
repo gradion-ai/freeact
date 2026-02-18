@@ -21,7 +21,7 @@ mkdir my-workspace && cd my-workspace
 uvx freeact init
 ```
 
-Add the [GitHub MCP server](https://github.com/github/github-mcp-server) to [`ptc-servers`](../configuration.md#ptc-servers) in `.freeact/config.json`:
+Add the [GitHub MCP server](https://github.com/github/github-mcp-server) to [`ptc-servers`](../configuration.md#ptc-servers) in `.freeact/agent.json`:
 
 ```json
 {

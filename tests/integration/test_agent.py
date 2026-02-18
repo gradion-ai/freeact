@@ -1,66 +1,42 @@
 import asyncio
 import json
-import tempfile
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
-from pathlib import Path
 
 import ipybox
 import pytest
 import pytest_asyncio
 from pydantic_ai.messages import ModelMessage
-from pydantic_ai.models.function import AgentInfo, DeltaThinkingPart, DeltaToolCall, FunctionModel
+from pydantic_ai.models.function import AgentInfo, DeltaThinkingPart, DeltaToolCall
 
 from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput, Response
-from freeact.agent.config import Config
-from freeact.agent.config.config import _ConfigPaths
 from freeact.tools.pytools import MCPTOOLS_DIR
-from tests.conftest import (
+from tests.helpers import (
     DeltaThinkingCalls,
     DeltaToolCalls,
     StreamResults,
     collect_stream,
     create_stream_function,
+    create_test_config,
     get_tool_return_parts,
     patched_agent,
+    unpatched_agent,
 )
 from tests.integration.mcp_server import STDIO_SERVER_PATH
 
 
-def _create_unpatched_config(stream_function) -> Config:
-    """Create a Config for unpatched agent tests."""
-    tmp_dir = Path(tempfile.mkdtemp())
-    freeact_dir = _ConfigPaths(tmp_dir).freeact_dir
-    freeact_dir.mkdir()
-    (freeact_dir / "config.json").write_text(json.dumps({"model": "test"}))
-    config = Config(working_dir=tmp_dir)
-    config.model = FunctionModel(stream_function=stream_function)
-    config.model_settings = {}
-    config.mcp_servers = {}
-    return config
-
-
-@asynccontextmanager
-async def unpatched_agent(stream_function):
-    """Context manager that creates and yields an agent with a real code executor."""
-    config = _create_unpatched_config(stream_function)
-    agent = Agent(config=config)
-    async with agent:
-        yield agent
+@pytest_asyncio.fixture
+async def mcp_sources_dir(tmp_path):
+    """Pre-generate MCP sources for PTC testing."""
+    await ipybox.generate_mcp_sources(
+        "test",
+        {"command": "python", "args": [str(STDIO_SERVER_PATH)]},
+        tmp_path / MCPTOOLS_DIR,
+    )
+    return tmp_path
 
 
 class TestIpyboxExecution:
     """Tests for ipybox_execute_ipython_cell tool with real code executor."""
-
-    @pytest_asyncio.fixture
-    async def mcp_sources_dir(self, tmp_path):
-        """Pre-generate MCP sources for PTC testing."""
-        await ipybox.generate_mcp_sources(
-            "test",
-            {"command": "python", "args": [str(STDIO_SERVER_PATH)]},
-            tmp_path / MCPTOOLS_DIR,
-        )
-        return tmp_path
 
     @pytest.mark.asyncio
     async def test_real_code_execution(self):
@@ -393,16 +369,6 @@ class TestStreamingDeltas:
 class TestTimeouts:
     """Tests for execution_timeout and approval_timeout behavior."""
 
-    @pytest_asyncio.fixture
-    async def mcp_sources_dir(self, tmp_path):
-        """Pre-generate MCP sources for PTC testing."""
-        await ipybox.generate_mcp_sources(
-            "test",
-            {"command": "python", "args": [str(STDIO_SERVER_PATH)]},
-            tmp_path / MCPTOOLS_DIR,
-        )
-        return tmp_path
-
     @pytest.mark.asyncio
     async def test_execution_timeout_exceeded(self):
         """Code execution exceeding timeout raises error."""
@@ -413,7 +379,7 @@ class TestTimeouts:
             tool_args={"code": slow_code},
         )
 
-        config = _create_unpatched_config(stream_function)
+        config = create_test_config(stream_function=stream_function)
         config.execution_timeout = 0.5  # 500ms timeout
         agent = Agent(config=config)
         async with agent:
@@ -440,12 +406,11 @@ tool_2.run(tool_2.Params(s="test"))
             tool_args={"code": call_code},
         )
 
-        # Use a 10 second execution timeout - generous for slow CI environments.
-        # The key is that we delay PTC approval by 15 seconds, which is longer
-        # than the execution timeout. If approval wait counted toward timeout,
-        # this would fail.
-        config = _create_unpatched_config(stream_function)
-        config.execution_timeout = 10  # 10 second timeout for actual execution
+        # Use a 5 second execution timeout. We delay PTC approval by 8 seconds,
+        # which is longer than the timeout. If approval wait counted toward
+        # timeout, this would fail.
+        config = create_test_config(stream_function=stream_function)
+        config.execution_timeout = 5
         agent = Agent(config=config)
 
         async def delayed_ptc_approve(agent, prompt):
@@ -456,11 +421,9 @@ tool_2.run(tool_2.Params(s="test"))
                     case ApprovalRequest() as req:
                         results.approvals.append(req)
                         if req.tool_name == "ipybox_execute_ipython_cell":
-                            req.approve(True)  # Approve code action immediately
+                            req.approve(True)
                         else:
-                            # Delay PTC approval by 15 seconds - longer than execution_timeout
-                            # If approval wait counted toward timeout, this would fail
-                            await asyncio.sleep(15)
+                            await asyncio.sleep(8)
                             req.approve(True)
                     case CodeExecutionOutput() as out:
                         results.code_outputs.append(out)
@@ -471,8 +434,7 @@ tool_2.run(tool_2.Params(s="test"))
         async with agent:
             results = await delayed_ptc_approve(agent, "run code")
 
-            # Should succeed despite 15s PTC approval delay with 10s execution timeout
-            # This proves approval wait time is excluded from the timeout budget
+            # Should succeed despite 8s PTC approval delay with 5s execution timeout
             assert len(results.approvals) == 2
             assert results.approvals[0].tool_name == "ipybox_execute_ipython_cell"
             assert results.approvals[1].tool_name == "test_tool_2"
@@ -489,7 +451,7 @@ tool_2.run(tool_2.Params(s="test"))
             tool_args={"code": fast_code},
         )
 
-        config = _create_unpatched_config(stream_function)
+        config = create_test_config(stream_function=stream_function)
         config.execution_timeout = 10  # Generous timeout
         agent = Agent(config=config)
         async with agent:
