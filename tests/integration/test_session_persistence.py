@@ -1,37 +1,15 @@
 import json
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
 from pathlib import Path
 
 import pytest
 from pydantic_ai.messages import ModelMessage, ModelRequest, ModelResponse, UserPromptPart
-from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
+from pydantic_ai.models.function import AgentInfo, DeltaToolCall
 from pydantic_core import to_jsonable_python
 
 from freeact.agent import Agent
-from freeact.agent.config import Config
-from freeact.agent.config.config import _ConfigPaths
 from freeact.agent.store import SessionStore
-from tests.conftest import DeltaToolCalls, collect_stream, get_tool_return_parts
-
-
-def _create_unpatched_config(stream_function, tmp_path: Path) -> Config:
-    freeact_dir = _ConfigPaths(tmp_path).freeact_dir
-    freeact_dir.mkdir(exist_ok=True)
-    (freeact_dir / "agent.json").write_text(json.dumps({"model": "test"}))
-    config = Config(working_dir=tmp_path)
-    config.model = FunctionModel(stream_function=stream_function)
-    config.model_settings = {}
-    config.mcp_servers = {}
-    return config
-
-
-@asynccontextmanager
-async def unpatched_agent(stream_function, tmp_path: Path, session_store: SessionStore):
-    config = _create_unpatched_config(stream_function, tmp_path)
-    agent = Agent(config=config, session_store=session_store)
-    async with agent:
-        yield agent
+from tests.helpers import DeltaToolCalls, collect_stream, create_test_config, get_tool_return_parts, unpatched_agent
 
 
 class TestSessionPersistence:
@@ -49,7 +27,7 @@ class TestSessionPersistence:
                     )
                 }
 
-        config = _create_unpatched_config(stream_function, tmp_path)
+        config = create_test_config(tmp_dir=tmp_path, stream_function=stream_function)
         session_store = SessionStore(sessions_root=config.sessions_dir, session_id="session-1")
         agent = Agent(config=config, session_store=session_store)
 
@@ -69,7 +47,7 @@ class TestSessionPersistence:
             captured["messages"] = messages
             yield "Resumed"
 
-        config = _create_unpatched_config(stream_function, tmp_path)
+        config = create_test_config(tmp_dir=tmp_path, stream_function=stream_function)
         session_store = SessionStore(sessions_root=config.sessions_dir, session_id="session-1")
         seed_messages = [
             ModelRequest(parts=[UserPromptPart(content="old prompt")]),
@@ -79,7 +57,7 @@ class TestSessionPersistence:
         sub_file = config.sessions_dir / "session-1" / "sub-dead.jsonl"
         sub_file.write_text("{not-json}\n")
 
-        async with unpatched_agent(stream_function, tmp_path, session_store) as agent:
+        async with unpatched_agent(stream_function, tmp_dir=tmp_path, session_store=session_store) as agent:
             await collect_stream(agent, "new prompt")
 
         assert "messages" in captured
@@ -109,7 +87,7 @@ class TestSessionPersistence:
             else:
                 yield "Subagent response"
 
-        config = _create_unpatched_config(stream_function, tmp_path)
+        config = create_test_config(tmp_dir=tmp_path, stream_function=stream_function)
         session_store = SessionStore(sessions_root=config.sessions_dir, session_id="session-1")
         agent = Agent(config=config, session_store=session_store)
 
