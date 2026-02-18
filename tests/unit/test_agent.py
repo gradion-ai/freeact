@@ -327,7 +327,7 @@ class TestSubagentConfigPropagation:
                 return None
 
             async def stream(self, prompt: str, max_turns: int | None = None):
-                from freeact.agent.core import Response
+                from freeact.agent.events import Response
 
                 yield Response(content="done", agent_id=self.agent_id)
 

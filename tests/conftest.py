@@ -17,7 +17,7 @@ from pydantic_ai.models.function import AgentInfo, DeltaThinkingPart, DeltaToolC
 from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput, Response, ToolOutput
 from freeact.agent.config import Config
 from freeact.agent.config.config import _ConfigPaths
-from freeact.agent.core import ResponseChunk, Thoughts, ThoughtsChunk
+from freeact.agent.events import ResponseChunk, Thoughts, ThoughtsChunk
 
 DeltaToolCalls = dict[int, DeltaToolCall]
 DeltaThinkingCalls = dict[int, DeltaThinkingPart]

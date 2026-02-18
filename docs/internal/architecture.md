@@ -5,9 +5,11 @@ It intentionally excludes CLI, terminal UX, and longer-lived permission policy l
 
 ## Core Agent
 
-- `freeact/agent/core.py` contains the main orchestration loop.
-- `Agent.stream()` yields typed events (`ResponseChunk`, `Response`, `Thoughts*`, `ApprovalRequest`, `CodeExecutionOutput*`, `ToolOutput`).
-- Tool dispatch is centralized in `_execute_tool()` and uses `match`/`case`.
+- `freeact/agent/events.py` defines all typed stream events (`ResponseChunk`, `Response`, `Thoughts*`, `ApprovalRequest`, `CodeExecutionOutput*`, `ToolOutput`).
+- `freeact/agent/core.py` contains the `Agent` class and main orchestration loop.
+- `freeact/agent/_supervisor.py` contains `_ResourceSupervisor`, a generic async lifecycle utility for context managers.
+- `freeact/agent/_subagent.py` contains `_SubagentRunner`, which bridges subagent events via a queue.
+- `_execute_tool()` handles approval, `_dispatch_tool()` routes to the appropriate handler.
 - Multiple tool calls from one model turn execute concurrently via `aiostream.merge`.
 
 ## Subagents

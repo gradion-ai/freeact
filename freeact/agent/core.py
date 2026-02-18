@@ -1,11 +1,8 @@
 import asyncio
 import logging
-import re
 import uuid
-from asyncio import Future
 from collections.abc import Sequence, Set
-from contextlib import suppress
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, AsyncIterator
 
@@ -32,7 +29,20 @@ from pydantic_ai.messages import (
 from pydantic_ai.models import ModelRequestParameters
 from pydantic_ai.tools import ToolDefinition
 
+from freeact.agent._subagent import _SubagentRunner
+from freeact.agent._supervisor import _ResourceSupervisor
 from freeact.agent.config import Config
+from freeact.agent.events import (
+    AgentEvent,
+    ApprovalRequest,
+    CodeExecutionOutput,
+    CodeExecutionOutputChunk,
+    Response,
+    ResponseChunk,
+    Thoughts,
+    ThoughtsChunk,
+    ToolOutput,
+)
 from freeact.agent.store import SessionStore
 from freeact.tools.utils import (
     get_tool_definitions,
@@ -43,120 +53,10 @@ from freeact.tools.utils import (
 logger = logging.getLogger("freeact")
 
 
-@dataclass(kw_only=True)
-class AgentEvent:
-    """Base class for all agent stream events.
-
-    Carries the `agent_id` of the agent that produced the event, allowing
-    callers to distinguish events from a parent agent vs. its subagents.
-    """
-
-    agent_id: str = ""
-
-
 @dataclass
-class ResponseChunk(AgentEvent):
-    """Partial text from an in-progress model response."""
-
-    content: str
-
-
-@dataclass
-class Response(AgentEvent):
-    """Complete model text response after streaming finishes."""
-
-    content: str
-
-
-@dataclass
-class ThoughtsChunk(AgentEvent):
-    """Partial text from model's extended thinking."""
-
-    content: str
-
-
-@dataclass
-class Thoughts(AgentEvent):
-    """Complete model thoughts after streaming finishes."""
-
-    content: str
-
-
-@dataclass
-class ToolOutput(AgentEvent):
-    """Result from a tool or built-in agent operation."""
-
-    content: ToolResult
-
-
-@dataclass
-class CodeExecutionOutputChunk(AgentEvent):
-    """Partial output from an in-progress code execution."""
-
-    text: str
-
-
-@dataclass
-class CodeExecutionOutput(AgentEvent):
-    """Complete result from Python code execution in the ipybox kernel."""
-
-    text: str | None
-    images: list[Path]
-
-    def ptc_rejected(self) -> bool:
-        """Whether the output indicates a rejected programmatic tool call."""
-        if not self.text:
-            return False
-
-        # TODO: make detection of PTC rejection more robust ...
-        pattern = r"ToolRunnerError: Approval request for \S+ rejected"
-        return bool(re.search(pattern, self.text))
-
-    def format(self, max_chars: int = 5000) -> str:
-        """Format output with image markdown links, truncated to `max_chars`.
-
-        Preserves 80% of characters from the start and 20% from the end
-        when truncation is needed.
-        """
-        parts: list[str] = []
-        if self.text:
-            parts.append(self.text)
-        for image_path in self.images:
-            parts.append(f"![Image]({image_path})")
-        formatted = "\n".join(parts) if parts else ""
-
-        if len(formatted) <= max_chars:
-            return formatted
-
-        first_part_len = int(max_chars * 0.8)
-        last_part_len = int(max_chars * 0.2) - 3
-
-        return formatted[:first_part_len] + "..." + formatted[-last_part_len:]
-
-
-@dataclass
-class ApprovalRequest(AgentEvent):
-    """Pending tool execution awaiting user approval.
-
-    Yielded by [`Agent.stream()`][freeact.agent.core.Agent.stream] before
-    executing any tool. The agent is suspended until `approve()` is called.
-    """
-
-    tool_name: str
-    tool_args: dict[str, Any]
-    _future: Future[bool] = field(default_factory=Future)
-
-    def approve(self, decision: bool) -> None:
-        """Resolve this approval request.
-
-        Args:
-            decision: `True` to allow execution, `False` to reject.
-        """
-        self._future.set_result(decision)
-
-    async def approved(self) -> bool:
-        """Await until `approve()` is called and return the decision."""
-        return await self._future
+class _ToolExecResult:
+    content: str | ToolResult
+    rejected: bool = False
 
 
 class _MCPServerStdioFiltered(MCPServerStdio):
@@ -171,103 +71,21 @@ class _MCPServerStdioFiltered(MCPServerStdio):
         return [t for t in tools if t.name not in self._excluded_tools]
 
 
-class _ResourceSupervisor:
-    """Keeps a single async context manager running in its own task."""
-
-    def __init__(self, resource: Any, name: str):
-        self._resource = resource
-        self._name = name
-        self._task: asyncio.Task[None] | None = None
-        self._ready = asyncio.Event()
-        self._stop = asyncio.Event()
-        self._entered_resource: Any | None = None
-        self._error: Exception | None = None
-
-    async def start(self) -> Any:
-        """Start resource task and wait until context is entered."""
-        if self._task is not None:
-            raise RuntimeError(f"Resource supervisor for '{self._name}' already started")
-
-        self._task = asyncio.create_task(self._run(), name=f"resource-{self._name}")
-        await self._ready.wait()
-
-        if self._error is not None:
-            raise RuntimeError(f"Failed to start resource '{self._name}'") from self._error
-
-        return self._entered_resource
-
-    async def stop(self) -> None:
-        """Signal resource task to exit context and wait for completion."""
-        if self._task is None:
-            return
-
-        self._stop.set()
-        await self._task
-
-    async def _run(self) -> None:
-        try:
-            async with self._resource as entered_resource:
-                self._entered_resource = entered_resource
-                self._ready.set()
-                await self._stop.wait()
-        except Exception as e:
-            self._error = e
-            self._ready.set()
-            raise
-
-
-class _SubagentRunner:
-    """Runs a subagent in a dedicated task and streams its events safely."""
-
-    def __init__(self, subagent: "Agent", semaphore: asyncio.Semaphore):
-        self._subagent = subagent
-        self._semaphore = semaphore
-
-    async def stream(self, prompt: str, max_turns: int) -> AsyncIterator[AgentEvent]:
-        queue: asyncio.Queue[AgentEvent | Exception | None] = asyncio.Queue()
-
-        async def run_subagent() -> None:
-            try:
-                async with self._semaphore:
-                    async with self._subagent:
-                        async for event in self._subagent.stream(prompt, max_turns=max_turns):
-                            await queue.put(event)
-            except Exception as e:
-                queue.put_nowait(e)
-            finally:
-                queue.put_nowait(None)
-
-        task = asyncio.create_task(run_subagent())
-        try:
-            while True:
-                item = await queue.get()
-                if item is None:
-                    return
-                if isinstance(item, Exception):
-                    raise item
-                yield item
-        finally:
-            if not task.done():
-                task.cancel()
-                with suppress(asyncio.CancelledError):
-                    await task
-
-
 class Agent:
-    """Code action agent that generates and executes Python code in ipybox.
+    """Code action agent that executes Python code and shell commands.
 
-    The agent fulfills user requests by writing Python code and running it in
-    a sandboxed IPython kernel where variables persist across executions.
-    Tools can be called in two ways:
+    Fulfills user requests by writing code and running it in a stateful
+    IPython kernel provided by ipybox. Variables persist across executions.
+    MCP server tools can be called in two ways:
 
-    - **JSON tool calls**: MCP servers called directly via structured arguments
-    - **Programmatic tool calls (PTC)**: Agent writes Python code that imports
-      and calls tool APIs. These can be auto-generated from MCP schemas
-      (`mcptools/`) or user-defined (`gentools/`).
+    - JSON tool calls: MCP servers called directly via structured arguments
+    - Programmatic tool calls (PTC): agent writes Python code that imports
+      and calls tool APIs, auto-generated from MCP schemas (`mcptools/`)
+      or user-defined (`gentools/`)
 
-    All tool executions require approval. The `stream()` method yields
-    [`ApprovalRequest`][freeact.agent.core.ApprovalRequest] events that must
-    be resolved before execution proceeds.
+    All code actions and tool calls require approval. The `stream()` method
+    yields [`ApprovalRequest`][freeact.agent.ApprovalRequest] events that
+    must be resolved before execution proceeds.
 
     Use as an async context manager or call `start()`/`stop()` explicitly.
     """
@@ -289,6 +107,8 @@ class Agent:
                 `"main"` when not provided.
             sandbox: Run the kernel in sandbox mode.
             sandbox_config: Path to custom sandbox configuration.
+            session_store: Store for persisting message history.
+                If `None`, history is kept in memory only.
         """
         self._config = config
 
@@ -351,7 +171,7 @@ class Agent:
         await self.stop()
 
     async def start(self) -> None:
-        """Start the code executor and connect to MCP servers.
+        """Restore persisted history, start the code executor and MCP servers.
 
         Automatically called when entering the async context manager.
         """
@@ -396,7 +216,7 @@ class Agent:
             raise
 
     async def stop(self) -> None:
-        """Stop the code executor and disconnect from MCP servers.
+        """Stop the code executor and MCP servers.
 
         Automatically called when exiting the async context manager.
         """
@@ -458,18 +278,18 @@ class Agent:
         prompt: str | Sequence[UserContent],
         max_turns: int | None = None,
     ) -> AsyncIterator[AgentEvent]:
-        """Run a full agentic turn, yielding events as they occur.
+        """Run a single agent turn, yielding events as they occur.
 
         Loops through model responses and tool executions until the model
-        produces a response without tool calls. Both JSON-based and programmatic
-        tool calls yield an [`ApprovalRequest`][freeact.agent.core.ApprovalRequest]
+        produces a response without tool calls. All code actions and tool
+        calls yield an [`ApprovalRequest`][freeact.agent.ApprovalRequest]
         that must be resolved before execution proceeds.
 
         Args:
             prompt: User message as text or multimodal content sequence.
             max_turns: Maximum number of tool-execution rounds. Each round
                 consists of a model response followed by tool execution.
-                If None, runs until the model stops calling tools.
+                If `None`, runs until the model stops calling tools.
 
         Returns:
             An async event iterator.
@@ -552,50 +372,74 @@ class Agent:
         tool_name = call.tool_name
         tool_args = call.args_as_dict()
 
-        rejected = False
-
         if tool_name not in self.tool_names:
-            content = f"Unknown tool name: {tool_name}"
-        else:
-            approval = ApprovalRequest(tool_name=tool_name, tool_args=tool_args, agent_id=self.agent_id)
-            yield approval
+            yield ToolReturnPart(
+                tool_call_id=call.tool_call_id,
+                tool_name=tool_name,
+                content=f"Unknown tool name: {tool_name}",
+                metadata={"rejected": False},
+            )
+            return
 
-            if not await approval.approved():
-                content = "Tool call rejected"
-                rejected = True
-            else:
-                match tool_name:
-                    case "ipybox_execute_ipython_cell":
-                        async for item in self._ipybox_execute_ipython_cell(tool_args["code"]):
-                            yield item
-                            match item:
-                                case CodeExecutionOutput() if item.ptc_rejected():
-                                    rejected = True
-                                    content = "Tool call rejected"
-                                case CodeExecutionOutput():
-                                    content = item.format(max_chars=tool_args.get("max_output_chars", 5000))
-                    case "ipybox_reset":
-                        content = await self._ipybox_reset()
-                        yield ToolOutput(content=content, agent_id=self.agent_id)
-                    case "subagent_task":
-                        async for task_event in self._execute_subagent_task(
-                            prompt=tool_args["prompt"],
-                            max_turns=tool_args.get("max_turns", 100),
-                        ):
-                            yield task_event
-                            match task_event:
-                                case ToolOutput():
-                                    content = task_event.content
-                    case _:
-                        content = await self._call_mcp_tool(tool_name, tool_args)
-                        yield ToolOutput(content=content, agent_id=self.agent_id)
+        approval = ApprovalRequest(tool_name=tool_name, tool_args=tool_args, agent_id=self.agent_id)
+        yield approval
+
+        if not await approval.approved():
+            yield ToolReturnPart(
+                tool_call_id=call.tool_call_id,
+                tool_name=tool_name,
+                content="Tool call rejected",
+                metadata={"rejected": True},
+            )
+            return
+
+        result = _ToolExecResult(content="")
+        async for item in self._dispatch_tool(tool_name, tool_args):
+            match item:
+                case _ToolExecResult():
+                    result = item
+                case _:
+                    yield item
 
         yield ToolReturnPart(
             tool_call_id=call.tool_call_id,
-            tool_name=call.tool_name,
-            content=content,
-            metadata={"rejected": rejected},
+            tool_name=tool_name,
+            content=result.content,
+            metadata={"rejected": result.rejected},
         )
+
+    async def _dispatch_tool(
+        self, tool_name: str, tool_args: dict[str, Any]
+    ) -> AsyncIterator[AgentEvent | _ToolExecResult]:
+        match tool_name:
+            case "ipybox_execute_ipython_cell":
+                async for item in self._ipybox_execute_ipython_cell(tool_args["code"]):
+                    yield item
+                    match item:
+                        case CodeExecutionOutput() if item.ptc_rejected():
+                            yield _ToolExecResult(content="Tool call rejected", rejected=True)
+                            return
+                        case CodeExecutionOutput():
+                            yield _ToolExecResult(
+                                content=item.format(max_chars=tool_args.get("max_output_chars", 5000))
+                            )
+            case "ipybox_reset":
+                content = await self._ipybox_reset()
+                yield ToolOutput(content=content, agent_id=self.agent_id)
+                yield _ToolExecResult(content=content)
+            case "subagent_task":
+                async for event in self._execute_subagent_task(
+                    prompt=tool_args["prompt"],
+                    max_turns=tool_args.get("max_turns", 100),
+                ):
+                    yield event
+                    match event:
+                        case ToolOutput():
+                            yield _ToolExecResult(content=event.content)
+            case _:
+                content = await self._call_mcp_tool(tool_name, tool_args)
+                yield ToolOutput(content=content, agent_id=self.agent_id)
+                yield _ToolExecResult(content=content)
 
     async def _execute_subagent_task(self, prompt: str, max_turns: int) -> AsyncIterator[AgentEvent]:
         subagent_config = self._config.for_subagent()

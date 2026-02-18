@@ -11,7 +11,7 @@ from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
 from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput, Response, ToolOutput
 from freeact.agent.config import Config
 from freeact.agent.config.config import _ConfigPaths
-from freeact.agent.core import AgentEvent, ResponseChunk
+from freeact.agent.events import AgentEvent, ResponseChunk
 from tests.conftest import (
     DeltaToolCalls,
     collect_stream,
