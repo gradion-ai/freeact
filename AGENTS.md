@@ -41,7 +41,7 @@ uv run pytest -xsv tests/integration/test_agent.py::test_name  # Single test
 - Use Markdown formatting, not reST
 - Do not add module-level docstrings
 
-## Coding Style & Naming Conventions
+## Coding Guidelines
 - All function parameters and return types must have type hints
 - Modern union syntax: `str | None` instead of `Optional[str]`
 - Prefer `match`/`case` over `isinstance()` for type dispatch

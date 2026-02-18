@@ -41,10 +41,10 @@ class TestConfigInit:
 
     @pytest.mark.asyncio
     async def test_copies_config_json_template(self, tmp_path: Path):
-        """Copies config.json with all expected keys."""
+        """Copies agent.json with all expected keys."""
         await Config.init(tmp_path)
 
-        config_json = _ConfigPaths(tmp_path).freeact_dir / "config.json"
+        config_json = _ConfigPaths(tmp_path).freeact_dir / "agent.json"
         assert config_json.exists()
 
         config = json.loads(config_json.read_text())
@@ -101,7 +101,7 @@ class TestConfigInit:
 
         # Create existing file with custom content
         existing_content = '{"tool-search": "hybrid"}'
-        config_json = freeact_dir / "config.json"
+        config_json = freeact_dir / "agent.json"
         config_json.write_text(existing_content)
 
         await Config.init(tmp_path)
@@ -142,6 +142,6 @@ class TestConfigInit:
         assert freeact_dir.exists()
 
         # Verify structure is intact after multiple calls
-        assert (freeact_dir / "config.json").exists()
+        assert (freeact_dir / "agent.json").exists()
         assert paths.plans_dir.exists()
         assert paths.sessions_dir.exists()

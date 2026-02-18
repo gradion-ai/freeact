@@ -74,7 +74,7 @@ def _create_test_config(
     tmp_dir = Path(tempfile.mkdtemp())
     freeact_dir = _ConfigPaths(tmp_dir).freeact_dir
     freeact_dir.mkdir()
-    (freeact_dir / "config.json").write_text(json.dumps({"model": "test"}))
+    (freeact_dir / "agent.json").write_text(json.dumps({"model": "test"}))
     config = Config(working_dir=tmp_dir)
     config.model = FunctionModel(stream_function=stream_function)
     config.model_settings = {}

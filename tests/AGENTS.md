@@ -8,5 +8,5 @@
 
 ## Config setup in tests
 - Never hardcode `.freeact` or other config directory names. Always derive paths via `_ConfigPaths(tmp_dir)` (e.g., `_ConfigPaths(tmp_dir).freeact_dir`).
-- `config.json` must include `"model"` (required field). Use `{"model": "test"}` as minimal config.
-- To create a test `Config`, write `config.json` first, construct `Config(working_dir=tmp_dir)`, then override attributes (`config.model`, `config.model_settings`, `config.mcp_servers`, etc.).
+- `agent.json` must include `"model"` (required field). Use `{"model": "test"}` as minimal config.
+- To create a test `Config`, write `agent.json` first, construct `Config(working_dir=tmp_dir)`, then override attributes (`config.model`, `config.model_settings`, `config.mcp_servers`, etc.).

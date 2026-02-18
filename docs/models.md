@@ -1,6 +1,6 @@
 # Models
 
-Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/models/){target="_blank"}. The model is configured in [`.freeact/config.json`](configuration.md#configuration-file) through three settings:
+Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/models/){target="_blank"}. The model is configured in [`.freeact/agent.json`](configuration.md#configuration-file) through three settings:
 
 | Setting | Required | Description |
 |---------|----------|-------------|

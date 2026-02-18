@@ -63,7 +63,7 @@ MCP servers run as separate processes and are not affected by [code execution sa
 
 This example shows a sandboxed [filesystem MCP server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem) in the `mcp-servers` section:
 
-```json title=".freeact/config.json"
+```json title=".freeact/agent.json"
 {
   "mcp-servers": {
     "filesystem": {
@@ -105,7 +105,7 @@ uv add "httpx[socks]>=0.28.1"
 
 Then add it to the `ptc-servers` section:
 
-```json title=".freeact/config.json"
+```json title=".freeact/agent.json"
 {
   "ptc-servers": {
     "fetch": {

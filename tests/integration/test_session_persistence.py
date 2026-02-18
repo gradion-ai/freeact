@@ -18,7 +18,7 @@ from tests.conftest import DeltaToolCalls, collect_stream, get_tool_return_parts
 def _create_unpatched_config(stream_function, tmp_path: Path) -> Config:
     freeact_dir = _ConfigPaths(tmp_path).freeact_dir
     freeact_dir.mkdir(exist_ok=True)
-    (freeact_dir / "config.json").write_text(json.dumps({"model": "test"}))
+    (freeact_dir / "agent.json").write_text(json.dumps({"model": "test"}))
     config = Config(working_dir=tmp_path)
     config.model = FunctionModel(stream_function=stream_function)
     config.model_settings = {}
