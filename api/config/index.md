@@ -8,7 +8,7 @@ Configuration loader for the `.freeact/` directory structure.
 
 Loads and parses all configuration on instantiation: skills metadata, system prompts, MCP servers (JSON tool calls), and PTC servers (programmatic tool calling).
 
-Internal MCP servers (pytools, filesystem) are defined as constants in this module. User-defined servers from `config.json` override internal configs when they share the same key.
+Internal MCP servers (pytools, filesystem) are defined as constants in this module. User-defined servers from `agent.json` override internal configs when they share the same key.
 
 Attributes:
 
@@ -18,7 +18,7 @@ Attributes:
 | `freeact_dir`       | `Path`           | Path to .freeact/ configuration directory.                          |
 | `model`             | `Path`           | LLM model name or instance.                                         |
 | `model_settings`    | `Path`           | Model-specific settings (e.g., thinking config).                    |
-| `tool_search`       | `str`            | Tool discovery mode read from config.json.                          |
+| `tool_search`       | `str`            | Tool discovery mode read from agent.json.                           |
 | `images_dir`        | \`Path           | None\`                                                              |
 | `execution_timeout` | \`float          | None\`                                                              |
 | `approval_timeout`  | \`float          | None\`                                                              |
@@ -28,7 +28,7 @@ Attributes:
 | `skills_metadata`   |                  | Parsed skill definitions from .freeact/skills/ and .agents/skills/. |
 | `system_prompt`     |                  | Rendered system prompt loaded from package resources.               |
 | `mcp_servers`       |                  | Merged and resolved MCP server configs.                             |
-| `ptc_servers`       |                  | Raw PTC server configs loaded from config.json.                     |
+| `ptc_servers`       |                  | Raw PTC server configs loaded from agent.json.                      |
 | `sessions_dir`      | `Path`           | Session trace storage directory.                                    |
 
 ### freeact_dir

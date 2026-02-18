@@ -33,7 +33,7 @@ Freeact stores agent configuration and runtime state in `.freeact/`. Project-lev
 │           ├── SKILL.md
 │           └── ...
 └── .freeact/
-    ├── config.json         # Configuration and MCP server definitions
+    ├── agent.json          # Configuration and MCP server definitions
     ├── skills/             # Bundled skills
     │   └── <skill-name>/
     │       ├── SKILL.md    # Skill metadata and instructions
@@ -51,7 +51,7 @@ Freeact stores agent configuration and runtime state in `.freeact/`. Project-lev
 
 ## Configuration File
 
-The `config.json` file contains agent settings and MCP server configurations:
+The `agent.json` file contains agent settings and MCP server configurations:
 
 ```
 {
@@ -138,7 +138,7 @@ Server configurations support environment variable references using `${VAR_NAME}
 
 ## Hybrid Search
 
-When `tool-search` is set to `"hybrid"` in `config.json`, the hybrid search server reads additional configuration from environment variables. Default values are provided for all optional variables:
+When `tool-search` is set to `"hybrid"` in `agent.json`, the hybrid search server reads additional configuration from environment variables. Default values are provided for all optional variables:
 
 | Variable                  | Default                           | Description                                           |
 | ------------------------- | --------------------------------- | ----------------------------------------------------- |
@@ -160,7 +160,7 @@ Set `PYTOOLS_EMBEDDING_MODEL=test` to use a test embedder that generates determi
 
 ## System Prompt
 
-The system prompt is an internal resource bundled with the package. The template used depends on the `tool-search` setting in `config.json`:
+The system prompt is an internal resource bundled with the package. The template used depends on the `tool-search` setting in `agent.json`:
 
 | Mode     | Template           | Description                                                               |
 | -------- | ------------------ | ------------------------------------------------------------------------- |

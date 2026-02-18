@@ -1626,19 +1626,19 @@
 
 
 
-        <p>Code action agent that generates and executes Python code in ipybox.</p>
-<p>The agent fulfills user requests by writing Python code and running it in
-a sandboxed IPython kernel where variables persist across executions.
-Tools can be called in two ways:</p>
+        <p>Code action agent that executes Python code and shell commands.</p>
+<p>Fulfills user requests by writing code and running it in a stateful
+IPython kernel provided by ipybox. Variables persist across executions.
+MCP server tools can be called in two ways:</p>
 <ul>
-<li><strong>JSON tool calls</strong>: MCP servers called directly via structured arguments</li>
-<li><strong>Programmatic tool calls (PTC)</strong>: Agent writes Python code that imports
-  and calls tool APIs. These can be auto-generated from MCP schemas
-  (<code>mcptools/</code>) or user-defined (<code>gentools/</code>).</li>
+<li>JSON tool calls: MCP servers called directly via structured arguments</li>
+<li>Programmatic tool calls (PTC): agent writes Python code that imports
+  and calls tool APIs, auto-generated from MCP schemas (<code>mcptools/</code>)
+  or user-defined (<code>gentools/</code>)</li>
 </ul>
-<p>All tool executions require approval. The <code>stream()</code> method yields
-<a class="autorefs autorefs-internal" href="#freeact.agent.ApprovalRequest"><code>ApprovalRequest</code></a> events that must
-be resolved before execution proceeds.</p>
+<p>All code actions and tool calls require approval. The <code>stream()</code> method
+yields <a class="autorefs autorefs-internal" href="#freeact.agent.ApprovalRequest"><code>ApprovalRequest</code></a> events that
+must be resolved before execution proceeds.</p>
 <p>Use as an async context manager or call <code>start()</code>/<code>stop()</code> explicitly.</p>
 
         <p>Initialize the agent.</p>
@@ -1721,6 +1721,23 @@ MCP servers, kernel env, timeouts, and subagent settings.</p>
                   <code>None</code>
             </td>
           </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>session_store</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" href="#freeact.agent.store.SessionStore">SessionStore</a> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Store for persisting message history.
+If <code>None</code>, history is kept in memory only.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
       </tbody>
     </table>
 
@@ -1762,7 +1779,7 @@ MCP servers, kernel env, timeouts, and subagent settings.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Start the code executor and connect to MCP servers.</p>
+        <p>Restore persisted history, start the code executor and MCP servers.</p>
 <p>Automatically called when entering the async context manager.</p>
 
 
@@ -1787,7 +1804,7 @@ MCP servers, kernel env, timeouts, and subagent settings.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Stop the code executor and disconnect from MCP servers.</p>
+        <p>Stop the code executor and MCP servers.</p>
 <p>Automatically called when exiting the async context manager.</p>
 
 
@@ -1815,10 +1832,10 @@ MCP servers, kernel env, timeouts, and subagent settings.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Run a full agentic turn, yielding events as they occur.</p>
+        <p>Run a single agent turn, yielding events as they occur.</p>
 <p>Loops through model responses and tool executions until the model
-produces a response without tool calls. Both JSON-based and programmatic
-tool calls yield an <a class="autorefs autorefs-internal" href="#freeact.agent.ApprovalRequest"><code>ApprovalRequest</code></a>
+produces a response without tool calls. All code actions and tool
+calls yield an <a class="autorefs autorefs-internal" href="#freeact.agent.ApprovalRequest"><code>ApprovalRequest</code></a>
 that must be resolved before execution proceeds.</p>
 
 
@@ -1860,7 +1877,7 @@ that must be resolved before execution proceeds.</p>
               <div class="doc-md-description">
                 <p>Maximum number of tool-execution rounds. Each round
 consists of a model response followed by tool execution.
-If None, runs until the model stops calling tools.</p>
+If <code>None</code>, runs until the model stops calling tools.</p>
               </div>
             </td>
             <td>
@@ -1987,9 +2004,10 @@ callers to distinguish events from a parent agent vs. its subagents.</p>
 
 
 
-        <p>Pending tool execution awaiting user approval.</p>
+        <p>Pending code action or tool call awaiting user approval.</p>
 <p>Yielded by <a class="autorefs autorefs-internal" href="#freeact.agent.Agent.stream"><code>Agent.stream()</code></a> before
-executing any tool. The agent is suspended until <code>approve()</code> is called.</p>
+executing any code action, programmatic tool call, or JSON tool call.
+The stream is suspended until <code>approve()</code> is called.</p>
 
 
 
@@ -2048,7 +2066,8 @@ executing any tool. The agent is suspended until <code>approve()</code> is calle
             </td>
             <td>
               <div class="doc-md-description">
-                <p><code>True</code> to allow execution, <code>False</code> to reject.</p>
+                <p><code>True</code> to execute, <code>False</code> to reject and end
+the current agent turn.</p>
               </div>
             </td>
             <td>
@@ -2117,7 +2136,7 @@ executing any tool. The agent is suspended until <code>approve()</code> is calle
 
 
 
-        <p>Complete model text response after streaming finishes.</p>
+        <p>Complete model response at a given step.</p>
 
 
 
@@ -2170,7 +2189,7 @@ executing any tool. The agent is suspended until <code>approve()</code> is calle
 
 
 
-        <p>Partial text from an in-progress model response.</p>
+        <p>Partial model response text (content streaming).</p>
 
 
 
@@ -2223,7 +2242,7 @@ executing any tool. The agent is suspended until <code>approve()</code> is calle
 
 
 
-        <p>Complete model thoughts after streaming finishes.</p>
+        <p>Complete model thoughts at a given step.</p>
 
 
 
@@ -2276,7 +2295,7 @@ executing any tool. The agent is suspended until <code>approve()</code> is calle
 
 
 
-        <p>Partial text from model's extended thinking.</p>
+        <p>Partial model thinking text (content streaming).</p>
 
 
 
@@ -2334,7 +2353,7 @@ executing any tool. The agent is suspended until <code>approve()</code> is calle
 
 
 
-        <p>Complete result from Python code execution in the ipybox kernel.</p>
+        <p>Complete code execution output.</p>
 
 
 
@@ -2387,7 +2406,7 @@ executing any tool. The agent is suspended until <code>approve()</code> is calle
 
 
 
-        <p>Partial output from an in-progress code execution.</p>
+        <p>Partial code execution output (content streaming).</p>
 
 
 
@@ -2440,7 +2459,7 @@ executing any tool. The agent is suspended until <code>approve()</code> is calle
 
 
 
-        <p>Result from a tool or built-in agent operation.</p>
+        <p>Tool or built-in operation output.</p>
 
 
 

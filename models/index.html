@@ -1449,7 +1449,7 @@
 
 
 <h1 id="models">Models</h1>
-<p>Freeact supports any model compatible with <a href="https://ai.pydantic.dev/models/" target="_blank">Pydantic AI</a>. The model is configured in <a href="../configuration/#configuration-file"><code>.freeact/config.json</code></a> through three settings:</p>
+<p>Freeact supports any model compatible with <a href="https://ai.pydantic.dev/models/" target="_blank">Pydantic AI</a>. The model is configured in <a href="../configuration/#configuration-file"><code>.freeact/agent.json</code></a> through three settings:</p>
 <table>
 <thead>
 <tr>
@@ -1500,7 +1500,7 @@
 <tr>
 <td>Anthropic</td>
 <td><code>anthropic:</code></td>
-<td><code>anthropic:claude-sonnet-4-5-20250929</code></td>
+<td><code>anthropic:claude-sonnet-4-6</code></td>
 </tr>
 <tr>
 <td>OpenAI</td>
@@ -1510,7 +1510,7 @@
 <tr>
 <td>OpenRouter</td>
 <td><code>openrouter:</code></td>
-<td><code>openrouter:anthropic/claude-sonnet-4-5</code></td>
+<td><code>openrouter:anthropic/claude-sonnet-4.6</code></td>
 </tr>
 </tbody>
 </table>
@@ -1531,12 +1531,10 @@
 <p>Set the <code>GEMINI_API_KEY</code> environment variable to authenticate.</p>
 <h3 id="anthropic">Anthropic</h3>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;anthropic:claude-sonnet-4-5-20250929&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;anthropic:claude-sonnet-4-6&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;max_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8192</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;anthropic_thinking&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;enabled&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;budget_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2048</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;adaptive&quot;</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
@@ -1554,9 +1552,11 @@
 <h3 id="openrouter">OpenRouter</h3>
 <p>Providers like OpenRouter require <code>model-provider</code> to pass constructor kwargs (API key, app metadata) to the provider:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;openrouter:anthropic/claude-sonnet-4-5&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;openrouter:anthropic/claude-sonnet-4.6&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;max_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8192</span>
+<span class="w">    </span><span class="nt">&quot;anthropic_thinking&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;adaptive&quot;</span>
+<span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">},</span>
 <span class="w">  </span><span class="nt">&quot;model-provider&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;api_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${OPENROUTER_API_KEY}&quot;</span><span class="p">,</span>
@@ -1591,17 +1591,7 @@
 <span class="p">}</span>
 </code></pre></div>
 <p><code>thinking_level</code> accepts <code>"low"</code>, <code>"medium"</code>, or <code>"high"</code>. Set <code>include_thoughts</code> to <code>true</code> to stream thinking content.</p>
-<p><strong>Anthropic</strong> (Sonnet 4.5 and earlier):</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;max_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8192</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;anthropic_thinking&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;enabled&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;budget_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2048</span>
-<span class="w">  </span><span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div>
-<p><code>max_tokens</code> and <code>budget_tokens</code> are both required.</p>
-<p><strong>Anthropic</strong> (Opus 4.6+):</p>
+<p><strong>Anthropic</strong> (Opus 4.6, Sonnet 4.6):</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;anthropic_thinking&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;adaptive&quot;</span>
@@ -1609,7 +1599,7 @@
 <span class="w">  </span><span class="nt">&quot;anthropic_effort&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;high&quot;</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>Adaptive thinking replaces explicit token budgets. The model decides when and how much to think.</p>
+<p>Adaptive thinking lets the model decide when and how much to think. <code>anthropic_effort</code> accepts <code>"low"</code>, <code>"medium"</code>, <code>"high"</code>, or <code>"max"</code> (Opus only). The default is <code>"high"</code>.</p>
 <p><strong>OpenAI</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;openai_reasoning_effort&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;medium&quot;</span>

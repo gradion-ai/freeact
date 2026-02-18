@@ -25,7 +25,7 @@ See the [Configuration](https://gradion-ai.github.io/freeact/configuration/index
 
 ## Generation API
 
-MCP servers [configured](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) as `ptc-servers` in `config.json` require Python API generation with generate_mcp_sources() before the agent can call their tools programmatically:
+MCP servers [configured](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) as `ptc-servers` in `agent.json` require Python API generation with generate_mcp_sources() before the agent can call their tools programmatically:
 
 ```
 from freeact.tools.pytools.apigen import generate_mcp_sources
@@ -135,7 +135,7 @@ async for event in agent.stream(prompt):
             print(f"[{agent_id}] {content}")
 ```
 
-The main agent's `agent_id` is `main`, subagent IDs use the form `sub-xxxx`. Each delegated task defaults to `max_turns=100`. The [`max-subagents`](https://gradion-ai.github.io/freeact/configuration/#agent-settings) setting in `config.json` limits concurrent subagents (default 5).
+The main agent's `agent_id` is `main`, subagent IDs use the form `sub-xxxx`. Each delegated task defaults to `max_turns=100`. The [`max-subagents`](https://gradion-ai.github.io/freeact/configuration/#agent-settings) setting in `agent.json` limits concurrent subagents (default 5).
 
 ### Approval
 
@@ -187,7 +187,7 @@ finally:
 
 ### Timeouts
 
-The agent supports two timeout settings in [`config.json`](https://gradion-ai.github.io/freeact/configuration/#agent-settings):
+The agent supports two timeout settings in [`agent.json`](https://gradion-ai.github.io/freeact/configuration/#agent-settings):
 
 - **`execution-timeout`**: Maximum time in seconds for each [code execution](https://gradion-ai.github.io/freeact/execution/index.md). Approval wait time is excluded from this budget, so the timeout only counts actual execution time. Defaults to 300 seconds. Set to `null` to disable.
 - **`approval-timeout`**: Timeout for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. Defaults to `null` (no timeout).

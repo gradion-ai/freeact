@@ -1679,7 +1679,7 @@
 │           ├── SKILL.md
 │           └── ...
 └── .freeact/
-    ├── config.json         # Configuration and MCP server definitions
+    ├── agent.json          # Configuration and MCP server definitions
     ├── skills/             # Bundled skills
     │   └── &lt;skill-name&gt;/
     │       ├── SKILL.md    # Skill metadata and instructions
@@ -1695,7 +1695,7 @@
     └── permissions.json    # Persisted approval decisions
 </code></pre></div>
 <h2 id="configuration-file">Configuration File</h2>
-<p>The <code>config.json</code> file contains agent settings and MCP server configurations:</p>
+<p>The <code>agent.json</code> file contains agent settings and MCP server configurations:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;google-gla:gemini-3-flash-preview&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">},</span>
@@ -1819,7 +1819,7 @@
 <h3 id="environment-variables">Environment Variables</h3>
 <p>Server configurations support environment variable references using <code>${VAR_NAME}</code> syntax. <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config"><code>Config()</code></a> validates that all referenced variables are set. If a variable is missing, loading fails with an error.</p>
 <h2 id="hybrid-search">Hybrid Search</h2>
-<p>When <code>tool-search</code> is set to <code>"hybrid"</code> in <code>config.json</code>, the hybrid search server reads additional configuration from environment variables. Default values are provided for all optional variables:</p>
+<p>When <code>tool-search</code> is set to <code>"hybrid"</code> in <code>agent.json</code>, the hybrid search server reads additional configuration from environment variables. Default values are provided for all optional variables:</p>
 <table>
 <thead>
 <tr>
@@ -1882,7 +1882,7 @@
 <p>Set <code>PYTOOLS_EMBEDDING_MODEL=test</code> to use a test embedder that generates deterministic embeddings. This is useful for development and testing but produces meaningless search results.</p>
 </div>
 <h2 id="system-prompt">System Prompt</h2>
-<p>The system prompt is an internal resource bundled with the package. The template used depends on the <code>tool-search</code> setting in <code>config.json</code>:</p>
+<p>The system prompt is an internal resource bundled with the package. The template used depends on the <code>tool-search</code> setting in <code>agent.json</code>:</p>
 <table>
 <thead>
 <tr>

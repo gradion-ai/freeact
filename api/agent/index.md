@@ -10,14 +10,14 @@ Agent(
 )
 ```
 
-Code action agent that generates and executes Python code in ipybox.
+Code action agent that executes Python code and shell commands.
 
-The agent fulfills user requests by writing Python code and running it in a sandboxed IPython kernel where variables persist across executions. Tools can be called in two ways:
+Fulfills user requests by writing code and running it in a stateful IPython kernel provided by ipybox. Variables persist across executions. MCP server tools can be called in two ways:
 
-- **JSON tool calls**: MCP servers called directly via structured arguments
-- **Programmatic tool calls (PTC)**: Agent writes Python code that imports and calls tool APIs. These can be auto-generated from MCP schemas (`mcptools/`) or user-defined (`gentools/`).
+- JSON tool calls: MCP servers called directly via structured arguments
+- Programmatic tool calls (PTC): agent writes Python code that imports and calls tool APIs, auto-generated from MCP schemas (`mcptools/`) or user-defined (`gentools/`)
 
-All tool executions require approval. The `stream()` method yields ApprovalRequest events that must be resolved before execution proceeds.
+All code actions and tool calls require approval. The `stream()` method yields ApprovalRequest events that must be resolved before execution proceeds.
 
 Use as an async context manager or call `start()`/`stop()` explicitly.
 
@@ -25,12 +25,13 @@ Initialize the agent.
 
 Parameters:
 
-| Name             | Type     | Description                                                                                                    | Default                                                                   |
-| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `config`         | `Config` | Agent configuration containing model, system prompt, MCP servers, kernel env, timeouts, and subagent settings. | *required*                                                                |
-| `agent_id`       | \`str    | None\`                                                                                                         | Identifier for this agent instance. Defaults to "main" when not provided. |
-| `sandbox`        | `bool`   | Run the kernel in sandbox mode.                                                                                | `False`                                                                   |
-| `sandbox_config` | \`Path   | None\`                                                                                                         | Path to custom sandbox configuration.                                     |
+| Name             | Type           | Description                                                                                                    | Default                                                                        |
+| ---------------- | -------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `config`         | `Config`       | Agent configuration containing model, system prompt, MCP servers, kernel env, timeouts, and subagent settings. | *required*                                                                     |
+| `agent_id`       | \`str          | None\`                                                                                                         | Identifier for this agent instance. Defaults to "main" when not provided.      |
+| `sandbox`        | `bool`         | Run the kernel in sandbox mode.                                                                                | `False`                                                                        |
+| `sandbox_config` | \`Path         | None\`                                                                                                         | Path to custom sandbox configuration.                                          |
+| `session_store`  | \`SessionStore | None\`                                                                                                         | Store for persisting message history. If None, history is kept in memory only. |
 
 ### start
 
@@ -38,7 +39,7 @@ Parameters:
 start() -> None
 ```
 
-Start the code executor and connect to MCP servers.
+Restore persisted history, start the code executor and MCP servers.
 
 Automatically called when entering the async context manager.
 
@@ -48,7 +49,7 @@ Automatically called when entering the async context manager.
 stop() -> None
 ```
 
-Stop the code executor and disconnect from MCP servers.
+Stop the code executor and MCP servers.
 
 Automatically called when exiting the async context manager.
 
@@ -61,9 +62,9 @@ stream(
 ) -> AsyncIterator[AgentEvent]
 ```
 
-Run a full agentic turn, yielding events as they occur.
+Run a single agent turn, yielding events as they occur.
 
-Loops through model responses and tool executions until the model produces a response without tool calls. Both JSON-based and programmatic tool calls yield an ApprovalRequest that must be resolved before execution proceeds.
+Loops through model responses and tool executions until the model produces a response without tool calls. All code actions and tool calls yield an ApprovalRequest that must be resolved before execution proceeds.
 
 Parameters:
 
@@ -102,9 +103,9 @@ ApprovalRequest(
 
 Bases: `AgentEvent`
 
-Pending tool execution awaiting user approval.
+Pending code action or tool call awaiting user approval.
 
-Yielded by Agent.stream() before executing any tool. The agent is suspended until `approve()` is called.
+Yielded by Agent.stream() before executing any code action, programmatic tool call, or JSON tool call. The stream is suspended until `approve()` is called.
 
 ### approve
 
@@ -116,9 +117,9 @@ Resolve this approval request.
 
 Parameters:
 
-| Name       | Type   | Description                               | Default    |
-| ---------- | ------ | ----------------------------------------- | ---------- |
-| `decision` | `bool` | True to allow execution, False to reject. | *required* |
+| Name       | Type   | Description                                                      | Default    |
+| ---------- | ------ | ---------------------------------------------------------------- | ---------- |
+| `decision` | `bool` | True to execute, False to reject and end the current agent turn. | *required* |
 
 ### approved
 
@@ -136,7 +137,7 @@ Response(content: str, *, agent_id: str = '')
 
 Bases: `AgentEvent`
 
-Complete model text response after streaming finishes.
+Complete model response at a given step.
 
 ## freeact.agent.ResponseChunk
 
@@ -146,7 +147,7 @@ ResponseChunk(content: str, *, agent_id: str = '')
 
 Bases: `AgentEvent`
 
-Partial text from an in-progress model response.
+Partial model response text (content streaming).
 
 ## freeact.agent.Thoughts
 
@@ -156,7 +157,7 @@ Thoughts(content: str, *, agent_id: str = '')
 
 Bases: `AgentEvent`
 
-Complete model thoughts after streaming finishes.
+Complete model thoughts at a given step.
 
 ## freeact.agent.ThoughtsChunk
 
@@ -166,7 +167,7 @@ ThoughtsChunk(content: str, *, agent_id: str = '')
 
 Bases: `AgentEvent`
 
-Partial text from model's extended thinking.
+Partial model thinking text (content streaming).
 
 ## freeact.agent.CodeExecutionOutput
 
@@ -181,7 +182,7 @@ CodeExecutionOutput(
 
 Bases: `AgentEvent`
 
-Complete result from Python code execution in the ipybox kernel.
+Complete code execution output.
 
 ## freeact.agent.CodeExecutionOutputChunk
 
@@ -191,7 +192,7 @@ CodeExecutionOutputChunk(text: str, *, agent_id: str = '')
 
 Bases: `AgentEvent`
 
-Partial output from an in-progress code execution.
+Partial code execution output (content streaming).
 
 ## freeact.agent.ToolOutput
 
@@ -201,7 +202,7 @@ ToolOutput(content: ToolResult, *, agent_id: str = '')
 
 Bases: `AgentEvent`
 
-Result from a tool or built-in agent operation.
+Tool or built-in operation output.
 
 ## freeact.agent.store.SessionStore
 

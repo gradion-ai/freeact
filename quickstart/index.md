@@ -28,7 +28,7 @@ On first start, the CLI tool auto-generates Python APIs for [configured](https:/
 
 Custom MCP servers
 
-For calling the tools of your own MCP servers programmatically, add them to the [`ptc-servers`](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) section in `.freeact/config.json`. Freeact auto-generates a Python API for them when the CLI tool starts.
+For calling the tools of your own MCP servers programmatically, add them to the [`ptc-servers`](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) section in `.freeact/agent.json`. Freeact auto-generates a Python API for them when the CLI tool starts.
 
 ### Running a Task
 

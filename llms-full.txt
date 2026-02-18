@@ -169,7 +169,7 @@ On first start, the CLI tool auto-generates Python APIs for [configured](https:/
 
 Custom MCP servers
 
-For calling the tools of your own MCP servers programmatically, add them to the [`ptc-servers`](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) section in `.freeact/config.json`. Freeact auto-generates a Python API for them when the CLI tool starts.
+For calling the tools of your own MCP servers programmatically, add them to the [`ptc-servers`](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) section in `.freeact/agent.json`. Freeact auto-generates a Python API for them when the CLI tool starts.
 
 ### Running a Task
 
@@ -282,7 +282,7 @@ Freeact stores agent configuration and runtime state in `.freeact/`. Project-lev
 │           ├── SKILL.md
 │           └── ...
 └── .freeact/
-    ├── config.json         # Configuration and MCP server definitions
+    ├── agent.json          # Configuration and MCP server definitions
     ├── skills/             # Bundled skills
     │   └── <skill-name>/
     │       ├── SKILL.md    # Skill metadata and instructions
@@ -300,7 +300,7 @@ Freeact stores agent configuration and runtime state in `.freeact/`. Project-lev
 
 ## Configuration File
 
-The `config.json` file contains agent settings and MCP server configurations:
+The `agent.json` file contains agent settings and MCP server configurations:
 
 ```
 {
@@ -387,7 +387,7 @@ Server configurations support environment variable references using `${VAR_NAME}
 
 ## Hybrid Search
 
-When `tool-search` is set to `"hybrid"` in `config.json`, the hybrid search server reads additional configuration from environment variables. Default values are provided for all optional variables:
+When `tool-search` is set to `"hybrid"` in `agent.json`, the hybrid search server reads additional configuration from environment variables. Default values are provided for all optional variables:
 
 | Variable                  | Default                           | Description                                           |
 | ------------------------- | --------------------------------- | ----------------------------------------------------- |
@@ -409,7 +409,7 @@ Set `PYTOOLS_EMBEDDING_MODEL=test` to use a test embedder that generates determi
 
 ## System Prompt
 
-The system prompt is an internal resource bundled with the package. The template used depends on the `tool-search` setting in `config.json`:
+The system prompt is an internal resource bundled with the package. The template used depends on the `tool-search` setting in `agent.json`:
 
 | Mode     | Template           | Description                                                               |
 | -------- | ------------------ | ------------------------------------------------------------------------- |
@@ -657,7 +657,7 @@ MCP servers run as separate processes and are not affected by [code execution sa
 
 This example shows a sandboxed [filesystem MCP server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem) in the `mcp-servers` section:
 
-.freeact/config.json
+.freeact/agent.json
 
 ```
 {
@@ -703,7 +703,7 @@ uv add "httpx[socks]>=0.28.1"
 
 Then add it to the `ptc-servers` section:
 
-.freeact/config.json
+.freeact/agent.json
 
 ```
 {
@@ -740,7 +740,7 @@ sandbox-fetch-mcp.json
 
 # Models
 
-Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/models/). The model is configured in [`.freeact/config.json`](https://gradion-ai.github.io/freeact/configuration/#configuration-file) through three settings:
+Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/models/). The model is configured in [`.freeact/agent.json`](https://gradion-ai.github.io/freeact/configuration/#configuration-file) through three settings:
 
 | Setting          | Required | Description                                                                         |
 | ---------------- | -------- | ----------------------------------------------------------------------------------- |
@@ -756,9 +756,9 @@ The `model` field uses Pydantic AI's `provider:model-name` format. Common provid
 | ------------------- | ---------------- | ---------------------------------------- |
 | Google (Gemini API) | `google-gla:`    | `google-gla:gemini-3-flash-preview`      |
 | Google (Vertex AI)  | `google-vertex:` | `google-vertex:gemini-3-flash-preview`   |
-| Anthropic           | `anthropic:`     | `anthropic:claude-sonnet-4-5-20250929`   |
+| Anthropic           | `anthropic:`     | `anthropic:claude-sonnet-4-6`            |
 | OpenAI              | `openai:`        | `openai:gpt-5.2`                         |
-| OpenRouter          | `openrouter:`    | `openrouter:anthropic/claude-sonnet-4-5` |
+| OpenRouter          | `openrouter:`    | `openrouter:anthropic/claude-sonnet-4.6` |
 
 See Pydantic AI's [model documentation](https://ai.pydantic.dev/models/) for the full list of supported providers and model names.
 
@@ -786,12 +786,10 @@ Set the `GEMINI_API_KEY` environment variable to authenticate.
 
 ```
 {
-  "model": "anthropic:claude-sonnet-4-5-20250929",
+  "model": "anthropic:claude-sonnet-4-6",
   "model-settings": {
-    "max_tokens": 8192,
     "anthropic_thinking": {
-      "type": "enabled",
-      "budget_tokens": 2048
+      "type": "adaptive"
     }
   }
 }
@@ -818,9 +816,11 @@ Providers like OpenRouter require `model-provider` to pass constructor kwargs (A
 
 ```
 {
-  "model": "openrouter:anthropic/claude-sonnet-4-5",
+  "model": "openrouter:anthropic/claude-sonnet-4.6",
   "model-settings": {
-    "max_tokens": 8192
+    "anthropic_thinking": {
+      "type": "adaptive"
+    }
   },
   "model-provider": {
     "api_key": "${OPENROUTER_API_KEY}",
@@ -868,21 +868,7 @@ Freeact streams thinking content when the model supports it. Thinking is configu
 
 `thinking_level` accepts `"low"`, `"medium"`, or `"high"`. Set `include_thoughts` to `true` to stream thinking content.
 
-**Anthropic** (Sonnet 4.5 and earlier):
-
-```
-"model-settings": {
-  "max_tokens": 8192,
-  "anthropic_thinking": {
-    "type": "enabled",
-    "budget_tokens": 2048
-  }
-}
-```
-
-`max_tokens` and `budget_tokens` are both required.
-
-**Anthropic** (Opus 4.6+):
+**Anthropic** (Opus 4.6, Sonnet 4.6):
 
 ```
 "model-settings": {
@@ -893,7 +879,7 @@ Freeact streams thinking content when the model supports it. Thinking is configu
 }
 ```
 
-Adaptive thinking replaces explicit token budgets. The model decides when and how much to think.
+Adaptive thinking lets the model decide when and how much to think. `anthropic_effort` accepts `"low"`, `"medium"`, `"high"`, or `"max"` (Opus only). The default is `"high"`.
 
 **OpenAI**:
 
@@ -949,7 +935,7 @@ See the [Configuration](https://gradion-ai.github.io/freeact/configuration/index
 
 ## Generation API
 
-MCP servers [configured](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) as `ptc-servers` in `config.json` require Python API generation with generate_mcp_sources() before the agent can call their tools programmatically:
+MCP servers [configured](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) as `ptc-servers` in `agent.json` require Python API generation with generate_mcp_sources() before the agent can call their tools programmatically:
 
 ```
 from freeact.tools.pytools.apigen import generate_mcp_sources
@@ -1059,7 +1045,7 @@ async for event in agent.stream(prompt):
             print(f"[{agent_id}] {content}")
 ```
 
-The main agent's `agent_id` is `main`, subagent IDs use the form `sub-xxxx`. Each delegated task defaults to `max_turns=100`. The [`max-subagents`](https://gradion-ai.github.io/freeact/configuration/#agent-settings) setting in `config.json` limits concurrent subagents (default 5).
+The main agent's `agent_id` is `main`, subagent IDs use the form `sub-xxxx`. Each delegated task defaults to `max_turns=100`. The [`max-subagents`](https://gradion-ai.github.io/freeact/configuration/#agent-settings) setting in `agent.json` limits concurrent subagents (default 5).
 
 ### Approval
 
@@ -1111,7 +1097,7 @@ finally:
 
 ### Timeouts
 
-The agent supports two timeout settings in [`config.json`](https://gradion-ai.github.io/freeact/configuration/#agent-settings):
+The agent supports two timeout settings in [`agent.json`](https://gradion-ai.github.io/freeact/configuration/#agent-settings):
 
 - **`execution-timeout`**: Maximum time in seconds for each [code execution](https://gradion-ai.github.io/freeact/execution/index.md). Approval wait time is excluded from this budget, so the timeout only counts actual execution time. Defaults to 300 seconds. Set to `null` to disable.
 - **`approval-timeout`**: Timeout for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. Defaults to `null` (no timeout).
@@ -1308,14 +1294,14 @@ Agent(
 )
 ```
 
-Code action agent that generates and executes Python code in ipybox.
+Code action agent that executes Python code and shell commands.
 
-The agent fulfills user requests by writing Python code and running it in a sandboxed IPython kernel where variables persist across executions. Tools can be called in two ways:
+Fulfills user requests by writing code and running it in a stateful IPython kernel provided by ipybox. Variables persist across executions. MCP server tools can be called in two ways:
 
-- **JSON tool calls**: MCP servers called directly via structured arguments
-- **Programmatic tool calls (PTC)**: Agent writes Python code that imports and calls tool APIs. These can be auto-generated from MCP schemas (`mcptools/`) or user-defined (`gentools/`).
+- JSON tool calls: MCP servers called directly via structured arguments
+- Programmatic tool calls (PTC): agent writes Python code that imports and calls tool APIs, auto-generated from MCP schemas (`mcptools/`) or user-defined (`gentools/`)
 
-All tool executions require approval. The `stream()` method yields ApprovalRequest events that must be resolved before execution proceeds.
+All code actions and tool calls require approval. The `stream()` method yields ApprovalRequest events that must be resolved before execution proceeds.
 
 Use as an async context manager or call `start()`/`stop()` explicitly.
 
@@ -1323,12 +1309,13 @@ Initialize the agent.
 
 Parameters:
 
-| Name             | Type     | Description                                                                                                    | Default                                                                   |
-| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `config`         | `Config` | Agent configuration containing model, system prompt, MCP servers, kernel env, timeouts, and subagent settings. | *required*                                                                |
-| `agent_id`       | \`str    | None\`                                                                                                         | Identifier for this agent instance. Defaults to "main" when not provided. |
-| `sandbox`        | `bool`   | Run the kernel in sandbox mode.                                                                                | `False`                                                                   |
-| `sandbox_config` | \`Path   | None\`                                                                                                         | Path to custom sandbox configuration.                                     |
+| Name             | Type           | Description                                                                                                    | Default                                                                        |
+| ---------------- | -------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `config`         | `Config`       | Agent configuration containing model, system prompt, MCP servers, kernel env, timeouts, and subagent settings. | *required*                                                                     |
+| `agent_id`       | \`str          | None\`                                                                                                         | Identifier for this agent instance. Defaults to "main" when not provided.      |
+| `sandbox`        | `bool`         | Run the kernel in sandbox mode.                                                                                | `False`                                                                        |
+| `sandbox_config` | \`Path         | None\`                                                                                                         | Path to custom sandbox configuration.                                          |
+| `session_store`  | \`SessionStore | None\`                                                                                                         | Store for persisting message history. If None, history is kept in memory only. |
 
 ### start
 
@@ -1336,7 +1323,7 @@ Parameters:
 start() -> None
 ```
 
-Start the code executor and connect to MCP servers.
+Restore persisted history, start the code executor and MCP servers.
 
 Automatically called when entering the async context manager.
 
@@ -1346,7 +1333,7 @@ Automatically called when entering the async context manager.
 stop() -> None
 ```
 
-Stop the code executor and disconnect from MCP servers.
+Stop the code executor and MCP servers.
 
 Automatically called when exiting the async context manager.
 
@@ -1359,9 +1346,9 @@ stream(
 ) -> AsyncIterator[AgentEvent]
 ```
 
-Run a full agentic turn, yielding events as they occur.
+Run a single agent turn, yielding events as they occur.
 
-Loops through model responses and tool executions until the model produces a response without tool calls. Both JSON-based and programmatic tool calls yield an ApprovalRequest that must be resolved before execution proceeds.
+Loops through model responses and tool executions until the model produces a response without tool calls. All code actions and tool calls yield an ApprovalRequest that must be resolved before execution proceeds.
 
 Parameters:
 
@@ -1400,9 +1387,9 @@ ApprovalRequest(
 
 Bases: `AgentEvent`
 
-Pending tool execution awaiting user approval.
+Pending code action or tool call awaiting user approval.
 
-Yielded by Agent.stream() before executing any tool. The agent is suspended until `approve()` is called.
+Yielded by Agent.stream() before executing any code action, programmatic tool call, or JSON tool call. The stream is suspended until `approve()` is called.
 
 ### approve
 
@@ -1414,9 +1401,9 @@ Resolve this approval request.
 
 Parameters:
 
-| Name       | Type   | Description                               | Default    |
-| ---------- | ------ | ----------------------------------------- | ---------- |
-| `decision` | `bool` | True to allow execution, False to reject. | *required* |
+| Name       | Type   | Description                                                      | Default    |
+| ---------- | ------ | ---------------------------------------------------------------- | ---------- |
+| `decision` | `bool` | True to execute, False to reject and end the current agent turn. | *required* |
 
 ### approved
 
@@ -1434,7 +1421,7 @@ Response(content: str, *, agent_id: str = '')
 
 Bases: `AgentEvent`
 
-Complete model text response after streaming finishes.
+Complete model response at a given step.
 
 ## freeact.agent.ResponseChunk
 
@@ -1444,7 +1431,7 @@ ResponseChunk(content: str, *, agent_id: str = '')
 
 Bases: `AgentEvent`
 
-Partial text from an in-progress model response.
+Partial model response text (content streaming).
 
 ## freeact.agent.Thoughts
 
@@ -1454,7 +1441,7 @@ Thoughts(content: str, *, agent_id: str = '')
 
 Bases: `AgentEvent`
 
-Complete model thoughts after streaming finishes.
+Complete model thoughts at a given step.
 
 ## freeact.agent.ThoughtsChunk
 
@@ -1464,7 +1451,7 @@ ThoughtsChunk(content: str, *, agent_id: str = '')
 
 Bases: `AgentEvent`
 
-Partial text from model's extended thinking.
+Partial model thinking text (content streaming).
 
 ## freeact.agent.CodeExecutionOutput
 
@@ -1479,7 +1466,7 @@ CodeExecutionOutput(
 
 Bases: `AgentEvent`
 
-Complete result from Python code execution in the ipybox kernel.
+Complete code execution output.
 
 ## freeact.agent.CodeExecutionOutputChunk
 
@@ -1489,7 +1476,7 @@ CodeExecutionOutputChunk(text: str, *, agent_id: str = '')
 
 Bases: `AgentEvent`
 
-Partial output from an in-progress code execution.
+Partial code execution output (content streaming).
 
 ## freeact.agent.ToolOutput
 
@@ -1499,7 +1486,7 @@ ToolOutput(content: ToolResult, *, agent_id: str = '')
 
 Bases: `AgentEvent`
 
-Result from a tool or built-in agent operation.
+Tool or built-in operation output.
 
 ## freeact.agent.store.SessionStore
 
@@ -1562,7 +1549,7 @@ Configuration loader for the `.freeact/` directory structure.
 
 Loads and parses all configuration on instantiation: skills metadata, system prompts, MCP servers (JSON tool calls), and PTC servers (programmatic tool calling).
 
-Internal MCP servers (pytools, filesystem) are defined as constants in this module. User-defined servers from `config.json` override internal configs when they share the same key.
+Internal MCP servers (pytools, filesystem) are defined as constants in this module. User-defined servers from `agent.json` override internal configs when they share the same key.
 
 Attributes:
 
@@ -1572,7 +1559,7 @@ Attributes:
 | `freeact_dir`       | `Path`           | Path to .freeact/ configuration directory.                          |
 | `model`             | `Path`           | LLM model name or instance.                                         |
 | `model_settings`    | `Path`           | Model-specific settings (e.g., thinking config).                    |
-| `tool_search`       | `str`            | Tool discovery mode read from config.json.                          |
+| `tool_search`       | `str`            | Tool discovery mode read from agent.json.                           |
 | `images_dir`        | \`Path           | None\`                                                              |
 | `execution_timeout` | \`float          | None\`                                                              |
 | `approval_timeout`  | \`float          | None\`                                                              |
@@ -1582,7 +1569,7 @@ Attributes:
 | `skills_metadata`   |                  | Parsed skill definitions from .freeact/skills/ and .agents/skills/. |
 | `system_prompt`     |                  | Rendered system prompt loaded from package resources.               |
 | `mcp_servers`       |                  | Merged and resolved MCP server configs.                             |
-| `ptc_servers`       |                  | Raw PTC server configs loaded from config.json.                     |
+| `ptc_servers`       |                  | Raw PTC server configs loaded from agent.json.                      |
 | `sessions_dir`      | `Path`           | Session trace storage directory.                                    |
 
 ### freeact_dir

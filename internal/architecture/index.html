@@ -1189,9 +1189,11 @@
 It intentionally excludes CLI, terminal UX, and longer-lived permission policy layers.</p>
 <h2 id="core-agent">Core Agent</h2>
 <ul>
-<li><code>freeact/agent/core.py</code> contains the main orchestration loop.</li>
-<li><code>Agent.stream()</code> yields typed events (<code>ResponseChunk</code>, <code>Response</code>, <code>Thoughts*</code>, <code>ApprovalRequest</code>, <code>CodeExecutionOutput*</code>, <code>ToolOutput</code>).</li>
-<li>Tool dispatch is centralized in <code>_execute_tool()</code> and uses <code>match</code>/<code>case</code>.</li>
+<li><code>freeact/agent/events.py</code> defines all typed stream events (<code>ResponseChunk</code>, <code>Response</code>, <code>Thoughts*</code>, <code>ApprovalRequest</code>, <code>CodeExecutionOutput*</code>, <code>ToolOutput</code>).</li>
+<li><code>freeact/agent/core.py</code> contains the <code>Agent</code> class and main orchestration loop.</li>
+<li><code>freeact/agent/_supervisor.py</code> contains <code>_ResourceSupervisor</code>, a generic async lifecycle utility for context managers.</li>
+<li><code>freeact/agent/_subagent.py</code> contains <code>_SubagentRunner</code>, which bridges subagent events via a queue.</li>
+<li><code>_execute_tool()</code> handles approval, <code>_dispatch_tool()</code> routes to the appropriate handler.</li>
 <li>Multiple tool calls from one model turn execute concurrently via <code>aiostream.merge</code>.</li>
 </ul>
 <h2 id="subagents">Subagents</h2>
