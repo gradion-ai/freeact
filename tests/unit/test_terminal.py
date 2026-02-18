@@ -1,4 +1,4 @@
-from freeact.terminal.interface import convert_at_references
+from freeact.terminal.legacy.interface import convert_at_references
 
 
 def test_simple_path():

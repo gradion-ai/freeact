@@ -18,7 +18,7 @@ from freeact.agent import (
 )
 from freeact.media import parse_prompt
 from freeact.permissions import PermissionManager
-from freeact.terminal.display import Display
+from freeact.terminal.legacy.display import Display
 
 _AT_FILE_PATTERN = re.compile(r"@(\S+)")
 

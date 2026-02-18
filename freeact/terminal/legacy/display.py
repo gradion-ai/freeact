@@ -15,7 +15,7 @@ from rich.rule import Rule
 from rich.syntax import Syntax
 from rich.text import Text
 
-from freeact.terminal.completion import AtFileCompleter
+from freeact.terminal.legacy.completion import AtFileCompleter
 
 
 def _create_key_bindings() -> KeyBindings:
