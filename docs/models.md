@@ -16,9 +16,9 @@ The `model` field uses Pydantic AI's `provider:model-name` format. Common provid
 |----------|--------|---------|
 | Google (Gemini API) | `google-gla:` | `google-gla:gemini-3-flash-preview` |
 | Google (Vertex AI) | `google-vertex:` | `google-vertex:gemini-3-flash-preview` |
-| Anthropic | `anthropic:` | `anthropic:claude-sonnet-4-5-20250929` |
+| Anthropic | `anthropic:` | `anthropic:claude-sonnet-4-6` |
 | OpenAI | `openai:` | `openai:gpt-5.2` |
-| OpenRouter | `openrouter:` | `openrouter:anthropic/claude-sonnet-4-5` |
+| OpenRouter | `openrouter:` | `openrouter:anthropic/claude-sonnet-4.6` |
 
 See Pydantic AI's [model documentation](https://ai.pydantic.dev/models/){target="_blank"} for the full list of supported providers and model names.
 
@@ -46,12 +46,10 @@ Set the `GEMINI_API_KEY` environment variable to authenticate.
 
 ```json
 {
-  "model": "anthropic:claude-sonnet-4-5-20250929",
+  "model": "anthropic:claude-sonnet-4-6",
   "model-settings": {
-    "max_tokens": 8192,
     "anthropic_thinking": {
-      "type": "enabled",
-      "budget_tokens": 2048
+      "type": "adaptive"
     }
   }
 }
@@ -78,9 +76,11 @@ Providers like OpenRouter require `model-provider` to pass constructor kwargs (A
 
 ```json
 {
-  "model": "openrouter:anthropic/claude-sonnet-4-5",
+  "model": "openrouter:anthropic/claude-sonnet-4.6",
   "model-settings": {
-    "max_tokens": 8192
+    "anthropic_thinking": {
+      "type": "adaptive"
+    }
   },
   "model-provider": {
     "api_key": "${OPENROUTER_API_KEY}",
@@ -128,21 +128,7 @@ Freeact streams thinking content when the model supports it. Thinking is configu
 
 `thinking_level` accepts `"low"`, `"medium"`, or `"high"`. Set `include_thoughts` to `true` to stream thinking content.
 
-**Anthropic** (Sonnet 4.5 and earlier):
-
-```json
-"model-settings": {
-  "max_tokens": 8192,
-  "anthropic_thinking": {
-    "type": "enabled",
-    "budget_tokens": 2048
-  }
-}
-```
-
-`max_tokens` and `budget_tokens` are both required.
-
-**Anthropic** (Opus 4.6+):
+**Anthropic** (Opus 4.6, Sonnet 4.6):
 
 ```json
 "model-settings": {
@@ -153,7 +139,7 @@ Freeact streams thinking content when the model supports it. Thinking is configu
 }
 ```
 
-Adaptive thinking replaces explicit token budgets. The model decides when and how much to think.
+Adaptive thinking lets the model decide when and how much to think. `anthropic_effort` accepts `"low"`, `"medium"`, `"high"`, or `"max"` (Opus only). The default is `"high"`.
 
 **OpenAI**:
 
