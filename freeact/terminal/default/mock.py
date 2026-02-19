@@ -98,6 +98,24 @@ _FILESYSTEM_READ_OUTPUT = """\
 }
 """
 
+_FILESYSTEM_READ_MULTIPLE_ARGS = {
+    "paths": [
+        "/tmp/workspace/config.json",
+        "/tmp/workspace/main.py",
+        "/tmp/workspace/README.md",
+    ],
+}
+
+_FILESYSTEM_READ_MULTIPLE_OUTPUT = (
+    '/tmp/workspace/config.json:\n{\n  "name": "myapp",\n  "version": "1.0",\n  "debug": true\n}\n'
+    "\n---\n"
+    "/tmp/workspace/main.py:\n"
+    'import sys\n\ndef main():\n    print("Hello, world!")\n\nif __name__ == "__main__":\n    main()\n'
+    "\n---\n"
+    "/tmp/workspace/README.md:\n"
+    "# My App\n\nA simple demo application.\n\n## Usage\n\n```bash\npython main.py\n```\n"
+)
+
 _LONG_OUTPUT_LINES = [f"Line {i:04d}: Processing batch item {i} of 200...\n" for i in range(1, 201)]
 
 
@@ -122,7 +140,7 @@ class MockAgent:
     async def stream(self, prompt: str | Sequence[UserContent]) -> AsyncIterator[AgentEvent]:
         self._turn_count += 1
 
-        match self._turn_count % 6:
+        match self._turn_count % 7:
             case 1:
                 async for event in self._scenario_code_action():
                     yield event
@@ -137,6 +155,9 @@ class MockAgent:
                     yield event
             case 5:
                 async for event in self._scenario_read_file():
+                    yield event
+            case 6:
+                async for event in self._scenario_read_multiple_files():
                     yield event
             case 0:
                 async for event in self._scenario_long_output():
@@ -288,6 +309,33 @@ class MockAgent:
         yield ToolOutput(content=_FILESYSTEM_READ_OUTPUT, agent_id=MOCK_AGENT_ID, corr_id=corr_id)  # type: ignore[arg-type]
 
         response = "The config file shows the app is named **myapp** version **1.0** with debug enabled."
+        async for chunk in _stream_text(response):
+            yield ResponseChunk(content=chunk, agent_id=MOCK_AGENT_ID)
+        yield Response(content=response, agent_id=MOCK_AGENT_ID)
+
+    async def _scenario_read_multiple_files(self) -> AsyncIterator[AgentEvent]:
+        """Read multiple files with per-file syntax-highlighted output."""
+        async for chunk in _stream_text("Let me read the project files."):
+            yield ThoughtsChunk(content=chunk, agent_id=MOCK_AGENT_ID)
+        yield Thoughts(content="Let me read the project files.", agent_id=MOCK_AGENT_ID)
+
+        corr_id = "mock-read-multi"
+        request = ApprovalRequest(
+            tool_name="filesystem_read_multiple_files",
+            tool_args=_FILESYSTEM_READ_MULTIPLE_ARGS,
+            agent_id=MOCK_AGENT_ID,
+            corr_id=corr_id,
+        )
+        yield request
+        approved = await request.approved()
+        if not approved:
+            yield ResponseChunk(content="Read was rejected.", agent_id=MOCK_AGENT_ID)
+            yield Response(content="Read was rejected.", agent_id=MOCK_AGENT_ID)
+            return
+
+        yield ToolOutput(content=_FILESYSTEM_READ_MULTIPLE_OUTPUT, agent_id=MOCK_AGENT_ID, corr_id=corr_id)  # type: ignore[arg-type]
+
+        response = "I've read all 3 project files: **config.json**, **main.py**, and **README.md**."
         async for chunk in _stream_text(response):
             yield ResponseChunk(content=chunk, agent_id=MOCK_AGENT_ID)
         yield Response(content=response, agent_id=MOCK_AGENT_ID)

@@ -40,6 +40,7 @@ from freeact.terminal.default.widgets import (
     create_thoughts_box,
     create_tool_call_box,
     create_tool_output_box,
+    create_user_input_box,
     create_write_file_box,
 )
 
@@ -156,15 +157,19 @@ class FreeactApp(App[None]):
     # --- Prompt submission ---
 
     def on_prompt_input_submitted(self, event: PromptInput.Submitted) -> None:
-        content = parse_prompt(convert_at_references(event.text))
-        self._process_turn(content)
+        raw_text = event.text
+        content = parse_prompt(convert_at_references(raw_text))
+        self._process_turn(raw_text, content)
 
     @work(exclusive=True)
-    async def _process_turn(self, content: str | Sequence[UserContent]) -> None:
+    async def _process_turn(self, raw_text: str, content: str | Sequence[UserContent]) -> None:
         prompt_input = self.query_one("#prompt-input", PromptInput)
         conversation = self.query_one("#conversation", VerticalScroll)
         prompt_input.disabled = True
         conversation.anchor()
+
+        user_box = create_user_input_box(raw_text)
+        await self._mount_and_scroll(conversation, user_box)
 
         thoughts_stream: "Markdown.MarkdownStream | None" = None
         response_stream: "Markdown.MarkdownStream | None" = None
@@ -207,9 +212,9 @@ class FreeactApp(App[None]):
                             tool_calls[request.corr_id] = (request.tool_name, request.tool_args)
                         await self._handle_approval(request, conversation)
 
-                    case CodeExecutionOutputChunk(agent_id=aid, text=text):
+                    case CodeExecutionOutputChunk(agent_id=aid, text=text, corr_id=cid):
                         if exec_log is None:
-                            box, exec_log = create_exec_output_box(aid)
+                            box, exec_log = create_exec_output_box(aid, corr_id=cid)
                             await self._mount_and_scroll(conversation, box)
                         exec_log.write(text)
 
@@ -233,20 +238,23 @@ class FreeactApp(App[None]):
                             match name:
                                 case "filesystem_read_text_file":
                                     path = args.get("path", "unknown")
-                                    box = create_read_output_box("Read Output", [path], text, aid)
+                                    filename = path.rsplit("/", 1)[-1] if "/" in path else path
+                                    box = create_read_output_box(
+                                        f"Read Output: {filename}", [path], text, aid, corr_id=cid
+                                    )
                                 case "filesystem_read_multiple_files":
                                     paths: list[str] = args.get("paths", [])
                                     box = create_read_output_box(
                                         f"Read Output: {len(paths)} files",
-                                        paths,
+                                        [],
                                         text,
                                         aid,
-                                        lexer="text",
+                                        corr_id=cid,
                                     )
                                 case _:
-                                    box = create_tool_output_box(text, aid)
+                                    box = create_tool_output_box(text, aid, corr_id=cid)
                         else:
-                            box = create_tool_output_box(text, aid)
+                            box = create_tool_output_box(text, aid, corr_id=cid)
                         await self._mount_and_scroll(conversation, box)
         except Exception as e:
             error_box = create_error_box(f"{type(e).__name__}: {e}")
@@ -263,28 +271,30 @@ class FreeactApp(App[None]):
         conversation: VerticalScroll,
     ) -> None:
         # Mount the appropriate display box
+        cid = request.corr_id
         match request.tool_name:
             case "ipybox_execute_ipython_cell":
                 code = request.tool_args.get("code", "")
-                box = create_code_action_box(code, agent_id=request.agent_id)
+                box = create_code_action_box(code, agent_id=request.agent_id, corr_id=cid)
                 await self._mount_and_scroll(conversation, box)
             case "filesystem_edit_file":
-                box = create_diff_box(request.tool_args, agent_id=request.agent_id)
+                box = create_diff_box(request.tool_args, agent_id=request.agent_id, corr_id=cid)
                 await self._mount_and_scroll(conversation, box)
             case "filesystem_read_text_file":
-                box = create_read_file_box(request.tool_args, agent_id=request.agent_id)
+                box = create_read_file_box(request.tool_args, agent_id=request.agent_id, corr_id=cid)
                 await self._mount_and_scroll(conversation, box)
             case "filesystem_read_multiple_files":
-                box = create_read_multiple_files_box(request.tool_args, agent_id=request.agent_id)
+                box = create_read_multiple_files_box(request.tool_args, agent_id=request.agent_id, corr_id=cid)
                 await self._mount_and_scroll(conversation, box)
             case "filesystem_write_file":
-                box = create_write_file_box(request.tool_args, agent_id=request.agent_id)
+                box = create_write_file_box(request.tool_args, agent_id=request.agent_id, corr_id=cid)
                 await self._mount_and_scroll(conversation, box)
             case _:
                 box = create_tool_call_box(
                     request.tool_name,
                     request.tool_args,
                     agent_id=request.agent_id,
+                    corr_id=cid,
                 )
                 await self._mount_and_scroll(conversation, box)
 
