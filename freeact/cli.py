@@ -8,9 +8,10 @@ from dotenv import load_dotenv
 from rich.console import Console
 
 from freeact.agent import Agent
-from freeact.agent.config import Config
+from freeact.agent.config import Config as AgentConfig
 from freeact.agent.store import SessionStore
 from freeact.terminal import LegacyTerminal, Terminal
+from freeact.terminal.default.config import Config as TerminalConfig
 from freeact.terminal.legacy.recording import save_conversation
 from freeact.tools.pytools.apigen import generate_mcp_sources
 
@@ -106,10 +107,13 @@ def configure_logging(level: str) -> None:
     logger.addHandler(handler)
 
 
-async def create_config(namespace: argparse.Namespace) -> Config:
+async def create_config(namespace: argparse.Namespace) -> tuple[AgentConfig, TerminalConfig]:
     """Initialize and load configuration from `.freeact/` directory."""
-    await Config.init()
-    return Config()
+    await AgentConfig.init()
+    await TerminalConfig.init()
+    config = AgentConfig()
+    terminal_config = TerminalConfig(freeact_dir=config.freeact_dir)
+    return config, terminal_config
 
 
 async def run(namespace: argparse.Namespace) -> None:
@@ -129,7 +133,7 @@ async def run(namespace: argparse.Namespace) -> None:
     else:
         console = None
 
-    config = await create_config(namespace)
+    config, terminal_config = await create_config(namespace)
     session_id = str(namespace.session_id or uuid.uuid4())
     session_store = SessionStore(config.sessions_dir, session_id)
     agent = Agent(
@@ -146,7 +150,7 @@ async def run(namespace: argparse.Namespace) -> None:
         legacy_terminal = LegacyTerminal(agent=agent, console=console)
         await legacy_terminal.run()
     else:
-        terminal = Terminal(agent=agent)
+        terminal = Terminal(agent=agent, ui_config=terminal_config.ui_config)
         await terminal.run()
 
     if namespace.legacy_ui and namespace.record and console is not None:
@@ -169,7 +173,8 @@ def main() -> None:
     configure_logging(namespace.log_level)
 
     if namespace.command == "init":
-        asyncio.run(Config.init())
+        asyncio.run(AgentConfig.init())
+        asyncio.run(TerminalConfig.init())
         logger.info("Initialized .freeact/ configuration directory")
         return
 

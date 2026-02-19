@@ -23,6 +23,7 @@ from freeact.terminal.default.app import (
     _format_attachment_path,
     convert_at_references,
 )
+from freeact.terminal.default.config import ExpandCollapsePolicy, TerminalKeyConfig, TerminalUiConfig
 from freeact.terminal.default.screens import FilePickerScreen, FilePickerTree
 from freeact.terminal.default.widgets import PromptInput
 
@@ -371,6 +372,304 @@ async def test_preapproved_request_skips_approval_bar() -> None:
         assert len(app.query("ApprovalBar")) == 0
         assert app.query(".tool-call-box").last().collapsed
         assert len(app.query(".tool-output-box")) == 1
+
+
+@pytest.mark.asyncio
+async def test_ctrl_o_toggles_expand_all_and_restores_policy() -> None:
+    permission_manager = StubPermissionManager(preapproved=True)
+
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        yield ThoughtsChunk(content="thinking...", agent_id=MAIN_AGENT_ID)
+        yield Thoughts(content="thinking...", agent_id=MAIN_AGENT_ID)
+        request = ApprovalRequest(
+            tool_name="database_query",
+            tool_args={"query": "SELECT 1"},
+            agent_id=MAIN_AGENT_ID,
+            corr_id="call-1",
+        )
+        yield request
+        if await request.approved():
+            yield ToolOutput(content="ok", agent_id=MAIN_AGENT_ID, corr_id="call-1")
+
+    app = FreeactApp(
+        agent_stream=MockStreamAgent(scenario).stream,
+        main_agent_id=MAIN_AGENT_ID,
+        permission_manager=permission_manager,  # type: ignore[arg-type]
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await app.workers.wait_for_complete()
+
+        thoughts_box = app.query(".thoughts-box").last()
+        output_box = app.query(".tool-output-box").last()
+        assert thoughts_box.collapsed
+        assert output_box.collapsed
+
+        await pilot.press("ctrl+o")
+        assert not thoughts_box.collapsed
+        assert not output_box.collapsed
+
+        await pilot.press("ctrl+o")
+        assert thoughts_box.collapsed
+        assert output_box.collapsed
+
+
+@pytest.mark.asyncio
+async def test_new_collapsible_boxes_render_expanded_while_expand_all_override_is_enabled() -> None:
+    permission_manager = StubPermissionManager(preapproved=True)
+
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        request = ApprovalRequest(
+            tool_name="database_query",
+            tool_args={"query": "SELECT 1"},
+            agent_id=MAIN_AGENT_ID,
+            corr_id="call-1",
+        )
+        yield request
+        if await request.approved():
+            yield ToolOutput(content="ok", agent_id=MAIN_AGENT_ID, corr_id="call-1")
+
+    app = FreeactApp(
+        agent_stream=MockStreamAgent(scenario).stream,
+        main_agent_id=MAIN_AGENT_ID,
+        permission_manager=permission_manager,  # type: ignore[arg-type]
+    )
+
+    async with app.run_test() as pilot:
+        await pilot.press("ctrl+o")
+        await _submit_prompt(app, pilot)
+        await app.workers.wait_for_complete()
+
+        output_box = app.query(".tool-output-box").last()
+        assert not output_box.collapsed
+
+        await pilot.press("ctrl+o")
+        assert output_box.collapsed
+
+
+@pytest.mark.asyncio
+async def test_toggle_expand_all_uses_configured_hotkey() -> None:
+    ui_config = TerminalUiConfig(keys=TerminalKeyConfig(toggle_expand_all="f6"))
+    app = FreeactApp(agent_stream=MockStreamAgent(_no_events).stream, main_agent_id=MAIN_AGENT_ID, ui_config=ui_config)
+
+    async with app.run_test() as pilot:
+        assert not app._expand_all_override
+        await pilot.press("f6")
+        assert app._expand_all_override
+
+
+@pytest.mark.asyncio
+async def test_pending_approval_widget_stays_expanded_until_user_decides() -> None:
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        request = ApprovalRequest(
+            tool_name="database_query",
+            tool_args={"query": "SELECT 1"},
+            agent_id=MAIN_AGENT_ID,
+            corr_id="call-1",
+        )
+        yield request
+        if await request.approved():
+            yield ToolOutput(content="ok", agent_id=MAIN_AGENT_ID, corr_id="call-1")
+
+    app = FreeactApp(agent_stream=MockStreamAgent(scenario).stream, main_agent_id=MAIN_AGENT_ID)
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await pilot.pause(0.05)
+
+        action_box = app.query(".tool-call-box").last()
+        assert not action_box.collapsed
+
+        await pilot.press("ctrl+o")
+        await pilot.press("ctrl+o")
+        assert not action_box.collapsed
+
+        await pilot.press("y")
+        await app.workers.wait_for_complete()
+        assert action_box.collapsed
+
+
+@pytest.mark.asyncio
+async def test_approval_policies_can_disable_auto_collapse() -> None:
+    policy = ExpandCollapsePolicy(
+        collapse_approved_tool_calls=False,
+        keep_rejected_actions_expanded=False,
+    )
+    ui_config = TerminalUiConfig(expand_collapse=policy)
+
+    async def approved_scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        request = ApprovalRequest(
+            tool_name="database_query",
+            tool_args={"query": "SELECT 1"},
+            agent_id=MAIN_AGENT_ID,
+            corr_id="call-approved",
+        )
+        yield request
+        await request.approved()
+
+    approved_app = FreeactApp(
+        agent_stream=MockStreamAgent(approved_scenario).stream,
+        main_agent_id=MAIN_AGENT_ID,
+        ui_config=ui_config,
+    )
+
+    async with approved_app.run_test() as pilot:
+        await _submit_prompt(approved_app, pilot)
+        await pilot.pause(0.05)
+        await pilot.press("y")
+        await approved_app.workers.wait_for_complete()
+        assert not approved_app.query(".tool-call-box").last().collapsed
+
+    preapproved_app = FreeactApp(
+        agent_stream=MockStreamAgent(approved_scenario).stream,
+        main_agent_id=MAIN_AGENT_ID,
+        permission_manager=StubPermissionManager(preapproved=True),  # type: ignore[arg-type]
+        ui_config=ui_config,
+    )
+
+    async with preapproved_app.run_test() as pilot:
+        await _submit_prompt(preapproved_app, pilot)
+        await preapproved_app.workers.wait_for_complete()
+        assert not preapproved_app.query(".tool-call-box").last().collapsed
+
+    async def rejected_scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        request = ApprovalRequest(
+            tool_name="database_query",
+            tool_args={"query": "SELECT 1"},
+            agent_id=MAIN_AGENT_ID,
+            corr_id="call-rejected",
+        )
+        yield request
+        await request.approved()
+
+    rejected_app = FreeactApp(
+        agent_stream=MockStreamAgent(rejected_scenario).stream,
+        main_agent_id=MAIN_AGENT_ID,
+        ui_config=ui_config,
+    )
+
+    async with rejected_app.run_test() as pilot:
+        await _submit_prompt(rejected_app, pilot)
+        await pilot.pause(0.05)
+        await pilot.press("n")
+        await rejected_app.workers.wait_for_complete()
+        assert rejected_app.query(".tool-call-box").last().collapsed
+
+
+@pytest.mark.asyncio
+async def test_approved_code_and_tool_collapse_policies_are_independent() -> None:
+    policy = ExpandCollapsePolicy(
+        collapse_approved_code_actions=False,
+        collapse_approved_tool_calls=True,
+    )
+    ui_config = TerminalUiConfig(expand_collapse=policy)
+
+    async def tool_call_scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        request = ApprovalRequest(
+            tool_name="database_query",
+            tool_args={"query": "SELECT 1"},
+            agent_id=MAIN_AGENT_ID,
+            corr_id="tool-call",
+        )
+        yield request
+        await request.approved()
+
+    tool_app = FreeactApp(
+        agent_stream=MockStreamAgent(tool_call_scenario).stream,
+        main_agent_id=MAIN_AGENT_ID,
+        ui_config=ui_config,
+    )
+
+    async with tool_app.run_test() as pilot:
+        await _submit_prompt(tool_app, pilot)
+        await pilot.pause(0.05)
+        await pilot.press("y")
+        await tool_app.workers.wait_for_complete()
+        assert tool_app.query(".tool-call-box").last().collapsed
+
+    async def code_action_scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        request = ApprovalRequest(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": "print('ok')"},
+            agent_id=MAIN_AGENT_ID,
+            corr_id="code-action",
+        )
+        yield request
+        await request.approved()
+
+    code_app = FreeactApp(
+        agent_stream=MockStreamAgent(code_action_scenario).stream,
+        main_agent_id=MAIN_AGENT_ID,
+        ui_config=ui_config,
+    )
+
+    async with code_app.run_test() as pilot:
+        await _submit_prompt(code_app, pilot)
+        await pilot.pause(0.05)
+        await pilot.press("y")
+        await code_app.workers.wait_for_complete()
+        assert not code_app.query(".code-action-box").last().collapsed
+
+
+@pytest.mark.asyncio
+async def test_preapproved_code_action_respects_collapse_approved_code_actions() -> None:
+    policy = ExpandCollapsePolicy(
+        collapse_approved_code_actions=False,
+    )
+    ui_config = TerminalUiConfig(expand_collapse=policy)
+
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        request = ApprovalRequest(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": "print('ok')"},
+            agent_id=MAIN_AGENT_ID,
+            corr_id="code-preapproved",
+        )
+        yield request
+        await request.approved()
+
+    app = FreeactApp(
+        agent_stream=MockStreamAgent(scenario).stream,
+        main_agent_id=MAIN_AGENT_ID,
+        permission_manager=StubPermissionManager(preapproved=True),  # type: ignore[arg-type]
+        ui_config=ui_config,
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await app.workers.wait_for_complete()
+        assert not app.query(".code-action-box").last().collapsed
+
+
+@pytest.mark.asyncio
+async def test_preapproved_tool_call_respects_collapse_approved_tool_calls() -> None:
+    policy = ExpandCollapsePolicy(
+        collapse_approved_tool_calls=False,
+    )
+    ui_config = TerminalUiConfig(expand_collapse=policy)
+
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        request = ApprovalRequest(
+            tool_name="database_query",
+            tool_args={"query": "SELECT 1"},
+            agent_id=MAIN_AGENT_ID,
+            corr_id="tool-preapproved",
+        )
+        yield request
+        await request.approved()
+
+    app = FreeactApp(
+        agent_stream=MockStreamAgent(scenario).stream,
+        main_agent_id=MAIN_AGENT_ID,
+        permission_manager=StubPermissionManager(preapproved=True),  # type: ignore[arg-type]
+        ui_config=ui_config,
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await app.workers.wait_for_complete()
+        assert not app.query(".tool-call-box").last().collapsed
 
 
 @pytest.mark.asyncio

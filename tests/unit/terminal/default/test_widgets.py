@@ -85,6 +85,6 @@ def test_create_tool_output_box_read_output_is_collapsed_and_titled() -> None:
     assert box.title == r"\[agent-1] \[corr-1] Read Output: config.json"
 
 
-def test_approval_bar_shows_trailing_cursor_marker() -> None:
+def test_approval_bar_prompt_text_matches_current_ui() -> None:
     bar = ApprovalBar()
-    assert str(bar.content).endswith(": _")
+    assert str(bar.content) == "Approve? [Y/n/a/s]"

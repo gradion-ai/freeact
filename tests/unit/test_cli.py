@@ -1,4 +1,5 @@
 import argparse
+import json
 import uuid
 from pathlib import Path
 from types import SimpleNamespace
@@ -26,6 +27,36 @@ def test_parser_rejects_invalid_session_id():
 
 
 @pytest.mark.asyncio
+async def test_create_config_scaffolds_terminal_json(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+
+    config, terminal_config = await cli.create_config(argparse.Namespace())
+
+    terminal_json = config.freeact_dir / "terminal.json"
+    assert terminal_json.exists()
+    data = json.loads(terminal_json.read_text())
+    assert data["keys"]["toggle_expand_all"] == "ctrl+o"
+    assert terminal_config.freeact_dir == config.freeact_dir
+
+
+def test_main_init_scaffolds_terminal_json(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(cli, "load_dotenv", lambda: None)
+    monkeypatch.setattr(
+        cli,
+        "parse_args",
+        lambda: argparse.Namespace(command="init", log_level="info"),
+    )
+    monkeypatch.setattr(cli, "configure_logging", lambda _: None)
+
+    cli.main()
+
+    terminal_json = tmp_path / ".freeact" / "terminal.json"
+    assert terminal_json.exists()
+
+
+@pytest.mark.asyncio
 async def test_run_uses_provided_session_id_for_session_store(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     provided = uuid.uuid4()
     captured: dict[str, object] = {}
@@ -42,17 +73,19 @@ async def test_run_uses_provided_session_id_for_session_store(tmp_path: Path, mo
             captured["agent_kwargs"] = kwargs
 
     class FakeTerminal:
-        def __init__(self, agent, console=None):
+        def __init__(self, agent, console=None, ui_config=None):
             captured["terminal_agent"] = agent
 
         async def run(self) -> None:
             captured["terminal_run"] = True
 
     async def fake_create_config(namespace: argparse.Namespace):
-        return SimpleNamespace(
+        config = SimpleNamespace(
             sessions_dir=sessions_dir,
             ptc_servers={},
         )
+        terminal_config = SimpleNamespace(ui_config=object())
+        return config, terminal_config
 
     monkeypatch.setattr(cli, "create_config", fake_create_config)
     monkeypatch.setattr(cli, "SessionStore", FakeSessionStore)
@@ -91,17 +124,19 @@ async def test_run_generates_uuid_when_session_id_missing(tmp_path: Path, monkey
             captured["agent_kwargs"] = kwargs
 
     class FakeTerminal:
-        def __init__(self, agent, console=None):
+        def __init__(self, agent, console=None, ui_config=None):
             pass
 
         async def run(self) -> None:
             return None
 
     async def fake_create_config(namespace: argparse.Namespace):
-        return SimpleNamespace(
+        config = SimpleNamespace(
             sessions_dir=sessions_dir,
             ptc_servers={},
         )
+        terminal_config = SimpleNamespace(ui_config=object())
+        return config, terminal_config
 
     monkeypatch.setattr(cli, "create_config", fake_create_config)
     monkeypatch.setattr(cli, "SessionStore", FakeSessionStore)

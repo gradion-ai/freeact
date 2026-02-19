@@ -10,7 +10,7 @@ from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
-from textual.widgets import Markdown
+from textual.widgets import Collapsible, Markdown
 
 from freeact.agent.events import (
     AgentEvent,
@@ -25,6 +25,7 @@ from freeact.agent.events import (
 )
 from freeact.media import parse_prompt
 from freeact.permissions import PermissionManager
+from freeact.terminal.default.config import DEFAULT_TERMINAL_UI_CONFIG, TerminalUiConfig
 from freeact.terminal.default.screens import FilePickerScreen
 from freeact.terminal.default.tool_adapter import ToolAdapter
 from freeact.terminal.default.tool_data import (
@@ -153,13 +154,25 @@ class FreeactApp(App[None]):
         agent_stream: AgentStreamFn,
         permission_manager: PermissionManager | None = None,
         main_agent_id: str = "",
+        ui_config: TerminalUiConfig = DEFAULT_TERMINAL_UI_CONFIG,
     ) -> None:
         super().__init__()
         self._agent_stream = agent_stream
         self._permission_manager = permission_manager or PermissionManager()
         self._main_agent_id = main_agent_id
+        self._ui_config = ui_config
         self._approval_future: asyncio.Future[int] | None = None
         self._tool_adapter = ToolAdapter()
+        self._expand_all_override = False
+        self._policy_collapsed: dict[int, bool] = {}
+        self._forced_expanded_ids: set[int] = set()
+        self._pending_approval_widget_id: int | None = None
+        self._bindings.bind(
+            self._ui_config.keys.toggle_expand_all,
+            "toggle_expand_all",
+            show=False,
+            priority=True,
+        )
 
     def compose(self) -> ComposeResult:
         yield VerticalScroll(id="conversation")
@@ -175,6 +188,41 @@ class FreeactApp(App[None]):
             await conversation.mount(widget)
         conversation.scroll_end(animate=False)
 
+    def _register_box(self, box: Collapsible, policy_collapsed: bool, force_expanded: bool = False) -> None:
+        box_id = id(box)
+        self._policy_collapsed[box_id] = policy_collapsed
+        if force_expanded:
+            self._forced_expanded_ids.add(box_id)
+        else:
+            self._forced_expanded_ids.discard(box_id)
+        self._apply_render_state(box)
+
+    def _set_policy_collapsed(self, box: Collapsible, collapsed: bool) -> None:
+        self._policy_collapsed[id(box)] = collapsed
+        self._apply_render_state(box)
+
+    def _set_force_expanded(self, box: Collapsible, enabled: bool) -> None:
+        box_id = id(box)
+        if enabled:
+            self._forced_expanded_ids.add(box_id)
+        else:
+            self._forced_expanded_ids.discard(box_id)
+        self._apply_render_state(box)
+
+    def _apply_render_state(self, box: Collapsible) -> None:
+        box_id = id(box)
+        policy_collapsed = self._policy_collapsed.get(box_id, box.collapsed)
+        if box_id in self._forced_expanded_ids or self._expand_all_override:
+            box.collapsed = False
+            return
+        box.collapsed = policy_collapsed
+
+    def _reapply_all_collapsible_states(self) -> None:
+        for widget in self.query("Collapsible"):
+            match widget:
+                case Collapsible() as box:
+                    self._apply_render_state(box)
+
     def on_prompt_input_submitted(self, event: PromptInput.Submitted) -> None:
         raw_text = event.text
         content = parse_prompt(convert_at_references(raw_text))
@@ -188,6 +236,7 @@ class FreeactApp(App[None]):
         conversation.anchor()
 
         user_box = create_user_input_box(raw_text)
+        self._register_box(user_box, policy_collapsed=False)
         await self._mount_and_scroll(conversation, user_box)
 
         thoughts_stream: "Markdown.MarkdownStream | None" = None
@@ -201,6 +250,7 @@ class FreeactApp(App[None]):
                     case ThoughtsChunk(agent_id=aid, content=chunk) if aid == self._main_agent_id:
                         if thoughts_stream is None:
                             box, md = create_thoughts_box(aid)
+                            self._register_box(box, policy_collapsed=False)
                             await self._mount_and_scroll(conversation, box)
                             thoughts_stream = Markdown.get_stream(md)
 
@@ -210,12 +260,15 @@ class FreeactApp(App[None]):
                         if thoughts_stream is not None:
                             await thoughts_stream.stop()
                             thoughts_stream = None
-                            last_box = conversation.query(".thoughts-box").last()
-                            last_box.collapsed = True
+                            if self._ui_config.expand_collapse.collapse_thoughts_on_complete:
+                                match conversation.query(".thoughts-box").last():
+                                    case Collapsible() as last_box:
+                                        self._set_policy_collapsed(last_box, collapsed=True)
 
                     case ResponseChunk(agent_id=aid, content=chunk) if aid == self._main_agent_id:
                         if response_stream is None:
                             box, md = create_response_box(aid)
+                            self._register_box(box, policy_collapsed=False)
                             await self._mount_and_scroll(conversation, box)
                             response_stream = Markdown.get_stream(md)
 
@@ -235,23 +288,31 @@ class FreeactApp(App[None]):
                     case CodeExecutionOutputChunk(agent_id=aid, text=text, corr_id=cid):
                         if exec_log is None:
                             box, exec_log = create_exec_output_box(aid, corr_id=cid)
+                            self._register_box(box, policy_collapsed=False)
                             await self._mount_and_scroll(conversation, box)
                         exec_log.write(text)
 
                     case CodeExecutionOutput(agent_id=aid, text=text, images=images):
                         if exec_log is not None:
                             finalize_exec_output(exec_log, text, images)
-                            last_box = conversation.query(".exec-output-box").last()
-                            last_box.collapsed = True
+                            if self._ui_config.expand_collapse.collapse_exec_output_on_complete:
+                                match conversation.query(".exec-output-box").last():
+                                    case Collapsible() as last_box:
+                                        self._set_policy_collapsed(last_box, collapsed=True)
                         exec_log = None
 
                     case ToolOutput(agent_id=aid, content=tool_content, corr_id=cid):
                         output_action_data = tool_calls.get(cid) if cid else None
                         output_data = self._tool_adapter.map_output(output_action_data, tool_content)
                         box = create_tool_output_box(output_data, aid, corr_id=cid)
+                        self._register_box(
+                            box,
+                            policy_collapsed=self._ui_config.expand_collapse.collapse_tool_outputs,
+                        )
                         await self._mount_and_scroll(conversation, box)
         except Exception as e:
             error_box = create_error_box(f"{type(e).__name__}: {e}")
+            self._register_box(error_box, policy_collapsed=False)
             await self._mount_and_scroll(conversation, error_box)
         finally:
             prompt_input.disabled = False
@@ -288,11 +349,21 @@ class FreeactApp(App[None]):
             case _:
                 raise ValueError(f"Unsupported action data: {action_data!r}")
 
+        pin_pending = self._ui_config.expand_collapse.pin_pending_approval_action_expanded
+        self._register_box(box, policy_collapsed=False, force_expanded=pin_pending)
+        if pin_pending:
+            self._pending_approval_widget_id = id(box)
         await self._mount_and_scroll(conversation, box)
 
         # Check if pre-approved
         if self._permission_manager.is_allowed(request.tool_name, request.tool_args):
-            box.collapsed = True
+            if self._pending_approval_widget_id == id(box):
+                self._pending_approval_widget_id = None
+                self._set_force_expanded(box, enabled=False)
+            self._set_policy_collapsed(
+                box,
+                collapsed=self._collapse_for_approved_action(action_data),
+            )
             request.approve(True)
             return
 
@@ -306,6 +377,9 @@ class FreeactApp(App[None]):
         self._approval_future = None
 
         await bar.remove()
+        if self._pending_approval_widget_id == id(box):
+            self._pending_approval_widget_id = None
+            self._set_force_expanded(box, enabled=False)
 
         match decision:
             case 2:
@@ -315,7 +389,15 @@ class FreeactApp(App[None]):
 
         approved = decision != 0
         if approved:
-            box.collapsed = True
+            self._set_policy_collapsed(
+                box,
+                collapsed=self._collapse_for_approved_action(action_data),
+            )
+        else:
+            self._set_policy_collapsed(
+                box,
+                collapsed=not self._ui_config.expand_collapse.keep_rejected_actions_expanded,
+            )
         request.approve(approved)
 
     def on_approval_bar_decided(self, event: ApprovalBar.Decided) -> None:
@@ -331,10 +413,21 @@ class FreeactApp(App[None]):
         if future is not None and not future.done():
             future.set_result(decision)
 
+    def action_toggle_expand_all(self) -> None:
+        self._expand_all_override = not self._expand_all_override
+        self._reapply_all_collapsible_states()
+
     def _has_pending_approval(self) -> bool:
         if self._approval_future is not None and not self._approval_future.done():
             return True
         return False
+
+    def _collapse_for_approved_action(self, action_data: ActionData) -> bool:
+        match action_data:
+            case CodeActionData():
+                return self._ui_config.expand_collapse.collapse_approved_code_actions
+            case _:
+                return self._ui_config.expand_collapse.collapse_approved_tool_calls
 
     # --- File picker integration ---
 
