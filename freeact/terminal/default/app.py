@@ -1,6 +1,7 @@
 import asyncio
 import re
 from collections.abc import AsyncIterator, Callable, Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TypeAlias
 
@@ -52,6 +53,49 @@ from freeact.terminal.default.widgets import (
 )
 
 AgentStreamFn: TypeAlias = Callable[[str | Sequence[UserContent]], AsyncIterator[AgentEvent]]
+Location: TypeAlias = tuple[int, int]
+
+
+@dataclass(frozen=True)
+class AtReferenceContext:
+    """Token range for an `@path` reference under construction."""
+
+    start: Location
+    end: Location
+
+
+def _format_attachment_path(path: Path, cwd: Path | None = None) -> str:
+    """Format selected picker path for prompt insertion."""
+    resolved = path.expanduser().resolve()
+    base = (cwd or Path.cwd()).resolve()
+    try:
+        relative = resolved.relative_to(base)
+    except ValueError:
+        return str(resolved)
+    if str(relative) == ".":
+        return "."
+    return str(relative)
+
+
+def _find_at_reference_context(text: str, cursor: Location) -> AtReferenceContext | None:
+    """Find an `@...` token context when cursor is immediately after `@`."""
+    row, col = cursor
+    lines = text.split("\n")
+    if row >= len(lines):
+        return None
+    line = lines[row]
+    if col <= 0 or col > len(line):
+        return None
+    if line[col - 1] != "@":
+        return None
+
+    end_col = col
+    while end_col < len(line) and not line[end_col].isspace():
+        end_col += 1
+    return AtReferenceContext(
+        start=(row, col),
+        end=(row, end_col),
+    )
 
 
 class FreeactApp(App[None]):
@@ -297,21 +341,24 @@ class FreeactApp(App[None]):
     def on_text_area_changed(self, event: "textual.widgets.TextArea.Changed") -> None:  # type: ignore[name-defined]  # noqa: F821
         if event.text_area.id != "prompt-input":
             return
-        text = event.text_area.text
-        cursor = event.text_area.cursor_location
-        row, col = cursor
-        lines = text.split("\n")
-        if row < len(lines) and col > 0 and col <= len(lines[row]):
-            if lines[row][col - 1] == "@":
-                self._open_file_picker()
+        context = _find_at_reference_context(event.text_area.text, event.text_area.cursor_location)
+        if context is not None:
+            self._open_file_picker(context)
 
-    def _open_file_picker(self) -> None:
+    def _open_file_picker(self, context: AtReferenceContext) -> None:
         async def handle_result(path: Path | None) -> None:
             if path is not None:
                 prompt_input = self.query_one("#prompt-input", PromptInput)
-                prompt_input.insert(str(path))
+                prompt_input.replace(
+                    _format_attachment_path(path),
+                    context.start,
+                    context.end,
+                )
 
-        self.push_screen(FilePickerScreen(), callback=handle_result)
+        self.push_screen(
+            FilePickerScreen(),
+            callback=handle_result,
+        )
 
 
 def convert_at_references(text: str) -> str:

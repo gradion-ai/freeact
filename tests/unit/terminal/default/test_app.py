@@ -1,4 +1,5 @@
 from collections.abc import AsyncIterator, Callable, Sequence
+from pathlib import Path
 
 import pytest
 from pydantic_ai import UserContent
@@ -15,8 +16,14 @@ from freeact.agent.events import (
     ThoughtsChunk,
     ToolOutput,
 )
-from freeact.terminal.default.app import FreeactApp, convert_at_references
-from freeact.terminal.default.screens import FilePickerScreen
+from freeact.terminal.default.app import (
+    AtReferenceContext,
+    FreeactApp,
+    _find_at_reference_context,
+    _format_attachment_path,
+    convert_at_references,
+)
+from freeact.terminal.default.screens import FilePickerScreen, FilePickerTree
 from freeact.terminal.default.widgets import PromptInput
 
 MAIN_AGENT_ID = "main-agent"
@@ -76,6 +83,28 @@ async def _submit_prompt(app: FreeactApp, pilot: Pilot, text: str = "hello") -> 
 )
 def test_convert_at_references(text: str, expected: str) -> None:
     assert convert_at_references(text) == expected
+
+
+def test_find_at_reference_context_extracts_token_range() -> None:
+    text = "Attach @docs/readme.md now"
+    context = _find_at_reference_context(text, (0, text.index("@") + 1))
+
+    assert context is not None
+    assert context.start == (0, text.index("@") + 1)
+    assert context.end == (0, text.index(" now"))
+
+
+def test_find_at_reference_context_requires_cursor_after_at() -> None:
+    text = "Attach @docs/readme.md now"
+    assert _find_at_reference_context(text, (0, 0)) is None
+    assert _find_at_reference_context(text, (0, text.index("@") + 2)) is None
+
+
+def test_format_attachment_path_prefers_relative_to_cwd(tmp_path: Path) -> None:
+    nested = tmp_path / "assets" / "images"
+    nested.mkdir(parents=True)
+
+    assert _format_attachment_path(nested, cwd=tmp_path) == "assets/images"
 
 
 @pytest.mark.asyncio
@@ -371,3 +400,51 @@ async def test_typing_at_opens_file_picker_screen() -> None:
         await pilot.pause(0.05)
 
         assert any(isinstance(screen, FilePickerScreen) for screen in app.screen_stack)
+
+
+@pytest.mark.asyncio
+async def test_file_picker_starts_at_filesystem_root() -> None:
+    app = FreeactApp(agent_stream=MockStreamAgent(_no_events).stream, main_agent_id=MAIN_AGENT_ID)
+
+    async with app.run_test() as pilot:
+        await pilot.press("@")
+        await pilot.pause(0.05)
+
+        picker = next(screen for screen in app.screen_stack if isinstance(screen, FilePickerScreen))
+        tree = picker.query_one("#picker-tree", FilePickerTree)
+        cwd = Path.cwd().resolve()
+        expected_root = Path(cwd.anchor) if cwd.anchor else cwd
+        assert tree.path == expected_root
+
+
+@pytest.mark.asyncio
+async def test_file_picker_cursor_starts_at_cwd() -> None:
+    app = FreeactApp(agent_stream=MockStreamAgent(_no_events).stream, main_agent_id=MAIN_AGENT_ID)
+
+    async with app.run_test() as pilot:
+        await pilot.press("@")
+        await pilot.pause(0.1)
+
+        picker = next(screen for screen in app.screen_stack if isinstance(screen, FilePickerScreen))
+        tree = picker.query_one("#picker-tree", FilePickerTree)
+        cursor_node = tree.cursor_node
+        assert cursor_node is not None
+        assert cursor_node.data is not None
+        assert cursor_node.data.path.resolve() == Path.cwd().resolve()
+
+
+@pytest.mark.asyncio
+async def test_file_picker_selection_replaces_existing_at_token() -> None:
+    app = FreeactApp(agent_stream=MockStreamAgent(_no_events).stream, main_agent_id=MAIN_AGENT_ID)
+
+    async with app.run_test() as pilot:
+        prompt = app.query_one("#prompt-input", PromptInput)
+        prompt.insert("See @old value")
+        app._open_file_picker(AtReferenceContext(start=(0, 5), end=(0, 8)))
+        await pilot.pause(0.05)
+
+        picker = next(screen for screen in app.screen_stack if isinstance(screen, FilePickerScreen))
+        picker.dismiss(Path.cwd() / "new")
+        await pilot.pause(0.05)
+
+        assert prompt.text == "See @new value"
