@@ -112,7 +112,7 @@ class ApprovalBar(Static):
     ]
 
     def __init__(self, **kwargs: Any) -> None:
-        super().__init__("Approve? [Y/n/a/s]: ", **kwargs)
+        super().__init__("Approve? [Y/n/a/s]: _", **kwargs)
 
     def action_decide(self, decision: int) -> None:
         self.post_message(self.Decided(decision))

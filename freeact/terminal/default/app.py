@@ -7,6 +7,7 @@ from typing import TypeAlias
 from pydantic_ai import UserContent
 from textual import work
 from textual.app import App, ComposeResult
+from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
 from textual.widgets import Markdown
 
@@ -94,7 +95,13 @@ class FreeactApp(App[None]):
     """
 
     BINDINGS = [
-        ("ctrl+c", "quit", "Quit"),
+        Binding("ctrl+c", "quit", "Quit"),
+        Binding("enter", "approve_hotkey(1)", show=False, priority=True),
+        Binding("ctrl+m", "approve_hotkey(1)", show=False, priority=True),
+        Binding("y", "approve_hotkey(1)", show=False, priority=True),
+        Binding("n", "approve_hotkey(0)", show=False, priority=True),
+        Binding("a", "approve_hotkey(2)", show=False, priority=True),
+        Binding("s", "approve_hotkey(3)", show=False, priority=True),
     ]
 
     def __init__(
@@ -268,8 +275,22 @@ class FreeactApp(App[None]):
         request.approve(approved)
 
     def on_approval_bar_decided(self, event: ApprovalBar.Decided) -> None:
+        self.action_approve_hotkey(event.decision)
+
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if action == "approve_hotkey":
+            return self._has_pending_approval()
+        return super().check_action(action, parameters)
+
+    def action_approve_hotkey(self, decision: int) -> None:
+        future = self._approval_future
+        if future is not None and not future.done():
+            future.set_result(decision)
+
+    def _has_pending_approval(self) -> bool:
         if self._approval_future is not None and not self._approval_future.done():
-            self._approval_future.set_result(event.decision)
+            return True
+        return False
 
     # --- File picker integration ---
 

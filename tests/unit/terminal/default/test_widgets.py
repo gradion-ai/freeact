@@ -1,5 +1,6 @@
 from freeact.terminal.default.tool_data import GenericToolOutputData, ReadOutputData, TextEditData
 from freeact.terminal.default.widgets import (
+    ApprovalBar,
     create_error_box,
     create_file_edit_action_box,
     create_file_read_action_box,
@@ -82,3 +83,8 @@ def test_create_tool_output_box_read_output_is_collapsed_and_titled() -> None:
     assert "tool-output-box" in box.classes
     assert box.collapsed
     assert box.title == r"\[agent-1] \[corr-1] Read Output: config.json"
+
+
+def test_approval_bar_shows_trailing_cursor_marker() -> None:
+    bar = ApprovalBar()
+    assert str(bar.content).endswith(": _")

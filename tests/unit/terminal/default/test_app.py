@@ -186,6 +186,33 @@ async def test_approval_yes_collapses_action_and_mounts_tool_output() -> None:
 
 
 @pytest.mark.asyncio
+async def test_approval_enter_works_after_clicking_other_widget() -> None:
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        request = ApprovalRequest(
+            tool_name="database_query",
+            tool_args={"query": "SELECT 1"},
+            agent_id=MAIN_AGENT_ID,
+            corr_id="call-1",
+        )
+        yield request
+        if await request.approved():
+            yield ToolOutput(content="ok", agent_id=MAIN_AGENT_ID, corr_id="call-1")
+
+    app = FreeactApp(agent_stream=MockStreamAgent(scenario).stream, main_agent_id=MAIN_AGENT_ID)
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await pilot.pause(0.05)
+        await pilot.click(".user-input-box")
+        await pilot.press("enter")
+        await app.workers.wait_for_complete()
+
+        assert len(app.query("ApprovalBar")) == 0
+        assert app.query(".tool-call-box").last().collapsed
+        assert len(app.query(".tool-output-box")) == 1
+
+
+@pytest.mark.asyncio
 async def test_approval_no_keeps_action_expanded_and_skips_tool_output() -> None:
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
