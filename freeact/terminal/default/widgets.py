@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from typing import Any
 
 from rich.segment import Segment
@@ -8,6 +9,13 @@ from textual.keys import Keys
 from textual.message import Message
 from textual.strip import Strip
 from textual.widgets import Collapsible, Markdown, RichLog, Static, TextArea
+
+from freeact.terminal.default.tool_data import (
+    GenericToolOutputData,
+    ReadOutputData,
+    TextEditData,
+    ToolOutputData,
+)
 
 # Register Alt+Enter (ESC + CR) to produce the same key event as Ctrl+J,
 # which PromptInput handles as newline insertion. Without this, the xterm
@@ -234,8 +242,36 @@ def create_exec_output_box(agent_id: str = "", corr_id: str = "") -> tuple[Colla
     return box, log
 
 
-def create_tool_output_box(content: str, agent_id: str = "", corr_id: str = "") -> Collapsible:
-    """Create a collapsed collapsible box for tool output.
+def finalize_exec_output(log: RichLog, text: str | None, images: list[Path]) -> None:
+    """Render the final execution output into an existing log widget."""
+    if text:
+        log.clear()
+        syntax = Syntax(text.rstrip("\n"), "text", theme="monokai", line_numbers=True)
+        log.write(syntax)
+    if images:
+        log.write("Produced images:\n" + "\n".join(f"  {path}" for path in images))
+
+
+def create_tool_output_box(data: ToolOutputData, agent_id: str = "", corr_id: str = "") -> Collapsible:
+    """Create a tool output box from canonical output data."""
+    match data:
+        case ReadOutputData(title=title, filenames=filenames, content=content, lexer=lexer):
+            return _create_read_output_box(
+                title=title,
+                filenames=filenames,
+                content=content,
+                agent_id=agent_id,
+                lexer=lexer or "",
+                corr_id=corr_id,
+            )
+        case GenericToolOutputData(content=content):
+            return _create_generic_tool_output_box(content, agent_id=agent_id, corr_id=corr_id)
+        case _:
+            raise ValueError(f"Unsupported tool output data: {data!r}")
+
+
+def _create_generic_tool_output_box(content: str, agent_id: str = "", corr_id: str = "") -> Collapsible:
+    """Create a collapsed collapsible box for generic tool output.
 
     Args:
         content: Tool output text (truncated to 500 chars for display).
@@ -274,68 +310,51 @@ def create_error_box(message: str) -> Collapsible:
     return box
 
 
-def create_read_file_box(tool_args: dict[str, Any], agent_id: str = "", corr_id: str = "") -> Collapsible:
-    """Create a collapsible box for a file read request.
+def create_file_read_action_box(
+    paths: tuple[str, ...],
+    head: int | None,
+    tail: int | None,
+    agent_id: str = "",
+    corr_id: str = "",
+) -> Collapsible:
+    """Create a collapsible box for a file read action.
 
     Args:
-        tool_args: Tool arguments containing `path` and optional `head`/`tail`.
+        paths: Target file paths.
+        head: Optional head-line count for single-file reads.
+        tail: Optional tail-line count for single-file reads.
         agent_id: Agent identifier for the title prefix.
         corr_id: Correlation identifier for the title.
 
     Returns:
-        Collapsible widget showing the path and any range parameters.
+        Collapsible widget showing the requested paths and any range parameters.
     """
-    path = tool_args.get("path", "unknown")
-    filename = path.rsplit("/", 1)[-1] if "/" in path else path
-    parts: list[str] = [path]
-    if "head" in tool_args:
-        parts.append(f"head: {tool_args['head']}")
-    if "tail" in tool_args:
-        parts.append(f"tail: {tool_args['tail']}")
-    box = Collapsible(
-        Static("\n".join(parts)),
-        title=_titled(f"Read: {filename}", agent_id, corr_id),
-        collapsed=False,
-        classes="read-file-box",
-    )
-    return box
+    if len(paths) == 1:
+        path = paths[0]
+        filename = path.rsplit("/", 1)[-1] if "/" in path else path
+        parts: list[str] = [path]
+        if head is not None:
+            parts.append(f"head: {head}")
+        if tail is not None:
+            parts.append(f"tail: {tail}")
+        return Collapsible(
+            Static("\n".join(parts)),
+            title=_titled(f"Read: {filename}", agent_id, corr_id),
+            collapsed=False,
+            classes="read-file-box",
+        )
 
-
-def create_read_multiple_files_box(tool_args: dict[str, Any], agent_id: str = "", corr_id: str = "") -> Collapsible:
-    """Create a collapsible box for a multi-file read request.
-
-    Args:
-        tool_args: Tool arguments containing `paths` list.
-        agent_id: Agent identifier for the title prefix.
-        corr_id: Correlation identifier for the title.
-
-    Returns:
-        Collapsible widget listing the paths to read.
-    """
-    paths: list[str] = tool_args.get("paths", [])
-    path_list = "\n".join(f"  {p}" for p in paths)
-    box = Collapsible(
+    path_list = "\n".join(f"  {path}" for path in paths)
+    return Collapsible(
         Static(path_list),
         title=_titled(f"Read: {len(paths)} files", agent_id, corr_id),
         collapsed=False,
         classes="read-files-box",
     )
-    return box
 
 
-def create_write_file_box(tool_args: dict[str, Any], agent_id: str = "", corr_id: str = "") -> Collapsible:
-    """Create a collapsible box for a file write request.
-
-    Args:
-        tool_args: Tool arguments containing `path` and `content`.
-        agent_id: Agent identifier for the title prefix.
-        corr_id: Correlation identifier for the title.
-
-    Returns:
-        Collapsible widget with syntax-highlighted file content.
-    """
-    path = tool_args.get("path", "unknown")
-    content = tool_args.get("content", "")
+def create_file_write_action_box(path: str, content: str, agent_id: str = "", corr_id: str = "") -> Collapsible:
+    """Create a collapsible box for a file write action."""
     ext = path.rsplit(".", 1)[-1] if "." in path else "text"
     syntax = Syntax(content, ext, theme="monokai", line_numbers=True)
     box = Collapsible(
@@ -347,9 +366,9 @@ def create_write_file_box(tool_args: dict[str, Any], agent_id: str = "", corr_id
     return box
 
 
-def create_read_output_box(
+def _create_read_output_box(
     title: str,
-    filenames: list[str],
+    filenames: tuple[str, ...],
     content: str,
     agent_id: str = "",
     lexer: str = "",
@@ -389,31 +408,20 @@ def create_read_output_box(
     return box
 
 
-def create_diff_box(tool_args: dict[str, Any], agent_id: str = "", corr_id: str = "") -> Collapsible:
-    """Create a collapsible box displaying a unified diff for file edits.
-
-    Formats `filesystem_edit_file` tool arguments as a unified diff.
-    Supports both camelCase (`oldText`/`newText`) and snake_case
-    (`old_text`/`new_text`) keys in the `edits` array.
-
-    Args:
-        tool_args: Tool arguments containing `path` and `edits`.
-        agent_id: Agent identifier for the title prefix.
-        corr_id: Correlation identifier for the title.
-
-    Returns:
-        Collapsible widget with syntax-highlighted diff.
-    """
-    path = tool_args.get("path", "unknown")
-    edits: list[dict[str, str]] = tool_args.get("edits", [])
-
+def create_file_edit_action_box(
+    path: str,
+    edits: tuple[TextEditData, ...],
+    agent_id: str = "",
+    corr_id: str = "",
+) -> Collapsible:
+    """Create a collapsible box displaying a unified diff for a file edit action."""
     diff_lines = [
         f"--- a/{path}",
         f"+++ b/{path}",
     ]
     for edit in edits:
-        old_text = edit.get("oldText") or edit.get("old_text", "")
-        new_text = edit.get("newText") or edit.get("new_text", "")
+        old_text = edit.old_text
+        new_text = edit.new_text
         diff_lines.append("@@ edit @@")
         for line in old_text.splitlines():
             diff_lines.append(f"-{line}")

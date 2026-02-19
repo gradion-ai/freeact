@@ -1,12 +1,9 @@
 import asyncio
-import json
 import re
 from collections.abc import AsyncIterator, Sequence
 from pathlib import Path
-from typing import Any
 
 from pydantic_ai import UserContent
-from rich.syntax import Syntax
 from textual import work
 from textual.app import App, ComposeResult
 from textual.containers import Vertical, VerticalScroll
@@ -26,22 +23,30 @@ from freeact.agent.events import (
 from freeact.media import parse_prompt
 from freeact.permissions import PermissionManager
 from freeact.terminal.default.screens import FilePickerScreen
+from freeact.terminal.default.tool_adapter import ToolAdapter
+from freeact.terminal.default.tool_data import (
+    ActionData,
+    CodeActionData,
+    FileEditData,
+    FileReadData,
+    FileWriteData,
+    GenericToolCallData,
+)
 from freeact.terminal.default.widgets import (
     ApprovalBar,
     PromptInput,
     create_code_action_box,
-    create_diff_box,
     create_error_box,
     create_exec_output_box,
-    create_read_file_box,
-    create_read_multiple_files_box,
-    create_read_output_box,
+    create_file_edit_action_box,
+    create_file_read_action_box,
+    create_file_write_action_box,
     create_response_box,
     create_thoughts_box,
     create_tool_call_box,
     create_tool_output_box,
     create_user_input_box,
-    create_write_file_box,
+    finalize_exec_output,
 )
 
 _AT_FILE_PATTERN = re.compile(r"@(\S+)")
@@ -57,28 +62,6 @@ def convert_at_references(text: str) -> str:
         Text with `@path` references replaced by `<attachment>path</attachment>` tags.
     """
     return _AT_FILE_PATTERN.sub(r"<attachment>\1</attachment>", text)
-
-
-def _extract_tool_text(content: object) -> str:
-    """Extract plain text from a ToolResult value.
-
-    Handles the structured content formats returned by pydantic-ai's
-    MCP integration (dicts with ``content`` or ``text`` keys, lists
-    of mixed parts, plain strings, etc.).
-    """
-    match content:
-        case str():
-            return content
-        case dict():
-            if "content" in content and isinstance(content["content"], str):
-                return content["content"]
-            if "text" in content and isinstance(content["text"], str):
-                return content["text"]
-            return json.dumps(content, indent=2)
-        case list():
-            return "\n".join(_extract_tool_text(item) for item in content)
-        case _:
-            return str(content)
 
 
 AgentStreamFn = "Callable[[str | Sequence[UserContent]], AsyncIterator[AgentEvent]]"
@@ -139,6 +122,7 @@ class FreeactApp(App[None]):
         self._permission_manager = permission_manager or PermissionManager()
         self._main_agent_id = main_agent_id
         self._approval_future: asyncio.Future[int] | None = None
+        self._tool_adapter = ToolAdapter()
 
     def compose(self) -> ComposeResult:
         yield VerticalScroll(id="conversation")
@@ -153,8 +137,6 @@ class FreeactApp(App[None]):
         for widget in widgets:
             await conversation.mount(widget)
         conversation.scroll_end(animate=False)
-
-    # --- Prompt submission ---
 
     def on_prompt_input_submitted(self, event: PromptInput.Submitted) -> None:
         raw_text = event.text
@@ -174,7 +156,7 @@ class FreeactApp(App[None]):
         thoughts_stream: "Markdown.MarkdownStream | None" = None
         response_stream: "Markdown.MarkdownStream | None" = None
         exec_log = None
-        tool_calls: dict[str, tuple[str, dict[str, Any]]] = {}
+        tool_calls: dict[str, ActionData] = {}
 
         try:
             async for event in self._agent_stream(content):
@@ -208,9 +190,10 @@ class FreeactApp(App[None]):
                             response_stream = None
 
                     case ApprovalRequest() as request:
+                        request_action_data = self._tool_adapter.map_action(request.tool_name, request.tool_args)
                         if request.corr_id:
-                            tool_calls[request.corr_id] = (request.tool_name, request.tool_args)
-                        await self._handle_approval(request, conversation)
+                            tool_calls[request.corr_id] = request_action_data
+                        await self._handle_approval(request, request_action_data, conversation)
 
                     case CodeExecutionOutputChunk(agent_id=aid, text=text, corr_id=cid):
                         if exec_log is None:
@@ -220,41 +203,15 @@ class FreeactApp(App[None]):
 
                     case CodeExecutionOutput(agent_id=aid, text=text, images=images):
                         if exec_log is not None:
-                            if text:
-                                exec_log.clear()
-                                syntax = Syntax(text.rstrip("\n"), "text", theme="monokai", line_numbers=True)
-                                exec_log.write(syntax)
-                            if images:
-                                exec_log.write("Produced images:\n" + "\n".join(f"  {p}" for p in images))
+                            finalize_exec_output(exec_log, text, images)
                             last_box = conversation.query(".exec-output-box").last()
                             last_box.collapsed = True
                         exec_log = None
 
                     case ToolOutput(agent_id=aid, content=tool_content, corr_id=cid):
-                        text = _extract_tool_text(tool_content)
-                        tool_info = tool_calls.get(cid) if cid else None
-                        if tool_info:
-                            name, args = tool_info
-                            match name:
-                                case "filesystem_read_text_file":
-                                    path = args.get("path", "unknown")
-                                    filename = path.rsplit("/", 1)[-1] if "/" in path else path
-                                    box = create_read_output_box(
-                                        f"Read Output: {filename}", [path], text, aid, corr_id=cid
-                                    )
-                                case "filesystem_read_multiple_files":
-                                    paths: list[str] = args.get("paths", [])
-                                    box = create_read_output_box(
-                                        f"Read Output: {len(paths)} files",
-                                        [],
-                                        text,
-                                        aid,
-                                        corr_id=cid,
-                                    )
-                                case _:
-                                    box = create_tool_output_box(text, aid, corr_id=cid)
-                        else:
-                            box = create_tool_output_box(text, aid, corr_id=cid)
+                        output_action_data = tool_calls.get(cid) if cid else None
+                        output_data = self._tool_adapter.map_output(output_action_data, tool_content)
+                        box = create_tool_output_box(output_data, aid, corr_id=cid)
                         await self._mount_and_scroll(conversation, box)
         except Exception as e:
             error_box = create_error_box(f"{type(e).__name__}: {e}")
@@ -263,40 +220,38 @@ class FreeactApp(App[None]):
             prompt_input.disabled = False
             prompt_input.focus()
 
-    # --- Approval handling ---
-
     async def _handle_approval(
         self,
         request: ApprovalRequest,
+        action_data: ActionData,
         conversation: VerticalScroll,
     ) -> None:
-        # Mount the appropriate display box
-        cid = request.corr_id
-        match request.tool_name:
-            case "ipybox_execute_ipython_cell":
-                code = request.tool_args.get("code", "")
-                box = create_code_action_box(code, agent_id=request.agent_id, corr_id=cid)
-                await self._mount_and_scroll(conversation, box)
-            case "filesystem_edit_file":
-                box = create_diff_box(request.tool_args, agent_id=request.agent_id, corr_id=cid)
-                await self._mount_and_scroll(conversation, box)
-            case "filesystem_read_text_file":
-                box = create_read_file_box(request.tool_args, agent_id=request.agent_id, corr_id=cid)
-                await self._mount_and_scroll(conversation, box)
-            case "filesystem_read_multiple_files":
-                box = create_read_multiple_files_box(request.tool_args, agent_id=request.agent_id, corr_id=cid)
-                await self._mount_and_scroll(conversation, box)
-            case "filesystem_write_file":
-                box = create_write_file_box(request.tool_args, agent_id=request.agent_id, corr_id=cid)
-                await self._mount_and_scroll(conversation, box)
-            case _:
-                box = create_tool_call_box(
-                    request.tool_name,
-                    request.tool_args,
+        match action_data:
+            case CodeActionData(code=code):
+                box = create_code_action_box(code, agent_id=request.agent_id, corr_id=request.corr_id)
+            case FileEditData(path=path, edits=edits):
+                box = create_file_edit_action_box(path, edits, agent_id=request.agent_id, corr_id=request.corr_id)
+            case FileReadData(paths=paths, head=head, tail=tail):
+                box = create_file_read_action_box(
+                    paths,
+                    head,
+                    tail,
                     agent_id=request.agent_id,
-                    corr_id=cid,
+                    corr_id=request.corr_id,
                 )
-                await self._mount_and_scroll(conversation, box)
+            case FileWriteData(path=path, content=content):
+                box = create_file_write_action_box(
+                    path,
+                    content,
+                    agent_id=request.agent_id,
+                    corr_id=request.corr_id,
+                )
+            case GenericToolCallData(tool_name=tool_name, tool_args=tool_args):
+                box = create_tool_call_box(tool_name, tool_args, agent_id=request.agent_id, corr_id=request.corr_id)
+            case _:
+                raise ValueError(f"Unsupported action data: {action_data!r}")
+
+        await self._mount_and_scroll(conversation, box)
 
         # Check if pre-approved
         if self._permission_manager.is_allowed(request.tool_name, request.tool_args):
