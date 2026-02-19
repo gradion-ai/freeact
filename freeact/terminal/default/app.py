@@ -1,7 +1,8 @@
 import asyncio
 import re
-from collections.abc import AsyncIterator, Sequence
+from collections.abc import AsyncIterator, Callable, Sequence
 from pathlib import Path
+from typing import TypeAlias
 
 from pydantic_ai import UserContent
 from textual import work
@@ -49,22 +50,7 @@ from freeact.terminal.default.widgets import (
     finalize_exec_output,
 )
 
-_AT_FILE_PATTERN = re.compile(r"@(\S+)")
-
-
-def convert_at_references(text: str) -> str:
-    """Convert `@path` references to `<attachment>...</attachment>` XML tags.
-
-    Args:
-        text: User input text with `@path` references.
-
-    Returns:
-        Text with `@path` references replaced by `<attachment>path</attachment>` tags.
-    """
-    return _AT_FILE_PATTERN.sub(r"<attachment>\1</attachment>", text)
-
-
-AgentStreamFn = "Callable[[str | Sequence[UserContent]], AsyncIterator[AgentEvent]]"
+AgentStreamFn: TypeAlias = Callable[[str | Sequence[UserContent]], AsyncIterator[AgentEvent]]
 
 
 class FreeactApp(App[None]):
@@ -113,7 +99,7 @@ class FreeactApp(App[None]):
 
     def __init__(
         self,
-        agent_stream: "Callable[[str | Sequence[UserContent]], AsyncIterator[AgentEvent]]",  # type: ignore[name-defined]  # noqa: F821
+        agent_stream: AgentStreamFn,
         permission_manager: PermissionManager | None = None,
         main_agent_id: str = "",
     ) -> None:
@@ -305,3 +291,15 @@ class FreeactApp(App[None]):
                 prompt_input.insert(str(path))
 
         self.push_screen(FilePickerScreen(), callback=handle_result)
+
+
+def convert_at_references(text: str) -> str:
+    """Convert `@path` references to `<attachment>...</attachment>` XML tags.
+
+    Args:
+        text: User input text with `@path` references.
+
+    Returns:
+        Text with `@path` references replaced by `<attachment>path</attachment>` tags.
+    """
+    return re.sub(r"@(\S+)", r"<attachment>\1</attachment>", text)
