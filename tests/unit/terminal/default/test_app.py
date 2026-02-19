@@ -159,6 +159,25 @@ async def test_response_stream_only_mounts_for_main_agent() -> None:
 
 
 @pytest.mark.asyncio
+async def test_markdown_link_hover_style_is_configured_per_link() -> None:
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        text = "See [Textual](https://textual.textualize.io/) and [Rich](https://github.com/Textualize/rich)."
+        yield ResponseChunk(content=text, agent_id=MAIN_AGENT_ID)
+        yield Response(content=text, agent_id=MAIN_AGENT_ID)
+
+    app = FreeactApp(agent_stream=MockStreamAgent(scenario).stream, main_agent_id=MAIN_AGENT_ID)
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await app.workers.wait_for_complete()
+
+        paragraph = app.query("MarkdownParagraph").last()
+        assert str(paragraph.styles.link_style) == "underline"
+        assert str(paragraph.styles.link_style_hover) == "bold underline"
+        assert "Markdown MarkdownBlock:hover" not in FreeactApp.DEFAULT_CSS
+
+
+@pytest.mark.asyncio
 async def test_approval_yes_collapses_action_and_mounts_tool_output() -> None:
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
