@@ -67,6 +67,7 @@ async def test_run_uses_provided_session_id_for_session_store(tmp_path: Path, mo
         record_dir=Path("output"),
         record_title="Conversation",
         session_id=provided,
+        legacy_ui=False,
     )
     await cli.run(namespace)
 
@@ -116,6 +117,7 @@ async def test_run_generates_uuid_when_session_id_missing(tmp_path: Path, monkey
         record_dir=Path("output"),
         record_title="Conversation",
         session_id=None,
+        legacy_ui=False,
     )
     await cli.run(namespace)
 

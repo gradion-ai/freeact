@@ -10,7 +10,7 @@ from rich.console import Console
 from freeact.agent import Agent
 from freeact.agent.config import Config
 from freeact.agent.store import SessionStore
-from freeact.terminal import Terminal
+from freeact.terminal import LegacyTerminal, Terminal
 from freeact.terminal.legacy.recording import save_conversation
 from freeact.tools.pytools.apigen import generate_mcp_sources
 
@@ -72,6 +72,11 @@ def create_parser() -> argparse.ArgumentParser:
         metavar="UUID",
         help="Session UUID to resume (default: generate a new UUID)",
     )
+    parser.add_argument(
+        "--legacy-ui",
+        action="store_true",
+        help="Use the legacy Rich + prompt_toolkit terminal UI",
+    )
     return parser
 
 
@@ -116,7 +121,10 @@ async def run(namespace: argparse.Namespace) -> None:
     Args:
         namespace: Parsed CLI arguments.
     """
-    if namespace.record:
+    if namespace.record and not namespace.legacy_ui:
+        logger.warning("--record is only supported with --legacy-ui, ignoring")
+
+    if namespace.legacy_ui and namespace.record:
         console = Console(record=True, width=120, force_terminal=True)
     else:
         console = None
@@ -134,10 +142,14 @@ async def run(namespace: argparse.Namespace) -> None:
     if config.ptc_servers:
         await generate_mcp_sources(config.ptc_servers, config.generated_dir)
 
-    terminal = Terminal(agent=agent, console=console)
-    await terminal.run()
+    if namespace.legacy_ui:
+        legacy_terminal = LegacyTerminal(agent=agent, console=console)
+        await legacy_terminal.run()
+    else:
+        terminal = Terminal(agent=agent)
+        await terminal.run()
 
-    if namespace.record and console is not None:
+    if namespace.legacy_ui and namespace.record and console is not None:
         await save_conversation(
             console=console,
             record_dir=namespace.record_dir,

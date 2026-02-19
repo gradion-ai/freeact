@@ -29,6 +29,9 @@ Here's my analysis of the problem:
 2. **Second step**: Implement the solution
 3. **Third step**: Verify correctness
 
+See the [Python docs](https://docs.python.org/3/) and \
+[pathlib reference](https://docs.python.org/3/library/pathlib.html) for details.
+
 Let me write some code to implement this.\
 """
 
@@ -73,15 +76,27 @@ _TOOL_ARGS_JSON = {
     "timeout": 30,
 }
 
-_FILESYSTEM_READ_ARGS = {
-    "path": ".freeact/permissions.json",
-}
-
 _DIFF_TOOL_ARGS = {
     "path": "src/config.py",
-    "old_text": "DEBUG = True\nLOG_LEVEL = 'verbose'",
-    "new_text": "DEBUG = False\nLOG_LEVEL = 'warning'",
+    "edits": [
+        {
+            "oldText": "DEBUG = True\nLOG_LEVEL = 'verbose'",
+            "newText": "DEBUG = False\nLOG_LEVEL = 'warning'",
+        },
+    ],
 }
+
+_FILESYSTEM_READ_ARGS = {
+    "path": "/tmp/workspace/config.json",
+}
+
+_FILESYSTEM_READ_OUTPUT = """\
+{
+  "name": "myapp",
+  "version": "1.0",
+  "debug": true
+}
+"""
 
 _LONG_OUTPUT_LINES = [f"Line {i:04d}: Processing batch item {i} of 200...\n" for i in range(1, 201)]
 
@@ -107,7 +122,7 @@ class MockAgent:
     async def stream(self, prompt: str | Sequence[UserContent]) -> AsyncIterator[AgentEvent]:
         self._turn_count += 1
 
-        match self._turn_count % 5:
+        match self._turn_count % 6:
             case 1:
                 async for event in self._scenario_code_action():
                     yield event
@@ -119,6 +134,9 @@ class MockAgent:
                     yield event
             case 4:
                 async for event in self._scenario_diff():
+                    yield event
+            case 5:
+                async for event in self._scenario_read_file():
                     yield event
             case 0:
                 async for event in self._scenario_long_output():
@@ -137,10 +155,12 @@ class MockAgent:
         yield Response(content=_RESPONSE_TEXT, agent_id=MOCK_AGENT_ID)
 
         # Code action (needs approval)
+        corr_id = "mock-code-action"
         request = ApprovalRequest(
             tool_name="ipybox_execute_ipython_cell",
             tool_args={"code": _CODE_ACTION},
             agent_id=MOCK_AGENT_ID,
+            corr_id=corr_id,
         )
         yield request
         approved = await request.approved()
@@ -149,9 +169,9 @@ class MockAgent:
 
         # Execution output
         for line in _EXEC_OUTPUT_LINES:
-            yield CodeExecutionOutputChunk(text=line, agent_id=MOCK_AGENT_ID)
+            yield CodeExecutionOutputChunk(text=line, agent_id=MOCK_AGENT_ID, corr_id=corr_id)
             await asyncio.sleep(0.05)
-        yield CodeExecutionOutput(text="".join(_EXEC_OUTPUT_LINES), images=[], agent_id=MOCK_AGENT_ID)
+        yield CodeExecutionOutput(text="".join(_EXEC_OUTPUT_LINES), images=[], agent_id=MOCK_AGENT_ID, corr_id=corr_id)
 
         # Final response
         async for chunk in _stream_text(_FINAL_RESPONSE):
@@ -164,10 +184,12 @@ class MockAgent:
             yield ThoughtsChunk(content=chunk, agent_id=MOCK_AGENT_ID)
         yield Thoughts(content="I need to query the database to get user counts.", agent_id=MOCK_AGENT_ID)
 
+        corr_id = "mock-db-query"
         request = ApprovalRequest(
             tool_name="database_query",
             tool_args=_TOOL_ARGS_JSON,
             agent_id=MOCK_AGENT_ID,
+            corr_id=corr_id,
         )
         yield request
         approved = await request.approved()
@@ -176,7 +198,7 @@ class MockAgent:
             yield Response(content="Tool call was rejected.", agent_id=MOCK_AGENT_ID)
             return
 
-        yield ToolOutput(content="Result: 1,247 active users", agent_id=MOCK_AGENT_ID)  # type: ignore[arg-type]
+        yield ToolOutput(content="Result: 1,247 active users", agent_id=MOCK_AGENT_ID, corr_id=corr_id)  # type: ignore[arg-type]
 
         async for chunk in _stream_text("The database shows **1,247 active users**."):
             yield ResponseChunk(content=chunk, agent_id=MOCK_AGENT_ID)
@@ -188,10 +210,12 @@ class MockAgent:
             yield ThoughtsChunk(content=chunk, agent_id=MOCK_AGENT_ID)
         yield Thoughts(content="Let me check the current permissions.", agent_id=MOCK_AGENT_ID)
 
+        corr_id = "mock-read-permissions"
         request = ApprovalRequest(
             tool_name="filesystem_read_file",
-            tool_args=_FILESYSTEM_READ_ARGS,
+            tool_args={"path": ".freeact/permissions.json"},
             agent_id=MOCK_AGENT_ID,
+            corr_id=corr_id,
         )
         yield request
         await request.approved()
@@ -199,6 +223,7 @@ class MockAgent:
         yield ToolOutput(  # type: ignore[arg-type]
             content='{"allowed_tools": ["ipybox_execute_ipython_cell"]}',
             agent_id=MOCK_AGENT_ID,
+            corr_id=corr_id,
         )
 
         async for chunk in _stream_text("The permissions file shows one tool is always approved."):
@@ -209,7 +234,7 @@ class MockAgent:
         )
 
     async def _scenario_diff(self) -> AsyncIterator[AgentEvent]:
-        """filesystem_text_edit with diff display."""
+        """filesystem_edit_file with diff display."""
         async for chunk in _stream_text("I'll update the configuration to disable debug mode."):
             yield ThoughtsChunk(content=chunk, agent_id=MOCK_AGENT_ID)
         yield Thoughts(
@@ -217,10 +242,12 @@ class MockAgent:
             agent_id=MOCK_AGENT_ID,
         )
 
+        corr_id = "mock-edit-file"
         request = ApprovalRequest(
-            tool_name="filesystem_text_edit",
+            tool_name="filesystem_edit_file",
             tool_args=_DIFF_TOOL_ARGS,
             agent_id=MOCK_AGENT_ID,
+            corr_id=corr_id,
         )
         yield request
         approved = await request.approved()
@@ -229,7 +256,7 @@ class MockAgent:
             yield Response(content="Edit was rejected.", agent_id=MOCK_AGENT_ID)
             return
 
-        yield ToolOutput(content="File updated successfully.", agent_id=MOCK_AGENT_ID)  # type: ignore[arg-type]
+        yield ToolOutput(content="File updated successfully.", agent_id=MOCK_AGENT_ID, corr_id=corr_id)  # type: ignore[arg-type]
 
         async for chunk in _stream_text("Configuration updated: debug mode disabled, log level set to warning."):
             yield ResponseChunk(content=chunk, agent_id=MOCK_AGENT_ID)
@@ -237,6 +264,33 @@ class MockAgent:
             content="Configuration updated: debug mode disabled, log level set to warning.",
             agent_id=MOCK_AGENT_ID,
         )
+
+    async def _scenario_read_file(self) -> AsyncIterator[AgentEvent]:
+        """Read file with syntax-highlighted output display."""
+        async for chunk in _stream_text("Let me read the configuration file."):
+            yield ThoughtsChunk(content=chunk, agent_id=MOCK_AGENT_ID)
+        yield Thoughts(content="Let me read the configuration file.", agent_id=MOCK_AGENT_ID)
+
+        corr_id = "mock-read-file"
+        request = ApprovalRequest(
+            tool_name="filesystem_read_text_file",
+            tool_args=_FILESYSTEM_READ_ARGS,
+            agent_id=MOCK_AGENT_ID,
+            corr_id=corr_id,
+        )
+        yield request
+        approved = await request.approved()
+        if not approved:
+            yield ResponseChunk(content="Read was rejected.", agent_id=MOCK_AGENT_ID)
+            yield Response(content="Read was rejected.", agent_id=MOCK_AGENT_ID)
+            return
+
+        yield ToolOutput(content=_FILESYSTEM_READ_OUTPUT, agent_id=MOCK_AGENT_ID, corr_id=corr_id)  # type: ignore[arg-type]
+
+        response = "The config file shows the app is named **myapp** version **1.0** with debug enabled."
+        async for chunk in _stream_text(response):
+            yield ResponseChunk(content=chunk, agent_id=MOCK_AGENT_ID)
+        yield Response(content=response, agent_id=MOCK_AGENT_ID)
 
     async def _scenario_long_output(self) -> AsyncIterator[AgentEvent]:
         """Long streaming output to test scroll behavior."""
@@ -247,10 +301,12 @@ class MockAgent:
             agent_id=MOCK_AGENT_ID,
         )
 
+        corr_id = "mock-long-output"
         request = ApprovalRequest(
             tool_name="ipybox_execute_ipython_cell",
             tool_args={"code": "for i in range(1, 201):\n    print(f'Processing batch item {i} of 200...')"},
             agent_id=MOCK_AGENT_ID,
+            corr_id=corr_id,
         )
         yield request
         approved = await request.approved()
@@ -258,12 +314,13 @@ class MockAgent:
             return
 
         for line in _LONG_OUTPUT_LINES:
-            yield CodeExecutionOutputChunk(text=line, agent_id=MOCK_AGENT_ID)
+            yield CodeExecutionOutputChunk(text=line, agent_id=MOCK_AGENT_ID, corr_id=corr_id)
             await asyncio.sleep(0.02)
         yield CodeExecutionOutput(
             text="".join(_LONG_OUTPUT_LINES),
             images=[],
             agent_id=MOCK_AGENT_ID,
+            corr_id=corr_id,
         )
 
         async for chunk in _stream_text("Batch processing complete: all 200 items processed successfully."):

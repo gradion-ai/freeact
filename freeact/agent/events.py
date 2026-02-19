@@ -16,6 +16,7 @@ class AgentEvent:
     """
 
     agent_id: str = ""
+    corr_id: str = ""
 
 
 @dataclass

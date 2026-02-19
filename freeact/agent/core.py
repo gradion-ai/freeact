@@ -371,6 +371,7 @@ class Agent:
     async def _execute_tool(self, call: ToolCallPart) -> AsyncIterator[AgentEvent | ToolReturnPart]:
         tool_name = call.tool_name
         tool_args = call.args_as_dict()
+        corr_id = uuid.uuid4().hex[:8]
 
         if tool_name not in self.tool_names:
             yield ToolReturnPart(
@@ -381,7 +382,13 @@ class Agent:
             )
             return
 
-        approval = ApprovalRequest(tool_name=tool_name, tool_args=tool_args, agent_id=self.agent_id)
+        approval = ApprovalRequest(
+            tool_name=tool_name,
+            tool_args=tool_args,
+            agent_id=self.agent_id,
+            corr_id=corr_id,
+        )
+
         yield approval
 
         if not await approval.approved():
@@ -398,6 +405,9 @@ class Agent:
             match item:
                 case _ToolExecResult():
                     result = item
+                case ApprovalRequest() | ToolOutput() | CodeExecutionOutput() | CodeExecutionOutputChunk():
+                    item.corr_id = corr_id
+                    yield item
                 case _:
                     yield item
 

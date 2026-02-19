@@ -222,31 +222,160 @@ def create_tool_output_box(content: str, agent_id: str = "") -> Collapsible:
     return box
 
 
+def create_error_box(message: str) -> Collapsible:
+    """Create a collapsible box displaying an error message.
+
+    Args:
+        message: Error message to display.
+
+    Returns:
+        Collapsible widget with error-styled text.
+    """
+    box = Collapsible(
+        Static(message, classes="error-text"),
+        title="Error",
+        collapsed=False,
+        classes="error-box",
+    )
+    return box
+
+
+def create_read_file_box(tool_args: dict[str, Any], agent_id: str = "") -> Collapsible:
+    """Create a collapsible box for a file read request.
+
+    Args:
+        tool_args: Tool arguments containing `path` and optional `head`/`tail`.
+        agent_id: Agent identifier for the title prefix.
+
+    Returns:
+        Collapsible widget showing the path and any range parameters.
+    """
+    path = tool_args.get("path", "unknown")
+    parts: list[str] = [path]
+    if "head" in tool_args:
+        parts.append(f"head: {tool_args['head']}")
+    if "tail" in tool_args:
+        parts.append(f"tail: {tool_args['tail']}")
+    box = Collapsible(
+        Static("\n".join(parts)),
+        title=_titled("Read", agent_id),
+        collapsed=False,
+        classes="read-file-box",
+    )
+    return box
+
+
+def create_read_multiple_files_box(tool_args: dict[str, Any], agent_id: str = "") -> Collapsible:
+    """Create a collapsible box for a multi-file read request.
+
+    Args:
+        tool_args: Tool arguments containing `paths` list.
+        agent_id: Agent identifier for the title prefix.
+
+    Returns:
+        Collapsible widget listing the paths to read.
+    """
+    paths: list[str] = tool_args.get("paths", [])
+    path_list = "\n".join(f"  {p}" for p in paths)
+    box = Collapsible(
+        Static(path_list),
+        title=_titled(f"Read: {len(paths)} files", agent_id),
+        collapsed=False,
+        classes="read-files-box",
+    )
+    return box
+
+
+def create_write_file_box(tool_args: dict[str, Any], agent_id: str = "") -> Collapsible:
+    """Create a collapsible box for a file write request.
+
+    Args:
+        tool_args: Tool arguments containing `path` and `content`.
+        agent_id: Agent identifier for the title prefix.
+
+    Returns:
+        Collapsible widget with syntax-highlighted file content.
+    """
+    path = tool_args.get("path", "unknown")
+    content = tool_args.get("content", "")
+    ext = path.rsplit(".", 1)[-1] if "." in path else "text"
+    syntax = Syntax(content, ext, theme="monokai", line_numbers=True)
+    box = Collapsible(
+        Static(syntax),
+        title=_titled(f"Write: {path}", agent_id),
+        collapsed=False,
+        classes="write-file-box",
+    )
+    return box
+
+
+def create_read_output_box(
+    title: str,
+    filenames: list[str],
+    content: str,
+    agent_id: str = "",
+    lexer: str = "",
+) -> Collapsible:
+    """Create a collapsed collapsible box for file read output.
+
+    Shows filenames followed by syntax-highlighted content.
+
+    Args:
+        title: Box title (e.g. ``"Read Output"`` or ``"Read Output: 2 files"``).
+        filenames: File paths to display at the top of the box.
+        content: File content to display.
+        agent_id: Agent identifier for the title prefix.
+        lexer: Explicit Pygments lexer name. When empty, auto-detected
+            from the first filename's extension.
+
+    Returns:
+        Collapsible widget with filenames and content, collapsed by default.
+    """
+    if not lexer and filenames:
+        first = filenames[0]
+        lexer = first.rsplit(".", 1)[-1] if "." in first else "text"
+    lexer = lexer or "text"
+    syntax = Syntax(content, lexer, theme="monokai", line_numbers=True)
+    path_label = Static("\n".join(filenames))
+    box = Collapsible(
+        path_label,
+        Static(syntax),
+        title=_titled(title, agent_id),
+        collapsed=True,
+        classes="tool-output-box",
+    )
+    return box
+
+
 def create_diff_box(tool_args: dict[str, Any], agent_id: str = "") -> Collapsible:
     """Create a collapsible box displaying a unified diff for file edits.
 
-    Formats `filesystem_text_edit` tool arguments as a unified diff.
+    Formats `filesystem_edit_file` tool arguments as a unified diff.
+    Supports both camelCase (`oldText`/`newText`) and snake_case
+    (`old_text`/`new_text`) keys in the `edits` array.
 
     Args:
-        tool_args: Tool arguments containing `path`, `old_text`, and `new_text`.
+        tool_args: Tool arguments containing `path` and `edits`.
         agent_id: Agent identifier for the title prefix.
 
     Returns:
         Collapsible widget with syntax-highlighted diff.
     """
     path = tool_args.get("path", "unknown")
-    old_text = tool_args.get("old_text", "")
-    new_text = tool_args.get("new_text", "")
+    edits: list[dict[str, str]] = tool_args.get("edits", [])
 
     diff_lines = [
         f"--- a/{path}",
         f"+++ b/{path}",
-        "@@ edit @@",
     ]
-    for line in old_text.splitlines():
-        diff_lines.append(f"-{line}")
-    for line in new_text.splitlines():
-        diff_lines.append(f"+{line}")
+    for edit in edits:
+        old_text = edit.get("oldText") or edit.get("old_text", "")
+        new_text = edit.get("newText") or edit.get("new_text", "")
+        diff_lines.append("@@ edit @@")
+        for line in old_text.splitlines():
+            diff_lines.append(f"-{line}")
+        for line in new_text.splitlines():
+            diff_lines.append(f"+{line}")
 
     diff_text = "\n".join(diff_lines)
     syntax = Syntax(diff_text, "diff", theme="monokai")

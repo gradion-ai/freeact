@@ -1,8 +1,12 @@
 import asyncio
+import json
+import re
 from collections.abc import AsyncIterator, Sequence
 from pathlib import Path
+from typing import Any
 
 from pydantic_ai import UserContent
+from rich.syntax import Syntax
 from textual import work
 from textual.app import App, ComposeResult
 from textual.containers import Vertical, VerticalScroll
@@ -27,13 +31,54 @@ from freeact.terminal.default.widgets import (
     PromptInput,
     create_code_action_box,
     create_diff_box,
+    create_error_box,
     create_exec_output_box,
+    create_read_file_box,
+    create_read_multiple_files_box,
+    create_read_output_box,
     create_response_box,
     create_thoughts_box,
     create_tool_call_box,
     create_tool_output_box,
+    create_write_file_box,
 )
-from freeact.terminal.legacy.interface import convert_at_references
+
+_AT_FILE_PATTERN = re.compile(r"@(\S+)")
+
+
+def convert_at_references(text: str) -> str:
+    """Convert `@path` references to `<attachment>...</attachment>` XML tags.
+
+    Args:
+        text: User input text with `@path` references.
+
+    Returns:
+        Text with `@path` references replaced by `<attachment>path</attachment>` tags.
+    """
+    return _AT_FILE_PATTERN.sub(r"<attachment>\1</attachment>", text)
+
+
+def _extract_tool_text(content: object) -> str:
+    """Extract plain text from a ToolResult value.
+
+    Handles the structured content formats returned by pydantic-ai's
+    MCP integration (dicts with ``content`` or ``text`` keys, lists
+    of mixed parts, plain strings, etc.).
+    """
+    match content:
+        case str():
+            return content
+        case dict():
+            if "content" in content and isinstance(content["content"], str):
+                return content["content"]
+            if "text" in content and isinstance(content["text"], str):
+                return content["text"]
+            return json.dumps(content, indent=2)
+        case list():
+            return "\n".join(_extract_tool_text(item) for item in content)
+        case _:
+            return str(content)
+
 
 AgentStreamFn = "Callable[[str | Sequence[UserContent]], AsyncIterator[AgentEvent]]"
 
@@ -58,6 +103,23 @@ class FreeactApp(App[None]):
     }
     Collapsible.-collapsed CollapsibleTitle {
         padding: 0 1;
+        background: transparent;
+    }
+    .exec-output-box RichLog {
+        height: auto;
+        max-height: 50;
+    }
+    Markdown MarkdownBlock {
+        link-style: underline;
+        link-background: transparent;
+        link-style-hover: bold underline;
+        link-background-hover: transparent;
+    }
+    .error-box {
+        border-top: solid $error;
+    }
+    .error-text {
+        color: $error;
     }
     """
 
@@ -107,6 +169,7 @@ class FreeactApp(App[None]):
         thoughts_stream: "Markdown.MarkdownStream | None" = None
         response_stream: "Markdown.MarkdownStream | None" = None
         exec_log = None
+        tool_calls: dict[str, tuple[str, dict[str, Any]]] = {}
 
         try:
             async for event in self._agent_stream(content):
@@ -140,6 +203,8 @@ class FreeactApp(App[None]):
                             response_stream = None
 
                     case ApprovalRequest() as request:
+                        if request.corr_id:
+                            tool_calls[request.corr_id] = (request.tool_name, request.tool_args)
                         await self._handle_approval(request, conversation)
 
                     case CodeExecutionOutputChunk(agent_id=aid, text=text):
@@ -148,15 +213,44 @@ class FreeactApp(App[None]):
                             await self._mount_and_scroll(conversation, box)
                         exec_log.write(text)
 
-                    case CodeExecutionOutput(agent_id=aid):
+                    case CodeExecutionOutput(agent_id=aid, text=text, images=images):
                         if exec_log is not None:
+                            if text:
+                                exec_log.clear()
+                                syntax = Syntax(text.rstrip("\n"), "text", theme="monokai", line_numbers=True)
+                                exec_log.write(syntax)
+                            if images:
+                                exec_log.write("Produced images:\n" + "\n".join(f"  {p}" for p in images))
                             last_box = conversation.query(".exec-output-box").last()
                             last_box.collapsed = True
                         exec_log = None
 
-                    case ToolOutput(agent_id=aid, content=tool_content):
-                        box = create_tool_output_box(str(tool_content), aid)
+                    case ToolOutput(agent_id=aid, content=tool_content, corr_id=cid):
+                        text = _extract_tool_text(tool_content)
+                        tool_info = tool_calls.get(cid) if cid else None
+                        if tool_info:
+                            name, args = tool_info
+                            match name:
+                                case "filesystem_read_text_file":
+                                    path = args.get("path", "unknown")
+                                    box = create_read_output_box("Read Output", [path], text, aid)
+                                case "filesystem_read_multiple_files":
+                                    paths: list[str] = args.get("paths", [])
+                                    box = create_read_output_box(
+                                        f"Read Output: {len(paths)} files",
+                                        paths,
+                                        text,
+                                        aid,
+                                        lexer="text",
+                                    )
+                                case _:
+                                    box = create_tool_output_box(text, aid)
+                        else:
+                            box = create_tool_output_box(text, aid)
                         await self._mount_and_scroll(conversation, box)
+        except Exception as e:
+            error_box = create_error_box(f"{type(e).__name__}: {e}")
+            await self._mount_and_scroll(conversation, error_box)
         finally:
             prompt_input.disabled = False
             prompt_input.focus()
@@ -174,8 +268,17 @@ class FreeactApp(App[None]):
                 code = request.tool_args.get("code", "")
                 box = create_code_action_box(code, agent_id=request.agent_id)
                 await self._mount_and_scroll(conversation, box)
-            case "filesystem_text_edit":
+            case "filesystem_edit_file":
                 box = create_diff_box(request.tool_args, agent_id=request.agent_id)
+                await self._mount_and_scroll(conversation, box)
+            case "filesystem_read_text_file":
+                box = create_read_file_box(request.tool_args, agent_id=request.agent_id)
+                await self._mount_and_scroll(conversation, box)
+            case "filesystem_read_multiple_files":
+                box = create_read_multiple_files_box(request.tool_args, agent_id=request.agent_id)
+                await self._mount_and_scroll(conversation, box)
+            case "filesystem_write_file":
+                box = create_write_file_box(request.tool_args, agent_id=request.agent_id)
                 await self._mount_and_scroll(conversation, box)
             case _:
                 box = create_tool_call_box(
@@ -208,7 +311,10 @@ class FreeactApp(App[None]):
             case 3:
                 self._permission_manager.allow_session(request.tool_name)
 
-        request.approve(decision != 0)
+        approved = decision != 0
+        if approved:
+            box.collapsed = True
+        request.approve(approved)
 
     def on_approval_bar_decided(self, event: ApprovalBar.Decided) -> None:
         if self._approval_future is not None and not self._approval_future.done():
