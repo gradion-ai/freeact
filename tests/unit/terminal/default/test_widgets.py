@@ -1,6 +1,7 @@
 from freeact.terminal.default.tool_data import GenericToolOutputData, ReadOutputData, TextEditData
 from freeact.terminal.default.widgets import (
     ApprovalBar,
+    PromptInput,
     create_error_box,
     create_file_edit_action_box,
     create_file_read_action_box,
@@ -88,3 +89,10 @@ def test_create_tool_output_box_read_output_is_collapsed_and_titled() -> None:
 def test_approval_bar_prompt_text_matches_current_ui() -> None:
     bar = ApprovalBar()
     assert str(bar.content) == "Approve? [Y/n/a/s]"
+
+
+def test_prompt_input_css_uses_solid_border_variants() -> None:
+    css = PromptInput.DEFAULT_CSS
+    assert "border: solid $border-blurred;" in css
+    assert "PromptInput:focus" in css
+    assert "border: solid $border;" in css

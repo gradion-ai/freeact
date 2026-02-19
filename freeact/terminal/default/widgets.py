@@ -37,6 +37,10 @@ class PromptInput(TextArea):
         height: auto;
         max-height: 12;
         min-height: 3;
+        border: solid $border-blurred;
+    }
+    PromptInput:focus {
+        border: solid $border;
     }
     """
 

@@ -36,11 +36,11 @@ With this setup and a question like
 
 > who is F1 world champion 2025? 
 
-the CLI tool should generate an output similar to the following:
+the CLI tool should produce an end result similar to the following screenshot:
 
-[![Interactive mode](recordings/quickstart/conversation.svg)](recordings/quickstart/conversation.html){target="_blank"}
+![Quickstart result](screenshots/quickstart.png)
 
-The recorded session demonstrates:
+The screenshot shows:
 
 - **Progressive tool loading**: The agent progressively loads tool information: lists categories, lists tools in the `google` category, then reads the `web_search` API to understand its parameters.
 - **Programmatic tool calling**: The agent writes Python code that imports the `web_search` tool from `mcptools.google` and calls it programmatically with the user's query.
