@@ -11,8 +11,6 @@ from textual.strip import Strip
 from textual.widgets import Collapsible, Markdown, RichLog, Static, TextArea
 
 from freeact.terminal.default.tool_data import (
-    GenericToolOutputData,
-    ReadOutputData,
     TextEditData,
     ToolOutputData,
 )
@@ -27,9 +25,10 @@ _GUTTER_WIDTH = len(_PROMPT_GUTTER)
 
 
 class PromptInput(TextArea):
-    """Multi-line input that submits on Enter and inserts newline on Alt+Enter.
+    """Prompt input area with submit-on-enter behavior.
 
-    Displays a `> ` gutter on the first line of the input.
+    Pressing `Enter` submits the prompt. `Alt+Enter` (mapped to `ctrl+j`)
+    inserts a newline so users can compose multi-line input.
     """
 
     DEFAULT_CSS = """
@@ -45,7 +44,7 @@ class PromptInput(TextArea):
     """
 
     class Submitted(Message):
-        """Posted when the user submits their prompt."""
+        """Message emitted when the prompt is submitted."""
 
         def __init__(self, text: str) -> None:
             super().__init__()
@@ -87,7 +86,7 @@ class PromptInput(TextArea):
 
 
 class ApprovalBar(Static):
-    """Inline approval prompt with keyboard shortcuts matching the legacy UI."""
+    """Inline approval prompt with legacy-compatible shortcuts."""
 
     can_focus = True
 
@@ -101,7 +100,7 @@ class ApprovalBar(Static):
     """
 
     class Decided(Message):
-        """Posted when the user makes an approval decision."""
+        """Message emitted when an approval decision is made."""
 
         def __init__(self, decision: int) -> None:
             super().__init__()
@@ -126,7 +125,16 @@ class ApprovalBar(Static):
 
 
 def _titled(label: str, agent_id: str, corr_id: str = "") -> str:
-    """Format a box title with an `[agent_id]` prefix and optional `[corr_id]`."""
+    """Format a widget title with agent and correlation prefixes.
+
+    Args:
+        label: Base title label for the widget.
+        agent_id: Agent identifier to include as a prefix.
+        corr_id: Optional correlation identifier to include as a prefix.
+
+    Returns:
+        Title string formatted for collapsible box headers.
+    """
     parts: list[str] = []
     if agent_id:
         parts.append(f"\\[{agent_id}]")
@@ -247,7 +255,13 @@ def create_exec_output_box(agent_id: str = "", corr_id: str = "") -> tuple[Colla
 
 
 def finalize_exec_output(log: RichLog, text: str | None, images: list[Path]) -> None:
-    """Render the final execution output into an existing log widget."""
+    """Finalize a streaming execution log with terminal output and image paths.
+
+    Args:
+        log: Target log widget to update.
+        text: Final text output. When present, replaces streamed content.
+        images: Generated image paths to append to the log.
+    """
     if text:
         log.clear()
         syntax = Syntax(text.rstrip("\n"), "text", theme="monokai", line_numbers=True)
@@ -257,35 +271,17 @@ def finalize_exec_output(log: RichLog, text: str | None, images: list[Path]) -> 
 
 
 def create_tool_output_box(data: ToolOutputData, agent_id: str = "", corr_id: str = "") -> Collapsible:
-    """Create a tool output box from canonical output data."""
-    match data:
-        case ReadOutputData(title=title, filenames=filenames, content=content, lexer=lexer):
-            return _create_read_output_box(
-                title=title,
-                filenames=filenames,
-                content=content,
-                agent_id=agent_id,
-                lexer=lexer or "",
-                corr_id=corr_id,
-            )
-        case GenericToolOutputData(content=content):
-            return _create_generic_tool_output_box(content, agent_id=agent_id, corr_id=corr_id)
-        case _:
-            raise ValueError(f"Unsupported tool output data: {data!r}")
-
-
-def _create_generic_tool_output_box(content: str, agent_id: str = "", corr_id: str = "") -> Collapsible:
-    """Create a collapsed collapsible box for generic tool output.
+    """Create a collapsed box for generic tool output text.
 
     Args:
-        content: Tool output text (truncated to 500 chars for display).
+        data: Canonical tool output payload.
         agent_id: Agent identifier for the title prefix.
-        corr_id: Correlation identifier for the title.
+        corr_id: Correlation identifier for the title prefix.
 
     Returns:
-        Collapsible widget with truncated output, collapsed by default.
+        Collapsible widget that displays truncated tool output.
     """
-    display_content = content[:500] + "..." if len(content) > 500 else content
+    display_content = data.content[:500] + "..." if len(data.content) > 500 else data.content
     syntax = Syntax(display_content, "text", theme="monokai", line_numbers=True)
     box = Collapsible(
         Static(syntax),
@@ -343,7 +339,7 @@ def create_file_read_action_box(
             parts.append(f"tail: {tail}")
         return Collapsible(
             Static("\n".join(parts)),
-            title=_titled(f"Read: {filename}", agent_id, corr_id),
+            title=_titled(f"Read Action: {filename}", agent_id, corr_id),
             collapsed=False,
             classes="read-file-box",
         )
@@ -351,63 +347,31 @@ def create_file_read_action_box(
     path_list = "\n".join(f"  {path}" for path in paths)
     return Collapsible(
         Static(path_list),
-        title=_titled(f"Read: {len(paths)} files", agent_id, corr_id),
+        title=_titled(f"Read Action: {len(paths)} files", agent_id, corr_id),
         collapsed=False,
         classes="read-files-box",
     )
 
 
 def create_file_write_action_box(path: str, content: str, agent_id: str = "", corr_id: str = "") -> Collapsible:
-    """Create a collapsible box for a file write action."""
+    """Create a box that previews a file write action.
+
+    Args:
+        path: Target file path.
+        content: Full file content to be written.
+        agent_id: Agent identifier for the title prefix.
+        corr_id: Correlation identifier for the title prefix.
+
+    Returns:
+        Collapsible widget with syntax-highlighted file content.
+    """
     ext = path.rsplit(".", 1)[-1] if "." in path else "text"
     syntax = Syntax(content, ext, theme="monokai", line_numbers=True)
     box = Collapsible(
         Static(syntax),
-        title=_titled(f"Write: {path}", agent_id, corr_id),
+        title=_titled(f"Write Action: {path}", agent_id, corr_id),
         collapsed=False,
         classes="write-file-box",
-    )
-    return box
-
-
-def _create_read_output_box(
-    title: str,
-    filenames: tuple[str, ...],
-    content: str,
-    agent_id: str = "",
-    lexer: str = "",
-    corr_id: str = "",
-) -> Collapsible:
-    """Create a collapsed collapsible box for file read output.
-
-    Shows filenames followed by syntax-highlighted content.
-
-    Args:
-        title: Box title (e.g. ``"Read Output: config.json"``).
-        filenames: File paths to display at the top of the box.
-        content: File content to display.
-        agent_id: Agent identifier for the title prefix.
-        lexer: Explicit Pygments lexer name. When empty, auto-detected
-            from the first filename's extension.
-        corr_id: Correlation identifier for the title.
-
-    Returns:
-        Collapsible widget with filenames and content, collapsed by default.
-    """
-    if not lexer and filenames:
-        first = filenames[0]
-        lexer = first.rsplit(".", 1)[-1] if "." in first else "text"
-    lexer = lexer or "text"
-    syntax = Syntax(content, lexer, theme="monokai", line_numbers=True)
-    children: list[Static] = []
-    if filenames:
-        children.append(Static("\n".join(filenames)))
-    children.append(Static(syntax))
-    box = Collapsible(
-        *children,
-        title=_titled(title, agent_id, corr_id),
-        collapsed=True,
-        classes="tool-output-box",
     )
     return box
 
@@ -418,7 +382,17 @@ def create_file_edit_action_box(
     agent_id: str = "",
     corr_id: str = "",
 ) -> Collapsible:
-    """Create a collapsible box displaying a unified diff for a file edit action."""
+    """Create a box that renders file edits as a unified diff preview.
+
+    Args:
+        path: Target file path for the edit action.
+        edits: Canonical text edits to apply.
+        agent_id: Agent identifier for the title prefix.
+        corr_id: Correlation identifier for the title prefix.
+
+    Returns:
+        Collapsible widget containing a synthetic unified diff.
+    """
     diff_lines = [
         f"--- a/{path}",
         f"+++ b/{path}",
@@ -436,7 +410,7 @@ def create_file_edit_action_box(
     syntax = Syntax(diff_text, "diff", theme="monokai")
     box = Collapsible(
         Static(syntax),
-        title=_titled(f"Edit: {path}", agent_id, corr_id),
+        title=_titled(f"Edit Action: {path}", agent_id, corr_id),
         collapsed=False,
         classes="diff-box",
     )

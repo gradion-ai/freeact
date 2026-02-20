@@ -4,7 +4,7 @@ from typing import Any, TypeAlias
 
 @dataclass(frozen=True)
 class TextEditData:
-    """Canonical representation of one text replacement edit."""
+    """Canonical text replacement used by file edit actions."""
 
     old_text: str
     new_text: str
@@ -12,14 +12,14 @@ class TextEditData:
 
 @dataclass(frozen=True)
 class CodeActionData:
-    """Canonical data for IPython code execution approval."""
+    """Canonical payload for a code execution action."""
 
     code: str
 
 
 @dataclass(frozen=True)
 class FileReadData:
-    """Canonical data for file read approvals."""
+    """Canonical payload for a file read action."""
 
     paths: tuple[str, ...]
     head: int | None
@@ -28,7 +28,7 @@ class FileReadData:
 
 @dataclass(frozen=True)
 class FileWriteData:
-    """Canonical data for file write approvals."""
+    """Canonical payload for a file write action."""
 
     path: str
     content: str
@@ -36,7 +36,7 @@ class FileWriteData:
 
 @dataclass(frozen=True)
 class FileEditData:
-    """Canonical data for file edit approvals."""
+    """Canonical payload for a file edit action."""
 
     path: str
     edits: tuple[TextEditData, ...]
@@ -44,7 +44,7 @@ class FileEditData:
 
 @dataclass(frozen=True)
 class GenericToolCallData:
-    """Canonical fallback data for tool approvals."""
+    """Canonical fallback payload for tool call actions."""
 
     tool_name: str
     tool_args: dict[str, Any]
@@ -54,20 +54,7 @@ ActionData: TypeAlias = CodeActionData | FileReadData | FileWriteData | FileEdit
 
 
 @dataclass(frozen=True)
-class ReadOutputData:
-    """Canonical tool output for file read responses."""
-
-    title: str
-    filenames: tuple[str, ...]
-    content: str
-    lexer: str | None = None
-
-
-@dataclass(frozen=True)
-class GenericToolOutputData:
-    """Canonical fallback output for tool responses."""
+class ToolOutputData:
+    """Canonical fallback payload for tool output content."""
 
     content: str
-
-
-ToolOutputData: TypeAlias = ReadOutputData | GenericToolOutputData

@@ -261,6 +261,7 @@ async def test_approval_yes_collapses_action_and_mounts_tool_output() -> None:
         assert len(app.query("ApprovalBar")) == 0
         assert app.query(".tool-call-box").last().collapsed
         assert len(app.query(".tool-output-box")) == 1
+        assert app.query(".tool-output-box").last().title == r"\[main-agent] \[call-1] Tool Output"
 
 
 @pytest.mark.asyncio

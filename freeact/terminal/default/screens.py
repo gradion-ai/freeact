@@ -8,7 +8,14 @@ from textual.widgets import DirectoryTree, Label
 
 
 def _filesystem_root(path: Path) -> Path:
-    """Return the filesystem root for a given path."""
+    """Resolve and return the filesystem root for `path`.
+
+    Args:
+        path: Path used to determine the filesystem root.
+
+    Returns:
+        Root path (for example `/` on POSIX systems).
+    """
     resolved = path.resolve()
     if resolved.anchor:
         return Path(resolved.anchor)
@@ -16,7 +23,7 @@ def _filesystem_root(path: Path) -> Path:
 
 
 class FilePickerTree(DirectoryTree):
-    """Directory tree with explicit keybinds for picker navigation."""
+    """Directory tree with explicit keybindings for picker navigation."""
 
     auto_expand = var(False)
 
@@ -29,7 +36,7 @@ class FilePickerTree(DirectoryTree):
     ]
 
     def action_expand_cursor_node(self) -> None:
-        """Expand the current directory node."""
+        """Expand the directory under the cursor when possible."""
         cursor_node = self.cursor_node
         if cursor_node is None:
             return
@@ -40,7 +47,7 @@ class FilePickerTree(DirectoryTree):
             cursor_node.expand()
 
     def action_collapse_cursor_node(self) -> None:
-        """Collapse the current directory node."""
+        """Collapse the directory under the cursor when possible."""
         cursor_node = self.cursor_node
         if cursor_node is None:
             return
@@ -52,7 +59,7 @@ class FilePickerTree(DirectoryTree):
 
 
 class FilePickerScreen(ModalScreen[Path | None]):
-    """Modal file picker triggered by `@` in the prompt input."""
+    """Modal file picker opened from `@path` prompt completion."""
 
     DEFAULT_CSS = """
     FilePickerScreen {
@@ -99,6 +106,15 @@ class FilePickerScreen(ModalScreen[Path | None]):
 
     @staticmethod
     def _find_child(node: Any, path: Path) -> Any | None:
+        """Find a direct child tree node for a filesystem path.
+
+        Args:
+            node: Parent tree node to search under.
+            path: Target filesystem path to match.
+
+        Returns:
+            Matching child node, or `None` when no child matches.
+        """
         for child in node.children:
             data = child.data
             if data is not None and data.path == path:
@@ -106,6 +122,12 @@ class FilePickerScreen(ModalScreen[Path | None]):
         return None
 
     async def _focus_tree_path(self, tree: FilePickerTree, target_path: Path) -> None:
+        """Move the picker cursor to the closest node for `target_path`.
+
+        Args:
+            tree: Picker tree widget to navigate.
+            target_path: Filesystem path to focus when reachable from the tree root.
+        """
         node = tree.root
         root_path = Path(tree.path).resolve()
         target_resolved = target_path.resolve()

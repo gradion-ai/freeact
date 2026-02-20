@@ -1,4 +1,4 @@
-from freeact.terminal.default.tool_data import GenericToolOutputData, ReadOutputData, TextEditData
+from freeact.terminal.default.tool_data import TextEditData, ToolOutputData
 from freeact.terminal.default.widgets import (
     ApprovalBar,
     PromptInput,
@@ -20,7 +20,7 @@ def test_create_file_read_action_box_single_path_metadata() -> None:
 
     assert "read-file-box" in box.classes
     assert not box.collapsed
-    assert box.title == r"\[agent-1] \[corr-1] Read: config.json"
+    assert box.title == r"\[agent-1] \[corr-1] Read Action: config.json"
 
 
 def test_create_file_read_action_box_multiple_paths_metadata() -> None:
@@ -34,7 +34,7 @@ def test_create_file_read_action_box_multiple_paths_metadata() -> None:
 
     assert "read-files-box" in box.classes
     assert not box.collapsed
-    assert box.title == r"\[agent-1] \[corr-1] Read: 2 files"
+    assert box.title == r"\[agent-1] \[corr-1] Read Action: 2 files"
 
 
 def test_create_file_edit_action_box_has_diff_class_and_is_expanded() -> None:
@@ -47,7 +47,7 @@ def test_create_file_edit_action_box_has_diff_class_and_is_expanded() -> None:
 
     assert "diff-box" in box.classes
     assert not box.collapsed
-    assert box.title == r"\[agent-1] \[corr-1] Edit: src/config.py"
+    assert box.title == r"\[agent-1] \[corr-1] Edit Action: src/config.py"
 
 
 def test_create_error_box_has_error_class_and_is_expanded() -> None:
@@ -60,7 +60,7 @@ def test_create_error_box_has_error_class_and_is_expanded() -> None:
 
 def test_create_tool_output_box_generic_is_collapsed() -> None:
     box = create_tool_output_box(
-        GenericToolOutputData(content="ok"),
+        ToolOutputData(content="ok"),
         agent_id="agent-1",
         corr_id="corr-1",
     )
@@ -68,22 +68,6 @@ def test_create_tool_output_box_generic_is_collapsed() -> None:
     assert "tool-output-box" in box.classes
     assert box.collapsed
     assert box.title == r"\[agent-1] \[corr-1] Tool Output"
-
-
-def test_create_tool_output_box_read_output_is_collapsed_and_titled() -> None:
-    box = create_tool_output_box(
-        ReadOutputData(
-            title="Read Output: config.json",
-            filenames=("/tmp/workspace/config.json",),
-            content='{"name":"app"}',
-        ),
-        agent_id="agent-1",
-        corr_id="corr-1",
-    )
-
-    assert "tool-output-box" in box.classes
-    assert box.collapsed
-    assert box.title == r"\[agent-1] \[corr-1] Read Output: config.json"
 
 
 def test_approval_bar_prompt_text_matches_current_ui() -> None:

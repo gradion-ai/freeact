@@ -4,9 +4,8 @@ from freeact.terminal.default.tool_data import (
     FileEditData,
     FileReadData,
     GenericToolCallData,
-    GenericToolOutputData,
-    ReadOutputData,
     TextEditData,
+    ToolOutputData,
 )
 
 
@@ -112,22 +111,20 @@ def test_map_action_unknown_tool_returns_generic() -> None:
             raise AssertionError(f"unexpected mapped approval data: {mapped}")
 
 
-def test_map_output_read_single_file() -> None:
+def test_map_output_read_single_file_returns_generic() -> None:
     adapter = ToolAdapter()
     approval = FileReadData(paths=("/tmp/workspace/config.json",), head=None, tail=None)
 
     mapped = adapter.map_output(approval, '{"name": "myapp"}')
 
     match mapped:
-        case ReadOutputData(title=title, filenames=filenames, content=content):
-            assert title == "Read Output: config.json"
-            assert filenames == ("/tmp/workspace/config.json",)
+        case ToolOutputData(content=content):
             assert content == '{"name": "myapp"}'
         case _:
             raise AssertionError(f"unexpected mapped output data: {mapped}")
 
 
-def test_map_output_read_multiple_files() -> None:
+def test_map_output_read_multiple_files_returns_generic() -> None:
     adapter = ToolAdapter()
     approval = FileReadData(
         paths=("/tmp/workspace/config.json", "/tmp/workspace/main.py", "/tmp/workspace/README.md"),
@@ -138,9 +135,7 @@ def test_map_output_read_multiple_files() -> None:
     mapped = adapter.map_output(approval, "raw merged output")
 
     match mapped:
-        case ReadOutputData(title=title, filenames=filenames, content=content):
-            assert title == "Read Output: 3 files"
-            assert filenames == ()
+        case ToolOutputData(content=content):
             assert content == "raw merged output"
         case _:
             raise AssertionError(f"unexpected mapped output data: {mapped}")
@@ -152,7 +147,20 @@ def test_map_output_non_read_returns_generic() -> None:
     mapped = adapter.map_output(CodeActionData(code="print(1)"), "done")
 
     match mapped:
-        case GenericToolOutputData(content=content):
+        case ToolOutputData(content=content):
+            assert content == "done"
+        case _:
+            raise AssertionError(f"unexpected mapped output data: {mapped}")
+
+
+def test_map_output_generic_tool_call_returns_generic() -> None:
+    adapter = ToolAdapter()
+    approval = GenericToolCallData(tool_name="database_query", tool_args={"sql": "SELECT 1"})
+
+    mapped = adapter.map_output(approval, "done")
+
+    match mapped:
+        case ToolOutputData(content=content):
             assert content == "done"
         case _:
             raise AssertionError(f"unexpected mapped output data: {mapped}")
@@ -164,7 +172,7 @@ def test_map_output_extracts_text_from_string_payload() -> None:
     mapped = adapter.map_output(None, "plain text")
 
     match mapped:
-        case GenericToolOutputData(content=content):
+        case ToolOutputData(content=content):
             assert content == "plain text"
         case _:
             raise AssertionError(f"unexpected mapped output data: {mapped}")
@@ -176,7 +184,7 @@ def test_map_output_extracts_text_from_content_dict() -> None:
     mapped = adapter.map_output(None, {"content": "dict-content"})
 
     match mapped:
-        case GenericToolOutputData(content=content):
+        case ToolOutputData(content=content):
             assert content == "dict-content"
         case _:
             raise AssertionError(f"unexpected mapped output data: {mapped}")
@@ -188,7 +196,7 @@ def test_map_output_extracts_text_from_text_dict() -> None:
     mapped = adapter.map_output(None, {"text": "dict-text"})
 
     match mapped:
-        case GenericToolOutputData(content=content):
+        case ToolOutputData(content=content):
             assert content == "dict-text"
         case _:
             raise AssertionError(f"unexpected mapped output data: {mapped}")
@@ -200,7 +208,7 @@ def test_map_output_extracts_text_from_list_payload() -> None:
     mapped = adapter.map_output(None, [{"text": "a"}, "b", {"content": "c"}])
 
     match mapped:
-        case GenericToolOutputData(content=content):
+        case ToolOutputData(content=content):
             assert content == "a\nb\nc"
         case _:
             raise AssertionError(f"unexpected mapped output data: {mapped}")
@@ -212,7 +220,7 @@ def test_map_output_serializes_unknown_dict_payload() -> None:
     mapped = adapter.map_output(None, {"unexpected": 1})
 
     match mapped:
-        case GenericToolOutputData(content=content):
+        case ToolOutputData(content=content):
             assert content == '{\n  "unexpected": 1\n}'
         case _:
             raise AssertionError(f"unexpected mapped output data: {mapped}")

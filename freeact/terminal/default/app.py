@@ -61,14 +61,22 @@ _BANNER_PATH = Path(__file__).with_name("banner.txt")
 
 @dataclass(frozen=True)
 class AtReferenceContext:
-    """Token range for an `@path` reference under construction."""
+    """Cursor range that covers the current `@path` token in the prompt."""
 
     start: Location
     end: Location
 
 
 def _format_attachment_path(path: Path, cwd: Path | None = None) -> str:
-    """Format selected picker path for prompt insertion."""
+    """Format a selected path for insertion after `@`.
+
+    Args:
+        path: Selected filesystem path.
+        cwd: Base path used for relative formatting. Defaults to `Path.cwd()`.
+
+    Returns:
+        Relative path when `path` is under `cwd`; otherwise an absolute path.
+    """
     resolved = path.expanduser().resolve()
     base = (cwd or Path.cwd()).resolve()
     try:
@@ -81,7 +89,15 @@ def _format_attachment_path(path: Path, cwd: Path | None = None) -> str:
 
 
 def _find_at_reference_context(text: str, cursor: Location) -> AtReferenceContext | None:
-    """Find an `@...` token context when cursor is immediately after `@`."""
+    """Locate the active `@path` token when cursor is immediately after `@`.
+
+    Args:
+        text: Prompt text content.
+        cursor: Current cursor location as `(row, column)`.
+
+    Returns:
+        Token bounds for replacement, or `None` when no token is active.
+    """
     row, col = cursor
     lines = text.split("\n")
     if row >= len(lines):
@@ -102,7 +118,11 @@ def _find_at_reference_context(text: str, cursor: Location) -> AtReferenceContex
 
 
 def _load_banner() -> Text | None:
-    """Load startup banner text from bundled ANSI art file."""
+    """Load startup banner text from the bundled ANSI art file.
+
+    Returns:
+        Parsed Rich `Text` banner, or `None` when the banner is unavailable.
+    """
     try:
         banner_ansi = _BANNER_PATH.read_text().strip("\n")
     except OSError:
@@ -113,7 +133,7 @@ def _load_banner() -> Text | None:
 
 
 class FreeactApp(App[None]):
-    """Main Textual application for the freeact terminal interface."""
+    """Main Textual application for the default freeact terminal UI."""
 
     DEFAULT_CSS = """
     #banner-top-spacer {
@@ -212,12 +232,17 @@ class FreeactApp(App[None]):
         self.call_after_refresh(self._scroll_conversation_to_bottom)
 
     def _scroll_conversation_to_bottom(self) -> None:
-        """Ensure the conversation viewport starts at the latest content."""
+        """Position the conversation viewport at the latest content."""
         conversation = self.query_one("#conversation", VerticalScroll)
         conversation.scroll_end(animate=False)
 
     async def _mount_and_scroll(self, conversation: VerticalScroll, *widgets: "textual.widget.Widget") -> None:  # type: ignore[name-defined]  # noqa: F821
-        """Mount widgets into the conversation and scroll to bottom."""
+        """Mount widgets into the conversation and scroll to the bottom.
+
+        Args:
+            conversation: Conversation container that owns rendered widgets.
+            *widgets: Widgets to mount in order.
+        """
         for widget in widgets:
             await conversation.mount(widget)
         conversation.scroll_end(animate=False)
@@ -489,12 +514,12 @@ class FreeactApp(App[None]):
 
 
 def convert_at_references(text: str) -> str:
-    """Convert `@path` references to `<attachment>...</attachment>` XML tags.
+    """Convert `@path` tokens to `<attachment>...</attachment>` tags.
 
     Args:
-        text: User input text with `@path` references.
+        text: User prompt text that may contain `@path` tokens.
 
     Returns:
-        Text with `@path` references replaced by `<attachment>path</attachment>` tags.
+        Prompt text with `@path` tokens replaced by attachment tags.
     """
     return re.sub(r"@(\S+)", r"<attachment>\1</attachment>", text)

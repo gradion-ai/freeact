@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 from typing import Any
 
 from freeact.terminal.default.tool_data import (
@@ -9,18 +8,24 @@ from freeact.terminal.default.tool_data import (
     FileReadData,
     FileWriteData,
     GenericToolCallData,
-    GenericToolOutputData,
-    ReadOutputData,
     TextEditData,
     ToolOutputData,
 )
 
 
 class ToolAdapter:
-    """Map concrete tool payloads to canonical terminal data models."""
+    """Normalize tool calls and outputs into terminal UI data models."""
 
     def map_action(self, tool_name: str, tool_args: dict[str, Any]) -> ActionData:
-        """Map a tool call into canonical action data."""
+        """Convert a raw tool call into canonical action data.
+
+        Args:
+            tool_name: Tool identifier from the agent event stream.
+            tool_args: Raw tool argument payload.
+
+        Returns:
+            Canonical action payload used by terminal widgets.
+        """
         match tool_name:
             case "ipybox_execute_ipython_cell":
                 return CodeActionData(code=self._to_str(tool_args.get("code", "")))
@@ -50,29 +55,28 @@ class ToolAdapter:
                 return GenericToolCallData(tool_name=tool_name, tool_args=dict(tool_args))
 
     def map_output(self, action: ActionData | None, tool_content: object) -> ToolOutputData:
-        """Map a tool output payload into canonical terminal output data."""
-        text = self._extract_tool_text(tool_content)
+        """Convert raw tool output content into canonical output data.
 
-        match action:
-            case FileReadData(paths=paths) if len(paths) == 1:
-                path = paths[0]
-                filename = Path(path).name or path
-                return ReadOutputData(
-                    title=f"Read Output: {filename}",
-                    filenames=(path,),
-                    content=text,
-                )
-            case FileReadData(paths=paths):
-                return ReadOutputData(
-                    title=f"Read Output: {len(paths)} files",
-                    filenames=(),
-                    content=text,
-                )
-            case _:
-                return GenericToolOutputData(content=text)
+        Args:
+            action: Action data that produced this output. Currently unused.
+            tool_content: Raw tool result payload from agent events.
+
+        Returns:
+            Canonical output payload for tool output widgets.
+        """
+        text = self._extract_tool_text(tool_content)
+        _ = action
+        return ToolOutputData(content=text)
 
     def _extract_tool_text(self, content: object) -> str:
-        """Extract plain text from pydantic-ai tool result payloads."""
+        """Extract readable text from heterogeneous tool result payloads.
+
+        Args:
+            content: Raw tool result payload.
+
+        Returns:
+            Displayable text representation of the payload.
+        """
         match content:
             case str():
                 return content
@@ -88,6 +92,7 @@ class ToolAdapter:
                 return str(content)
 
     def _to_paths(self, value: object) -> tuple[str, ...]:
+        """Convert a list-like value to a tuple of path strings."""
         match value:
             case list() | tuple():
                 return tuple(self._to_str(item) for item in value)
@@ -95,6 +100,7 @@ class ToolAdapter:
                 return ()
 
     def _to_edits(self, value: object) -> tuple[TextEditData, ...]:
+        """Convert list-like edit payloads into canonical text edits."""
         match value:
             case list() | tuple():
                 edits: list[TextEditData] = []
@@ -115,6 +121,7 @@ class ToolAdapter:
                 return ()
 
     def _to_str(self, value: object) -> str:
+        """Convert a value to `str` without raising."""
         match value:
             case str():
                 return value
@@ -122,6 +129,7 @@ class ToolAdapter:
                 return str(value)
 
     def _to_int_or_none(self, value: object) -> int | None:
+        """Return an integer value or `None` when conversion is not possible."""
         match value:
             case int():
                 return value

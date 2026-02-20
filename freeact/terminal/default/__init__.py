@@ -7,9 +7,10 @@ from freeact.terminal.default.config import DEFAULT_TERMINAL_UI_CONFIG, Terminal
 
 
 class Terminal:
-    """Textual-based terminal interface for conversing with an agent.
+    """Textual terminal interface for interactive agent conversations.
 
-    Drop-in replacement for the legacy Rich + prompt_toolkit terminal.
+    This class replaces the legacy Rich + prompt_toolkit interface while
+    preserving the same high-level terminal contract.
     """
 
     def __init__(
@@ -18,13 +19,13 @@ class Terminal:
         console: Console | None = None,
         ui_config: TerminalUiConfig = DEFAULT_TERMINAL_UI_CONFIG,
     ) -> None:
-        """Initialize terminal with an agent.
+        """Initialize a terminal session wrapper around an agent.
 
         Args:
-            agent: Agent instance to run conversations with.
-            console: Accepted for interface compatibility but unused.
-                Textual manages its own rendering.
-            ui_config: Expand/collapse and keybinding settings for the Textual UI.
+            agent: Agent instance used to execute conversation turns.
+            console: Compatibility parameter for legacy interfaces. Textual
+                manages rendering directly, so this value is ignored.
+            ui_config: Keybinding and expand/collapse behavior for the UI.
         """
         self._agent = agent
         self._main_agent_id = agent.agent_id
@@ -32,7 +33,7 @@ class Terminal:
         self._ui_config = ui_config
 
     async def run(self) -> None:
-        """Run the interactive conversation loop until the user quits."""
+        """Run the interactive terminal UI until the user exits."""
         await self._permission_manager.load()
 
         async with self._agent:
