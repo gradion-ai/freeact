@@ -30,6 +30,7 @@ Read this first, then follow code references for details.
 
 ## Boundaries
 
+- `clipboard.py`: platform clipboard adapter (`pbcopy/pbpaste`, `wl-*`, `xclip`/`xsel`, PowerShell) with local fallback.
 - `tool_adapter.py`: raw tool payloads -> canonical UI models (`tool_data.py`).
 - `widgets.py`: all prompt/approval widgets and box factories.
 - `screens.py`: modal file picker for `@` insertion.
@@ -38,6 +39,10 @@ Read this first, then follow code references for details.
 ## Keyboard Semantics
 
 - `PromptInput`: `Enter` submit, `Ctrl+J` newline, `Alt+Enter` -> `Ctrl+J`.
+- Quit: `Ctrl+Q`.
+- Copy selected text: `Cmd+C` / `Super+C`, `Ctrl+Shift+C`, `Ctrl+Insert`, `Ctrl+C`.
+- Paste in prompt input: `Ctrl+V`, `Cmd+V` / `Super+V`, `Ctrl+Shift+V`, `Shift+Insert`.
+- Clipboard model: OS clipboard is source of truth; Textual local clipboard is fallback cache.
 - Approval decisions can come from `ApprovalBar` or app-level hotkeys (`enter`, `y`, `n`, `a`, `s`).
 
 ## Testing

@@ -66,9 +66,34 @@ class StubPermissionManager:
         self.allow_session_calls.append(tool_name)
 
 
+class StubClipboardAdapter:
+    """Clipboard adapter stub with programmable paste responses."""
+
+    def __init__(self, paste_values: list[str | None] | None = None) -> None:
+        self.copy_calls: list[str] = []
+        self.paste_calls = 0
+        self._paste_values = paste_values or []
+
+    def copy(self, text: str) -> bool:
+        self.copy_calls.append(text)
+        return True
+
+    def paste(self) -> str | None:
+        self.paste_calls += 1
+        if self._paste_values:
+            return self._paste_values.pop(0)
+        return None
+
+
 async def _no_events(_: PromptContent) -> AsyncIterator[AgentEvent]:
     if False:
         yield Response(content="", agent_id=MAIN_AGENT_ID)
+
+
+async def _response_only_scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+    text = "Hello world response text."
+    yield ResponseChunk(content=text, agent_id=MAIN_AGENT_ID)
+    yield Response(content=text, agent_id=MAIN_AGENT_ID)
 
 
 async def _submit_prompt(app: FreeactApp, pilot: Pilot, text: str = "hello") -> None:
@@ -234,6 +259,119 @@ async def test_markdown_link_hover_style_is_configured_per_link() -> None:
         assert str(paragraph.styles.link_style) == "underline"
         assert str(paragraph.styles.link_style_hover) == "bold underline"
         assert "Markdown MarkdownBlock:hover" not in FreeactApp.DEFAULT_CSS
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("copy_key", ["super+c", "ctrl+shift+c", "ctrl+insert", "ctrl+c"])
+async def test_copy_shortcuts_copy_selected_response_text(copy_key: str) -> None:
+    clipboard_adapter = StubClipboardAdapter()
+    app = FreeactApp(
+        agent_stream=MockStreamAgent(_response_only_scenario).stream,
+        main_agent_id=MAIN_AGENT_ID,
+        clipboard_adapter=clipboard_adapter,
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await app.workers.wait_for_complete()
+
+        paragraph = app.query("MarkdownParagraph").last()
+        paragraph.text_select_all()
+        await pilot.press(copy_key)
+
+        assert app.clipboard == "Hello world response text."
+        assert clipboard_adapter.copy_calls == ["Hello world response text."]
+
+
+@pytest.mark.asyncio
+async def test_user_input_box_text_is_selectable_and_copyable() -> None:
+    clipboard_adapter = StubClipboardAdapter()
+    app = FreeactApp(
+        agent_stream=MockStreamAgent(_no_events).stream,
+        main_agent_id=MAIN_AGENT_ID,
+        clipboard_adapter=clipboard_adapter,
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot, "copy me from user input")
+        await app.workers.wait_for_complete()
+
+        user_input_text = app.query(".user-input-box Static").last()
+        user_input_text.text_select_all()
+        assert app.screen.get_selected_text() == "copy me from user input"
+
+        await pilot.press("ctrl+c")
+        assert app.clipboard == "copy me from user input"
+        assert clipboard_adapter.copy_calls == ["copy me from user input"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("paste_key", ["ctrl+v", "super+v", "ctrl+shift+v", "shift+insert"])
+async def test_paste_shortcuts_use_os_clipboard_value(paste_key: str) -> None:
+    clipboard_adapter = StubClipboardAdapter(paste_values=["from-os"])
+    app = FreeactApp(
+        agent_stream=MockStreamAgent(_no_events).stream,
+        main_agent_id=MAIN_AGENT_ID,
+        clipboard_adapter=clipboard_adapter,
+    )
+
+    async with app.run_test() as pilot:
+        await pilot.press(paste_key)
+        prompt = app.query_one("#prompt-input", PromptInput)
+        assert prompt.text == "from-os"
+        assert clipboard_adapter.paste_calls == 1
+        assert app.clipboard == "from-os"
+
+
+@pytest.mark.asyncio
+async def test_prompt_paste_falls_back_to_local_clipboard_when_os_unavailable() -> None:
+    clipboard_adapter = StubClipboardAdapter(paste_values=[None])
+    app = FreeactApp(
+        agent_stream=MockStreamAgent(_no_events).stream,
+        main_agent_id=MAIN_AGENT_ID,
+        clipboard_adapter=clipboard_adapter,
+    )
+    app._clipboard = "local-fallback"
+
+    async with app.run_test() as pilot:
+        await pilot.press("ctrl+v")
+        prompt = app.query_one("#prompt-input", PromptInput)
+        assert prompt.text == "local-fallback"
+
+
+@pytest.mark.asyncio
+async def test_prompt_paste_preserves_empty_os_clipboard_without_local_fallback() -> None:
+    clipboard_adapter = StubClipboardAdapter(paste_values=[""])
+    app = FreeactApp(
+        agent_stream=MockStreamAgent(_no_events).stream,
+        main_agent_id=MAIN_AGENT_ID,
+        clipboard_adapter=clipboard_adapter,
+    )
+    app._clipboard = "local-fallback"
+
+    async with app.run_test() as pilot:
+        prompt = app.query_one("#prompt-input", PromptInput)
+        prompt.insert("start")
+        await pilot.press("ctrl+v")
+        assert prompt.text == "start"
+        assert app.clipboard == ""
+
+
+@pytest.mark.asyncio
+async def test_ctrl_q_triggers_quit_action(monkeypatch: pytest.MonkeyPatch) -> None:
+    app = FreeactApp(agent_stream=MockStreamAgent(_no_events).stream, main_agent_id=MAIN_AGENT_ID)
+    quit_calls = 0
+
+    async def fake_quit() -> None:
+        nonlocal quit_calls
+        quit_calls += 1
+
+    monkeypatch.setattr(app, "action_quit", fake_quit)
+
+    async with app.run_test() as pilot:
+        await pilot.press("ctrl+q")
+
+    assert quit_calls == 1
 
 
 @pytest.mark.asyncio

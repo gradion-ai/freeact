@@ -1,10 +1,12 @@
 import json
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
 from rich.segment import Segment
 from rich.syntax import Syntax
 from textual._ansi_sequences import ANSI_SEQUENCES_KEYS
+from textual.binding import Binding
 from textual.keys import Keys
 from textual.message import Message
 from textual.strip import Strip
@@ -31,6 +33,12 @@ class PromptInput(TextArea):
     inserts a newline so users can compose multi-line input.
     """
 
+    BINDINGS = [
+        Binding("super+v", "paste", "Paste", show=False, priority=True),
+        Binding("ctrl+shift+v", "paste", "Paste", show=False, priority=True),
+        Binding("shift+insert", "paste", "Paste", show=False, priority=True),
+    ]
+
     DEFAULT_CSS = """
     PromptInput {
         height: auto;
@@ -50,9 +58,11 @@ class PromptInput(TextArea):
             super().__init__()
             self.text = text
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self, clipboard_reader: Callable[[], str] | None = None, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.show_line_numbers = False
+        self.soft_wrap = True
+        self._clipboard_reader = clipboard_reader
 
     @property
     def gutter_width(self) -> int:  # type: ignore[override]
@@ -83,6 +93,15 @@ class PromptInput(TextArea):
                 return
             self.post_message(self.Submitted(text))
             self.clear()
+
+    def action_paste(self) -> None:
+        """Paste text using the app-provided clipboard reader when available."""
+        if self.read_only:
+            return
+        clipboard = self._clipboard_reader() if self._clipboard_reader is not None else self.app.clipboard
+        if result := self._replace_via_keyboard(clipboard, *self.selection):
+            self.move_cursor(result.end_location)
+            self.focus()
 
 
 class ApprovalBar(Static):
@@ -153,9 +172,11 @@ def create_user_input_box(content: str) -> Collapsible:
     Returns:
         Collapsible widget with the input text, expanded by default.
     """
-    syntax = Syntax(content, "text", theme="monokai", line_numbers=False)
+    # Use plain text here so Textual's selection API can extract content.
+    # Static.get_selection() does not currently support Rich Syntax renderables.
+    text = Static(content, markup=False)
     box = Collapsible(
-        Static(syntax),
+        text,
         title="User Input",
         collapsed=False,
         classes="user-input-box",

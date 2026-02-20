@@ -26,6 +26,7 @@ from freeact.agent.events import (
 )
 from freeact.media import parse_prompt
 from freeact.permissions import PermissionManager
+from freeact.terminal.default.clipboard import ClipboardAdapter, ClipboardAdapterProtocol
 from freeact.terminal.default.config import DEFAULT_TERMINAL_UI_CONFIG, TerminalUiConfig
 from freeact.terminal.default.screens import FilePickerScreen
 from freeact.terminal.default.tool_adapter import ToolAdapter
@@ -183,7 +184,10 @@ class FreeactApp(App[None]):
     """
 
     BINDINGS = [
-        Binding("ctrl+c", "quit", "Quit"),
+        Binding("ctrl+c", "screen.copy_text", "Copy", show=False, priority=True),
+        Binding("super+c", "screen.copy_text", "Copy", show=False, priority=True),
+        Binding("ctrl+shift+c", "screen.copy_text", "Copy", show=False, priority=True),
+        Binding("ctrl+insert", "screen.copy_text", "Copy", show=False, priority=True),
         Binding("enter", "approve_hotkey(1)", show=False, priority=True),
         Binding("ctrl+m", "approve_hotkey(1)", show=False, priority=True),
         Binding("y", "approve_hotkey(1)", show=False, priority=True),
@@ -198,12 +202,14 @@ class FreeactApp(App[None]):
         permission_manager: PermissionManager | None = None,
         main_agent_id: str = "",
         ui_config: TerminalUiConfig = DEFAULT_TERMINAL_UI_CONFIG,
+        clipboard_adapter: ClipboardAdapterProtocol | None = None,
     ) -> None:
         super().__init__()
         self._agent_stream = agent_stream
         self._permission_manager = permission_manager or PermissionManager()
         self._main_agent_id = main_agent_id
         self._ui_config = ui_config
+        self._clipboard_adapter = clipboard_adapter or ClipboardAdapter()
         self._approval_future: asyncio.Future[int] | None = None
         self._tool_adapter = ToolAdapter()
         self._expand_all_override = False
@@ -225,7 +231,20 @@ class FreeactApp(App[None]):
                 yield Static(self._banner, id="banner")
                 yield Static("", id="banner-spacer")
         with Vertical(id="input-dock"):
-            yield PromptInput(id="prompt-input")
+            yield PromptInput(id="prompt-input", clipboard_reader=self.read_clipboard_for_paste)
+
+    def copy_to_clipboard(self, text: str) -> None:
+        """Copy to OS clipboard and mirror into Textual's local clipboard cache."""
+        self._clipboard_adapter.copy(text)
+        self._clipboard = text
+
+    def read_clipboard_for_paste(self) -> str:
+        """Read from OS clipboard first, falling back to Textual local clipboard."""
+        system_clipboard = self._clipboard_adapter.paste()
+        if system_clipboard is not None:
+            self._clipboard = system_clipboard
+            return system_clipboard
+        return self.clipboard
 
     def on_mount(self) -> None:
         self.query_one("#prompt-input", PromptInput).focus()

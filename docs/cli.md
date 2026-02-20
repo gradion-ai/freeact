@@ -66,7 +66,15 @@ The interactive mode provides a conversation interface with the agent in a termi
 |-----|--------|
 | `Enter` | Send message |
 | `Option+Enter` (macOS)<br/>`Alt+Enter` (Linux/Windows) | Insert newline |
-| `q` + `Enter` | Quit |
+| `Ctrl+Q` | Quit |
+
+### Clipboard
+
+Clipboard behavior depends on terminal key forwarding.
+
+- Paste into the prompt input: `Cmd+V` or `Ctrl+V`.
+- Copy selected text from Freeact widgets: `Cmd+C` may not work in some terminals. Use `Ctrl+C` instead.
+- Additional terminal fallbacks: `Ctrl+Shift+C` / `Ctrl+Insert` for copy, `Ctrl+Shift+V` / `Shift+Insert` for paste.
 
 ### Image Attachments
 

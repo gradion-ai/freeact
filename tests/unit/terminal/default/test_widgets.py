@@ -1,3 +1,6 @@
+from textual.binding import Binding
+from textual.widgets import Static
+
 from freeact.terminal.default.tool_data import TextEditData, ToolOutputData
 from freeact.terminal.default.widgets import (
     ApprovalBar,
@@ -6,6 +9,7 @@ from freeact.terminal.default.widgets import (
     create_file_edit_action_box,
     create_file_read_action_box,
     create_tool_output_box,
+    create_user_input_box,
 )
 
 
@@ -80,3 +84,25 @@ def test_prompt_input_css_uses_solid_border_variants() -> None:
     assert "border: solid $border-blurred;" in css
     assert "PromptInput:focus" in css
     assert "border: solid $border;" in css
+
+
+def test_prompt_input_enables_soft_wrap() -> None:
+    prompt = PromptInput()
+    assert prompt.soft_wrap
+
+
+def test_prompt_input_has_terminal_paste_fallback_bindings() -> None:
+    keymap = {
+        binding.key: binding.action if isinstance(binding, Binding) else binding[1] for binding in PromptInput.BINDINGS
+    }
+    assert keymap["super+v"] == "paste"
+    assert keymap["ctrl+shift+v"] == "paste"
+    assert keymap["shift+insert"] == "paste"
+
+
+def test_create_user_input_box_wraps_content() -> None:
+    box = create_user_input_box("long line")
+    static = box._contents_list[0]
+    assert isinstance(static, Static)
+    assert static.content == "long line"
+    assert str(static.styles.text_wrap) == "wrap"
