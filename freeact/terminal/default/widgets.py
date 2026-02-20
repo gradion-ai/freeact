@@ -222,7 +222,7 @@ def create_tool_call_box(
     syntax = Syntax(args_json, "json", theme="monokai")
     box = Collapsible(
         Static(syntax),
-        title=_titled(f"Tool: {tool_name}", agent_id, corr_id),
+        title=_titled(f"Tool Call: {tool_name}", agent_id, corr_id),
         collapsed=False,
         classes="tool-call-box",
     )

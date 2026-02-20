@@ -6,11 +6,12 @@ from pathlib import Path
 from typing import TypeAlias
 
 from pydantic_ai import UserContent
+from rich.text import Text
 from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
-from textual.widgets import Collapsible, Markdown
+from textual.widgets import Collapsible, Markdown, Static
 
 from freeact.agent.events import (
     AgentEvent,
@@ -55,6 +56,7 @@ from freeact.terminal.default.widgets import (
 
 AgentStreamFn: TypeAlias = Callable[[str | Sequence[UserContent]], AsyncIterator[AgentEvent]]
 Location: TypeAlias = tuple[int, int]
+_BANNER_PATH = Path(__file__).with_name("banner.txt")
 
 
 @dataclass(frozen=True)
@@ -99,12 +101,33 @@ def _find_at_reference_context(text: str, cursor: Location) -> AtReferenceContex
     )
 
 
+def _load_banner() -> Text | None:
+    """Load startup banner text from bundled ANSI art file."""
+    try:
+        banner_ansi = _BANNER_PATH.read_text().strip("\n")
+    except OSError:
+        return None
+    if not banner_ansi:
+        return None
+    return Text.from_ansi(banner_ansi)
+
+
 class FreeactApp(App[None]):
     """Main Textual application for the freeact terminal interface."""
 
     DEFAULT_CSS = """
+    #banner-top-spacer {
+        height: 1;
+    }
+    #banner {
+        padding: 0 1;
+    }
+    #banner-spacer {
+        height: 1;
+    }
     #conversation {
         height: 1fr;
+        align-vertical: bottom;
         scrollbar-size: 1 1;
     }
     #input-dock {
@@ -167,6 +190,7 @@ class FreeactApp(App[None]):
         self._policy_collapsed: dict[int, bool] = {}
         self._forced_expanded_ids: set[int] = set()
         self._pending_approval_widget_id: int | None = None
+        self._banner = _load_banner()
         self._bindings.bind(
             self._ui_config.keys.toggle_expand_all,
             "toggle_expand_all",
@@ -175,12 +199,22 @@ class FreeactApp(App[None]):
         )
 
     def compose(self) -> ComposeResult:
-        yield VerticalScroll(id="conversation")
+        with VerticalScroll(id="conversation"):
+            if self._banner is not None:
+                yield Static("", id="banner-top-spacer")
+                yield Static(self._banner, id="banner")
+                yield Static("", id="banner-spacer")
         with Vertical(id="input-dock"):
             yield PromptInput(id="prompt-input")
 
     def on_mount(self) -> None:
         self.query_one("#prompt-input", PromptInput).focus()
+        self.call_after_refresh(self._scroll_conversation_to_bottom)
+
+    def _scroll_conversation_to_bottom(self) -> None:
+        """Ensure the conversation viewport starts at the latest content."""
+        conversation = self.query_one("#conversation", VerticalScroll)
+        conversation.scroll_end(animate=False)
 
     async def _mount_and_scroll(self, conversation: VerticalScroll, *widgets: "textual.widget.Widget") -> None:  # type: ignore[name-defined]  # noqa: F821
         """Mount widgets into the conversation and scroll to bottom."""

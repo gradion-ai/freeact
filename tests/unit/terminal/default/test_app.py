@@ -3,9 +3,11 @@ from pathlib import Path
 
 import pytest
 from pydantic_ai import UserContent
+from rich.text import Text
 from textual._ansi_sequences import ANSI_SEQUENCES_KEYS
 from textual.keys import Keys
 from textual.pilot import Pilot
+from textual.widgets import Static
 
 from freeact.agent.events import (
     AgentEvent,
@@ -106,6 +108,33 @@ def test_format_attachment_path_prefers_relative_to_cwd(tmp_path: Path) -> None:
     nested.mkdir(parents=True)
 
     assert _format_attachment_path(nested, cwd=tmp_path) == "assets/images"
+
+
+@pytest.mark.asyncio
+async def test_banner_renders_inside_conversation_scroll_container(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("freeact.terminal.default.app._load_banner", lambda: Text("banner"))
+    app = FreeactApp(agent_stream=MockStreamAgent(_no_events).stream, main_agent_id=MAIN_AGENT_ID)
+
+    async with app.run_test() as pilot:
+        await pilot.pause(0.05)
+        conversation = app.query_one("#conversation")
+        banner = app.query_one("#banner", Static)
+        assert banner.parent is conversation
+        assert conversation.max_scroll_y == 0
+        assert banner.region.y >= conversation.region.bottom - 3
+
+
+@pytest.mark.asyncio
+async def test_banner_viewport_starts_scrolled_to_bottom(monkeypatch: pytest.MonkeyPatch) -> None:
+    tall_banner = Text("\n".join(["banner"] * 120))
+    monkeypatch.setattr("freeact.terminal.default.app._load_banner", lambda: tall_banner)
+    app = FreeactApp(agent_stream=MockStreamAgent(_no_events).stream, main_agent_id=MAIN_AGENT_ID)
+
+    async with app.run_test() as pilot:
+        await pilot.pause(0.05)
+        conversation = app.query_one("#conversation")
+        assert conversation.max_scroll_y > 0
+        assert conversation.scroll_y == conversation.max_scroll_y
 
 
 @pytest.mark.asyncio
