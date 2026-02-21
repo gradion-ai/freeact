@@ -12,7 +12,7 @@ from textual.message import Message
 from textual.strip import Strip
 from textual.widgets import Collapsible, Markdown, RichLog, Static, TextArea
 
-from freeact.terminal.default.tool_data import (
+from freeact.terminal.tool_data import (
     TextEditData,
     ToolOutputData,
 )
@@ -105,7 +105,7 @@ class PromptInput(TextArea):
 
 
 class ApprovalBar(Static):
-    """Inline approval prompt with legacy-compatible shortcuts."""
+    """Inline approval prompt with keyboard shortcuts."""
 
     can_focus = True
 

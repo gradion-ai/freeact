@@ -18,16 +18,16 @@ from freeact.agent.events import (
     ThoughtsChunk,
     ToolOutput,
 )
-from freeact.terminal.default.app import (
+from freeact.terminal.app import (
     AtReferenceContext,
     FreeactApp,
     _find_at_reference_context,
     _format_attachment_path,
     convert_at_references,
 )
-from freeact.terminal.default.config import ExpandCollapsePolicy, TerminalKeyConfig, TerminalUiConfig
-from freeact.terminal.default.screens import FilePickerScreen, FilePickerTree
-from freeact.terminal.default.widgets import PromptInput
+from freeact.terminal.config import ExpandCollapsePolicy, TerminalKeyConfig, TerminalUiConfig
+from freeact.terminal.screens import FilePickerScreen, FilePickerTree
+from freeact.terminal.widgets import PromptInput
 
 MAIN_AGENT_ID = "main-agent"
 
@@ -137,7 +137,7 @@ def test_format_attachment_path_prefers_relative_to_cwd(tmp_path: Path) -> None:
 
 @pytest.mark.asyncio
 async def test_banner_renders_inside_conversation_scroll_container(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("freeact.terminal.default.app._load_banner", lambda: Text("banner"))
+    monkeypatch.setattr("freeact.terminal.app._load_banner", lambda: Text("banner"))
     app = FreeactApp(agent_stream=MockStreamAgent(_no_events).stream, main_agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:
@@ -152,7 +152,7 @@ async def test_banner_renders_inside_conversation_scroll_container(monkeypatch: 
 @pytest.mark.asyncio
 async def test_banner_viewport_starts_scrolled_to_bottom(monkeypatch: pytest.MonkeyPatch) -> None:
     tall_banner = Text("\n".join(["banner"] * 120))
-    monkeypatch.setattr("freeact.terminal.default.app._load_banner", lambda: tall_banner)
+    monkeypatch.setattr("freeact.terminal.app._load_banner", lambda: tall_banner)
     app = FreeactApp(agent_stream=MockStreamAgent(_no_events).stream, main_agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:

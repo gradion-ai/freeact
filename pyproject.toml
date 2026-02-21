@@ -13,7 +13,6 @@ dependencies = [
     "aiostream>=0.7.1",
     "google-genai>=1.56.0",
     "pydantic-ai>=1.59.0",
-    "prompt-toolkit>=3.0.0",
     "python-dotenv>=1.0.0",
     "pillow>=12.0.0",
     "pyyaml>=6.0.3",

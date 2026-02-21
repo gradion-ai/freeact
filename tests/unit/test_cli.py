@@ -26,6 +26,14 @@ def test_parser_rejects_invalid_session_id():
         parser.parse_args(["--session-id", "not-a-uuid"])
 
 
+@pytest.mark.parametrize("removed_flag", ["--legacy-ui", "--record"])
+def test_parser_rejects_removed_legacy_flags(removed_flag: str):
+    parser = cli.create_parser()
+
+    with pytest.raises(SystemExit):
+        parser.parse_args([removed_flag])
+
+
 @pytest.mark.asyncio
 async def test_create_config_scaffolds_terminal_json(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.chdir(tmp_path)
@@ -96,11 +104,7 @@ async def test_run_uses_provided_session_id_for_session_store(tmp_path: Path, mo
     namespace = argparse.Namespace(
         sandbox=False,
         sandbox_config=None,
-        record=False,
-        record_dir=Path("output"),
-        record_title="Conversation",
         session_id=provided,
-        legacy_ui=False,
     )
     await cli.run(namespace)
 
@@ -148,11 +152,7 @@ async def test_run_generates_uuid_when_session_id_missing(tmp_path: Path, monkey
     namespace = argparse.Namespace(
         sandbox=False,
         sandbox_config=None,
-        record=False,
-        record_dir=Path("output"),
-        record_title="Conversation",
         session_id=None,
-        legacy_ui=False,
     )
     await cli.run(namespace)
 

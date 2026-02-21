@@ -5,7 +5,7 @@ import shutil
 
 import pytest
 
-from freeact.terminal.default.clipboard import ClipboardAdapter
+from freeact.terminal.clipboard import ClipboardAdapter
 
 
 def _random_payload() -> str:

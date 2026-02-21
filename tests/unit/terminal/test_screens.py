@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from textual.binding import Binding
 
-from freeact.terminal.default.screens import FilePickerScreen, FilePickerTree
+from freeact.terminal.screens import FilePickerScreen, FilePickerTree
 
 
 def _binding_to_pair(binding: Binding | tuple[str, str, str]) -> tuple[str, str]:

@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from freeact.terminal.default.config import (
+from freeact.terminal.config import (
     DEFAULT_TERMINAL_UI_CONFIG,
     ExpandCollapsePolicy,
     TerminalKeyConfig,
@@ -12,7 +12,7 @@ from freeact.terminal.default.config import (
     ensure_terminal_ui_config,
     load_terminal_ui_config,
 )
-from freeact.terminal.default.config import (
+from freeact.terminal.config import (
     Config as TerminalConfig,
 )
 

@@ -1,6 +1,6 @@
 import subprocess
 
-from freeact.terminal.default.clipboard import ClipboardAdapter
+from freeact.terminal.clipboard import ClipboardAdapter
 
 
 def test_macos_copy_uses_pbcopy() -> None:

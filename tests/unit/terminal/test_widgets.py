@@ -1,8 +1,8 @@
 from textual.binding import Binding
 from textual.widgets import Static
 
-from freeact.terminal.default.tool_data import TextEditData, ToolOutputData
-from freeact.terminal.default.widgets import (
+from freeact.terminal.tool_data import TextEditData, ToolOutputData
+from freeact.terminal.widgets import (
     ApprovalBar,
     PromptInput,
     create_error_box,

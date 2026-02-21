@@ -1,5 +1,5 @@
-from freeact.terminal.default.tool_adapter import ToolAdapter
-from freeact.terminal.default.tool_data import (
+from freeact.terminal.tool_adapter import ToolAdapter
+from freeact.terminal.tool_data import (
     CodeActionData,
     FileEditData,
     FileReadData,

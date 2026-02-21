@@ -1,19 +1,19 @@
 # Terminal UI Architecture
 
-First-orientation map for the Textual-based terminal UI (`freeact/terminal/default/*`).
+First-orientation map for the Textual-based terminal UI (`freeact/terminal/*`).
 Read this first, then follow code references for details.
 
 ## Entry Point
 
-- `freeact/cli.py` uses `Terminal` unless `--legacy-ui` is set.
-- `freeact/terminal/default/__init__.py` creates `FreeactApp` and passes:
+- `freeact/cli.py` creates `Terminal` for interactive mode.
+- `freeact/terminal/__init__.py` creates `FreeactApp` and passes:
   - `agent.stream`
   - `PermissionManager`
   - main `agent_id`
 
 ## Main Controller
 
-- `freeact/terminal/default/app.py` (`FreeactApp`) is the terminal orchestrator.
+- `freeact/terminal/app.py` (`FreeactApp`) is the terminal orchestrator.
 - Two UI regions:
   - `#conversation` (rendered history)
   - `#prompt-input` (user input)

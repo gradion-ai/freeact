@@ -26,11 +26,11 @@ from freeact.agent.events import (
 )
 from freeact.media import parse_prompt
 from freeact.permissions import PermissionManager
-from freeact.terminal.default.clipboard import ClipboardAdapter, ClipboardAdapterProtocol
-from freeact.terminal.default.config import DEFAULT_TERMINAL_UI_CONFIG, TerminalUiConfig
-from freeact.terminal.default.screens import FilePickerScreen
-from freeact.terminal.default.tool_adapter import ToolAdapter
-from freeact.terminal.default.tool_data import (
+from freeact.terminal.clipboard import ClipboardAdapter, ClipboardAdapterProtocol
+from freeact.terminal.config import DEFAULT_TERMINAL_UI_CONFIG, TerminalUiConfig
+from freeact.terminal.screens import FilePickerScreen
+from freeact.terminal.tool_adapter import ToolAdapter
+from freeact.terminal.tool_data import (
     ActionData,
     CodeActionData,
     FileEditData,
@@ -38,7 +38,7 @@ from freeact.terminal.default.tool_data import (
     FileWriteData,
     GenericToolCallData,
 )
-from freeact.terminal.default.widgets import (
+from freeact.terminal.widgets import (
     ApprovalBar,
     PromptInput,
     create_code_action_box,
@@ -134,7 +134,7 @@ def _load_banner() -> Text | None:
 
 
 class FreeactApp(App[None]):
-    """Main Textual application for the default freeact terminal UI."""
+    """Main Textual application for the freeact terminal UI."""
 
     DEFAULT_CSS = """
     #banner-top-spacer {

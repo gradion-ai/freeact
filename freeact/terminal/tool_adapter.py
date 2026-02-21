@@ -1,7 +1,7 @@
 import json
 from typing import Any
 
-from freeact.terminal.default.tool_data import (
+from freeact.terminal.tool_data import (
     ActionData,
     CodeActionData,
     FileEditData,
