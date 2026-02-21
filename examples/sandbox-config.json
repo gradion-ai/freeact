@@ -1,4 +1,5 @@
 {
+  "allowPty": true,
   "network": {
     "allowedDomains": ["example.org"],
     "deniedDomains": [],

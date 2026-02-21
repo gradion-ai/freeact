@@ -308,7 +308,7 @@ def create_tool_output_box(data: ToolOutputData, agent_id: str = "", corr_id: st
     Returns:
         Collapsible widget that displays truncated tool output.
     """
-    display_content = data.content[:500] + "..." if len(data.content) > 500 else data.content
+    display_content = data.content
     syntax = Syntax(display_content, "text", theme="monokai", line_numbers=True)
     box = Collapsible(
         Static(syntax),

@@ -10,10 +10,6 @@ The following example shows how to [compose and save](#compose-and-save) a code 
 
 ## Compose and Save
 
-!!! hint "Recorded session"
-
-    A [recorded session](../recordings/saving-codeacts-1/conversation.html) of this example is appended [below](#recording-compose).
-
 This example continues from the [enhancing tools](output-parser.md) example, where `search_repositories` was augmented with a `run_parsed()` function returning typed `Repository` objects. In the same workspace, start a new CLI tool session with:
 
 ```bash
@@ -49,13 +45,9 @@ The structure of the saved tool is:
         └── impl.py      # Implementation
 ```
 
-[![Interactive mode](../recordings/saving-codeacts-1/conversation.svg)](../recordings/saving-codeacts-1/conversation.html){target="_blank" #recording-compose}
+[![Saving Codeacts](../screenshots/saving-codeacts-1.png)](../screenshots/saving-codeacts-1.png){ target="_blank" rel="noopener" }
 
 ## Discover and Reuse
-
-!!! hint "Recorded session"
-
-    A [recorded session](../recordings/saving-codeacts-2/conversation.html) of this example is appended [below](#recording-reuse).
 
 In a new session, the saved tool is discovered like any other Python tool. During discovery, only the API is inspected, not the implementation. When asked to
 
@@ -63,6 +55,6 @@ In a new session, the saved tool is discovered like any other Python tool. Durin
 
 the agent discovers the previously saved tool, inspects its API, and calls it with different parameters (`top_n_repos=2`, `top_n_commits=3`).
 
-[![Interactive mode](../recordings/saving-codeacts-2/conversation.svg)](../recordings/saving-codeacts-2/conversation.html){target="_blank" #recording-reuse}
+[![Saving Codeacts](../screenshots/saving-codeacts-2.png)](../screenshots/saving-codeacts-2.png){ target="_blank" rel="noopener" }
 
 [^1]: Since `list_commits` doesn't return typed output, the agent guesses output structure from training data, which may or may not work on first attempt. This can be made more reliable by also generating an output parser for `list_commits`.
