@@ -1,3 +1,7 @@
+<div markdown style="text-align: center; margin-bottom: 1em;">
+  ![freeact](images/banner.svg){ style="width: 100%;" }
+</div>
+
 # Overview
 
 Freeact is a lightweight agent harness and CLI tool that acts by executing Python code and shell commands. Code actions are key for an agent to improve itself and its tool library.
