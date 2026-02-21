@@ -423,7 +423,13 @@ class FreeactApp(App[None]):
                     corr_id=request.corr_id,
                 )
             case GenericToolCallData(tool_name=tool_name, tool_args=tool_args):
-                box = create_tool_call_box(tool_name, tool_args, agent_id=request.agent_id, corr_id=request.corr_id)
+                box = create_tool_call_box(
+                    tool_name,
+                    tool_args,
+                    agent_id=request.agent_id,
+                    corr_id=request.corr_id,
+                    ptc=request.ptc,
+                )
             case _:
                 raise ValueError(f"Unsupported action data: {action_data!r}")
 

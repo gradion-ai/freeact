@@ -483,6 +483,7 @@ class Agent:
                             ptc_request = ApprovalRequest(
                                 tool_name=f"{server_name}_{tool_name}",  # type: ignore[has-type]
                                 tool_args=tool_args,  # type: ignore[has-type]
+                                ptc=True,
                                 agent_id=self.agent_id,
                             )
                             yield ptc_request

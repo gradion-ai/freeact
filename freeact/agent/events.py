@@ -110,6 +110,7 @@ class ApprovalRequest(AgentEvent):
 
     tool_name: str
     tool_args: dict[str, Any]
+    ptc: bool = False
     _future: Future[bool] = field(default_factory=Future)
 
     def approve(self, decision: bool) -> None:

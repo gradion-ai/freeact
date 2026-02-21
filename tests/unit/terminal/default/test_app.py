@@ -543,6 +543,34 @@ async def test_preapproved_request_skips_approval_bar() -> None:
 
 
 @pytest.mark.asyncio
+async def test_ptc_request_uses_ptc_title_in_default_terminal() -> None:
+    permission_manager = StubPermissionManager(preapproved=True)
+
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        request = ApprovalRequest(
+            tool_name="database_query",
+            tool_args={"query": "SELECT 1"},
+            ptc=True,
+            agent_id=MAIN_AGENT_ID,
+            corr_id="call-ptc",
+        )
+        yield request
+        await request.approved()
+
+    app = FreeactApp(
+        agent_stream=MockStreamAgent(scenario).stream,
+        main_agent_id=MAIN_AGENT_ID,
+        permission_manager=permission_manager,  # type: ignore[arg-type]
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await app.workers.wait_for_complete()
+
+        assert app.query(".tool-call-box").last().title == r"\[main-agent] \[call-ptc] PTC: database_query"
+
+
+@pytest.mark.asyncio
 async def test_ctrl_o_toggles_expand_all_and_restores_policy() -> None:
     permission_manager = StubPermissionManager(preapproved=True)
 

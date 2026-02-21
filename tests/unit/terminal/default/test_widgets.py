@@ -8,6 +8,7 @@ from freeact.terminal.default.widgets import (
     create_error_box,
     create_file_edit_action_box,
     create_file_read_action_box,
+    create_tool_call_box,
     create_tool_output_box,
     create_user_input_box,
 )
@@ -72,6 +73,33 @@ def test_create_tool_output_box_generic_is_collapsed() -> None:
     assert "tool-output-box" in box.classes
     assert box.collapsed
     assert box.title == r"\[agent-1] \[corr-1] Tool Output"
+
+
+def test_create_tool_call_box_uses_tool_call_prefix_by_default() -> None:
+    box = create_tool_call_box(
+        tool_name="filesystem_read",
+        tool_args={"path": "README.md"},
+        agent_id="agent-1",
+        corr_id="corr-1",
+    )
+
+    assert "tool-call-box" in box.classes
+    assert not box.collapsed
+    assert box.title == r"\[agent-1] \[corr-1] Tool Call: filesystem_read"
+
+
+def test_create_tool_call_box_uses_ptc_prefix_when_requested() -> None:
+    box = create_tool_call_box(
+        tool_name="mcp_list_resources",
+        tool_args={},
+        agent_id="agent-1",
+        corr_id="corr-1",
+        ptc=True,
+    )
+
+    assert "tool-call-box" in box.classes
+    assert not box.collapsed
+    assert box.title == r"\[agent-1] \[corr-1] PTC: mcp_list_resources"
 
 
 def test_approval_bar_prompt_text_matches_current_ui() -> None:

@@ -234,7 +234,11 @@ def create_code_action_box(code: str, agent_id: str = "", corr_id: str = "") -> 
 
 
 def create_tool_call_box(
-    tool_name: str, tool_args: dict[str, Any], agent_id: str = "", corr_id: str = ""
+    tool_name: str,
+    tool_args: dict[str, Any],
+    agent_id: str = "",
+    corr_id: str = "",
+    ptc: bool = False,
 ) -> Collapsible:
     """Create a collapsible box displaying a tool call with JSON arguments.
 
@@ -243,15 +247,17 @@ def create_tool_call_box(
         tool_args: Tool arguments to display as JSON.
         agent_id: Agent identifier for the title prefix.
         corr_id: Correlation identifier for the title.
+        ptc: Whether this call is a programmatic tool call.
 
     Returns:
         Collapsible widget with formatted JSON arguments.
     """
     args_json = json.dumps(tool_args, indent=2)
     syntax = Syntax(args_json, "json", theme="monokai")
+    title_prefix = "PTC" if ptc else "Tool Call"
     box = Collapsible(
         Static(syntax),
-        title=_titled(f"Tool Call: {tool_name}", agent_id, corr_id),
+        title=_titled(f"{title_prefix}: {tool_name}", agent_id, corr_id),
         collapsed=False,
         classes="tool-call-box",
     )
