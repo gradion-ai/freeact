@@ -10,10 +10,6 @@ This tool enhancement persists across sessions and is an example of the agent ac
 
 ## Output Parser Generation
 
-!!! hint "Recorded session"
-
-    A [recorded session](../recordings/output-parser/conversation.html) of this example is appended [below](#recording).
-
 Create a [workspace](../installation.md#option-1-minimal) and initialize the configuration directory:
 
 ```bash
@@ -55,6 +51,6 @@ the agent
 5. Saves the [parser](https://github.com/gradion-ai/ipybox/blob/main/docs/generated/mcpparse/github/search_repositories.py) to a separate `.freeact/generated/mcpparse/github/search_repositories.py`
 6. Resets the IPython kernel to re-import the tool for testing `run_parsed()`
 
-[![Interactive mode](../recordings/output-parser/conversation.svg)](../recordings/output-parser/conversation.html){target="_blank" #recording}
+[![Output parser](../screenshots/output-parser.png)](../screenshots/output-parser.png){ target="_blank" rel="noopener" }
 
 The enhanced tool can now be [composed with other tools](saving-codeacts.md#compose-and-save) in a single code action, with full type information available for processing intermediate results.

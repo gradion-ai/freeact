@@ -5,13 +5,12 @@ import uuid
 from pathlib import Path
 
 from dotenv import load_dotenv
-from rich.console import Console
 
 from freeact.agent import Agent
-from freeact.agent.config import Config
+from freeact.agent.config import Config as AgentConfig
 from freeact.agent.store import SessionStore
 from freeact.terminal import Terminal
-from freeact.terminal.recording import save_conversation
+from freeact.terminal.config import Config as TerminalConfig
 from freeact.tools.pytools.apigen import generate_mcp_sources
 
 logger = logging.getLogger("freeact")
@@ -49,24 +48,6 @@ def create_parser() -> argparse.ArgumentParser:
         help="Set the logging level (default: info)",
     )
     parser.add_argument(
-        "--record",
-        action="store_true",
-        help="Record conversation as SVG and HTML files",
-    )
-    parser.add_argument(
-        "--record-dir",
-        type=Path,
-        default=Path("output"),
-        metavar="PATH",
-        help="Path to the recording output directory",
-    )
-    parser.add_argument(
-        "--record-title",
-        type=str,
-        default="Conversation",
-        help="Title of the recording",
-    )
-    parser.add_argument(
         "--session-id",
         type=uuid.UUID,
         metavar="UUID",
@@ -101,27 +82,24 @@ def configure_logging(level: str) -> None:
     logger.addHandler(handler)
 
 
-async def create_config(namespace: argparse.Namespace) -> Config:
+async def create_config(namespace: argparse.Namespace) -> tuple[AgentConfig, TerminalConfig]:
     """Initialize and load configuration from `.freeact/` directory."""
-    await Config.init()
-    return Config()
+    await AgentConfig.init()
+    await TerminalConfig.init()
+    config = AgentConfig()
+    terminal_config = TerminalConfig(freeact_dir=config.freeact_dir)
+    return config, terminal_config
 
 
 async def run(namespace: argparse.Namespace) -> None:
     """Run the agent terminal interface.
 
-    Loads configuration, creates the agent, and starts the interactive
-    terminal. Optionally records the conversation to SVG/HTML.
+    Loads configuration, creates the agent, and starts the interactive terminal.
 
     Args:
         namespace: Parsed CLI arguments.
     """
-    if namespace.record:
-        console = Console(record=True, width=120, force_terminal=True)
-    else:
-        console = None
-
-    config = await create_config(namespace)
+    config, terminal_config = await create_config(namespace)
     session_id = str(namespace.session_id or uuid.uuid4())
     session_store = SessionStore(config.sessions_dir, session_id)
     agent = Agent(
@@ -134,15 +112,8 @@ async def run(namespace: argparse.Namespace) -> None:
     if config.ptc_servers:
         await generate_mcp_sources(config.ptc_servers, config.generated_dir)
 
-    terminal = Terminal(agent=agent, console=console)
+    terminal = Terminal(agent=agent, ui_config=terminal_config.ui_config)
     await terminal.run()
-
-    if namespace.record and console is not None:
-        await save_conversation(
-            console=console,
-            record_dir=namespace.record_dir,
-            record_title=namespace.record_title,
-        )
 
 
 def main() -> None:
@@ -157,7 +128,8 @@ def main() -> None:
     configure_logging(namespace.log_level)
 
     if namespace.command == "init":
-        asyncio.run(Config.init())
+        asyncio.run(AgentConfig.init())
+        asyncio.run(TerminalConfig.init())
         logger.info("Initialized .freeact/ configuration directory")
         return
 

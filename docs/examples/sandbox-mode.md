@@ -1,10 +1,5 @@
 # Sandbox Mode
 
-!!! hint "Recorded session"
-
-    A [recorded session](../recordings/sandbox-mode/conversation.html) of this example is appended [below](#recording).
-
-
 This example demonstrates running [code execution](../execution.md) in [sandbox mode](../sandbox.md) with a custom sandbox configuration. It does not cover [sandboxing MCP servers](../sandbox.md#mcp-servers).
 
 Create a [workspace](../installation.md#option-1-minimal):
@@ -27,7 +22,7 @@ Start the [CLI tool](../cli.md) with the custom sandbox configuration:
 uvx freeact --sandbox --sandbox-config sandbox-config.json
 ```
 
-The recording [below](#recording) demonstrates the sandbox in action. First, the agent can access the allowed domain:
+The screenshot [below](#recording) demonstrates the sandbox in action. First, the agent can access the allowed domain:
 
 > use requests to read from example.org, print status code only
 
@@ -41,4 +36,4 @@ This fails with a `403 Forbidden`. The sandbox also protects the config file:
 
 This fails with a `PermissionError`.
 
-[![Interactive mode](../recordings/sandbox-mode/conversation.svg)](../recordings/sandbox-mode/conversation.html){target="_blank" #recording}
+[![Sandbox Mode](../screenshots/sandbox-mode.png)](../screenshots/sandbox-mode.png){ target="_blank" rel="noopener" #recording}

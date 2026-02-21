@@ -1,7 +1,7 @@
-# Architecture
+# Runtime Architecture
 
 This page documents agent runtime architecture only (`freeact/agent/*`).
-It intentionally excludes CLI, terminal UX, and longer-lived permission policy layers.
+It intentionally excludes CLI, terminal UI, and longer-lived permission policy layers.
 
 ## Core Agent
 

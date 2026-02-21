@@ -228,16 +228,16 @@ class TestToolSearchConfig:
 class TestPytoolsEnvDefaults:
     """Tests for pytools env var defaults set by Config."""
 
-    def test_sets_absolute_paths_for_pytools_dir(
+    def test_sets_relative_paths_for_pytools_dir(
         self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch
     ):
-        """Sets PYTOOLS_DIR as absolute path derived from working_dir."""
+        """Sets PYTOOLS_DIR as a working-dir-relative path."""
         monkeypatch.delenv("PYTOOLS_DIR", raising=False)
         monkeypatch.delenv("PYTOOLS_DB_PATH", raising=False)
 
         config = Config(working_dir=tmp_path)
 
-        assert os.environ["PYTOOLS_DIR"] == str(config.generated_dir)
+        assert os.environ["PYTOOLS_DIR"] == str(config.generated_rel_dir)
         assert os.environ["PYTOOLS_DB_PATH"] == str(config.search_db_file)
 
     def test_sets_pytools_dir_in_basic_mode(self, tmp_path: Path, freeact_dir: Path, monkeypatch: pytest.MonkeyPatch):
@@ -642,7 +642,8 @@ class TestConfigInit:
         assert config.freeact_dir == freeact_dir
         assert config.plans_dir == paths.plans_dir
         assert config.generated_dir == paths.generated_dir
-        assert config._config_paths.generated_rel_dir == config.generated_dir.relative_to(config.working_dir)
+        assert config.generated_rel_dir == paths.generated_rel_dir
+        assert config.generated_rel_dir == config.generated_dir.relative_to(config.working_dir)
         assert config.sessions_dir == paths.sessions_dir
         assert config.search_db_file == paths.search_db_file
         assert len(config.skills_metadata) == 1

@@ -2,7 +2,6 @@ import asyncio
 import logging
 import uuid
 from collections.abc import Sequence, Set
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, AsyncIterator
 
@@ -51,12 +50,6 @@ from freeact.tools.utils import (
 )
 
 logger = logging.getLogger("freeact")
-
-
-@dataclass
-class _ToolExecResult:
-    content: str | ToolResult
-    rejected: bool = False
 
 
 class _MCPServerStdioFiltered(MCPServerStdio):
@@ -371,6 +364,7 @@ class Agent:
     async def _execute_tool(self, call: ToolCallPart) -> AsyncIterator[AgentEvent | ToolReturnPart]:
         tool_name = call.tool_name
         tool_args = call.args_as_dict()
+        corr_id = uuid.uuid4().hex[:8]
 
         if tool_name not in self.tool_names:
             yield ToolReturnPart(
@@ -381,7 +375,13 @@ class Agent:
             )
             return
 
-        approval = ApprovalRequest(tool_name=tool_name, tool_args=tool_args, agent_id=self.agent_id)
+        approval = ApprovalRequest(
+            tool_name=tool_name,
+            tool_args=tool_args,
+            agent_id=self.agent_id,
+            corr_id=corr_id,
+        )
+
         yield approval
 
         if not await approval.approved():
@@ -393,53 +393,56 @@ class Agent:
             )
             return
 
-        result = _ToolExecResult(content="")
-        async for item in self._dispatch_tool(tool_name, tool_args):
-            match item:
-                case _ToolExecResult():
-                    result = item
-                case _:
-                    yield item
+        result_content: ToolResult = ""
+        rejected = False
 
-        yield ToolReturnPart(
-            tool_call_id=call.tool_call_id,
-            tool_name=tool_name,
-            content=result.content,
-            metadata={"rejected": result.rejected},
-        )
-
-    async def _dispatch_tool(
-        self, tool_name: str, tool_args: dict[str, Any]
-    ) -> AsyncIterator[AgentEvent | _ToolExecResult]:
         match tool_name:
             case "ipybox_execute_ipython_cell":
                 async for item in self._ipybox_execute_ipython_cell(tool_args["code"]):
-                    yield item
+                    match item:
+                        case ApprovalRequest() | CodeExecutionOutput() | CodeExecutionOutputChunk():
+                            item.corr_id = corr_id
+                            yield item
+                        case _:
+                            yield item
+
                     match item:
                         case CodeExecutionOutput() if item.ptc_rejected():
-                            yield _ToolExecResult(content="Tool call rejected", rejected=True)
-                            return
+                            rejected = True
+                            result_content = "Tool call rejected"
+                            break
                         case CodeExecutionOutput():
-                            yield _ToolExecResult(
-                                content=item.format(max_chars=tool_args.get("max_output_chars", 5000))
-                            )
+                            result_content = item.format(max_chars=tool_args.get("max_output_chars", 5000))
             case "ipybox_reset":
                 content = await self._ipybox_reset()
-                yield ToolOutput(content=content, agent_id=self.agent_id)
-                yield _ToolExecResult(content=content)
+                result_content = content
+                yield ToolOutput(content=content, agent_id=self.agent_id, corr_id=corr_id)
             case "subagent_task":
                 async for event in self._execute_subagent_task(
                     prompt=tool_args["prompt"],
                     max_turns=tool_args.get("max_turns", 100),
                 ):
-                    yield event
+                    match event:
+                        case ApprovalRequest() | ToolOutput() | CodeExecutionOutput() | CodeExecutionOutputChunk():
+                            event.corr_id = corr_id
+                            yield event
+                        case _:
+                            yield event
+
                     match event:
                         case ToolOutput():
-                            yield _ToolExecResult(content=event.content)
+                            result_content = event.content
             case _:
                 content = await self._call_mcp_tool(tool_name, tool_args)
-                yield ToolOutput(content=content, agent_id=self.agent_id)
-                yield _ToolExecResult(content=content)
+                result_content = content
+                yield ToolOutput(content=content, agent_id=self.agent_id, corr_id=corr_id)
+
+        yield ToolReturnPart(
+            tool_call_id=call.tool_call_id,
+            tool_name=tool_name,
+            content=result_content,
+            metadata={"rejected": rejected},
+        )
 
     async def _execute_subagent_task(self, prompt: str, max_turns: int) -> AsyncIterator[AgentEvent]:
         subagent_config = self._config.for_subagent()
@@ -480,6 +483,7 @@ class Agent:
                             ptc_request = ApprovalRequest(
                                 tool_name=f"{server_name}_{tool_name}",  # type: ignore[has-type]
                                 tool_args=tool_args,  # type: ignore[has-type]
+                                ptc=True,
                                 agent_id=self.agent_id,
                             )
                             yield ptc_request

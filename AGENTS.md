@@ -3,8 +3,8 @@
 ## Project Structure & Module Organization
 - Documentation: `docs/`
 - Project description: `docs/index.md`
-- Internal documentation: `docs/internal/`
-- Architecture: `docs/internal/architecture.md`
+- Internal documentation:
+  - Architecture: `docs/internal/architecture/`
 - Source modules:
   - `freeact/agent/`: core agent, config, session store
   - `freeact/tools/`: tool definitions, Python tool generation, tool search

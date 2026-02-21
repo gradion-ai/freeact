@@ -1,9 +1,5 @@
 # Data analysis
 
-!!! hint "Recorded session"
-
-    A [recorded session](../recordings/python-packages/conversation.html) of this example is appended [below](#recording).
-
 Freeact can use any Python package available in the execution environment. This example demonstrates using scikit-learn and matplotlib directly in code actions to fit a Gaussian Process Regressor to noisy sine wave data and visualize the results with uncertainty bounds.
 
 Create a [workspace with a virtual environment](../installation.md#option-2-with-virtual-environment) and install the required dependencies:
@@ -18,7 +14,7 @@ Start the [CLI tool](../cli.md):
 uv run freeact
 ```
 
-In the recording [below](#recording), the agent performs Gaussian Process Regression in response to a single prompt:
+In the screenshot [below](#recording), the agent performs Gaussian Process Regression in response to a single prompt:
 
 > Generate 30 noisy samples from a sine function and fit a Gaussian process regressor to the data. Save the result as a plot with uncertainty bounds to output/gpr_sine.png.
 
@@ -30,7 +26,7 @@ A follow-up prompt asks for model statistics:
 
 The agent prints the log-marginal-likelihood and other attributes from the fitted model.
 
-[![Interactive mode](../recordings/python-packages/conversation.svg)](../recordings/python-packages/conversation.html){target="_blank" #recording}
+[![Python Packages](../screenshots/python-packages.png)](../screenshots/python-packages.png){ target="_blank" rel="noopener" #recording}
 
 The resulting plot shows the GPR fit with a confidence interval:
 
