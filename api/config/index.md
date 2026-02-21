@@ -47,6 +47,14 @@ generated_dir: Path
 
 Generated MCP tool sources directory.
 
+### generated_rel_dir
+
+```
+generated_rel_dir: Path
+```
+
+Generated MCP tool sources directory relative to working directory.
+
 ### plans_dir
 
 ```

@@ -1212,10 +1212,6 @@
 <p>Freeact's bundled <a href="https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates/skills/output-parsers"><code>output-parsers</code></a> skill solves this by generating output parsers that enhance tool APIs with a <code>run_parsed()</code> function that returns a structured output type. With output types known, the agent can generate processing logic in a single inference round. </p>
 <p>This tool enhancement persists across sessions and is an example of the agent acting as a toolsmith, enhancing its own tool library rather than just executing tasks.</p>
 <h2 id="output-parser-generation">Output Parser Generation</h2>
-<div class="admonition hint">
-<p class="admonition-title">Recorded session</p>
-<p>A <a href="../../recordings/output-parser/conversation.html">recorded session</a> of this example is appended <a href="#recording">below</a>.</p>
-</div>
 <p>Create a <a href="../../installation/#option-1-minimal">workspace</a> and initialize the configuration directory:</p>
 <div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>my-workspace<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>my-workspace
 uvx<span class="w"> </span>freeact<span class="w"> </span>init
@@ -1247,7 +1243,7 @@ uvx<span class="w"> </span>freeact<span class="w"> </span>init
 <li>Saves the <a href="https://github.com/gradion-ai/ipybox/blob/main/docs/generated/mcpparse/github/search_repositories.py">parser</a> to a separate <code>.freeact/generated/mcpparse/github/search_repositories.py</code></li>
 <li>Resets the IPython kernel to re-import the tool for testing <code>run_parsed()</code></li>
 </ol>
-<p><a href="../../recordings/output-parser/conversation.html" id="recording" target="_blank"><img alt="Interactive mode" src="../../recordings/output-parser/conversation.svg" /></a></p>
+<p><a href="../../screenshots/output-parser.png" rel="noopener" target="_blank"><img alt="Output parser" src="../../screenshots/output-parser.png" /></a></p>
 <p>The enhanced tool can now be <a href="../saving-codeacts/#compose-and-save">composed with other tools</a> in a single code action, with full type information available for processing intermediate results.</p>
 
 

@@ -34,6 +34,7 @@ Freeact stores agent configuration and runtime state in `.freeact/`. Project-lev
 │           └── ...
 └── .freeact/
     ├── agent.json          # Configuration and MCP server definitions
+    ├── terminal.json       # Terminal UI behavior and keybindings
     ├── skills/             # Bundled skills
     │   └── <skill-name>/
     │       ├── SKILL.md    # Skill metadata and instructions
@@ -255,6 +256,46 @@ User-defined tools saved from successful code actions:
         ├── api.py       # Public interface
         └── impl.py      # Implementation
 ```
+
+## Terminal UI
+
+The `terminal.json` file configures terminal UI collapse behavior and keybindings.
+
+```
+{
+  "expand-collapse": {
+    "collapse_thoughts_on_complete": true,
+    "collapse_exec_output_on_complete": true,
+    "collapse_approved_code_actions": true,
+    "collapse_approved_tool_calls": true,
+    "collapse_tool_outputs": true,
+    "keep_rejected_actions_expanded": true,
+    "pin_pending_approval_action_expanded": true
+  },
+  "keys": {
+    "toggle_expand_all": "ctrl+o"
+  }
+}
+```
+
+### Initialization
+
+The CLI creates `terminal.json` during `freeact` and `freeact init` when the file is missing.
+
+SDK integrations can scaffold this file by calling `freeact.terminal.config.Config.init()`.
+
+### Settings
+
+| Setting                                                | Default  | Description                                                                      |
+| ------------------------------------------------------ | -------- | -------------------------------------------------------------------------------- |
+| `expand-collapse.collapse_thoughts_on_complete`        | `true`   | Collapse `Thinking` boxes after a completed `Thoughts` event.                    |
+| `expand-collapse.collapse_exec_output_on_complete`     | `true`   | Collapse `Execution Output` boxes after a completed `CodeExecutionOutput` event. |
+| `expand-collapse.collapse_approved_code_actions`       | `true`   | Collapse approved code action previews after approval.                           |
+| `expand-collapse.collapse_approved_tool_calls`         | `true`   | Collapse approved tool call previews after approval.                             |
+| `expand-collapse.collapse_tool_outputs`                | `true`   | Render `Tool Output` boxes collapsed by default.                                 |
+| `expand-collapse.keep_rejected_actions_expanded`       | `true`   | Keep rejected action previews expanded after rejection.                          |
+| `expand-collapse.pin_pending_approval_action_expanded` | `true`   | Keep the current pending approval action expanded until a decision is made.      |
+| `keys.toggle_expand_all`                               | `ctrl+o` | Toggle all collapsible boxes between expanded and configured state.              |
 
 ______________________________________________________________________
 

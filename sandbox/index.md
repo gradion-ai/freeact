@@ -53,6 +53,7 @@ sandbox-config.json
 
 ```
 {
+  "allowPty": true,
   "network": {
     "allowedDomains": ["example.org"],
     "deniedDomains": [],

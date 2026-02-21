@@ -16,22 +16,15 @@ Freeact supports utilization of MCP servers by generating Python APIs for their 
 
 # Overview
 
-Freeact is a lightweight agent that acts by executing Python code and shell commands. Code actions are key for an agent to improve itself and its tool library.
+Freeact is a lightweight agent harness and CLI tool that acts by executing Python code and shell commands. Code actions are key for an agent to improve itself and its tool library.
 
-Freeact has a tiny core, a small system prompt, and is extensible with agent skills. It relies on a minimal set of generic tools: read, write, execute, subagent, and tool search.
+It generates Python APIs for MCP servers and calls their tools programmatically ("code mode") instead of JSON. This enables tool composition in code actions in a single inference pass.
 
-Code and shell command execution runs locally in a stateful, sandboxed environment. Freeact supports utilization of MCP servers by generating Python APIs for their tools.
+Freeact has a tiny core and uses sandboxed IPython kernels to execute both Python code and shell commands in a uniform way. Execution runs locally with fine-grained approval of actions.
 
 Supported models
 
 Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/), with `gemini-3-flash-preview` as the default. See [Models](https://gradion-ai.github.io/freeact/models/index.md) for provider configuration and examples.
-
-## Usage
-
-| Component                                                          | Description                                                            |
-| ------------------------------------------------------------------ | ---------------------------------------------------------------------- |
-| **[Agent SDK](https://gradion-ai.github.io/freeact/sdk/index.md)** | Agent harness and Python API for building freeact applications.        |
-| **[CLI tool](https://gradion-ai.github.io/freeact/cli/index.md)**  | Terminal interface for interactive conversations with a freeact agent. |
 
 ## Capabilities
 
@@ -47,6 +40,13 @@ Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev
 | **Subagent delegation** | Tasks can be delegated to subagents, each using their own sandbox. It enables specialization and parallelization without cluttering the main agent's context.                                                           |
 | **Action approval**     | Fine-grained approval of code actions and (programmatic) tool calls from both main agents and subagents. Enables human control over potentially risky actions.                                                          |
 | **Session persistence** | Freeact persists agent state incrementally. Persisted sessions can be resumed and serve as a record for debugging, evaluation, and improvement.                                                                         |
+
+## Usage
+
+| Component                                                          | Description                                                            |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| **[Agent SDK](https://gradion-ai.github.io/freeact/sdk/index.md)** | Agent harness and Python API for building freeact applications.        |
+| **[CLI tool](https://gradion-ai.github.io/freeact/cli/index.md)**  | Terminal interface for interactive conversations with a freeact agent. |
 
 ______________________________________________________________________
 
@@ -177,12 +177,12 @@ With this setup and a question like
 
 > who is F1 world champion 2025?
 
-the CLI tool should generate an output similar to the following:
+the CLI tool should produce an end result similar to the following screenshot:
 
-The recorded session demonstrates:
+The screenshot shows:
 
 - **Progressive tool loading**: The agent progressively loads tool information: lists categories, lists tools in the `google` category, then reads the `web_search` API to understand its parameters.
-- **Programmatic tool calling**: The agent writes Python code that imports the `web_search` tool from `mcptools.google` and calls it programmatically with the user's query.
+- **Programmatic tool calling**: The agent writes Python code that imports the `web_search` tool from `mcptools.google` and calls it programmatically (PTC) with the user's query.
 - **Action approval**: The code action and the programmatic `web_search` tool call are explicitly approved by the user, other tool calls were [pre-approved](https://gradion-ai.github.io/freeact/configuration/#permissions) for this example.
 
 The code execution output shows the search result with source URLs. The agent response is a summary of it.
@@ -283,6 +283,7 @@ Freeact stores agent configuration and runtime state in `.freeact/`. Project-lev
 │           └── ...
 └── .freeact/
     ├── agent.json          # Configuration and MCP server definitions
+    ├── terminal.json       # Terminal UI behavior and keybindings
     ├── skills/             # Bundled skills
     │   └── <skill-name>/
     │       ├── SKILL.md    # Skill metadata and instructions
@@ -505,6 +506,46 @@ User-defined tools saved from successful code actions:
         └── impl.py      # Implementation
 ```
 
+## Terminal UI
+
+The `terminal.json` file configures terminal UI collapse behavior and keybindings.
+
+```
+{
+  "expand-collapse": {
+    "collapse_thoughts_on_complete": true,
+    "collapse_exec_output_on_complete": true,
+    "collapse_approved_code_actions": true,
+    "collapse_approved_tool_calls": true,
+    "collapse_tool_outputs": true,
+    "keep_rejected_actions_expanded": true,
+    "pin_pending_approval_action_expanded": true
+  },
+  "keys": {
+    "toggle_expand_all": "ctrl+o"
+  }
+}
+```
+
+### Initialization
+
+The CLI creates `terminal.json` during `freeact` and `freeact init` when the file is missing.
+
+SDK integrations can scaffold this file by calling `freeact.terminal.config.Config.init()`.
+
+### Settings
+
+| Setting                                                | Default  | Description                                                                      |
+| ------------------------------------------------------ | -------- | -------------------------------------------------------------------------------- |
+| `expand-collapse.collapse_thoughts_on_complete`        | `true`   | Collapse `Thinking` boxes after a completed `Thoughts` event.                    |
+| `expand-collapse.collapse_exec_output_on_complete`     | `true`   | Collapse `Execution Output` boxes after a completed `CodeExecutionOutput` event. |
+| `expand-collapse.collapse_approved_code_actions`       | `true`   | Collapse approved code action previews after approval.                           |
+| `expand-collapse.collapse_approved_tool_calls`         | `true`   | Collapse approved tool call previews after approval.                             |
+| `expand-collapse.collapse_tool_outputs`                | `true`   | Render `Tool Output` boxes collapsed by default.                                 |
+| `expand-collapse.keep_rejected_actions_expanded`       | `true`   | Keep rejected action previews expanded after rejection.                          |
+| `expand-collapse.pin_pending_approval_action_expanded` | `true`   | Keep the current pending approval action expanded until a decision is made.      |
+| `keys.toggle_expand_all`                               | `ctrl+o` | Toggle all collapsible boxes between expanded and configured state.              |
+
 ______________________________________________________________________
 
 1. [Code Mode: the better way to use MCP](https://blog.cloudflare.com/code-mode/) [↩](#fnref:1 "Jump back to footnote 1 in the text")
@@ -634,6 +675,7 @@ sandbox-config.json
 
 ```
 {
+  "allowPty": true,
   "network": {
     "allowedDomains": ["example.org"],
     "deniedDomains": [],
@@ -1182,10 +1224,6 @@ async for event in agent.stream(prompt):
 
 # CLI tool
 
-Work in progress
-
-The [terminal interface](#interactive-mode) is preliminary and will be reimplemented in a future release.
-
 The `freeact` or `freeact run` command starts the [interactive mode](#interactive-mode):
 
 ```
@@ -1206,9 +1244,6 @@ freeact init
 | `--sandbox-config PATH` | Path to sandbox configuration file.                                                          |
 | `--session-id UUID`     | Resume a previous session by its UUID. Generates a new UUID if omitted.                      |
 | `--log-level LEVEL`     | Set logging level: `debug`, `info` (default), `warning`, `error`, `critical`.                |
-| `--record`              | Record the conversation as SVG and HTML files.                                               |
-| `--record-dir PATH`     | Output directory for recordings (default: `output`).                                         |
-| `--record-title TEXT`   | Title for the recording (default: `Conversation`).                                           |
 
 ## Examples
 
@@ -1230,23 +1265,32 @@ Resuming a previous [session](https://gradion-ai.github.io/freeact/sdk/#persiste
 freeact --session-id 550e8400-e29b-41d4-a716-446655440000
 ```
 
-Recording a session for documentation:
-
-```
-freeact --record --record-dir docs/recordings/demo --record-title "Demo Session"
-```
-
 ## Interactive Mode
 
 The interactive mode provides a conversation interface with the agent in a terminal window.
 
 ### User messages
 
-| Key                                                | Action         |
-| -------------------------------------------------- | -------------- |
-| `Enter`                                            | Send message   |
-| `Option+Enter` (macOS) `Alt+Enter` (Linux/Windows) | Insert newline |
-| `q` + `Enter`                                      | Quit           |
+| Key                                                | Action                             |
+| -------------------------------------------------- | ---------------------------------- |
+| `Enter`                                            | Send message                       |
+| `Ctrl+J`                                           | Insert newline                     |
+| `Option+Enter` (macOS) `Alt+Enter` (Linux/Windows) | Insert newline (`Ctrl+J` fallback) |
+| `Ctrl+Q`                                           | Quit                               |
+
+### Clipboard
+
+Clipboard behavior depends on terminal key forwarding.
+
+- Paste into the prompt input: `Cmd+V` or `Ctrl+V`.
+- Copy selected text from Freeact widgets: `Cmd+C` may not work in some terminals. Use `Ctrl+C` instead.
+- Additional terminal fallbacks: `Ctrl+Shift+C` / `Ctrl+Insert` for copy, `Ctrl+Shift+V` / `Shift+Insert` for paste.
+
+### Expand and Collapse
+
+Use `Ctrl+O` to toggle all collapsible boxes between expanded and configured state.
+
+The shortcut is configured in `.freeact/terminal.json` under `keys.toggle_expand_all`.
 
 ### Image Attachments
 
@@ -1260,7 +1304,8 @@ Reference images using `@path` syntax:
 - Single file: `@path/to/image.png`
 - Directory: `@path/to/dir/` includes all images in directory, non-recursive
 - Supported formats: PNG, JPG, JPEG, GIF, WEBP
-- Tab completion available for paths
+- Type `@` in the prompt to open a file picker.
+- Select a file or directory to insert its path after `@`.
 
 Images are automatically downscaled if larger than 1024 pixels in either dimension.
 
@@ -1269,7 +1314,7 @@ Images are automatically downscaled if larger than 1024 pixels in either dimensi
 Before executing code actions or tool calls, the agent requests approval:
 
 ```
-Approve? [Y/n/a/s]:
+Approve? [Y/n/a/s]
 ```
 
 | Response       | Effect                                                   |
@@ -1366,7 +1411,7 @@ Returns:
 ## freeact.agent.AgentEvent
 
 ```
-AgentEvent(*, agent_id: str = '')
+AgentEvent(*, agent_id: str = '', corr_id: str = '')
 ```
 
 Base class for all agent stream events.
@@ -1379,9 +1424,11 @@ Carries the `agent_id` of the agent that produced the event, allowing callers to
 ApprovalRequest(
     tool_name: str,
     tool_args: dict[str, Any],
+    ptc: bool = False,
     _future: Future[bool] = Future(),
     *,
-    agent_id: str = ""
+    agent_id: str = "",
+    corr_id: str = ""
 )
 ```
 
@@ -1416,7 +1463,9 @@ Await until `approve()` is called and return the decision.
 ## freeact.agent.Response
 
 ```
-Response(content: str, *, agent_id: str = '')
+Response(
+    content: str, *, agent_id: str = "", corr_id: str = ""
+)
 ```
 
 Bases: `AgentEvent`
@@ -1426,7 +1475,9 @@ Complete model response at a given step.
 ## freeact.agent.ResponseChunk
 
 ```
-ResponseChunk(content: str, *, agent_id: str = '')
+ResponseChunk(
+    content: str, *, agent_id: str = "", corr_id: str = ""
+)
 ```
 
 Bases: `AgentEvent`
@@ -1436,7 +1487,9 @@ Partial model response text (content streaming).
 ## freeact.agent.Thoughts
 
 ```
-Thoughts(content: str, *, agent_id: str = '')
+Thoughts(
+    content: str, *, agent_id: str = "", corr_id: str = ""
+)
 ```
 
 Bases: `AgentEvent`
@@ -1446,7 +1499,9 @@ Complete model thoughts at a given step.
 ## freeact.agent.ThoughtsChunk
 
 ```
-ThoughtsChunk(content: str, *, agent_id: str = '')
+ThoughtsChunk(
+    content: str, *, agent_id: str = "", corr_id: str = ""
+)
 ```
 
 Bases: `AgentEvent`
@@ -1460,7 +1515,8 @@ CodeExecutionOutput(
     text: str | None,
     images: list[Path],
     *,
-    agent_id: str = ""
+    agent_id: str = "",
+    corr_id: str = ""
 )
 ```
 
@@ -1471,7 +1527,9 @@ Complete code execution output.
 ## freeact.agent.CodeExecutionOutputChunk
 
 ```
-CodeExecutionOutputChunk(text: str, *, agent_id: str = '')
+CodeExecutionOutputChunk(
+    text: str, *, agent_id: str = "", corr_id: str = ""
+)
 ```
 
 Bases: `AgentEvent`
@@ -1481,7 +1539,12 @@ Partial code execution output (content streaming).
 ## freeact.agent.ToolOutput
 
 ```
-ToolOutput(content: ToolResult, *, agent_id: str = '')
+ToolOutput(
+    content: ToolResult,
+    *,
+    agent_id: str = "",
+    corr_id: str = ""
+)
 ```
 
 Bases: `AgentEvent`
@@ -1587,6 +1650,14 @@ generated_dir: Path
 ```
 
 Generated MCP tool sources directory.
+
+### generated_rel_dir
+
+```
+generated_rel_dir: Path
+```
+
+Generated MCP tool sources directory relative to working directory.
 
 ### plans_dir
 

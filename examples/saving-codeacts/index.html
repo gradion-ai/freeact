@@ -1234,10 +1234,6 @@
 <p>This separation enables efficient tool discovery: agents inspect signatures and docstrings without loading implementation details. The implementation stays hidden, saving tokens and reducing distraction by keeping non-essential details out of context.</p>
 <p>The following example shows how to <a href="#compose-and-save">compose and save</a> a code action as a parameterized tool, then <a href="#discover-and-reuse">discover and reuse</a> it in a new session.</p>
 <h2 id="compose-and-save">Compose and Save</h2>
-<div class="admonition hint">
-<p class="admonition-title">Recorded session</p>
-<p>A <a href="../../recordings/saving-codeacts-1/conversation.html">recorded session</a> of this example is appended <a href="#recording-compose">below</a>.</p>
-</div>
 <p>This example continues from the <a href="../output-parser/">enhancing tools</a> example, where <code>search_repositories</code> was augmented with a <code>run_parsed()</code> function returning typed <code>Repository</code> objects. In the same workspace, start a new CLI tool session with:</p>
 <div class="highlight"><pre><span></span><code>uvx<span class="w"> </span>freeact
 </code></pre></div>
@@ -1266,18 +1262,14 @@
         ├── api.py       # Public interface
         └── impl.py      # Implementation
 </code></pre></div>
-<p><a href="../../recordings/saving-codeacts-1/conversation.html" id="recording-compose" target="_blank"><img alt="Interactive mode" src="../../recordings/saving-codeacts-1/conversation.svg" /></a></p>
+<p><a href="../../screenshots/saving-codeacts-1.png" rel="noopener" target="_blank"><img alt="Saving Codeacts" src="../../screenshots/saving-codeacts-1.png" /></a></p>
 <h2 id="discover-and-reuse">Discover and Reuse</h2>
-<div class="admonition hint">
-<p class="admonition-title">Recorded session</p>
-<p>A <a href="../../recordings/saving-codeacts-2/conversation.html">recorded session</a> of this example is appended <a href="#recording-reuse">below</a>.</p>
-</div>
 <p>In a new session, the saved tool is discovered like any other Python tool. During discovery, only the API is inspected, not the implementation. When asked to</p>
 <blockquote>
 <p>get the latest 3 commits of the 2 github repos of torvalds with the most stars. For each repo, output name, stars and the first line of commit messages, and the link to the commit</p>
 </blockquote>
 <p>the agent discovers the previously saved tool, inspects its API, and calls it with different parameters (<code>top_n_repos=2</code>, <code>top_n_commits=3</code>).</p>
-<p><a href="../../recordings/saving-codeacts-2/conversation.html" id="recording-reuse" target="_blank"><img alt="Interactive mode" src="../../recordings/saving-codeacts-2/conversation.svg" /></a></p>
+<p><a href="../../screenshots/saving-codeacts-2.png" rel="noopener" target="_blank"><img alt="Saving Codeacts" src="../../screenshots/saving-codeacts-2.png" /></a></p>
 <div class="footnote">
 <hr />
 <ol>

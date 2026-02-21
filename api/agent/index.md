@@ -82,7 +82,7 @@ Returns:
 ## freeact.agent.AgentEvent
 
 ```
-AgentEvent(*, agent_id: str = '')
+AgentEvent(*, agent_id: str = '', corr_id: str = '')
 ```
 
 Base class for all agent stream events.
@@ -95,9 +95,11 @@ Carries the `agent_id` of the agent that produced the event, allowing callers to
 ApprovalRequest(
     tool_name: str,
     tool_args: dict[str, Any],
+    ptc: bool = False,
     _future: Future[bool] = Future(),
     *,
-    agent_id: str = ""
+    agent_id: str = "",
+    corr_id: str = ""
 )
 ```
 
@@ -132,7 +134,9 @@ Await until `approve()` is called and return the decision.
 ## freeact.agent.Response
 
 ```
-Response(content: str, *, agent_id: str = '')
+Response(
+    content: str, *, agent_id: str = "", corr_id: str = ""
+)
 ```
 
 Bases: `AgentEvent`
@@ -142,7 +146,9 @@ Complete model response at a given step.
 ## freeact.agent.ResponseChunk
 
 ```
-ResponseChunk(content: str, *, agent_id: str = '')
+ResponseChunk(
+    content: str, *, agent_id: str = "", corr_id: str = ""
+)
 ```
 
 Bases: `AgentEvent`
@@ -152,7 +158,9 @@ Partial model response text (content streaming).
 ## freeact.agent.Thoughts
 
 ```
-Thoughts(content: str, *, agent_id: str = '')
+Thoughts(
+    content: str, *, agent_id: str = "", corr_id: str = ""
+)
 ```
 
 Bases: `AgentEvent`
@@ -162,7 +170,9 @@ Complete model thoughts at a given step.
 ## freeact.agent.ThoughtsChunk
 
 ```
-ThoughtsChunk(content: str, *, agent_id: str = '')
+ThoughtsChunk(
+    content: str, *, agent_id: str = "", corr_id: str = ""
+)
 ```
 
 Bases: `AgentEvent`
@@ -176,7 +186,8 @@ CodeExecutionOutput(
     text: str | None,
     images: list[Path],
     *,
-    agent_id: str = ""
+    agent_id: str = "",
+    corr_id: str = ""
 )
 ```
 
@@ -187,7 +198,9 @@ Complete code execution output.
 ## freeact.agent.CodeExecutionOutputChunk
 
 ```
-CodeExecutionOutputChunk(text: str, *, agent_id: str = '')
+CodeExecutionOutputChunk(
+    text: str, *, agent_id: str = "", corr_id: str = ""
+)
 ```
 
 Bases: `AgentEvent`
@@ -197,7 +210,12 @@ Partial code execution output (content streaming).
 ## freeact.agent.ToolOutput
 
 ```
-ToolOutput(content: ToolResult, *, agent_id: str = '')
+ToolOutput(
+    content: ToolResult,
+    *,
+    agent_id: str = "",
+    corr_id: str = ""
+)
 ```
 
 Bases: `AgentEvent`

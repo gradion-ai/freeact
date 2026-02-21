@@ -1140,16 +1140,13 @@
 
 
 <h1 id="sandbox-mode">Sandbox Mode</h1>
-<div class="admonition hint">
-<p class="admonition-title">Recorded session</p>
-<p>A <a href="../../recordings/sandbox-mode/conversation.html">recorded session</a> of this example is appended <a href="#recording">below</a>.</p>
-</div>
 <p>This example demonstrates running <a href="../../execution/">code execution</a> in <a href="../../sandbox/">sandbox mode</a> with a custom sandbox configuration. It does not cover <a href="../../sandbox/#mcp-servers">sandboxing MCP servers</a>.</p>
 <p>Create a <a href="../../installation/#option-1-minimal">workspace</a>:</p>
 <div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>my-workspace<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>my-workspace
 </code></pre></div>
 <p>Create a <code>sandbox-config.json</code> file in your workspace directory:</p>
 <div class="highlight"><span class="filename">sandbox-config.json</span><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;allowPty&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;network&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;allowedDomains&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;example.org&quot;</span><span class="p">],</span>
 <span class="w">    </span><span class="nt">&quot;deniedDomains&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
@@ -1166,7 +1163,7 @@
 <p>Start the <a href="../../cli/">CLI tool</a> with the custom sandbox configuration:</p>
 <div class="highlight"><pre><span></span><code>uvx<span class="w"> </span>freeact<span class="w"> </span>--sandbox<span class="w"> </span>--sandbox-config<span class="w"> </span>sandbox-config.json
 </code></pre></div>
-<p>The recording <a href="#recording">below</a> demonstrates the sandbox in action. First, the agent can access the allowed domain:</p>
+<p>The screenshot <a href="#recording">below</a> demonstrates the sandbox in action. First, the agent can access the allowed domain:</p>
 <blockquote>
 <p>use requests to read from example.org, print status code only</p>
 </blockquote>
@@ -1179,7 +1176,7 @@
 <p>print the content of sandbox-config.json in a code action</p>
 </blockquote>
 <p>This fails with a <code>PermissionError</code>.</p>
-<p><a href="../../recordings/sandbox-mode/conversation.html" id="recording" target="_blank"><img alt="Interactive mode" src="../../recordings/sandbox-mode/conversation.svg" /></a></p>
+<p><a href="../../screenshots/sandbox-mode.png" id="recording" rel="noopener" target="_blank"><img alt="Sandbox Mode" src="../../screenshots/sandbox-mode.png" /></a></p>
 
 
 

@@ -1210,10 +1210,6 @@
 <p>Freeact supports the <a href="https://agentskills.io/">agentskills.io</a> specification, a lightweight format for extending agent capabilities with specialized knowledge and workflows. Skills that guide code execution are particularly well-suited for freeact's code action approach. Skills are loaded on demand: only metadata is in context initially, full instructions load when relevant.</p>
 <p>Custom skills are installed to <code>.agents/skills/</code> in the working directory. Bundled skills in <code>.freeact/skills/</code> are managed automatically (see <a href="../../configuration/#skills">Configuration: Skills</a>).</p>
 <h2 id="pdf-generation">PDF Generation</h2>
-<div class="admonition hint">
-<p class="admonition-title">Recorded session</p>
-<p>A <a href="../../recordings/agent-skills/conversation.html">recorded session</a> of this example is appended <a href="#recording">below</a>.</p>
-</div>
 <p>This example uses the PDF skill from the <a href="https://github.com/anthropics/skills">Anthropic skills repository</a>, a collection of production-quality skills maintained by Anthropic.</p>
 <p>Create a <a href="../../installation/#option-2-with-virtual-environment">workspace with a virtual environment</a> and install the required dependencies for this example:</p>
 <div class="highlight"><pre><span></span><code>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>reportlab
@@ -1236,7 +1232,7 @@ cp<span class="w"> </span>-r<span class="w"> </span>/tmp/skills/skills/pdf<span 
 <li>Loads the skill instructions by reading the <code>pdf/SKILL.md</code> file</li>
 <li>Performs the calculation and generates a PDF following the skill's guidance</li>
 </ol>
-<p><a href="../../recordings/agent-skills/conversation.html" id="recording" target="_blank"><img alt="Interactive mode" src="../../recordings/agent-skills/conversation.svg" /></a></p>
+<p><a href="../../screenshots/agent-skills.png" rel="noopener" target="_blank"><img alt="Agent Skills" src="../../screenshots/agent-skills.png" /></a></p>
 
 
 

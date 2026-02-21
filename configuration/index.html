@@ -714,6 +714,45 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#terminal-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Terminal UI
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Terminal UI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#initialization_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initialization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1616,6 +1655,45 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#terminal-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Terminal UI
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Terminal UI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#initialization_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initialization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1680,6 +1758,7 @@
 │           └── ...
 └── .freeact/
     ├── agent.json          # Configuration and MCP server definitions
+    ├── terminal.json       # Terminal UI behavior and keybindings
     ├── skills/             # Bundled skills
     │   └── &lt;skill-name&gt;/
     │       ├── SKILL.md    # Skill metadata and instructions
@@ -2000,6 +2079,78 @@
         ├── api.py       # Public interface
         └── impl.py      # Implementation
 </code></pre></div>
+<h2 id="terminal-ui">Terminal UI</h2>
+<p>The <code>terminal.json</code> file configures terminal UI collapse behavior and keybindings.</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;expand-collapse&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;collapse_thoughts_on_complete&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;collapse_exec_output_on_complete&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;collapse_approved_code_actions&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;collapse_approved_tool_calls&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;collapse_tool_outputs&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;keep_rejected_actions_expanded&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;pin_pending_approval_action_expanded&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;keys&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;toggle_expand_all&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+o&quot;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="initialization_1">Initialization</h3>
+<p>The CLI creates <code>terminal.json</code> during <code>freeact</code> and <code>freeact init</code> when the file is missing.</p>
+<p>SDK integrations can scaffold this file by calling <code>freeact.terminal.config.Config.init()</code>.</p>
+<h3 id="settings">Settings</h3>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>expand-collapse.collapse_thoughts_on_complete</code></td>
+<td><code>true</code></td>
+<td>Collapse <code>Thinking</code> boxes after a completed <code>Thoughts</code> event.</td>
+</tr>
+<tr>
+<td><code>expand-collapse.collapse_exec_output_on_complete</code></td>
+<td><code>true</code></td>
+<td>Collapse <code>Execution Output</code> boxes after a completed <code>CodeExecutionOutput</code> event.</td>
+</tr>
+<tr>
+<td><code>expand-collapse.collapse_approved_code_actions</code></td>
+<td><code>true</code></td>
+<td>Collapse approved code action previews after approval.</td>
+</tr>
+<tr>
+<td><code>expand-collapse.collapse_approved_tool_calls</code></td>
+<td><code>true</code></td>
+<td>Collapse approved tool call previews after approval.</td>
+</tr>
+<tr>
+<td><code>expand-collapse.collapse_tool_outputs</code></td>
+<td><code>true</code></td>
+<td>Render <code>Tool Output</code> boxes collapsed by default.</td>
+</tr>
+<tr>
+<td><code>expand-collapse.keep_rejected_actions_expanded</code></td>
+<td><code>true</code></td>
+<td>Keep rejected action previews expanded after rejection.</td>
+</tr>
+<tr>
+<td><code>expand-collapse.pin_pending_approval_action_expanded</code></td>
+<td><code>true</code></td>
+<td>Keep the current pending approval action expanded until a decision is made.</td>
+</tr>
+<tr>
+<td><code>keys.toggle_expand_all</code></td>
+<td><code>ctrl+o</code></td>
+<td>Toggle all collapsible boxes between expanded and configured state.</td>
+</tr>
+</tbody>
+</table>
 <div class="footnote">
 <hr />
 <ol>

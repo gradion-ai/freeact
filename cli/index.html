@@ -673,6 +673,28 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#clipboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clipboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#expand-and-collapse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expand and Collapse
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#image-attachments" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1280,6 +1302,28 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#clipboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clipboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#expand-and-collapse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expand and Collapse
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#image-attachments" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1327,10 +1371,6 @@
 
 
 <h1 id="cli-tool">CLI tool</h1>
-<div class="admonition info">
-<p class="admonition-title">Work in progress</p>
-<p>The <a href="#interactive-mode">terminal interface</a> is preliminary and will be reimplemented in a future release.</p>
-</div>
 <p>The <code>freeact</code> or <code>freeact run</code> command starts the <a href="#interactive-mode">interactive mode</a>:</p>
 <div class="highlight"><pre><span></span><code>freeact
 </code></pre></div>
@@ -1362,18 +1402,6 @@
 <td><code>--log-level LEVEL</code></td>
 <td>Set logging level: <code>debug</code>, <code>info</code> (default), <code>warning</code>, <code>error</code>, <code>critical</code>.</td>
 </tr>
-<tr>
-<td><code>--record</code></td>
-<td>Record the conversation as SVG and HTML files.</td>
-</tr>
-<tr>
-<td><code>--record-dir PATH</code></td>
-<td>Output directory for recordings (default: <code>output</code>).</td>
-</tr>
-<tr>
-<td><code>--record-title TEXT</code></td>
-<td>Title for the recording (default: <code>Conversation</code>).</td>
-</tr>
 </tbody>
 </table>
 <h2 id="examples">Examples</h2>
@@ -1386,12 +1414,9 @@
 <p>Resuming a previous <a href="../sdk/#persistence">session</a>:</p>
 <div class="highlight"><pre><span></span><code>freeact<span class="w"> </span>--session-id<span class="w"> </span>550e8400-e29b-41d4-a716-446655440000
 </code></pre></div>
-<p>Recording a session for documentation:</p>
-<div class="highlight"><pre><span></span><code>freeact<span class="w"> </span>--record<span class="w"> </span>--record-dir<span class="w"> </span>docs/recordings/demo<span class="w"> </span>--record-title<span class="w"> </span><span class="s2">&quot;Demo Session&quot;</span>
-</code></pre></div>
 <h2 id="interactive-mode">Interactive Mode</h2>
 <p>The interactive mode provides a conversation interface with the agent in a terminal window.</p>
-<p><a href="../recordings/cli/conversation.html" target="_blank"><img alt="Interactive mode" src="../recordings/cli/conversation.svg" /></a></p>
+<p><a href="../screenshots/cli.png" rel="noopener" target="_blank"><img alt="Interactive Mode" src="../screenshots/cli.png" /></a></p>
 <h3 id="user-messages">User messages</h3>
 <table>
 <thead>
@@ -1406,15 +1431,29 @@
 <td>Send message</td>
 </tr>
 <tr>
-<td><code>Option+Enter</code> (macOS)<br/><code>Alt+Enter</code> (Linux/Windows)</td>
+<td><code>Ctrl+J</code></td>
 <td>Insert newline</td>
 </tr>
 <tr>
-<td><code>q</code> + <code>Enter</code></td>
+<td><code>Option+Enter</code> (macOS)<br/><code>Alt+Enter</code> (Linux/Windows)</td>
+<td>Insert newline (<code>Ctrl+J</code> fallback)</td>
+</tr>
+<tr>
+<td><code>Ctrl+Q</code></td>
 <td>Quit</td>
 </tr>
 </tbody>
 </table>
+<h3 id="clipboard">Clipboard</h3>
+<p>Clipboard behavior depends on terminal key forwarding.</p>
+<ul>
+<li>Paste into the prompt input: <code>Cmd+V</code> or <code>Ctrl+V</code>.</li>
+<li>Copy selected text from Freeact widgets: <code>Cmd+C</code> may not work in some terminals. Use <code>Ctrl+C</code> instead.</li>
+<li>Additional terminal fallbacks: <code>Ctrl+Shift+C</code> / <code>Ctrl+Insert</code> for copy, <code>Ctrl+Shift+V</code> / <code>Shift+Insert</code> for paste.</li>
+</ul>
+<h3 id="expand-and-collapse">Expand and Collapse</h3>
+<p>Use <code>Ctrl+O</code> to toggle all collapsible boxes between expanded and configured state.</p>
+<p>The shortcut is configured in <code>.freeact/terminal.json</code> under <code>keys.toggle_expand_all</code>.</p>
 <h3 id="image-attachments">Image Attachments</h3>
 <p>Reference images using <code>@path</code> syntax:</p>
 <div class="highlight"><pre><span></span><code>@screenshot.png What does this show?
@@ -1424,12 +1463,13 @@
 <li>Single file: <code>@path/to/image.png</code></li>
 <li>Directory: <code>@path/to/dir/</code> includes all images in directory, non-recursive</li>
 <li>Supported formats: PNG, JPG, JPEG, GIF, WEBP</li>
-<li>Tab completion available for paths</li>
+<li>Type <code>@</code> in the prompt to open a file picker.</li>
+<li>Select a file or directory to insert its path after <code>@</code>.</li>
 </ul>
 <p>Images are automatically downscaled if larger than 1024 pixels in either dimension.</p>
 <h3 id="approval-prompt">Approval Prompt</h3>
 <p>Before executing code actions or tool calls, the agent requests approval:</p>
-<div class="highlight"><pre><span></span><code>Approve? [Y/n/a/s]:
+<div class="highlight"><pre><span></span><code>Approve? [Y/n/a/s]
 </code></pre></div>
 <table>
 <thead>

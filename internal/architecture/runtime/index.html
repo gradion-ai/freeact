@@ -10,29 +10,27 @@
       
       
       
-        <link rel="canonical" href="https://gradion-ai.github.io/freeact/">
+        <link rel="canonical" href="https://gradion-ai.github.io/freeact/internal/architecture/runtime/">
       
       
-      
-        <link rel="next" href="installation/">
       
       
         
       
       
-      <link rel="icon" href="assets/images/favicon.png">
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
     
     
       
-        <title>Overview - freeact</title>
+        <title>Runtime Architecture - freeact</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -51,11 +49,11 @@
       
     
     
-      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="stylesheets/extra.css">
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -78,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#overview" class="md-skip">
+        <a href="#runtime-architecture" class="md-skip">
           Skip to content
         </a>
       
@@ -92,9 +90,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="freeact" class="md-header__button md-logo" aria-label="freeact" data-md-component="logo">
+    <a href="../../.." title="freeact" class="md-header__button md-logo" aria-label="freeact" data-md-component="logo">
       
-  <img src="images/logo.png" alt="logo">
+  <img src="../../../images/logo.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -111,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Overview
+              Runtime Architecture
             
           </span>
         </div>
@@ -196,13 +194,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="." class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../.." class="md-tabs__link">
           
   
   
@@ -222,7 +218,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="api/agent/" class="md-tabs__link">
+        <a href="../../../api/agent/" class="md-tabs__link">
           
   
   
@@ -256,9 +252,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="freeact" class="md-nav__button md-logo" aria-label="freeact" data-md-component="logo">
+    <a href="../../.." title="freeact" class="md-nav__button md-logo" aria-label="freeact" data-md-component="logo">
       
-  <img src="images/logo.png" alt="logo">
+  <img src="../../../images/logo.png" alt="logo">
 
     </a>
     freeact
@@ -282,31 +278,26 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
         
           
-          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
             
   
   
@@ -324,7 +315,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_1">
             <span class="md-nav__icon md-icon"></span>
             
@@ -339,37 +330,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Overview
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="." class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
         
   
   
@@ -385,48 +349,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#capabilities" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Capabilities
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Usage
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -439,7 +361,7 @@
   
   
     <li class="md-nav__item">
-      <a href="installation/" class="md-nav__link">
+      <a href="../../../installation/" class="md-nav__link">
         
   
   
@@ -467,7 +389,7 @@
   
   
     <li class="md-nav__item">
-      <a href="quickstart/" class="md-nav__link">
+      <a href="../../../quickstart/" class="md-nav__link">
         
   
   
@@ -495,7 +417,7 @@
   
   
     <li class="md-nav__item">
-      <a href="configuration/" class="md-nav__link">
+      <a href="../../../configuration/" class="md-nav__link">
         
   
   
@@ -523,7 +445,7 @@
   
   
     <li class="md-nav__item">
-      <a href="execution/" class="md-nav__link">
+      <a href="../../../execution/" class="md-nav__link">
         
   
   
@@ -551,7 +473,7 @@
   
   
     <li class="md-nav__item">
-      <a href="sandbox/" class="md-nav__link">
+      <a href="../../../sandbox/" class="md-nav__link">
         
   
   
@@ -579,7 +501,7 @@
   
   
     <li class="md-nav__item">
-      <a href="models/" class="md-nav__link">
+      <a href="../../../models/" class="md-nav__link">
         
   
   
@@ -607,7 +529,7 @@
   
   
     <li class="md-nav__item">
-      <a href="sdk/" class="md-nav__link">
+      <a href="../../../sdk/" class="md-nav__link">
         
   
   
@@ -635,7 +557,7 @@
   
   
     <li class="md-nav__item">
-      <a href="cli/" class="md-nav__link">
+      <a href="../../../cli/" class="md-nav__link">
         
   
   
@@ -669,20 +591,17 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_10" >
         
           
-          <label class="md-nav__link" for="__nav_1_10" id="__nav_1_10_label" tabindex="">
+          <label class="md-nav__link" for="__nav_1_10" id="__nav_1_10_label" tabindex="0">
             
   
   
@@ -718,7 +637,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/output-parser/" class="md-nav__link">
+      <a href="../../../examples/output-parser/" class="md-nav__link">
         
   
   
@@ -746,7 +665,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/saving-codeacts/" class="md-nav__link">
+      <a href="../../../examples/saving-codeacts/" class="md-nav__link">
         
   
   
@@ -774,7 +693,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/agent-skills/" class="md-nav__link">
+      <a href="../../../examples/agent-skills/" class="md-nav__link">
         
   
   
@@ -802,7 +721,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/sandbox-mode/" class="md-nav__link">
+      <a href="../../../examples/sandbox-mode/" class="md-nav__link">
         
   
   
@@ -830,7 +749,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/python-packages/" class="md-nav__link">
+      <a href="../../../examples/python-packages/" class="md-nav__link">
         
   
   
@@ -872,20 +791,17 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_11" >
         
           
-          <label class="md-nav__link" for="__nav_1_11" id="__nav_1_11_label" tabindex="">
+          <label class="md-nav__link" for="__nav_1_11" id="__nav_1_11_label" tabindex="0">
             
   
   
@@ -921,7 +837,7 @@
   
   
     <li class="md-nav__item">
-      <a href="llms.txt" class="md-nav__link">
+      <a href="../../../llms.txt" class="md-nav__link">
         
   
   
@@ -949,7 +865,7 @@
   
   
     <li class="md-nav__item">
-      <a href="llms-full.txt" class="md-nav__link">
+      <a href="../../../llms-full.txt" class="md-nav__link">
         
   
   
@@ -1044,7 +960,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/agent/" class="md-nav__link">
+      <a href="../../../api/agent/" class="md-nav__link">
         
   
   
@@ -1072,7 +988,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/config/" class="md-nav__link">
+      <a href="../../../api/config/" class="md-nav__link">
         
   
   
@@ -1100,7 +1016,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/generate/" class="md-nav__link">
+      <a href="../../../api/generate/" class="md-nav__link">
         
   
   
@@ -1128,7 +1044,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/permissions/" class="md-nav__link">
+      <a href="../../../api/permissions/" class="md-nav__link">
         
   
   
@@ -1183,10 +1099,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#capabilities" class="md-nav__link">
+  <a href="#core-agent" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Capabilities
+        Core Agent
       
     </span>
   </a>
@@ -1194,10 +1110,54 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
+  <a href="#subagents" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Usage
+        Subagents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tools
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sessions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sessions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#approvals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Approvals
       
     </span>
   </a>
@@ -1224,92 +1184,49 @@
   
 
 
-<h1 id="overview">Overview</h1>
-<p>Freeact is a lightweight agent harness and CLI tool that acts by executing Python code and shell commands. Code actions are key for an agent to improve itself and its tool library.</p>
-<p>It generates Python APIs for MCP servers and calls their tools programmatically ("code mode") instead of JSON. This enables tool composition in code actions in a single inference pass.</p>
-<p>Freeact has a tiny core and uses sandboxed IPython kernels to execute both Python code and shell commands in a uniform way. Execution runs locally with fine-grained approval of actions.</p>
-<div class="admonition note">
-<p class="admonition-title">Supported models</p>
-<p>Freeact supports any model compatible with <a href="https://ai.pydantic.dev/" target="_blank">Pydantic AI</a>, with <code>gemini-3-flash-preview</code> as the default. See <a href="models/">Models</a> for provider configuration and examples.</p>
-</div>
-<h2 id="capabilities">Capabilities</h2>
-<table>
-<thead>
-<tr>
-<th>Capability</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Code actions</strong></td>
-<td>Freeact agents act via Python code and shell commands. This enables tool composition and intermediate result processing in a single LLM inference pass.</td>
-</tr>
-<tr>
-<td><strong>Local execution</strong></td>
-<td>Freeact executes code and shell commands locally in an IPython kernel provided by <a href="https://github.com/gradion-ai/ipybox">ipybox</a>. Data, configuration and generated tools live in local workspaces.</td>
-</tr>
-<tr>
-<td><strong>Sandbox mode</strong></td>
-<td>IPython kernels optionally run in a sandbox environment based on Anthropic's <a href="https://github.com/anthropic-experimental/sandbox-runtime">sandbox-runtime</a>. It enforces filesystem and network restrictions on OS-level.</td>
-</tr>
-<tr>
-<td><strong>MCP code mode</strong></td>
-<td>Freeact calls MCP server tools programmatically<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup> via generated Python APIs. This enables composition of tool calls in code actions with much lower latency.</td>
-</tr>
-<tr>
-<td><strong>Tool discovery</strong></td>
-<td>Tools are discovered via category browsing or hybrid BM25/vector search. On-demand loading frees the context window and scales to larger tool libraries.</td>
-</tr>
-<tr>
-<td><strong>Tool authoring</strong></td>
-<td>Agents can create new tools, enhance existing tools, or save code actions as reusable tools. This captures successful experience as executable knowledge.</td>
-</tr>
-<tr>
-<td><strong>Agent skills</strong></td>
-<td>Skills give agents new capabilities and expertise based on <a href="https://agentskills.io/">agentskills.io</a>. They compose naturally with code actions and agent-authored tools.</td>
-</tr>
-<tr>
-<td><strong>Subagent delegation</strong></td>
-<td>Tasks can be delegated to subagents, each using their own sandbox. It enables specialization and parallelization without cluttering the main agent's context.</td>
-</tr>
-<tr>
-<td><strong>Action approval</strong></td>
-<td>Fine-grained approval of code actions and (programmatic) tool calls from both main agents and subagents. Enables human control over potentially risky actions.</td>
-</tr>
-<tr>
-<td><strong>Session persistence</strong></td>
-<td>Freeact persists agent state incrementally. Persisted sessions can be resumed and serve as a record for debugging, evaluation, and improvement.</td>
-</tr>
-</tbody>
-</table>
-<h2 id="usage">Usage</h2>
-<table>
-<thead>
-<tr>
-<th>Component</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong><a href="sdk/">Agent SDK</a></strong></td>
-<td>Agent harness and Python API for building freeact applications.</td>
-</tr>
-<tr>
-<td><strong><a href="cli/">CLI tool</a></strong></td>
-<td>Terminal interface for interactive conversations with a freeact agent.</td>
-</tr>
-</tbody>
-</table>
-<div class="footnote">
-<hr />
-<ol>
-<li id="fn:1">
-<p>Freeact also supports MCP server integration via JSON tool calling but the recommended approach is programmatic tool calling.&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
-</li>
-</ol>
-</div>
+<h1 id="runtime-architecture">Runtime Architecture</h1>
+<p>This page documents agent runtime architecture only (<code>freeact/agent/*</code>).
+It intentionally excludes CLI, terminal UI, and longer-lived permission policy layers.</p>
+<h2 id="core-agent">Core Agent</h2>
+<ul>
+<li><code>freeact/agent/events.py</code> defines all typed stream events (<code>ResponseChunk</code>, <code>Response</code>, <code>Thoughts*</code>, <code>ApprovalRequest</code>, <code>CodeExecutionOutput*</code>, <code>ToolOutput</code>).</li>
+<li><code>freeact/agent/core.py</code> contains the <code>Agent</code> class and main orchestration loop.</li>
+<li><code>freeact/agent/_supervisor.py</code> contains <code>_ResourceSupervisor</code>, a generic async lifecycle utility for context managers.</li>
+<li><code>freeact/agent/_subagent.py</code> contains <code>_SubagentRunner</code>, which bridges subagent events via a queue.</li>
+<li><code>_execute_tool()</code> handles approval, <code>_dispatch_tool()</code> routes to the appropriate handler.</li>
+<li>Multiple tool calls from one model turn execute concurrently via <code>aiostream.merge</code>.</li>
+</ul>
+<h2 id="subagents">Subagents</h2>
+<ul>
+<li>Subagents are invoked through <code>subagent_task</code>.</li>
+<li><code>_execute_subagent_task()</code> creates a nested <code>Agent</code> with <code>enable_subagents=False</code>.</li>
+<li>Parent and subagent events share one stream and are separated by <code>agent_id</code>.</li>
+<li>Concurrent subagents are bounded by <code>max_subagents</code> via <code>asyncio.Semaphore</code>.</li>
+</ul>
+<h2 id="configuration">Configuration</h2>
+<ul>
+<li><code>freeact/agent/config/</code> handles <code>.freeact/</code> initialization and loading.</li>
+<li><code>Config.init()</code> scaffolds missing files only; it does not overwrite existing user files.</li>
+</ul>
+<h2 id="tools">Tools</h2>
+<ul>
+<li>Bundled tool-definition caches:</li>
+<li>ipybox tools: <code>freeact/tools/ipybox.json</code></li>
+<li>subagent tool: <code>freeact/tools/subagent.json</code></li>
+<li>JSON MCP calls use <code>mcp-servers</code>.</li>
+<li>Programmatic tool calling uses generated Python APIs from <code>ptc-servers</code> in <code>.freeact/generated/mcptools/</code>.</li>
+<li>User-defined generated tools live in <code>.freeact/generated/gentools/</code>.</li>
+</ul>
+<h2 id="sessions">Sessions</h2>
+<ul>
+<li>Session persistence: <code>freeact/agent/store.py</code>.</li>
+<li>Main-session rehydration loads <code>main.jsonl</code>; subagent JSONL files are persisted for audit.</li>
+</ul>
+<h2 id="approvals">Approvals</h2>
+<ul>
+<li>All tool executions require approval and surface as <code>ApprovalRequest</code> (including nested programmatic tool calls encountered during <code>ipybox_execute_ipython_cell</code>).</li>
+<li>Rejected approvals are reflected as rejected tool returns and end the current agent turn with a <code>"Tool call rejected"</code> response.</li>
+</ul>
 
 
 
@@ -1371,10 +1288,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "navigation.sections", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.preview", "navigation.instant.progress", "navigation.top", "navigation.tracking", "search.suggest", "toc.follow", "content.code.copy", "content.code.select", "content.code.annotate"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.preview", "navigation.instant.progress", "navigation.top", "navigation.tracking", "search.suggest", "toc.follow", "content.code.copy", "content.code.select", "content.code.annotate"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

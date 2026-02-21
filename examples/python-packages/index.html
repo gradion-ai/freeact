@@ -1140,10 +1140,6 @@
 
 
 <h1 id="data-analysis">Data analysis</h1>
-<div class="admonition hint">
-<p class="admonition-title">Recorded session</p>
-<p>A <a href="../../recordings/python-packages/conversation.html">recorded session</a> of this example is appended <a href="#recording">below</a>.</p>
-</div>
 <p>Freeact can use any Python package available in the execution environment. This example demonstrates using scikit-learn and matplotlib directly in code actions to fit a Gaussian Process Regressor to noisy sine wave data and visualize the results with uncertainty bounds.</p>
 <p>Create a <a href="../../installation/#option-2-with-virtual-environment">workspace with a virtual environment</a> and install the required dependencies:</p>
 <div class="highlight"><pre><span></span><code>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>scikit-learn<span class="w"> </span>matplotlib
@@ -1151,7 +1147,7 @@
 <p>Start the <a href="../../cli/">CLI tool</a>:</p>
 <div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>freeact
 </code></pre></div>
-<p>In the recording <a href="#recording">below</a>, the agent performs Gaussian Process Regression in response to a single prompt:</p>
+<p>In the screenshot <a href="#recording">below</a>, the agent performs Gaussian Process Regression in response to a single prompt:</p>
 <blockquote>
 <p>Generate 30 noisy samples from a sine function and fit a Gaussian process regressor to the data. Save the result as a plot with uncertainty bounds to output/gpr_sine.png.</p>
 </blockquote>
@@ -1161,7 +1157,7 @@
 <p>print the stats</p>
 </blockquote>
 <p>The agent prints the log-marginal-likelihood and other attributes from the fitted model.</p>
-<p><a href="../../recordings/python-packages/conversation.html" id="recording" target="_blank"><img alt="Interactive mode" src="../../recordings/python-packages/conversation.svg" /></a></p>
+<p><a href="../../screenshots/python-packages.png" id="recording" rel="noopener" target="_blank"><img alt="Python Packages" src="../../screenshots/python-packages.png" /></a></p>
 <p>The resulting plot shows the GPR fit with a confidence interval:</p>
 <p><img alt="Gaussian Process Regression on Noisy Sine Wave" id="result-plot" src="../../images/gpr_sine.png" /></p>
 
