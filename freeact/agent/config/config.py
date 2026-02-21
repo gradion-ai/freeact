@@ -243,6 +243,11 @@ class Config:
         return self._config_paths.generated_dir
 
     @property
+    def generated_rel_dir(self) -> Path:
+        """Generated MCP tool sources directory relative to working directory."""
+        return self._config_paths.generated_rel_dir
+
+    @property
     def sessions_dir(self) -> Path:
         """Session trace storage directory."""
         return self._config_paths.sessions_dir
@@ -278,10 +283,12 @@ class Config:
         """Set path-related env var defaults for pytools (basic and hybrid).
 
         Sets `PYTOOLS_DIR` unconditionally (used by both basic and hybrid
-        search modes) and `PYTOOLS_DB_PATH` for hybrid mode. Uses absolute
-        paths derived from `self.freeact_dir`.
+        search modes) and `PYTOOLS_DB_PATH` for hybrid mode.
+
+        `PYTOOLS_DIR` uses a working-dir-relative path so pytools MCP servers
+        can return relative tool paths (e.g. `.freeact/generated/...`).
         """
-        os.environ.setdefault("PYTOOLS_DIR", str(self.generated_dir))
+        os.environ.setdefault("PYTOOLS_DIR", str(self.generated_rel_dir))
         os.environ.setdefault("PYTOOLS_DB_PATH", str(self.search_db_file))
 
     def _ensure_hybrid_env_defaults(self) -> None:

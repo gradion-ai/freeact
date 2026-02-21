@@ -17,8 +17,8 @@ _PYTOOLS_DIR = Path(os.environ.get("PYTOOLS_DIR", ".freeact/generated"))
 class Tools(BaseModel):
     """Tools discovered within a specific category directory."""
 
-    gentools: list[str] = Field(description="Tools in gentools/<category>/<tool>/api.py")
-    mcptools: list[str] = Field(description="Tools in mcptools/<category>/<tool>.py")
+    gentools: list[str] = Field(description="Tools in .freeact/generated/gentools/<category>/<tool>/api.py")
+    mcptools: list[str] = Field(description="Tools in .freeact/generated/mcptools/<category>/<tool>.py")
 
 
 mcp = FastMCP("pytools_mcp", log_level="ERROR")
@@ -55,7 +55,7 @@ def list_tools(
         Field(description="Category name or list of category names (e.g., 'github' or ['github', 'slack'])"),
     ],
 ) -> dict[str, Tools]:
-    """List all tools in one or more categories under `gentools/` and `mcptools/` directories."""
+    """List all tools in one or more categories under `gentools/` and `mcptools/`."""
     base = _PYTOOLS_DIR
 
     if isinstance(categories, str):
@@ -67,15 +67,15 @@ def list_tools(
         gentools: list[str] = []
         mcptools: list[str] = []
 
-        # mcptools: <category>/<tool>.py
+        # mcptools: .freeact/generated/mcptools/<category>/<tool>.py
         mcp_cat_dir = base / MCPTOOLS_DIR / category
         if mcp_cat_dir.is_dir():
-            mcptools = [f.stem for f in mcp_cat_dir.glob("*.py") if not f.name.startswith("_")]
+            mcptools = [str(f) for f in mcp_cat_dir.glob("*.py") if not f.name.startswith("_")]
 
-        # gentools: <category>/<tool>/api.py
+        # gentools: .freeact/generated/gentools/<category>/<tool>/api.py
         gen_cat_dir = base / GENTOOLS_DIR / category
         if gen_cat_dir.is_dir():
-            gentools = [d.name for d in gen_cat_dir.iterdir() if d.is_dir() and (d / "api.py").exists()]
+            gentools = [str(d / "api.py") for d in gen_cat_dir.iterdir() if d.is_dir() and (d / "api.py").exists()]
 
         result[category] = Tools(gentools=gentools, mcptools=mcptools)
 

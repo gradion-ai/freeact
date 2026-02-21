@@ -48,6 +48,8 @@ def _get_env_config() -> tuple[Path, str, str, int, bool, bool, float, float]:
         Tuple of (tools_dir, db_path, embedding_model, embedding_dim,
         sync_enabled, watch_enabled, bm25_weight, vec_weight).
     """
+    # PYTOOLS_DIR is expected to be a working-dir-relative path
+    # (e.g. ".freeact/generated").
     tools_dir = Path(os.environ.get("PYTOOLS_DIR", ".freeact/generated"))
     db_path = os.environ.get("PYTOOLS_DB_PATH", ".freeact/search.db")
     embedding_model = os.environ.get("PYTOOLS_EMBEDDING_MODEL", "google-gla:gemini-embedding-001")
@@ -158,11 +160,11 @@ async def search_tools(
         if entry is None:
             continue
 
-        # Construct path based on source type
+        # Construct path based on source type.
         if source == MCPTOOLS_DIR:
-            path = f"{state.tools_dir}/{source}/{category}/{name}.py"
+            path = str(state.tools_dir / source / category / f"{name}.py")
         else:  # gentools
-            path = f"{state.tools_dir}/{source}/{category}/{name}/api.py"
+            path = str(state.tools_dir / source / category / name / "api.py")
 
         tool_results.append(
             ToolResult(
