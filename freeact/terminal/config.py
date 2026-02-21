@@ -6,8 +6,8 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, field_validator
 
 
-class ExpandCollapsePolicy(BaseModel):
-    """Lifecycle policy for expanding and collapsing terminal widgets."""
+class ExpandCollapseBehavior(BaseModel):
+    """Lifecycle behavior for expanding and collapsing terminal widgets."""
 
     model_config = ConfigDict(extra="ignore")
 
@@ -40,7 +40,7 @@ class TerminalUiConfig(BaseModel):
 
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
-    expand_collapse: ExpandCollapsePolicy = Field(default_factory=ExpandCollapsePolicy, alias="expand-collapse")
+    expand_collapse: ExpandCollapseBehavior = Field(default_factory=ExpandCollapseBehavior, alias="expand-collapse")
     keys: TerminalKeyConfig = Field(default_factory=TerminalKeyConfig)
 
 

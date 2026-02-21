@@ -1,9 +1,5 @@
 # CLI tool
 
-!!! info "Work in progress"
-
-    The [terminal interface](#interactive-mode) is preliminary and will be reimplemented in a future release.
-
 The `freeact` or `freeact run` command starts the [interactive mode](#interactive-mode):
 
 ```bash
@@ -68,6 +64,12 @@ Clipboard behavior depends on terminal key forwarding.
 - Copy selected text from Freeact widgets: `Cmd+C` may not work in some terminals. Use `Ctrl+C` instead.
 - Additional terminal fallbacks: `Ctrl+Shift+C` / `Ctrl+Insert` for copy, `Ctrl+Shift+V` / `Shift+Insert` for paste.
 
+### Expand and Collapse
+
+Use `Ctrl+O` to toggle all collapsible boxes between expanded and configured state.
+
+The shortcut is configured in `.freeact/terminal.json` under `keys.toggle_expand_all`.
+
 ### Image Attachments
 
 Reference images using `@path` syntax:
@@ -80,7 +82,8 @@ Reference images using `@path` syntax:
 - Single file: `@path/to/image.png`
 - Directory: `@path/to/dir/` includes all images in directory, non-recursive
 - Supported formats: PNG, JPG, JPEG, GIF, WEBP
-- Tab completion available for paths
+- Type `@` in the prompt to open a file picker.
+- Select a file or directory to insert its path after `@`.
 
 Images are automatically downscaled if larger than 1024 pixels in either dimension.
 
@@ -89,7 +92,7 @@ Images are automatically downscaled if larger than 1024 pixels in either dimensi
 Before executing code actions or tool calls, the agent requests approval:
 
 ```
-Approve? [Y/n/a/s]:
+Approve? [Y/n/a/s]
 ```
 
 | Response | Effect |

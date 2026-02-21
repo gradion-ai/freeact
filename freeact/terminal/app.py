@@ -213,7 +213,7 @@ class FreeactApp(App[None]):
         self._approval_future: asyncio.Future[int] | None = None
         self._tool_adapter = ToolAdapter()
         self._expand_all_override = False
-        self._policy_collapsed: dict[int, bool] = {}
+        self._configured_collapsed: dict[int, bool] = {}
         self._forced_expanded_ids: set[int] = set()
         self._pending_approval_widget_id: int | None = None
         self._banner = _load_banner()
@@ -266,17 +266,17 @@ class FreeactApp(App[None]):
             await conversation.mount(widget)
         conversation.scroll_end(animate=False)
 
-    def _register_box(self, box: Collapsible, policy_collapsed: bool, force_expanded: bool = False) -> None:
+    def _register_box(self, box: Collapsible, configured_collapsed: bool, force_expanded: bool = False) -> None:
         box_id = id(box)
-        self._policy_collapsed[box_id] = policy_collapsed
+        self._configured_collapsed[box_id] = configured_collapsed
         if force_expanded:
             self._forced_expanded_ids.add(box_id)
         else:
             self._forced_expanded_ids.discard(box_id)
         self._apply_render_state(box)
 
-    def _set_policy_collapsed(self, box: Collapsible, collapsed: bool) -> None:
-        self._policy_collapsed[id(box)] = collapsed
+    def _set_configured_collapsed(self, box: Collapsible, collapsed: bool) -> None:
+        self._configured_collapsed[id(box)] = collapsed
         self._apply_render_state(box)
 
     def _set_force_expanded(self, box: Collapsible, enabled: bool) -> None:
@@ -289,11 +289,11 @@ class FreeactApp(App[None]):
 
     def _apply_render_state(self, box: Collapsible) -> None:
         box_id = id(box)
-        policy_collapsed = self._policy_collapsed.get(box_id, box.collapsed)
+        configured_collapsed = self._configured_collapsed.get(box_id, box.collapsed)
         if box_id in self._forced_expanded_ids or self._expand_all_override:
             box.collapsed = False
             return
-        box.collapsed = policy_collapsed
+        box.collapsed = configured_collapsed
 
     def _reapply_all_collapsible_states(self) -> None:
         for widget in self.query("Collapsible"):
@@ -314,7 +314,7 @@ class FreeactApp(App[None]):
         conversation.anchor()
 
         user_box = create_user_input_box(raw_text)
-        self._register_box(user_box, policy_collapsed=False)
+        self._register_box(user_box, configured_collapsed=False)
         await self._mount_and_scroll(conversation, user_box)
 
         thoughts_stream: "Markdown.MarkdownStream | None" = None
@@ -328,7 +328,7 @@ class FreeactApp(App[None]):
                     case ThoughtsChunk(agent_id=aid, content=chunk) if aid == self._main_agent_id:
                         if thoughts_stream is None:
                             box, md = create_thoughts_box(aid)
-                            self._register_box(box, policy_collapsed=False)
+                            self._register_box(box, configured_collapsed=False)
                             await self._mount_and_scroll(conversation, box)
                             thoughts_stream = Markdown.get_stream(md)
 
@@ -341,12 +341,12 @@ class FreeactApp(App[None]):
                             if self._ui_config.expand_collapse.collapse_thoughts_on_complete:
                                 match conversation.query(".thoughts-box").last():
                                     case Collapsible() as last_box:
-                                        self._set_policy_collapsed(last_box, collapsed=True)
+                                        self._set_configured_collapsed(last_box, collapsed=True)
 
                     case ResponseChunk(agent_id=aid, content=chunk) if aid == self._main_agent_id:
                         if response_stream is None:
                             box, md = create_response_box(aid)
-                            self._register_box(box, policy_collapsed=False)
+                            self._register_box(box, configured_collapsed=False)
                             await self._mount_and_scroll(conversation, box)
                             response_stream = Markdown.get_stream(md)
 
@@ -366,7 +366,7 @@ class FreeactApp(App[None]):
                     case CodeExecutionOutputChunk(agent_id=aid, text=text, corr_id=cid):
                         if exec_log is None:
                             box, exec_log = create_exec_output_box(aid, corr_id=cid)
-                            self._register_box(box, policy_collapsed=False)
+                            self._register_box(box, configured_collapsed=False)
                             await self._mount_and_scroll(conversation, box)
                         exec_log.write(text)
 
@@ -376,7 +376,7 @@ class FreeactApp(App[None]):
                             if self._ui_config.expand_collapse.collapse_exec_output_on_complete:
                                 match conversation.query(".exec-output-box").last():
                                     case Collapsible() as last_box:
-                                        self._set_policy_collapsed(last_box, collapsed=True)
+                                        self._set_configured_collapsed(last_box, collapsed=True)
                         exec_log = None
 
                     case ToolOutput(agent_id=aid, content=tool_content, corr_id=cid):
@@ -385,12 +385,12 @@ class FreeactApp(App[None]):
                         box = create_tool_output_box(output_data, aid, corr_id=cid)
                         self._register_box(
                             box,
-                            policy_collapsed=self._ui_config.expand_collapse.collapse_tool_outputs,
+                            configured_collapsed=self._ui_config.expand_collapse.collapse_tool_outputs,
                         )
                         await self._mount_and_scroll(conversation, box)
         except Exception as e:
             error_box = create_error_box(f"{type(e).__name__}: {e}")
-            self._register_box(error_box, policy_collapsed=False)
+            self._register_box(error_box, configured_collapsed=False)
             await self._mount_and_scroll(conversation, error_box)
         finally:
             prompt_input.disabled = False
@@ -434,7 +434,7 @@ class FreeactApp(App[None]):
                 raise ValueError(f"Unsupported action data: {action_data!r}")
 
         pin_pending = self._ui_config.expand_collapse.pin_pending_approval_action_expanded
-        self._register_box(box, policy_collapsed=False, force_expanded=pin_pending)
+        self._register_box(box, configured_collapsed=False, force_expanded=pin_pending)
         if pin_pending:
             self._pending_approval_widget_id = id(box)
         await self._mount_and_scroll(conversation, box)
@@ -444,7 +444,7 @@ class FreeactApp(App[None]):
             if self._pending_approval_widget_id == id(box):
                 self._pending_approval_widget_id = None
                 self._set_force_expanded(box, enabled=False)
-            self._set_policy_collapsed(
+            self._set_configured_collapsed(
                 box,
                 collapsed=self._collapse_for_approved_action(action_data),
             )
@@ -473,12 +473,12 @@ class FreeactApp(App[None]):
 
         approved = decision != 0
         if approved:
-            self._set_policy_collapsed(
+            self._set_configured_collapsed(
                 box,
                 collapsed=self._collapse_for_approved_action(action_data),
             )
         else:
-            self._set_policy_collapsed(
+            self._set_configured_collapsed(
                 box,
                 collapsed=not self._ui_config.expand_collapse.keep_rejected_actions_expanded,
             )

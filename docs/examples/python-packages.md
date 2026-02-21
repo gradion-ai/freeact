@@ -14,7 +14,7 @@ Start the [CLI tool](../cli.md):
 uv run freeact
 ```
 
-In the recording [below](#recording), the agent performs Gaussian Process Regression in response to a single prompt:
+In the screenshot [below](#recording), the agent performs Gaussian Process Regression in response to a single prompt:
 
 > Generate 30 noisy samples from a sine function and fit a Gaussian process regressor to the data. Save the result as a plot with uncertainty bounds to output/gpr_sine.png.
 
@@ -30,4 +30,4 @@ The agent prints the log-marginal-likelihood and other attributes from the fitte
 
 The resulting plot shows the GPR fit with a confidence interval:
 
-![Gaussian Process Regression on Noisy Sine Wae](../images/gpr_sine.png){#result-plot}
+![Gaussian Process Regression on Noisy Sine Wave](../images/gpr_sine.png){#result-plot}

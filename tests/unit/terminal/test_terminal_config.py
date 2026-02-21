@@ -6,7 +6,7 @@ from pydantic import ValidationError
 
 from freeact.terminal.config import (
     DEFAULT_TERMINAL_UI_CONFIG,
-    ExpandCollapsePolicy,
+    ExpandCollapseBehavior,
     TerminalKeyConfig,
     TerminalUiConfig,
     ensure_terminal_ui_config,
@@ -52,7 +52,7 @@ def test_load_terminal_ui_config_reads_valid_file(tmp_path: Path) -> None:
     loaded = load_terminal_ui_config(freeact_dir)
 
     assert loaded == TerminalUiConfig(
-        expand_collapse=ExpandCollapsePolicy(
+        expand_collapse=ExpandCollapseBehavior(
             collapse_thoughts_on_complete=False,
             collapse_exec_output_on_complete=True,
             collapse_approved_code_actions=False,

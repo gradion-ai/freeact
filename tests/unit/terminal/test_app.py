@@ -25,7 +25,7 @@ from freeact.terminal.app import (
     _format_attachment_path,
     convert_at_references,
 )
-from freeact.terminal.config import ExpandCollapsePolicy, TerminalKeyConfig, TerminalUiConfig
+from freeact.terminal.config import ExpandCollapseBehavior, TerminalKeyConfig, TerminalUiConfig
 from freeact.terminal.screens import FilePickerScreen, FilePickerTree
 from freeact.terminal.widgets import PromptInput
 
@@ -571,7 +571,7 @@ async def test_ptc_request_uses_ptc_title_in_default_terminal() -> None:
 
 
 @pytest.mark.asyncio
-async def test_ctrl_o_toggles_expand_all_and_restores_policy() -> None:
+async def test_ctrl_o_toggles_expand_all_and_restores_configured_state() -> None:
     permission_manager = StubPermissionManager(preapproved=True)
 
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
@@ -687,12 +687,12 @@ async def test_pending_approval_widget_stays_expanded_until_user_decides() -> No
 
 
 @pytest.mark.asyncio
-async def test_approval_policies_can_disable_auto_collapse() -> None:
-    policy = ExpandCollapsePolicy(
+async def test_approval_behaviors_can_disable_auto_collapse() -> None:
+    behavior = ExpandCollapseBehavior(
         collapse_approved_tool_calls=False,
         keep_rejected_actions_expanded=False,
     )
-    ui_config = TerminalUiConfig(expand_collapse=policy)
+    ui_config = TerminalUiConfig(expand_collapse=behavior)
 
     async def approved_scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
@@ -754,12 +754,12 @@ async def test_approval_policies_can_disable_auto_collapse() -> None:
 
 
 @pytest.mark.asyncio
-async def test_approved_code_and_tool_collapse_policies_are_independent() -> None:
-    policy = ExpandCollapsePolicy(
+async def test_approved_code_and_tool_collapse_behaviors_are_independent() -> None:
+    behavior = ExpandCollapseBehavior(
         collapse_approved_code_actions=False,
         collapse_approved_tool_calls=True,
     )
-    ui_config = TerminalUiConfig(expand_collapse=policy)
+    ui_config = TerminalUiConfig(expand_collapse=behavior)
 
     async def tool_call_scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
@@ -810,10 +810,10 @@ async def test_approved_code_and_tool_collapse_policies_are_independent() -> Non
 
 @pytest.mark.asyncio
 async def test_preapproved_code_action_respects_collapse_approved_code_actions() -> None:
-    policy = ExpandCollapsePolicy(
+    behavior = ExpandCollapseBehavior(
         collapse_approved_code_actions=False,
     )
-    ui_config = TerminalUiConfig(expand_collapse=policy)
+    ui_config = TerminalUiConfig(expand_collapse=behavior)
 
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
@@ -840,10 +840,10 @@ async def test_preapproved_code_action_respects_collapse_approved_code_actions()
 
 @pytest.mark.asyncio
 async def test_preapproved_tool_call_respects_collapse_approved_tool_calls() -> None:
-    policy = ExpandCollapsePolicy(
+    behavior = ExpandCollapseBehavior(
         collapse_approved_tool_calls=False,
     )
-    ui_config = TerminalUiConfig(expand_collapse=policy)
+    ui_config = TerminalUiConfig(expand_collapse=behavior)
 
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
