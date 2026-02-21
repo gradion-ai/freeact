@@ -20,7 +20,7 @@
       ],
       "type": "object"
     },
-    "description": "Execute Python code in a stateful IPython kernel.\n\nState (variables, imports, definitions) persists across calls. Executions are sequential.\nFor async code, use 'await' directly (kernel has an active event loop).\n\nReturns:\n    Execution output (stdout, stderr, last expression) plus image paths as markdown links.\n    Empty string if no output.\n\nRaises:\n    ExecutionError: Code raised an exception (includes traceback).\n    ToolRunnerError: MCP tool call failed.\n    asyncio.TimeoutError: Execution exceeded timeout.\n",
+    "description": "Execute Python code in a stateful IPython kernel.\n\nState (variables, imports, definitions) persists across calls. Executions are sequential.\nFor async code, use 'await' directly (kernel has an active event loop).\nShell commands can be run with the '!' prefix (e.g., '!ls', '!git status').\n\nReturns:\n    Execution output (stdout, stderr, last expression) plus image paths as markdown links.\n    Empty string if no output.\n\nRaises:\n    ExecutionError: Code raised an exception (includes traceback).\n    ToolRunnerError: MCP tool call failed.\n    asyncio.TimeoutError: Execution exceeded timeout.\n",
     "sequential": true
   },
   {
