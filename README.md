@@ -1,4 +1,6 @@
-# freeact
+<p align="center">
+    <img src="docs/images/banner.svg" alt="freeact" width="100%">
+</p>
 
 <p align="left">
     <a href="https://gradion-ai.github.io/freeact/"><img alt="Website" src="https://img.shields.io/website?url=https%3A%2F%2Fgradion-ai.github.io%2Ffreeact%2F&up_message=online&down_message=offline&label=docs"></a>
