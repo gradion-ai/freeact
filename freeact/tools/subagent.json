@@ -18,6 +18,6 @@
       "required": ["prompt"],
       "type": "object"
     },
-    "description": "Spawn a subagent to execute a multi-step task in isolation. Only use this tool when the user explicitly requests running something as a subagent or subtask. The subagent has the same tools and capabilities but a fresh context window and kernel. Returns the subagent's final text response. For independent tasks, spawn multiple subagents in parallel."
+    "description": "Spawn a subagent to execute a task in isolation. The subagent has the same tools and capabilities but a fresh context window and kernel. Returns the subagent's final text response. For independent tasks, spawn multiple subagents in parallel."
   }
 ]
