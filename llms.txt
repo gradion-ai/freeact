@@ -2,14 +2,14 @@
 
 > Freeact code action agent
 
-Freeact is a lightweight agent that acts by executing Python code and shell commands.
-Code actions are key for an agent to improve its own tool library and codebase.
+Freeact is a lightweight agent harness and CLI tool that acts by executing Python code and shell commands.
+Code actions are key for an agent to improve itself and its tool library.
 
-Freeact has a tiny core, a small system prompt, and is extensible with agent skills.
-It relies on a minimal set of generic tools: read, write, execute, subagent, and tool search.
+It generates Python APIs for MCP servers and calls their tools programmatically ("code mode") instead of JSON.
+This enables tool composition in code actions in a single inference pass.
 
-Code and shell command execution runs locally in a stateful, sandboxed environment.
-Freeact supports utilization of MCP servers by generating Python APIs for their tools.
+Freeact has a tiny core and uses sandboxed IPython kernels to execute both Python code and shell commands in a uniform way.
+Execution runs locally with fine-grained approval of actions.
 
 
 ## User Guide
