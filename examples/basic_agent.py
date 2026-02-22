@@ -23,11 +23,7 @@ from freeact.tools.pytools.apigen import generate_mcp_sources
 
 async def main() -> None:
     # --8<-- [start:config]
-    # Scaffold .freeact/ config directory if needed
-    await Config.init()
-
-    # Load configuration from .freeact/
-    config = Config()
+    config = await Config.init()
     # --8<-- [end:config]
 
     # --8<-- [start:apigen]

@@ -9,8 +9,8 @@ from dotenv import load_dotenv
 from freeact.agent import Agent
 from freeact.agent.config import Config as AgentConfig
 from freeact.agent.store import SessionStore
-from freeact.terminal import Terminal
-from freeact.terminal.config import Config as TerminalConfig
+from freeact.terminal import Config as TerminalConfig
+from freeact.terminal import TerminalInterface
 from freeact.tools.pytools.apigen import generate_mcp_sources
 
 logger = logging.getLogger("freeact")
@@ -82,13 +82,12 @@ def configure_logging(level: str) -> None:
     logger.addHandler(handler)
 
 
-async def create_config(namespace: argparse.Namespace) -> tuple[AgentConfig, TerminalConfig]:
-    """Initialize and load configuration from `.freeact/` directory."""
-    await AgentConfig.init()
-    await TerminalConfig.init()
-    config = AgentConfig()
-    terminal_config = TerminalConfig(freeact_dir=config.freeact_dir)
-    return config, terminal_config
+async def create_config() -> tuple[AgentConfig, TerminalConfig]:
+    """Load config from `.freeact/` or create and save defaults on first run."""
+
+    agent_config = await AgentConfig.init()
+    terminal_config = await TerminalConfig.init(working_dir=agent_config.working_dir)
+    return agent_config, terminal_config
 
 
 async def run(namespace: argparse.Namespace) -> None:
@@ -99,20 +98,20 @@ async def run(namespace: argparse.Namespace) -> None:
     Args:
         namespace: Parsed CLI arguments.
     """
-    config, terminal_config = await create_config(namespace)
+    agent_config, terminal_config = await create_config()
     session_id = str(namespace.session_id or uuid.uuid4())
-    session_store = SessionStore(config.sessions_dir, session_id)
+    session_store = SessionStore(agent_config.sessions_dir, session_id)
     agent = Agent(
-        config=config,
+        config=agent_config,
         sandbox=namespace.sandbox,
         sandbox_config=namespace.sandbox_config,
         session_store=session_store,
     )
 
-    if config.ptc_servers:
-        await generate_mcp_sources(config.ptc_servers, config.generated_dir)
+    if agent_config.ptc_servers:
+        await generate_mcp_sources(agent_config.ptc_servers, agent_config.generated_dir)
 
-    terminal = Terminal(agent=agent, ui_config=terminal_config.ui_config)
+    terminal = TerminalInterface(agent=agent, config=terminal_config)
     await terminal.run()
 
 
@@ -128,9 +127,8 @@ def main() -> None:
     configure_logging(namespace.log_level)
 
     if namespace.command == "init":
-        asyncio.run(AgentConfig.init())
-        asyncio.run(TerminalConfig.init())
-        logger.info("Initialized .freeact/ configuration directory")
+        asyncio.run(create_config())
+        logger.info("Ensured .freeact/ configuration directory")
         return
 
     asyncio.run(run(namespace))

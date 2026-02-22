@@ -5,15 +5,15 @@ Read this first, then follow code references for details.
 
 ## Entry Point
 
-- `freeact/cli.py` creates `Terminal` for interactive mode.
-- `freeact/terminal/__init__.py` creates `FreeactApp` and passes:
+- `freeact/cli.py` creates `TerminalInterface` for interactive mode.
+- `freeact/terminal/app.py` (`TerminalInterface`) creates `TerminalApp` and passes:
   - `agent.stream`
   - `PermissionManager`
   - main `agent_id`
 
 ## Main Controller
 
-- `freeact/terminal/app.py` (`FreeactApp`) is the terminal orchestrator.
+- `freeact/terminal/app.py` (`TerminalApp`) is the terminal orchestrator.
 - Two UI regions:
   - `#conversation` (rendered history)
   - `#prompt-input` (user input)
@@ -41,7 +41,7 @@ Read this first, then follow code references for details.
 
 - `PromptInput`: `Enter` submit, `Ctrl+J` newline, `Alt+Enter` -> `Ctrl+J`.
 - Quit: `Ctrl+Q`.
-- Expand/collapse override: `toggle_expand_all` (default `Ctrl+O`, configurable in `terminal.json`).
+- Expand/collapse override: `toggle_expand_all` (default `Ctrl+O`, configurable via `expand_all_toggle_key` in `terminal.json`).
 - Copy selected text: `Cmd+C` / `Super+C`, `Ctrl+Shift+C`, `Ctrl+Insert`, `Ctrl+C`.
 - Paste in prompt input: `Ctrl+V`, `Cmd+V` / `Super+V`, `Ctrl+Shift+V`, `Shift+Insert`.
 - File picker: typing `@` at the prompt opens `FilePickerScreen`; `Enter` selects, `Escape` cancels.

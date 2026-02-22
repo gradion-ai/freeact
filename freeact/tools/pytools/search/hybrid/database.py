@@ -42,7 +42,9 @@ class Database:
     """
 
     def __init__(self, path: Path | str, dimensions: int) -> None:
-        self._path = str(path)
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+        self._path = str(path_obj)
         self._dimensions = dimensions
         self._write_lock = asyncio.Lock()
 

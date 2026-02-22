@@ -9,7 +9,7 @@ The Agent SDK provides four main APIs:
 
 ## Configuration API
 
-Use [`Config.init()`][freeact.agent.config.Config.init] to scaffold the `.freeact/` directory from default templates. The [`Config()`][freeact.agent.config.Config] constructor loads all configuration from it:
+Use [`Config.init()`][freeact.agent.config.Config.init] to load persisted config from `.freeact/` when present, or create and save defaults on first run. Use [`save()`][freeact.agent.config.Config.save] and [`load()`][freeact.agent.config.Config.load] when explicit persistence control is needed:
 
 ```python
 --8<-- "examples/basic_agent.py:config-imports"
@@ -20,7 +20,7 @@ See the [Configuration](configuration.md) reference for details on the `.freeact
 
 ## Generation API
 
-MCP servers [configured](configuration.md#ptc-servers) as `ptc-servers` in `agent.json` require Python API generation with [`generate_mcp_sources()`][freeact.tools.pytools.apigen.generate_mcp_sources] before the agent can call their tools programmatically:
+MCP servers [configured](configuration.md#ptc_servers) as `ptc_servers` in `agent.json` require Python API generation with [`generate_mcp_sources()`][freeact.tools.pytools.apigen.generate_mcp_sources] before the agent can call their tools programmatically:
 
 ```python
 --8<-- "examples/basic_agent.py:apigen-imports"
@@ -69,10 +69,10 @@ The agent uses a small set of internal tools for reading and writing files, exec
 
 | Tool | Implementation | Description |
 |------|---------------|-------------|
-| read, write | [`filesystem`][freeact.agent.config.FILESYSTEM_CONFIG] MCP server | Reading and writing files via JSON tool calls |
+| read, write | [`filesystem`][freeact.agent.config.FILESYSTEM_MCP_SERVER_CONFIG] MCP server | Reading and writing files via JSON tool calls |
 | execute | `ipybox_execute_ipython_cell` | Execution of Python code and shell commands (via `!` prefix), delegated to ipybox's `CodeExecutor` |
 | subagent | [`subagent_task`](#subagents) | Task delegation to child agents |
-| tool search | `pytools` MCP server for [basic search][freeact.agent.config.PYTOOLS_BASIC_CONFIG] and [hybrid search][freeact.agent.config.PYTOOLS_HYBRID_CONFIG] | Tool discovery via category browsing or hybrid search |
+| tool search | `pytools` MCP server for [basic search][freeact.agent.config.BASIC_SEARCH_MCP_SERVER_CONFIG] and [hybrid search][freeact.agent.config.HYBRID_SEARCH_MCP_SERVER_CONFIG] | Tool discovery via category browsing or hybrid search |
 
 ### Turn limits
 
@@ -99,7 +99,7 @@ async for event in agent.stream(prompt):
             print(f"[{agent_id}] {content}")
 ```
 
-The main agent's `agent_id` is `main`, subagent IDs use the form `sub-xxxx`. Each delegated task defaults to `max_turns=100`. The [`max-subagents`](configuration.md#agent-settings) setting in `agent.json` limits concurrent subagents (default 5).
+The main agent's `agent_id` is `main`, subagent IDs use the form `sub-xxxx`. Each delegated task defaults to `max_turns=100`. The [`max_subagents`](configuration.md#agent-settings) setting in `agent.json` limits concurrent subagents (default 5).
 
 ### Approval
 
@@ -129,7 +129,7 @@ async for event in agent.stream(prompt):
 The agent manages MCP server connections and an IPython kernel via [ipybox](https://gradion-ai.github.io/ipybox/). On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calling connect. MCP servers configured for programmatic tool calling connect lazily on first tool call.
 
 ```python
-config = Config()
+config = await Config.init()
 async with Agent(config=config) as agent:
     async for event in agent.stream(prompt):
         ...
@@ -139,7 +139,7 @@ async with Agent(config=config) as agent:
 Without using the async context manager:
 
 ```python
-config = Config()
+config = await Config.init()
 agent = Agent(config=config)
 await agent.start()
 try:
@@ -153,13 +153,13 @@ finally:
 
 The agent supports two timeout settings in [`agent.json`](configuration.md#agent-settings):
 
-- **`execution-timeout`**: Maximum time in seconds for each [code execution](execution.md). Approval wait time is excluded from this budget, so the timeout only counts actual execution time. Defaults to 300 seconds. Set to `null` to disable.
-- **`approval-timeout`**: Timeout for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. Defaults to `null` (no timeout).
+- `execution_timeout`: Maximum time in seconds for each [code execution](execution.md). Approval wait time is excluded from this budget, so the timeout only counts actual execution time. Defaults to 300 seconds. Set to `null` to disable.
+- `approval_timeout`: Timeout for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. Defaults to `null` (no timeout).
 
 ```json
 {
-  "execution-timeout": 60,
-  "approval-timeout": 30
+  "execution_timeout": 60,
+  "approval_timeout": 30
 }
 ```
 

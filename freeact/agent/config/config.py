@@ -1,19 +1,48 @@
 import copy
 import json
 import os
-import shutil
-from dataclasses import dataclass
-from importlib.resources import as_file, files
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
-import yaml
 from ipybox.utils import arun
-from ipybox.vars import replace_variables
-from pydantic_ai.models import Model, ModelSettings, infer_model
-from pydantic_ai.providers import Provider, infer_provider_class
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
+from pydantic_ai.models import Model
 
-PYTOOLS_BASIC_CONFIG: dict[str, Any] = {
+from .prompts import load_system_prompt
+from .runtime import (
+    resolve_kernel_env,
+    resolve_mcp_servers,
+    resolve_model_instance,
+    validate_ptc_servers,
+)
+from .skills import SkillMetadata, load_skills_metadata, materialize_bundled_skills
+
+FREEACT_DIR_NAME = ".freeact"
+
+DEFAULT_MODEL_NAME = "google-gla:gemini-3-flash-preview"
+DEFAULT_MODEL_SETTINGS: dict[str, Any] = {
+    "google_thinking_config": {
+        "thinking_level": "high",
+        "include_thoughts": True,
+    }
+}
+
+FILESYSTEM_MCP_SERVER_CONFIG: dict[str, Any] = {
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
+    "excluded_tools": [
+        "create_directory",
+        "list_directory",
+        "list_directory_with_sizes",
+        "directory_tree",
+        "move_file",
+        "search_files",
+        "list_allowed_directories",
+        "read_file",
+    ],
+}
+
+BASIC_SEARCH_MCP_SERVER_CONFIG: dict[str, Any] = {
     "command": "python",
     "args": ["-m", "freeact.tools.pytools.search.basic"],
     "env": {
@@ -21,7 +50,7 @@ PYTOOLS_BASIC_CONFIG: dict[str, Any] = {
     },
 }
 
-PYTOOLS_HYBRID_CONFIG: dict[str, Any] = {
+HYBRID_SEARCH_MCP_SERVER_CONFIG: dict[str, Any] = {
     "command": "python",
     "args": ["-m", "freeact.tools.pytools.search.hybrid"],
     "env": {
@@ -37,7 +66,7 @@ PYTOOLS_HYBRID_CONFIG: dict[str, Any] = {
     },
 }
 
-_HYBRID_ENV_DEFAULTS: dict[str, str] = {
+HYBRID_SEARCH_ENV_DEFAULTS: dict[str, str] = {
     "PYTOOLS_EMBEDDING_MODEL": "google-gla:gemini-embedding-001",
     "PYTOOLS_EMBEDDING_DIM": "3072",
     "PYTOOLS_SYNC": "true",
@@ -46,44 +75,114 @@ _HYBRID_ENV_DEFAULTS: dict[str, str] = {
     "PYTOOLS_VEC_WEIGHT": "1.0",
 }
 
-FILESYSTEM_CONFIG: dict[str, Any] = {
-    "command": "npx",
-    "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
-    "excluded_tools": [
-        "create_directory",
-        "list_directory",
-        "list_directory_with_sizes",
-        "directory_tree",
-        "move_file",
-        "search_files",
-        "list_allowed_directories",
-        "read_file",
-    ],
+GOOGLE_SEARCH_MCP_SERVER_CONFIG: dict[str, Any] = {
+    "command": "python",
+    "args": ["-m", "freeact.tools.gsearch", "--thinking-level", "medium"],
+    "env": {"GEMINI_API_KEY": "${GEMINI_API_KEY}"},
 }
 
 
-@dataclass
-class SkillMetadata:
-    """Metadata parsed from a skill's SKILL.md frontmatter."""
+class Config(BaseModel):
+    """Agent configuration."""
 
-    name: str
-    description: str
-    path: Path
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="forbid", validate_assignment=True, frozen=True)
+    working_dir: Path = Field(default_factory=Path.cwd, exclude=True)
 
+    model: str | Model = DEFAULT_MODEL_NAME
+    model_settings: dict[str, Any] = Field(default_factory=lambda: copy.deepcopy(DEFAULT_MODEL_SETTINGS))
+    provider_settings: dict[str, Any] | None = None
+    tool_search: Literal["basic", "hybrid"] = "basic"
 
-@dataclass
-class _ConfigPaths:
-    """All paths derived from the working directory.
+    images_dir: Path | None = None
+    execution_timeout: float | None = 300
+    approval_timeout: float | None = None
+    enable_subagents: bool = True
+    max_subagents: int = 5
+    kernel_env: dict[str, str] = Field(default_factory=dict)
 
-    Centralizes path construction used by both `Config.__init__()`
-    and `Config.init()`.
-    """
+    mcp_servers: dict[str, dict[str, Any]] = Field(default_factory=dict)
+    ptc_servers: dict[str, dict[str, Any]] = Field(
+        default_factory=lambda: {
+            "google": copy.deepcopy(GOOGLE_SEARCH_MCP_SERVER_CONFIG),
+        }
+    )
 
-    working_dir: Path
+    _resolved_model_instance: str | Model = PrivateAttr(default="")
+    _resolved_mcp_servers: dict[str, dict[str, Any]] = PrivateAttr(default_factory=dict)
+    _resolved_kernel_env: dict[str, str] = PrivateAttr(default_factory=dict)
+    _subagent_mode: bool = PrivateAttr(default=False)
+
+    def model_post_init(self, __context: Any) -> None:
+        object.__setattr__(self, "working_dir", self.working_dir.resolve())
+        resolution_env = self._resolution_env()
+        object.__setattr__(
+            self,
+            "_resolved_model_instance",
+            resolve_model_instance(
+                model=self.model,
+                provider_settings=self.provider_settings,
+                resolution_env=resolution_env,
+            ),
+        )
+        object.__setattr__(
+            self,
+            "_resolved_mcp_servers",
+            resolve_mcp_servers(
+                tool_search=self.tool_search,
+                mcp_servers=self.mcp_servers,
+                basic_search_mcp_server_config=BASIC_SEARCH_MCP_SERVER_CONFIG,
+                hybrid_search_mcp_server_config=HYBRID_SEARCH_MCP_SERVER_CONFIG,
+                filesystem_mcp_server_config=FILESYSTEM_MCP_SERVER_CONFIG,
+                resolution_env=resolution_env,
+            ),
+        )
+        object.__setattr__(
+            self,
+            "_resolved_kernel_env",
+            resolve_kernel_env(
+                kernel_env=self.kernel_env,
+                generated_dir=self.generated_dir,
+                resolution_env=resolution_env,
+            ),
+        )
+        validate_ptc_servers(
+            ptc_servers=self.ptc_servers,
+            resolution_env=resolution_env,
+        )
+
+    async def save(self) -> None:
+        """Persist config and scaffold static directories and bundled skills."""
+        await arun(self._save_sync)
+
+    @classmethod
+    async def load(cls, working_dir: Path | None = None) -> "Config":
+        """Load persisted config if present, otherwise return defaults."""
+        config = cls(working_dir=working_dir or Path.cwd())
+        config_file = config.freeact_dir / "agent.json"
+        if not config_file.exists():
+            return config
+
+        data = await arun(lambda: json.loads(config_file.read_text()))
+        return cls.model_validate(
+            {
+                **data,
+                "working_dir": config.working_dir,
+            }
+        )
+
+    @classmethod
+    async def init(cls, working_dir: Path | None = None) -> "Config":
+        """Load config from `.freeact/` when present, otherwise save defaults."""
+        config = cls(working_dir=working_dir or Path.cwd())
+        if config.freeact_dir.exists():
+            return await cls.load(working_dir=config.working_dir)
+
+        await config.save()
+        return config
 
     @property
     def freeact_dir(self) -> Path:
-        return self.working_dir / ".freeact"
+        return self.working_dir / FREEACT_DIR_NAME
 
     @property
     def skills_dir(self) -> Path:
@@ -115,397 +214,81 @@ class _ConfigPaths:
 
     @property
     def generated_rel_dir(self) -> Path:
-        return self.generated_dir.relative_to(self.working_dir)
+        return self._relative_to_working_dir(self.generated_dir)
 
     @property
     def plans_rel_dir(self) -> Path:
-        return self.plans_dir.relative_to(self.working_dir)
-
-
-class Config:
-    """Configuration loader for the `.freeact/` directory structure.
-
-    Loads and parses all configuration on instantiation: skills metadata,
-    system prompts, MCP servers (JSON tool calls), and PTC servers
-    (programmatic tool calling).
-
-    Internal MCP servers (pytools, filesystem) are defined as constants in
-    this module. User-defined servers from `agent.json` override internal
-    configs when they share the same key.
-
-    Attributes:
-        working_dir: Agent's working directory.
-        freeact_dir: Path to `.freeact/` configuration directory.
-        model: LLM model name or instance.
-        model_settings: Model-specific settings (e.g., thinking config).
-        tool_search: Tool discovery mode read from `agent.json`.
-        images_dir: Directory for saving generated images.
-        execution_timeout: Maximum time in seconds for code execution.
-        approval_timeout: Timeout in seconds for PTC approval requests.
-        enable_subagents: Whether to enable subagent delegation.
-        max_subagents: Maximum number of concurrent subagents.
-        kernel_env: Environment variables passed to the IPython kernel.
-        skills_metadata: Parsed skill definitions from `.freeact/skills/` and `.agents/skills/`.
-        system_prompt: Rendered system prompt loaded from package resources.
-        mcp_servers: Merged and resolved MCP server configs.
-        ptc_servers: Raw PTC server configs loaded from `agent.json`.
-        sessions_dir: Session trace storage directory.
-    """
-
-    def __init__(self, working_dir: Path | None = None):
-        self._config_paths = _ConfigPaths(working_dir or Path.cwd())
-        self._config_data = self._load_config_json()
-
-        self.model, self.model_settings = self._load_model_config()
-        self.tool_search: str = self._config_data.get("tool-search", "basic")
-
-        self._ensure_pytools_env_defaults()
-        if self.tool_search == "hybrid":
-            self._ensure_hybrid_env_defaults()
-
-        self.images_dir: Path | None = Path(d) if (d := self._config_data.get("images-dir")) else None
-        self.execution_timeout: float | None = self._config_data.get("execution-timeout", 300)
-        self.approval_timeout: float | None = self._config_data.get("approval-timeout")
-        self.enable_subagents: bool = self._config_data.get("enable-subagents", True)
-        self.max_subagents: int = self._config_data.get("max-subagents", 5)
-        self.kernel_env: dict[str, str] = self._load_kernel_env()
-
-        self.skills_metadata = self._load_skills_metadata()
-        self.mcp_servers = self._load_mcp_servers()
-        self.ptc_servers = self._load_ptc_servers()
-        self.system_prompt = self._load_system_prompt()
-
-    @classmethod
-    async def init(cls, working_dir: Path | None = None) -> None:
-        """Scaffold `.freeact/` directory from bundled templates.
-
-        Copies template files that don't already exist, preserving user
-        modifications. Runs blocking I/O in a separate thread.
-
-        Args:
-            working_dir: Base directory. Defaults to current working directory.
-        """
-        paths = _ConfigPaths(working_dir or Path.cwd())
-        await arun(cls._scaffold, paths)
-
-    @staticmethod
-    def _scaffold(paths: _ConfigPaths) -> None:
-        skill_placeholders = {
-            "generated_rel_dir": str(paths.generated_rel_dir),
-            "plans_rel_dir": str(paths.plans_rel_dir),
-        }
-
-        template_files = files("freeact.agent.config").joinpath("templates")
-
-        with as_file(template_files) as template_dir:
-            skills_template_dir = template_dir / "skills"
-
-            for template_file in template_dir.rglob("*"):
-                if not template_file.is_file():
-                    continue
-
-                relative = template_file.relative_to(template_dir)
-                target = paths.freeact_dir / relative
-
-                if target.exists():
-                    continue
-
-                target.parent.mkdir(parents=True, exist_ok=True)
-
-                if template_file.is_relative_to(skills_template_dir):
-                    content = template_file.read_text()
-                    target.write_text(content.format(**skill_placeholders))
-                else:
-                    shutil.copy2(template_file, target)
-
-        paths.plans_dir.mkdir(parents=True, exist_ok=True)
-        paths.generated_dir.mkdir(parents=True, exist_ok=True)
-        paths.sessions_dir.mkdir(parents=True, exist_ok=True)
+        return self._relative_to_working_dir(self.plans_dir)
 
     @property
-    def working_dir(self) -> Path:
-        """Agent's working directory."""
-        return self._config_paths.working_dir
+    def model_instance(self) -> str | Model:
+        return self._resolved_model_instance
 
     @property
-    def freeact_dir(self) -> Path:
-        """Path to `.freeact/` configuration directory."""
-        return self._config_paths.freeact_dir
+    def resolved_kernel_env(self) -> dict[str, str]:
+        return dict(self._resolved_kernel_env)
 
     @property
-    def plans_dir(self) -> Path:
-        """Plan storage directory."""
-        return self._config_paths.plans_dir
-
-    @property
-    def generated_dir(self) -> Path:
-        """Generated MCP tool sources directory."""
-        return self._config_paths.generated_dir
-
-    @property
-    def generated_rel_dir(self) -> Path:
-        """Generated MCP tool sources directory relative to working directory."""
-        return self._config_paths.generated_rel_dir
-
-    @property
-    def sessions_dir(self) -> Path:
-        """Session trace storage directory."""
-        return self._config_paths.sessions_dir
-
-    @property
-    def search_db_file(self) -> Path:
-        """Hybrid search database path."""
-        return self._config_paths.search_db_file
-
-    def for_subagent(self) -> "Config":
-        """Create a subagent configuration from this config.
-
-        Returns a shallow copy with subagent-specific overrides:
-        subagents disabled, mcp_servers deep-copied with pytools
-        sync/watch disabled, and kernel_env shallow-copied for
-        independence.
-        """
-        config = copy.copy(self)
-        config.enable_subagents = False
-        config.mcp_servers = self._subagent_mcp_servers()
-        config.kernel_env = dict(self.kernel_env)
-        return config
-
-    def _subagent_mcp_servers(self) -> dict[str, dict[str, Any]]:
-        """Create MCP server config copy for subagents with pytools sync/watch disabled."""
-        servers = copy.deepcopy(self.mcp_servers)
-        if "pytools" in servers and "env" in servers["pytools"]:
+    def resolved_mcp_servers(self) -> dict[str, dict[str, Any]]:
+        servers = copy.deepcopy(self._resolved_mcp_servers)
+        if self._subagent_mode and "pytools" in servers and "env" in servers["pytools"]:
             servers["pytools"]["env"]["PYTOOLS_SYNC"] = "false"
             servers["pytools"]["env"]["PYTOOLS_WATCH"] = "false"
         return servers
 
-    def _ensure_pytools_env_defaults(self) -> None:
-        """Set path-related env var defaults for pytools (basic and hybrid).
-
-        Sets `PYTOOLS_DIR` unconditionally (used by both basic and hybrid
-        search modes) and `PYTOOLS_DB_PATH` for hybrid mode.
-
-        `PYTOOLS_DIR` uses a working-dir-relative path so pytools MCP servers
-        can return relative tool paths (e.g. `.freeact/generated/...`).
-        """
-        os.environ.setdefault("PYTOOLS_DIR", str(self.generated_rel_dir))
-        os.environ.setdefault("PYTOOLS_DB_PATH", str(self.search_db_file))
-
-    def _ensure_hybrid_env_defaults(self) -> None:
-        """Set default values in `os.environ` for hybrid-specific env vars.
-
-        Called when `tool-search` is `"hybrid"`. Each variable uses
-        `os.environ.setdefault` so user-provided values take precedence.
-        `GEMINI_API_KEY` is intentionally omitted -- it has no default and
-        validation will catch it if missing.
-        """
-        for key, default in _HYBRID_ENV_DEFAULTS.items():
-            os.environ.setdefault(key, default)
-
-    def _load_config_json(self) -> dict[str, Any]:
-        """Load agent.json file."""
-        config_file = self.freeact_dir / "agent.json"
-        if not config_file.exists():
-            return {}
-        with open(config_file) as f:
-            return json.load(f)
-
-    def _load_model_config(self) -> tuple[str | Model, ModelSettings]:
-        """Load model configuration from agent.json.
-
-        Returns:
-            A tuple of (model, model_settings) where model is either a
-            string (resolved lazily by pydantic-ai) or a `Model` instance
-            (when `model-provider` is specified).
-        """
-        model_name = self._config_data.get("model")
-        if model_name is None:
-            raise ValueError("'model' is required in agent.json")
-
-        settings: ModelSettings = self._config_data.get("model-settings") or {}
-        provider_config = self._config_data.get("model-provider")
-
-        if provider_config:
-            model: str | Model = self._build_model(model_name, provider_config)
-        else:
-            model = model_name
-
-        return model, settings
-
-    def _build_model(self, model_name: str, provider_config: dict[str, Any]) -> Model:
-        """Build a `Model` instance with a custom provider.
-
-        Resolves `${VAR}` placeholders in `provider_config` against
-        `os.environ`, then creates a provider factory that passes the
-        resolved kwargs to the appropriate provider constructor.
-        """
-        result = replace_variables(provider_config, os.environ)
-        if result.missing_variables:
-            raise ValueError(f"Missing environment variables for model-provider: {result.missing_variables}")
-
-        resolved = result.replaced
-
-        def provider_factory(name: str) -> Provider[Any]:
-            kwargs = dict(resolved)
-            if name in ("google-vertex", "google-gla"):
-                kwargs.setdefault("vertexai", name == "google-vertex")
-            provider_class = infer_provider_class(name)
-            return provider_class(**kwargs)
-
-        return infer_model(model_name, provider_factory=provider_factory)
-
-    def _load_kernel_env(self) -> dict[str, str]:
-        """Load kernel environment variables from agent.json.
-
-        Auto-adds defaults for PYTHONPATH and HOME, then validates
-        and resolves `${VAR}` placeholders against `os.environ`.
-        User values in agent.json take precedence over auto-defaults.
-        """
-        env: dict[str, str] = {}
-
-        # Auto-defaults (lowest priority)
-        env["PYTHONPATH"] = str(self.generated_dir)
-        home = os.environ.get("HOME")
-        if home:
-            env["HOME"] = home
-
-        # User values from agent.json (highest priority)
-        user_env = self._config_data.get("kernel-env", {})
-        env.update(user_env)
-
-        if not env:
-            return {}
-
-        result = replace_variables(env, os.environ)
-        if result.missing_variables:
-            raise ValueError(f"Missing environment variables for kernel-env: {result.missing_variables}")
-
-        return result.replaced
-
-    def _load_skills_metadata(self) -> list[SkillMetadata]:
-        """Load skill metadata from all SKILL.md files."""
-        return self._scan_skills_dir(self._config_paths.skills_dir) + self._scan_skills_dir(
-            self._config_paths.project_skills_dir
+    @property
+    def skills_metadata(self) -> list[SkillMetadata]:
+        return load_skills_metadata(
+            skills_dir=self.skills_dir,
+            project_skills_dir=self.project_skills_dir,
         )
 
-    def _scan_skills_dir(self, skills_dir: Path) -> list[SkillMetadata]:
-        """Scan a single directory for skill subdirectories containing SKILL.md."""
-        skills: list[SkillMetadata] = []
-        if not skills_dir.exists():
-            return skills
-        for skill_dir in skills_dir.iterdir():
-            if skill_dir.is_dir():
-                skill_file = skill_dir / "SKILL.md"
-                if skill_file.exists():
-                    if metadata := self._parse_skill_file(skill_file):
-                        skills.append(metadata)
-        return skills
-
-    def _parse_skill_file(self, skill_file: Path) -> SkillMetadata | None:
-        """Parse YAML frontmatter from a SKILL.md file."""
-        content = skill_file.read_text()
-        if not content.startswith("---"):
-            return None
-
-        parts = content.split("---", 2)
-        if len(parts) < 3:
-            return None
-
-        frontmatter = yaml.safe_load(parts[1])
-
-        return SkillMetadata(
-            name=frontmatter["name"],
-            description=frontmatter["description"],
-            path=skill_file,
-        )
-
-    def _render_section(self, section_name: str, content: str | None) -> str:
-        """Render a section template with content.
-
-        Loads `prompts/section-{section_name}.md` and renders it with the
-        given content. Returns an empty string if content is `None`.
-        """
-        if content is None:
-            return ""
-        prompt_files = files("freeact.agent.config").joinpath("prompts")
-        with as_file(prompt_files) as prompts_dir:
-            template = (prompts_dir / f"section-{section_name}.md").read_text()
-        return template.format(content=content)
-
-    def _load_project_instructions_content(self) -> str | None:
-        """Load project instructions from working directory.
-
-        Returns `None` if the file is absent or empty.
-        """
-        agents_file = self._config_paths.project_instructions_file
-        if not agents_file.exists():
-            return None
-        content = agents_file.read_text().strip()
-        return content or None
-
-    def _load_skills_content(self) -> str | None:
-        """Render skills metadata as markdown list.
-
-        Returns `None` if no skills are configured.
-        """
-        if not self.skills_metadata:
-            return None
-        lines = []
-        for skill in self.skills_metadata:
-            relative_path = skill.path.relative_to(self.working_dir)
-            lines.append(f"- **{skill.name}**: {skill.description}")
-            lines.append(f"  - Location: `{relative_path}`")
-        return "\n".join(lines)
-
-    def _load_system_prompt(self) -> str:
-        """Load and render system prompt template from package resources."""
-        prompt_files = files("freeact.agent.config").joinpath("prompts")
-        with as_file(prompt_files) as prompts_dir:
-            name = "system-hybrid.md" if self.tool_search == "hybrid" else "system-basic.md"
-            template = (prompts_dir / name).read_text()
-
-        return template.format(
+    @property
+    def system_prompt(self) -> str:
+        return load_system_prompt(
+            tool_search=self.tool_search,
             working_dir=self.working_dir,
-            generated_rel_dir=self._config_paths.generated_rel_dir,
-            project_instructions=self._render_section(
-                "project-instructions", self._load_project_instructions_content()
-            ),
-            skills=self._render_section("agent-skills", self._load_skills_content()),
+            generated_rel_dir=self.generated_rel_dir,
+            project_instructions_file=self.project_instructions_file,
+            skills_metadata=self.skills_metadata,
         )
 
-    def _internal_mcp_servers(self) -> dict[str, dict[str, Any]]:
-        """Return internal MCP server configs based on tool_search mode."""
-        pytools = PYTOOLS_HYBRID_CONFIG if self.tool_search == "hybrid" else PYTOOLS_BASIC_CONFIG
-        return {"pytools": pytools, "filesystem": FILESYSTEM_CONFIG}
-
-    def _load_mcp_servers(self) -> dict[str, dict[str, Any]]:
-        """Load MCP servers: internal defaults merged with user overrides.
-
-        User-defined servers from `agent.json` take precedence over
-        internal configs for the same key. All `${VAR}` placeholders
-        are validated and resolved against `os.environ`.
-        """
-        internal = self._internal_mcp_servers()
-        user = self._config_data.get("mcp-servers", {})
-        merged = {**internal, **user}
-
-        if not merged:
-            return {}
-
-        result = replace_variables(merged, os.environ)
-        if result.missing_variables:
-            raise ValueError(f"Missing environment variables for mcp-servers: {result.missing_variables}")
-
-        return result.replaced
-
-    def _load_ptc_servers(self) -> dict[str, dict[str, Any]]:
-        """Load PTC server configs, validating env vars but keeping placeholders."""
-        config = self._config_data.get("ptc-servers", {})
-        if not config:
-            return {}
-
-        result = replace_variables(config, os.environ)
-        if result.missing_variables:
-            raise ValueError(f"Missing environment variables for ptc-servers: {result.missing_variables}")
-
+    def for_subagent(self) -> "Config":
+        config = self.model_copy(update={"enable_subagents": False}, deep=True)
+        object.__setattr__(config, "_subagent_mode", True)
         return config
+
+    def _save_sync(self) -> None:
+        if not isinstance(self.model, str):
+            raise ValueError("model must be a string when saving config")
+
+        self.freeact_dir.mkdir(parents=True, exist_ok=True)
+
+        payload = self.model_dump(mode="json", exclude={"working_dir"})
+        config_file = self.freeact_dir / "agent.json"
+        config_file.write_text(json.dumps(payload, indent=2) + "\n")
+
+        self.generated_dir.mkdir(parents=True, exist_ok=True)
+        self.plans_dir.mkdir(parents=True, exist_ok=True)
+        self.sessions_dir.mkdir(parents=True, exist_ok=True)
+
+        materialize_bundled_skills(
+            skills_dir=self.skills_dir,
+            generated_rel_dir=self.generated_rel_dir,
+            plans_rel_dir=self.plans_rel_dir,
+        )
+
+    def _resolution_env(self) -> dict[str, str]:
+        env = dict(os.environ)
+        env.setdefault("PYTOOLS_DIR", str(self.generated_rel_dir))
+        env.setdefault("PYTOOLS_DB_PATH", str(self.search_db_file))
+        if self.tool_search == "hybrid":
+            for key, default in HYBRID_SEARCH_ENV_DEFAULTS.items():
+                env.setdefault(key, default)
+        return env
+
+    def _relative_to_working_dir(self, path: Path) -> Path:
+        try:
+            return path.relative_to(self.working_dir)
+        except ValueError:
+            return path

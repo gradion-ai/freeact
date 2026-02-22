@@ -39,8 +39,7 @@ async def handle_events(agent: Agent, prompt: str) -> None:
 
 
 async def main() -> None:
-    await Config.init()
-    config = Config()
+    config = await Config.init()
 
     for server_name, params in config.ptc_servers.items():
         if not (config.generated_dir / "mcptools" / server_name).exists():
