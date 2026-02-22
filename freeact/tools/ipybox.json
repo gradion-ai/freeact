@@ -7,12 +7,6 @@
           "description": "Python code to execute in the IPython kernel",
           "title": "Code",
           "type": "string"
-        },
-        "max_output_chars": {
-          "default": 5000,
-          "description": "Maximum number of characters to return in output (truncates if exceeded)",
-          "title": "Max Output Chars",
-          "type": "integer"
         }
       },
       "required": [

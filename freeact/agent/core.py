@@ -394,7 +394,7 @@ class Agent:
             )
             return
 
-        result_content: ToolResult = ""
+        content: ToolResult = ""
         rejected = False
 
         match tool_name:
@@ -410,13 +410,12 @@ class Agent:
                     match item:
                         case CodeExecutionOutput() if item.ptc_rejected():
                             rejected = True
-                            result_content = "Tool call rejected"
+                            content = "Tool call rejected"
                             break
                         case CodeExecutionOutput():
-                            result_content = item.format(max_chars=tool_args.get("max_output_chars", 5000))
+                            content = item.format()
             case "ipybox_reset":
                 content = await self._ipybox_reset()
-                result_content = content
                 yield ToolOutput(content=content, agent_id=self.agent_id, corr_id=corr_id)
             case "subagent_task":
                 async for event in self._execute_subagent_task(
@@ -432,16 +431,15 @@ class Agent:
 
                     match event:
                         case ToolOutput():
-                            result_content = event.content
+                            content = event.content
             case _:
                 content = await self._call_mcp_tool(tool_name, tool_args)
-                result_content = content
                 yield ToolOutput(content=content, agent_id=self.agent_id, corr_id=corr_id)
 
         yield ToolReturnPart(
             tool_call_id=call.tool_call_id,
             tool_name=tool_name,
-            content=result_content,
+            content=content,
             metadata={"rejected": rejected},
         )
 
