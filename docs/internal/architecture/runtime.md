@@ -22,15 +22,15 @@ It intentionally excludes CLI, terminal UI, and longer-lived permission policy l
 ## Configuration
 
 - `freeact/agent/config/` handles `.freeact/` initialization and loading.
-- `Config.init()` scaffolds missing files only; it does not overwrite existing user files.
+- `Config()` creates defaults in memory; `save()` persists static config artifacts; `load()` reads persisted config when present.
 
 ## Tools
 
 - Bundled tool-definition caches:
   - ipybox tools: `freeact/tools/ipybox.json`
   - subagent tool: `freeact/tools/subagent.json`
-- JSON MCP calls use `mcp-servers`.
-- Programmatic tool calling uses generated Python APIs from `ptc-servers` in `.freeact/generated/mcptools/`.
+- JSON MCP calls use `mcp_servers`.
+- Programmatic tool calling uses generated Python APIs from `ptc_servers` in `.freeact/generated/mcptools/`.
 - User-defined generated tools live in `.freeact/generated/gentools/`.
 
 ## Sessions

@@ -8,7 +8,6 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from freeact.agent.config.config import _ConfigPaths
 from freeact.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
 from freeact.tools.pytools.search.hybrid.database import SearchResult, ToolEntry
 from freeact.tools.pytools.search.hybrid.server import (
@@ -20,12 +19,11 @@ from freeact.tools.pytools.search.hybrid.server import (
 
 
 def _default_tools_dir() -> Path:
-    return _ConfigPaths(Path.cwd()).generated_rel_dir
+    return Path(".freeact/generated")
 
 
 def _default_db_path() -> str:
-    paths = _ConfigPaths(Path.cwd())
-    return str(paths.search_db_file.relative_to(paths.working_dir))
+    return ".freeact/search.db"
 
 
 @dataclass

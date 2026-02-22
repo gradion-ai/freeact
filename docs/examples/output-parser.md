@@ -17,11 +17,11 @@ mkdir my-workspace && cd my-workspace
 uvx freeact init
 ```
 
-Add the [GitHub MCP server](https://github.com/github/github-mcp-server) to [`ptc-servers`](../configuration.md#ptc-servers) in `.freeact/agent.json`:
+Add the [GitHub MCP server](https://github.com/github/github-mcp-server) to [`ptc_servers`](../configuration.md#ptc_servers) in `.freeact/agent.json`:
 
 ```json
 {
-  "ptc-servers": {
+  "ptc_servers": {
     "github": {
       "url": "https://api.githubcopilot.com/mcp/",
       "headers": {"Authorization": "Bearer ${GITHUB_API_KEY}"}

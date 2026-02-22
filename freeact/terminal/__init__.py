@@ -25,7 +25,7 @@ class Terminal:
         """
         self._agent = agent
         self._main_agent_id = agent.agent_id
-        self._permission_manager = PermissionManager()
+        self._permission_manager = PermissionManager(agent._config.freeact_dir)
         self._ui_config = ui_config
         _ = console
 

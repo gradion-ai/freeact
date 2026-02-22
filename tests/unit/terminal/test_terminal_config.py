@@ -9,30 +9,39 @@ from freeact.terminal.config import (
     ExpandCollapseBehavior,
     TerminalKeyConfig,
     TerminalUiConfig,
-    ensure_terminal_ui_config,
-    load_terminal_ui_config,
 )
 from freeact.terminal.config import (
     Config as TerminalConfig,
 )
 
 
-def test_load_terminal_ui_config_returns_defaults_when_file_missing(tmp_path: Path) -> None:
+@pytest.mark.asyncio
+async def test_load_returns_defaults_when_file_missing(tmp_path: Path) -> None:
+    config = await TerminalConfig.load(working_dir=tmp_path)
+
+    assert config.freeact_dir == tmp_path / ".freeact"
+    assert config.ui_config == DEFAULT_TERMINAL_UI_CONFIG
+
+
+@pytest.mark.asyncio
+async def test_init_saves_defaults_when_file_missing(tmp_path: Path) -> None:
+    config = await TerminalConfig.init(working_dir=tmp_path)
+
+    config_path = tmp_path / ".freeact" / "terminal.json"
+    assert config_path.exists()
+    loaded = json.loads(config_path.read_text())
+    assert loaded["keys"]["toggle_expand_all"] == "ctrl+o"
+    assert config.ui_config == DEFAULT_TERMINAL_UI_CONFIG
+
+
+@pytest.mark.asyncio
+async def test_load_reads_valid_file(tmp_path: Path) -> None:
     freeact_dir = tmp_path / ".freeact"
-    freeact_dir.mkdir()
-
-    loaded = load_terminal_ui_config(freeact_dir)
-
-    assert loaded == DEFAULT_TERMINAL_UI_CONFIG
-
-
-def test_load_terminal_ui_config_reads_valid_file(tmp_path: Path) -> None:
-    freeact_dir = tmp_path / ".freeact"
-    freeact_dir.mkdir()
+    freeact_dir.mkdir(parents=True)
     (freeact_dir / "terminal.json").write_text(
         json.dumps(
             {
-                "expand-collapse": {
+                "expand_collapse": {
                     "collapse_thoughts_on_complete": False,
                     "collapse_exec_output_on_complete": True,
                     "collapse_approved_code_actions": False,
@@ -44,14 +53,13 @@ def test_load_terminal_ui_config_reads_valid_file(tmp_path: Path) -> None:
                 "keys": {
                     "toggle_expand_all": "ctrl+p",
                 },
-                "unknown": {"ignored": True},
             }
         )
     )
 
-    loaded = load_terminal_ui_config(freeact_dir)
+    config = await TerminalConfig.load(working_dir=tmp_path)
 
-    assert loaded == TerminalUiConfig(
+    assert config.ui_config == TerminalUiConfig(
         expand_collapse=ExpandCollapseBehavior(
             collapse_thoughts_on_complete=False,
             collapse_exec_output_on_complete=True,
@@ -65,81 +73,81 @@ def test_load_terminal_ui_config_reads_valid_file(tmp_path: Path) -> None:
     )
 
 
-def test_load_terminal_ui_config_raises_on_invalid_json(tmp_path: Path) -> None:
+@pytest.mark.asyncio
+async def test_init_loads_existing_file_without_overwrite(tmp_path: Path) -> None:
     freeact_dir = tmp_path / ".freeact"
-    freeact_dir.mkdir()
-    (freeact_dir / "terminal.json").write_text("{not-json")
+    freeact_dir.mkdir(parents=True)
+    config_path = freeact_dir / "terminal.json"
+    config_path.write_text(json.dumps({"keys": {"toggle_expand_all": "ctrl+p"}}))
 
-    with pytest.raises(json.JSONDecodeError):
-        load_terminal_ui_config(freeact_dir)
+    config = await TerminalConfig.init(working_dir=tmp_path)
+
+    assert config.keys.toggle_expand_all == "ctrl+p"
+    persisted = json.loads(config_path.read_text())
+    assert persisted["keys"]["toggle_expand_all"] == "ctrl+p"
 
 
-def test_load_terminal_ui_config_raises_on_type_mismatch(tmp_path: Path) -> None:
+@pytest.mark.asyncio
+async def test_load_rejects_kebab_case_schema(tmp_path: Path) -> None:
     freeact_dir = tmp_path / ".freeact"
-    freeact_dir.mkdir()
+    freeact_dir.mkdir(parents=True)
     (freeact_dir / "terminal.json").write_text(
         json.dumps(
             {
                 "expand-collapse": {
-                    "collapse_tool_outputs": "yes",
+                    "collapse_tool_outputs": False,
                 }
             }
         )
     )
 
     with pytest.raises(ValidationError):
-        load_terminal_ui_config(freeact_dir)
-
-
-def test_ensure_terminal_ui_config_creates_file_when_missing(tmp_path: Path) -> None:
-    freeact_dir = tmp_path / ".freeact"
-    freeact_dir.mkdir()
-
-    config_path = ensure_terminal_ui_config(freeact_dir)
-
-    assert config_path == freeact_dir / "terminal.json"
-    loaded = json.loads(config_path.read_text())
-    assert loaded["expand-collapse"]["collapse_tool_outputs"] is True
-    assert loaded["expand-collapse"]["collapse_approved_code_actions"] is True
-    assert loaded["expand-collapse"]["collapse_approved_tool_calls"] is True
-    assert loaded["keys"]["toggle_expand_all"] == "ctrl+o"
-
-
-def test_ensure_terminal_ui_config_preserves_existing_file(tmp_path: Path) -> None:
-    freeact_dir = tmp_path / ".freeact"
-    freeact_dir.mkdir()
-    existing = freeact_dir / "terminal.json"
-    existing.write_text('{"keys": {"toggle_expand_all": "ctrl+p"}}')
-
-    config_path = ensure_terminal_ui_config(freeact_dir)
-
-    assert config_path == existing
-    assert existing.read_text() == '{"keys": {"toggle_expand_all": "ctrl+p"}}'
+        await TerminalConfig.load(working_dir=tmp_path)
 
 
 @pytest.mark.asyncio
-async def test_terminal_config_init_accepts_freeact_dir(tmp_path: Path) -> None:
-    freeact_dir = tmp_path / "custom-freeact"
+async def test_save_creates_file_when_missing(tmp_path: Path) -> None:
+    config = TerminalConfig(working_dir=tmp_path)
 
-    await TerminalConfig.init(freeact_dir=freeact_dir)
+    await config.save()
 
-    assert (freeact_dir / "terminal.json").exists()
-
-
-def test_terminal_config_constructor_accepts_freeact_dir(tmp_path: Path) -> None:
-    freeact_dir = tmp_path / "custom-freeact"
-    freeact_dir.mkdir(parents=True)
-    (freeact_dir / "terminal.json").write_text(json.dumps({"keys": {"toggle_expand_all": "ctrl+p"}}))
-
-    config = TerminalConfig(freeact_dir=freeact_dir)
-
-    assert config.freeact_dir == freeact_dir
-    assert config.ui_config.keys.toggle_expand_all == "ctrl+p"
+    config_path = tmp_path / ".freeact" / "terminal.json"
+    assert config_path.exists()
+    loaded = json.loads(config_path.read_text())
+    assert loaded["expand_collapse"]["collapse_tool_outputs"] is True
+    assert loaded["expand_collapse"]["collapse_approved_code_actions"] is True
+    assert loaded["expand_collapse"]["collapse_approved_tool_calls"] is True
+    assert loaded["keys"]["toggle_expand_all"] == "ctrl+o"
 
 
-def test_terminal_config_defaults_to_cwd_freeact_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.chdir(tmp_path)
+@pytest.mark.asyncio
+async def test_save_updates_existing_file(tmp_path: Path) -> None:
+    config = TerminalConfig(
+        working_dir=tmp_path,
+        keys=TerminalKeyConfig(toggle_expand_all="ctrl+p"),
+    )
 
-    config = TerminalConfig()
+    await config.save()
 
-    assert config.freeact_dir == tmp_path / ".freeact"
+    loaded = json.loads((tmp_path / ".freeact" / "terminal.json").read_text())
+    assert loaded["keys"]["toggle_expand_all"] == "ctrl+p"
+
+
+@pytest.mark.asyncio
+async def test_terminal_config_freeact_dir_is_derived_from_working_dir(tmp_path: Path) -> None:
+    config = TerminalConfig(working_dir=tmp_path)
+    await config.save()
+
+    assert (tmp_path / ".freeact" / "terminal.json").exists()
+
+
+def test_toggle_expand_all_must_be_non_empty() -> None:
+    with pytest.raises(ValidationError):
+        TerminalKeyConfig(toggle_expand_all="")
+
+
+def test_terminal_config_is_immutable(tmp_path: Path) -> None:
+    config = TerminalConfig(working_dir=tmp_path)
+
+    with pytest.raises(ValidationError):
+        setattr(config, "keys", TerminalKeyConfig(toggle_expand_all="ctrl+p"))

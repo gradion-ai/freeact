@@ -10,9 +10,9 @@
 - Parent vs subagent in shared stream functions: `"subagent_task" in [t.name for t in info.function_tools]`. Parent has it, subagent does not.
 
 ## Config setup in tests
-- Use `create_test_config()` from `tests.helpers` to create test configs. It handles `_ConfigPaths`, `agent.json`, and accepts `**overrides` for any config attribute.
-- Never hardcode `.freeact` or other config directory names. Always derive paths via `_ConfigPaths(tmp_dir)` (e.g., `_ConfigPaths(tmp_dir).freeact_dir`).
-- `agent.json` must include `"model"` (required field). Use `{"model": "test"}` as minimal config.
+- Use `create_test_config()` from `tests.helpers` to create test configs with defaults and `**overrides` for any config attribute.
+- `Config.freeact_dir` is derived from `working_dir / ".freeact"`.
+- Persist config files explicitly with `await config.save()` when a test needs on-disk config artifacts.
 
 ## Terminal TUI testing pattern (`freeact/terminal`)
 - Use `FreeactApp` with `async with app.run_test() as pilot`.

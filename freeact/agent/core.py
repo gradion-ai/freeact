@@ -106,27 +106,27 @@ class Agent:
         self._config = config
 
         self.agent_id = agent_id or "main"
-        self.model = config.model
+        self.model = config.model_instance
         self.model_settings = config.model_settings
 
         self._system_prompt = config.system_prompt
         self._execution_timeout = config.execution_timeout
         self._enable_subagents = config.enable_subagents
-        self._mcp_servers = config.mcp_servers
-        self._subagent_semaphore = asyncio.Semaphore(config.max_subagents)
         self._sandbox = sandbox
         self._sandbox_config = sandbox_config
         self._session_store = session_store
 
+        self._mcp_servers = config.resolved_mcp_servers
         self._mcp_server_instances: dict[str, MCPServer] = {}
+
         self._tool_mapping: dict[str, MCPServer] = {}
         self._tool_definitions: list[ToolDefinition] = []
 
-        self._kernel_env = config.kernel_env
+        self._kernel_env = config.resolved_kernel_env
 
         self._code_executor_lock = asyncio.Lock()
         self._code_executor = ipybox.CodeExecutor(
-            kernel_env=config.kernel_env,
+            kernel_env=config.resolved_kernel_env,
             sandbox=sandbox,
             sandbox_config=sandbox_config,
             images_dir=config.images_dir,
@@ -136,6 +136,7 @@ class Agent:
 
         self._message_history: list[ModelMessage] = []
         self._resource_supervisors: list[_ResourceSupervisor] = []
+        self._subagent_semaphore = asyncio.Semaphore(config.max_subagents)
 
     @property
     def _history_agent_id(self) -> str:

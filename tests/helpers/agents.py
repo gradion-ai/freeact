@@ -1,4 +1,4 @@
-import json
+import copy
 import tempfile
 import types
 from collections.abc import Callable
@@ -11,7 +11,6 @@ from pydantic_ai.models.function import FunctionModel
 
 from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput, Response, ToolOutput
 from freeact.agent.config import Config
-from freeact.agent.config.config import _ConfigPaths
 from freeact.agent.events import ResponseChunk, Thoughts, ThoughtsChunk
 
 from .streams import CodeExecFunction
@@ -27,16 +26,21 @@ def create_test_config(
     """Create a Config for test agents with a temporary working directory."""
     if tmp_dir is None:
         tmp_dir = Path(tempfile.mkdtemp())
-    freeact_dir = _ConfigPaths(tmp_dir).freeact_dir
-    freeact_dir.mkdir(exist_ok=True)
-    (freeact_dir / "agent.json").write_text(json.dumps({"model": "test"}))
-    config = Config(working_dir=tmp_dir)
+    config_kwargs: dict[str, Any] = {
+        "working_dir": tmp_dir,
+        "model": "test",
+        "model_settings": {},
+        "mcp_servers": {},
+        "ptc_servers": {},
+    }
     if stream_function is not None:
-        config.model = FunctionModel(stream_function=stream_function)
-    config.model_settings = {}
-    config.mcp_servers = {}
-    for key, value in overrides.items():
-        setattr(config, key, value)
+        config_kwargs["model"] = FunctionModel(stream_function=stream_function)
+    config_kwargs.update(overrides)
+    config = Config(
+        **config_kwargs,
+    )
+    # Keep unit tests deterministic by bypassing internal MCP server startup.
+    object.__setattr__(config, "_resolved_mcp_servers", copy.deepcopy(config_kwargs.get("mcp_servers", {})))
     return config
 
 

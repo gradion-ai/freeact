@@ -379,8 +379,10 @@ class TestTimeouts:
             tool_args={"code": slow_code},
         )
 
-        config = create_test_config(stream_function=stream_function)
-        config.execution_timeout = 0.5  # 500ms timeout
+        config = create_test_config(
+            stream_function=stream_function,
+            execution_timeout=0.5,  # 500ms timeout
+        )
         agent = Agent(config=config)
         async with agent:
             results = await collect_stream(agent, "run slow code")
@@ -409,8 +411,7 @@ tool_2.run(tool_2.Params(s="test"))
         # Use a 5 second execution timeout. We delay PTC approval by 8 seconds,
         # which is longer than the timeout. If approval wait counted toward
         # timeout, this would fail.
-        config = create_test_config(stream_function=stream_function)
-        config.execution_timeout = 5
+        config = create_test_config(stream_function=stream_function, execution_timeout=5)
         agent = Agent(config=config)
 
         async def delayed_ptc_approve(agent, prompt):
@@ -451,8 +452,10 @@ tool_2.run(tool_2.Params(s="test"))
             tool_args={"code": fast_code},
         )
 
-        config = create_test_config(stream_function=stream_function)
-        config.execution_timeout = 10  # Generous timeout
+        config = create_test_config(
+            stream_function=stream_function,
+            execution_timeout=10,  # Generous timeout
+        )
         agent = Agent(config=config)
         async with agent:
             results = await collect_stream(agent, "run code")
