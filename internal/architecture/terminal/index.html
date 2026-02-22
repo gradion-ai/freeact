@@ -1189,15 +1189,15 @@
 Read this first, then follow code references for details.</p>
 <h2 id="entry-point">Entry Point</h2>
 <ul>
-<li><code>freeact/cli.py</code> creates <code>Terminal</code> for interactive mode.</li>
-<li><code>freeact/terminal/__init__.py</code> creates <code>FreeactApp</code> and passes:</li>
+<li><code>freeact/cli.py</code> creates <code>TerminalInterface</code> for interactive mode.</li>
+<li><code>freeact/terminal/app.py</code> (<code>TerminalInterface</code>) creates <code>TerminalApp</code> and passes:</li>
 <li><code>agent.stream</code></li>
 <li><code>PermissionManager</code></li>
 <li>main <code>agent_id</code></li>
 </ul>
 <h2 id="main-controller">Main Controller</h2>
 <ul>
-<li><code>freeact/terminal/app.py</code> (<code>FreeactApp</code>) is the terminal orchestrator.</li>
+<li><code>freeact/terminal/app.py</code> (<code>TerminalApp</code>) is the terminal orchestrator.</li>
 <li>Two UI regions:</li>
 <li><code>#conversation</code> (rendered history)</li>
 <li><code>#prompt-input</code> (user input)</li>
@@ -1225,7 +1225,7 @@ Read this first, then follow code references for details.</p>
 <ul>
 <li><code>PromptInput</code>: <code>Enter</code> submit, <code>Ctrl+J</code> newline, <code>Alt+Enter</code> -&gt; <code>Ctrl+J</code>.</li>
 <li>Quit: <code>Ctrl+Q</code>.</li>
-<li>Expand/collapse override: <code>toggle_expand_all</code> (default <code>Ctrl+O</code>, configurable in <code>terminal.json</code>).</li>
+<li>Expand/collapse override: <code>toggle_expand_all</code> (default <code>Ctrl+O</code>, configurable via <code>expand_all_toggle_key</code> in <code>terminal.json</code>).</li>
 <li>Copy selected text: <code>Cmd+C</code> / <code>Super+C</code>, <code>Ctrl+Shift+C</code>, <code>Ctrl+Insert</code>, <code>Ctrl+C</code>.</li>
 <li>Paste in prompt input: <code>Ctrl+V</code>, <code>Cmd+V</code> / <code>Super+V</code>, <code>Ctrl+Shift+V</code>, <code>Shift+Insert</code>.</li>
 <li>File picker: typing <code>@</code> at the prompt opens <code>FilePickerScreen</code>; <code>Enter</code> selects, <code>Escape</code> cancels.</li>

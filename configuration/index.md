@@ -4,21 +4,14 @@ Freeact configuration is stored in the `.freeact/` directory. This page describe
 
 ## Initialization
 
-The `.freeact/` directory is created and populated from bundled templates through three entry points:
+The `.freeact/` directory is initialized through CLI entry points:
 
-| Entry Point                | Description                                                                                                  |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `freeact` or `freeact run` | Creates config with [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) before starting the agent  |
-| `freeact init`             | Creates config with [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) without starting the agent |
-| Config.init()              | Creates config programmatically without starting the agent                                                   |
+| Entry Point                | Description                                                  |
+| -------------------------- | ------------------------------------------------------------ |
+| `freeact` or `freeact run` | Initializes `.freeact/` on first run, then starts the agent. |
+| `freeact init`             | Initializes `.freeact/` without starting the agent.          |
 
-All three entry points share the same behavior:
-
-- **Missing files are created** from [default templates](https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates)
-- **Existing files are preserved** and never overwritten
-- **User modifications persist** across restarts and updates
-
-This allows safe customization: edit any configuration file, and your changes remain intact. If you delete a file, it is recreated from the default template on next initialization.
+Both CLI entry points initialize only when `.freeact/` is missing. For programmatic agent configuration, see the [Agent SDK](https://gradion-ai.github.io/freeact/sdk/index.md) and [Configuration API](https://gradion-ai.github.io/freeact/api/config/index.md).
 
 ## Directory Structure
 
@@ -40,7 +33,7 @@ Freeact stores agent configuration and runtime state in `.freeact/`. Project-lev
     │       ├── SKILL.md    # Skill metadata and instructions
     │       └── ...         # Further skill resources
     ├── generated/          # Generated tool sources (on PYTHONPATH)
-    │   ├── mcptools/       # Generated Python APIs from ptc-servers
+    │   ├── mcptools/       # Generated Python APIs from ptc_servers
     │   └── gentools/       # User-defined tools saved from code actions
     ├── plans/              # Task plan storage
     ├── sessions/           # Session trace storage
@@ -57,16 +50,16 @@ The `agent.json` file contains agent settings and MCP server configurations:
 ```
 {
   "model": "google-gla:gemini-3-flash-preview",
-  "model-settings": { ... },
-  "tool-search": "basic",
-  "images-dir": null,
-  "execution-timeout": 300,
-  "approval-timeout": null,
-  "enable-subagents": true,
-  "max-subagents": 5,
-  "kernel-env": {},
-  "mcp-servers": {},
-  "ptc-servers": {
+  "model_settings": { ... },
+  "tool_search": "basic",
+  "images_dir": null,
+  "execution_timeout": 300,
+  "approval_timeout": null,
+  "enable_subagents": true,
+  "max_subagents": 5,
+  "kernel_env": {},
+  "mcp_servers": {},
+  "ptc_servers": {
     "server-name": { ... }
   }
 }
@@ -77,16 +70,16 @@ The `agent.json` file contains agent settings and MCP server configurations:
 | Setting             | Default                             | Description                                                                                                                                                     |
 | ------------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `model`             | `google-gla:gemini-3-flash-preview` | [Model identifier](https://gradion-ai.github.io/freeact/models/#model-identifier) in `provider:model-name` format                                               |
-| `model-settings`    | `{}`                                | Provider-specific [model settings](https://gradion-ai.github.io/freeact/models/#model-settings) (e.g., thinking config, temperature)                            |
-| `model-provider`    | `null`                              | Custom API credentials, endpoints, or other [provider-specific options](https://gradion-ai.github.io/freeact/models/#model-provider)                            |
-| `images-dir`        | `null`                              | Directory for saving generated images to disk. `null` defaults to `images` in the working directory.                                                            |
-| `execution-timeout` | `300`                               | Maximum time in seconds for [code execution](https://gradion-ai.github.io/freeact/execution/index.md). Approval wait time is excluded. `null` means no timeout. |
-| `approval-timeout`  | `null`                              | Timeout in seconds for PTC approval requests. `null` means no timeout.                                                                                          |
-| `enable-subagents`  | `true`                              | Whether to enable subagent delegation                                                                                                                           |
-| `max-subagents`     | `5`                                 | Maximum number of concurrent subagents                                                                                                                          |
-| `kernel-env`        | `{}`                                | Environment variables passed to the IPython kernel. Supports `${VAR}` placeholders resolved against the host environment.                                       |
+| `model_settings`    | `{}`                                | Provider-specific [model settings](https://gradion-ai.github.io/freeact/models/#model-settings) (e.g., thinking config, temperature)                            |
+| `provider_settings` | `null`                              | Custom API credentials, endpoints, or other [provider-specific options](https://gradion-ai.github.io/freeact/models/#provider-settings)                         |
+| `images_dir`        | `null`                              | Directory for saving generated images to disk. `null` defaults to `images` in the working directory.                                                            |
+| `execution_timeout` | `300`                               | Maximum time in seconds for [code execution](https://gradion-ai.github.io/freeact/execution/index.md). Approval wait time is excluded. `null` means no timeout. |
+| `approval_timeout`  | `null`                              | Timeout in seconds for PTC approval requests. `null` means no timeout.                                                                                          |
+| `enable_subagents`  | `true`                              | Whether to enable subagent delegation                                                                                                                           |
+| `max_subagents`     | `5`                                 | Maximum number of concurrent subagents                                                                                                                          |
+| `kernel_env`        | `{}`                                | Environment variables passed to the IPython kernel. Supports `${VAR}` placeholders resolved against the host environment.                                       |
 
-### `tool-search`
+### `tool_search`
 
 Controls how the agent discovers Python tools:
 
@@ -95,9 +88,9 @@ Controls how the agent discovers Python tools:
 | `basic`  | Category browsing with `pytools_list_categories` and `pytools_list_tools`   |
 | `hybrid` | BM25/vector search with `pytools_search_tools` for natural language queries |
 
-The `tool-search` setting also selects the matching system prompt template (see [System Prompt](#system-prompt)). For hybrid mode environment variables, see [Hybrid Search](#hybrid-search).
+The `tool_search` setting also selects the matching system prompt template (see [System Prompt](#system-prompt)). For hybrid mode environment variables, see [Hybrid Search](#hybrid-search).
 
-### `mcp-servers`
+### `mcp_servers`
 
 MCP servers called directly via JSON tool calls. Internal servers (`pytools` for basic or hybrid tool search and filesystem for file operations) are provided automatically and do not need to be configured. User-defined servers in this section are merged with the internal defaults. If a user entry uses the same key as an internal server, the user entry takes precedence.
 
@@ -105,17 +98,17 @@ Custom MCP servers
 
 Application-specific MCP servers for JSON tool calls can be added to this section as needed.
 
-### `ptc-servers`
+### `ptc_servers`
 
 MCP servers called programmatically via generated Python APIs. This is freeact's implementation of *code mode*[1](#fn:1), where the agent calls MCP tools by writing code against generated APIs rather than through JSON tool calls. This allows composing multiple tool calls, processing intermediate results, and using control flow within a single code action.
 
-Python APIs must be generated from `ptc-servers` to `.freeact/generated/mcptools/<server-name>/<tool>.py` before the agent can use them. The [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) handles this automatically. When using the [Agent SDK](https://gradion-ai.github.io/freeact/sdk/index.md), call generate_mcp_sources() explicitly. Code actions can then import and call the generated APIs because `.freeact/generated/` is on the kernel's `PYTHONPATH`.
+Python APIs must be generated from `ptc_servers` to `.freeact/generated/mcptools/<server-name>/<tool>.py` before the agent can use them. The [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) handles this automatically. When using the [Agent SDK](https://gradion-ai.github.io/freeact/sdk/index.md), call generate_mcp_sources() explicitly. Code actions can then import and call the generated APIs because `.freeact/generated/` is on the kernel's `PYTHONPATH`.
 
 The default configuration includes the bundled `google` MCP server (web search via Gemini):
 
 ```
 {
-  "ptc-servers": {
+  "ptc_servers": {
     "google": {
       "command": "python",
       "args": ["-m", "freeact.tools.gsearch", "--thinking-level", "medium"],
@@ -127,11 +120,11 @@ The default configuration includes the bundled `google` MCP server (web search v
 
 Custom MCP servers
 
-Application-specific MCP servers can be added as needed to `ptc-servers` for programmatic tool calling.
+Application-specific MCP servers can be added as needed to `ptc_servers` for programmatic tool calling.
 
 ### Server Formats
 
-Both `mcp-servers` and `ptc-servers` support stdio servers and streamable HTTP servers.
+Both `mcp_servers` and `ptc_servers` support stdio servers and streamable HTTP servers.
 
 ### Environment Variables
 
@@ -139,7 +132,7 @@ Server configurations support environment variable references using `${VAR_NAME}
 
 ## Hybrid Search
 
-When `tool-search` is set to `"hybrid"` in `agent.json`, the hybrid search server reads additional configuration from environment variables. Default values are provided for all optional variables:
+When `tool_search` is set to `"hybrid"` in `agent.json`, the hybrid search server reads additional configuration from environment variables. Default values are provided for all optional variables:
 
 | Variable                  | Default                           | Description                                           |
 | ------------------------- | --------------------------------- | ----------------------------------------------------- |
@@ -161,12 +154,12 @@ Set `PYTOOLS_EMBEDDING_MODEL=test` to use a test embedder that generates determi
 
 ## System Prompt
 
-The system prompt is an internal resource bundled with the package. The template used depends on the `tool-search` setting in `agent.json`:
+The system prompt is an internal resource bundled with the package. The template used depends on the `tool_search` setting in `agent.json`:
 
-| Mode     | Template           | Description                                                               |
-| -------- | ------------------ | ------------------------------------------------------------------------- |
-| `basic`  | `system-basic.md`  | Category browsing with `pytools_list_categories` and `pytools_list_tools` |
-| `hybrid` | `system-hybrid.md` | Semantic search with `pytools_search_tools`                               |
+| Mode     | Template                                                                                                            | Description                                                               |
+| -------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `basic`  | [`system-basic.md`](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-basic.md)   | Category browsing with `pytools_list_categories` and `pytools_list_tools` |
+| `hybrid` | [`system-hybrid.md`](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-hybrid.md) | Semantic search with `pytools_search_tools`                               |
 
 The template supports placeholders:
 
@@ -176,8 +169,6 @@ The template supports placeholders:
 | `{generated_rel_dir}`    | Relative path to the generated tool sources directory                                                                         |
 | `{project_instructions}` | Content from `AGENTS.md`, wrapped in `<project-instructions>` tags. Omitted if the file is absent or empty.                   |
 | `{skills}`               | Rendered metadata from bundled skills (`.freeact/skills/`) and custom skills (`.agents/skills/`). Omitted if no skills exist. |
-
-See the templates for [basic](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-basic.md) and [hybrid](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-hybrid.md) modes.
 
 ## Project Instructions
 
@@ -236,7 +227,7 @@ The agent discovers tools from two directories under `.freeact/generated/`:
 
 ### `mcptools/`
 
-Generated Python APIs from `ptc-servers` schemas:
+Generated Python APIs from `ptc_servers` schemas:
 
 ```
 .freeact/generated/mcptools/
@@ -263,39 +254,35 @@ The `terminal.json` file configures terminal UI collapse behavior and keybinding
 
 ```
 {
-  "expand-collapse": {
-    "collapse_thoughts_on_complete": true,
-    "collapse_exec_output_on_complete": true,
-    "collapse_approved_code_actions": true,
-    "collapse_approved_tool_calls": true,
-    "collapse_tool_outputs": true,
-    "keep_rejected_actions_expanded": true,
-    "pin_pending_approval_action_expanded": true
-  },
-  "keys": {
-    "toggle_expand_all": "ctrl+o"
-  }
+  "collapse_thoughts_on_complete": true,
+  "collapse_exec_output_on_complete": true,
+  "collapse_approved_code_actions": true,
+  "collapse_approved_tool_calls": true,
+  "collapse_tool_outputs": true,
+  "keep_rejected_actions_expanded": true,
+  "pin_pending_approval_action_expanded": true,
+  "expand_all_toggle_key": "ctrl+o"
 }
 ```
 
 ### Initialization
 
-The CLI creates `terminal.json` during `freeact` and `freeact init` when the file is missing.
+The CLI creates `terminal.json` during `freeact`, `freeact run`, and `freeact init` when the file is missing.
 
-SDK integrations can scaffold this file by calling `freeact.terminal.config.Config.init()`.
+SDK integrations can load or initialize this file by calling `await freeact.terminal.config.Config.init()`.
 
 ### Settings
 
-| Setting                                                | Default  | Description                                                                      |
-| ------------------------------------------------------ | -------- | -------------------------------------------------------------------------------- |
-| `expand-collapse.collapse_thoughts_on_complete`        | `true`   | Collapse `Thinking` boxes after a completed `Thoughts` event.                    |
-| `expand-collapse.collapse_exec_output_on_complete`     | `true`   | Collapse `Execution Output` boxes after a completed `CodeExecutionOutput` event. |
-| `expand-collapse.collapse_approved_code_actions`       | `true`   | Collapse approved code action previews after approval.                           |
-| `expand-collapse.collapse_approved_tool_calls`         | `true`   | Collapse approved tool call previews after approval.                             |
-| `expand-collapse.collapse_tool_outputs`                | `true`   | Render `Tool Output` boxes collapsed by default.                                 |
-| `expand-collapse.keep_rejected_actions_expanded`       | `true`   | Keep rejected action previews expanded after rejection.                          |
-| `expand-collapse.pin_pending_approval_action_expanded` | `true`   | Keep the current pending approval action expanded until a decision is made.      |
-| `keys.toggle_expand_all`                               | `ctrl+o` | Toggle all collapsible boxes between expanded and configured state.              |
+| Setting                                | Default  | Description                                                                      |
+| -------------------------------------- | -------- | -------------------------------------------------------------------------------- |
+| `collapse_thoughts_on_complete`        | `true`   | Collapse `Thinking` boxes after a completed `Thoughts` event.                    |
+| `collapse_exec_output_on_complete`     | `true`   | Collapse `Execution Output` boxes after a completed `CodeExecutionOutput` event. |
+| `collapse_approved_code_actions`       | `true`   | Collapse approved code action previews after approval.                           |
+| `collapse_approved_tool_calls`         | `true`   | Collapse approved tool call previews after approval.                             |
+| `collapse_tool_outputs`                | `true`   | Render `Tool Output` boxes collapsed by default.                                 |
+| `keep_rejected_actions_expanded`       | `true`   | Keep rejected action previews expanded after rejection.                          |
+| `pin_pending_approval_action_expanded` | `true`   | Keep the current pending approval action expanded until a decision is made.      |
+| `expand_all_toggle_key`                | `ctrl+o` | Toggle all collapsible boxes between expanded and configured state.              |
 
 ______________________________________________________________________
 

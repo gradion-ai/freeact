@@ -1,140 +1,103 @@
 ## freeact.agent.config.Config
 
-```
-Config(working_dir: Path | None = None)
-```
+Bases: `BaseModel`
 
-Configuration loader for the `.freeact/` directory structure.
+Agent configuration.
 
-Loads and parses all configuration on instantiation: skills metadata, system prompts, MCP servers (JSON tool calls), and PTC servers (programmatic tool calling).
+Config:
 
-Internal MCP servers (pytools, filesystem) are defined as constants in this module. User-defined servers from `agent.json` override internal configs when they share the same key.
+- `arbitrary_types_allowed`: `True`
+- `extra`: `forbid`
+- `validate_assignment`: `True`
+- `frozen`: `True`
 
-Attributes:
+Fields:
 
-| Name                | Type             | Description                                                         |
-| ------------------- | ---------------- | ------------------------------------------------------------------- |
-| `working_dir`       | `Path`           | Agent's working directory.                                          |
-| `freeact_dir`       | `Path`           | Path to .freeact/ configuration directory.                          |
-| `model`             | `Path`           | LLM model name or instance.                                         |
-| `model_settings`    | `Path`           | Model-specific settings (e.g., thinking config).                    |
-| `tool_search`       | `str`            | Tool discovery mode read from agent.json.                           |
-| `images_dir`        | \`Path           | None\`                                                              |
-| `execution_timeout` | \`float          | None\`                                                              |
-| `approval_timeout`  | \`float          | None\`                                                              |
-| `enable_subagents`  | `bool`           | Whether to enable subagent delegation.                              |
-| `max_subagents`     | `int`            | Maximum number of concurrent subagents.                             |
-| `kernel_env`        | `dict[str, str]` | Environment variables passed to the IPython kernel.                 |
-| `skills_metadata`   |                  | Parsed skill definitions from .freeact/skills/ and .agents/skills/. |
-| `system_prompt`     |                  | Rendered system prompt loaded from package resources.               |
-| `mcp_servers`       |                  | Merged and resolved MCP server configs.                             |
-| `ptc_servers`       |                  | Raw PTC server configs loaded from agent.json.                      |
-| `sessions_dir`      | `Path`           | Session trace storage directory.                                    |
-
-### freeact_dir
-
-```
-freeact_dir: Path
-```
-
-Path to `.freeact/` configuration directory.
-
-### generated_dir
-
-```
-generated_dir: Path
-```
-
-Generated MCP tool sources directory.
-
-### generated_rel_dir
-
-```
-generated_rel_dir: Path
-```
-
-Generated MCP tool sources directory relative to working directory.
-
-### plans_dir
-
-```
-plans_dir: Path
-```
-
-Plan storage directory.
-
-### search_db_file
-
-```
-search_db_file: Path
-```
-
-Hybrid search database path.
-
-### sessions_dir
-
-```
-sessions_dir: Path
-```
-
-Session trace storage directory.
-
-### working_dir
-
-```
-working_dir: Path
-```
-
-Agent's working directory.
-
-### for_subagent
-
-```
-for_subagent() -> Config
-```
-
-Create a subagent configuration from this config.
-
-Returns a shallow copy with subagent-specific overrides: subagents disabled, mcp_servers deep-copied with pytools sync/watch disabled, and kernel_env shallow-copied for independence.
+- `working_dir` (`Path`)
+- `model` (`str | Model`)
+- `model_settings` (`dict[str, Any]`)
+- `provider_settings` (`dict[str, Any] | None`)
+- `tool_search` (`Literal['basic', 'hybrid']`)
+- `images_dir` (`Path | None`)
+- `execution_timeout` (`float | None`)
+- `approval_timeout` (`float | None`)
+- `enable_subagents` (`bool`)
+- `max_subagents` (`int`)
+- `kernel_env` (`dict[str, str]`)
+- `mcp_servers` (`dict[str, dict[str, Any]]`)
+- `ptc_servers` (`dict[str, dict[str, Any]]`)
 
 ### init
 
 ```
-init(working_dir: Path | None = None) -> None
+init(working_dir: Path | None = None) -> Config
 ```
 
-Scaffold `.freeact/` directory from bundled templates.
+Load config from `.freeact/` when present, otherwise save defaults.
 
-Copies template files that don't already exist, preserving user modifications. Runs blocking I/O in a separate thread.
+### load
 
-Parameters:
+```
+load(working_dir: Path | None = None) -> Config
+```
 
-| Name          | Type   | Description | Default                                                |
-| ------------- | ------ | ----------- | ------------------------------------------------------ |
-| `working_dir` | \`Path | None\`      | Base directory. Defaults to current working directory. |
+Load persisted config if present, otherwise return defaults.
+
+### save
+
+```
+save() -> None
+```
+
+Persist config and scaffold static directories and bundled skills.
 
 ## freeact.agent.config.SkillMetadata
 
-```
-SkillMetadata(name: str, description: str, path: Path)
-```
+Bases: `BaseModel`
 
 Metadata parsed from a skill's SKILL.md frontmatter.
 
-## freeact.agent.config.PYTOOLS_BASIC_CONFIG
+Config:
+
+- `frozen`: `True`
+
+Fields:
+
+- `name` (`str`)
+- `description` (`str`)
+- `path` (`Path`)
+
+## freeact.agent.config.DEFAULT_MODEL_NAME
 
 ```
-PYTOOLS_BASIC_CONFIG: dict[str, Any] = {
+DEFAULT_MODEL_NAME = 'google-gla:gemini-3-flash-preview'
+```
+
+## freeact.agent.config.DEFAULT_MODEL_SETTINGS
+
+```
+DEFAULT_MODEL_SETTINGS: dict[str, Any] = {
+    "google_thinking_config": {
+        "thinking_level": "high",
+        "include_thoughts": True,
+    }
+}
+```
+
+## freeact.agent.config.BASIC_SEARCH_MCP_SERVER_CONFIG
+
+```
+BASIC_SEARCH_MCP_SERVER_CONFIG: dict[str, Any] = {
     "command": "python",
     "args": ["-m", "freeact.tools.pytools.search.basic"],
     "env": {"PYTOOLS_DIR": "${PYTOOLS_DIR}"},
 }
 ```
 
-## freeact.agent.config.PYTOOLS_HYBRID_CONFIG
+## freeact.agent.config.HYBRID_SEARCH_MCP_SERVER_CONFIG
 
 ```
-PYTOOLS_HYBRID_CONFIG: dict[str, Any] = {
+HYBRID_SEARCH_MCP_SERVER_CONFIG: dict[str, Any] = {
     "command": "python",
     "args": ["-m", "freeact.tools.pytools.search.hybrid"],
     "env": {
@@ -151,10 +114,25 @@ PYTOOLS_HYBRID_CONFIG: dict[str, Any] = {
 }
 ```
 
-## freeact.agent.config.FILESYSTEM_CONFIG
+## freeact.agent.config.GOOGLE_SEARCH_MCP_SERVER_CONFIG
 
 ```
-FILESYSTEM_CONFIG: dict[str, Any] = {
+GOOGLE_SEARCH_MCP_SERVER_CONFIG: dict[str, Any] = {
+    "command": "python",
+    "args": [
+        "-m",
+        "freeact.tools.gsearch",
+        "--thinking-level",
+        "medium",
+    ],
+    "env": {"GEMINI_API_KEY": "${GEMINI_API_KEY}"},
+}
+```
+
+## freeact.agent.config.FILESYSTEM_MCP_SERVER_CONFIG
+
+```
+FILESYSTEM_MCP_SERVER_CONFIG: dict[str, Any] = {
     "command": "npx",
     "args": [
         "-y",

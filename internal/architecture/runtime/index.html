@@ -1206,15 +1206,15 @@ It intentionally excludes CLI, terminal UI, and longer-lived permission policy l
 <h2 id="configuration">Configuration</h2>
 <ul>
 <li><code>freeact/agent/config/</code> handles <code>.freeact/</code> initialization and loading.</li>
-<li><code>Config.init()</code> scaffolds missing files only; it does not overwrite existing user files.</li>
+<li><code>Config()</code> creates defaults in memory; <code>save()</code> persists static config artifacts; <code>load()</code> reads persisted config when present.</li>
 </ul>
 <h2 id="tools">Tools</h2>
 <ul>
 <li>Bundled tool-definition caches:</li>
 <li>ipybox tools: <code>freeact/tools/ipybox.json</code></li>
 <li>subagent tool: <code>freeact/tools/subagent.json</code></li>
-<li>JSON MCP calls use <code>mcp-servers</code>.</li>
-<li>Programmatic tool calling uses generated Python APIs from <code>ptc-servers</code> in <code>.freeact/generated/mcptools/</code>.</li>
+<li>JSON MCP calls use <code>mcp_servers</code>.</li>
+<li>Programmatic tool calling uses generated Python APIs from <code>ptc_servers</code> in <code>.freeact/generated/mcptools/</code>.</li>
 <li>User-defined generated tools live in <code>.freeact/generated/gentools/</code>.</li>
 </ul>
 <h2 id="sessions">Sessions</h2>

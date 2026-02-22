@@ -24,11 +24,11 @@ Freeact supports any model compatible with Pydantic AI. To switch providers or c
 
 ### Generating MCP Tool APIs
 
-On first start, the CLI tool auto-generates Python APIs for [configured](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) MCP servers. For example, it creates `.freeact/generated/mcptools/google/web_search.py` for the `web_search` tool of the bundled `google` MCP server. With the generated Python API, the agent can import and call this tool programmatically.
+On first start, the CLI tool auto-generates Python APIs for [configured](https://gradion-ai.github.io/freeact/configuration/#ptc_servers) MCP servers. For example, it creates `.freeact/generated/mcptools/google/web_search.py` for the `web_search` tool of the bundled `google` MCP server. With the generated Python API, the agent can import and call this tool programmatically.
 
 Custom MCP servers
 
-For calling the tools of your own MCP servers programmatically, add them to the [`ptc-servers`](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) section in `.freeact/agent.json`. Freeact auto-generates a Python API for them when the CLI tool starts.
+For calling the tools of your own MCP servers programmatically, add them to the [`ptc_servers`](https://gradion-ai.github.io/freeact/configuration/#ptc_servers) section in `.freeact/agent.json`. Freeact auto-generates a Python API for them when the CLI tool starts.
 
 ### Running a Task
 
@@ -69,11 +69,7 @@ from freeact.tools.pytools.apigen import generate_mcp_sources
 
 
 async def main() -> None:
-    # Scaffold .freeact/ config directory if needed
-    await Config.init()
-
-    # Load configuration from .freeact/
-    config = Config()
+    config = await Config.init()
 
     # Generate Python APIs for MCP servers in ptc_servers
     for server_name, params in config.ptc_servers.items():

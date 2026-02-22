@@ -2,11 +2,11 @@
 
 Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/models/). The model is configured in [`.freeact/agent.json`](https://gradion-ai.github.io/freeact/configuration/#configuration-file) through three settings:
 
-| Setting          | Required | Description                                                                         |
-| ---------------- | -------- | ----------------------------------------------------------------------------------- |
-| `model`          | yes      | Model identifier in `provider:model-name` format                                    |
-| `model-settings` | no       | Provider-specific settings passed to the model (e.g., thinking config, temperature) |
-| `model-provider` | no       | Provider constructor kwargs for custom endpoints or credentials                     |
+| Setting             | Required | Description                                                                     |
+| ------------------- | -------- | ------------------------------------------------------------------------------- |
+| `model`             | yes      | Model identifier in `provider:model-name` format                                |
+| `model_settings`    | no       | Model behavior settings (for example thinking settings or `temperature`)        |
+| `provider_settings` | no       | Provider options (for example `api_key`, `base_url`, `app_url`, or `app_title`) |
 
 ## Model Identifier
 
@@ -31,7 +31,7 @@ The default configuration uses Google's Gemini API with dynamic thinking enabled
 ```
 {
   "model": "google-gla:gemini-3-flash-preview",
-  "model-settings": {
+  "model_settings": {
     "google_thinking_config": {
       "thinking_level": "high",
       "include_thoughts": true
@@ -47,7 +47,7 @@ Set the `GEMINI_API_KEY` environment variable to authenticate.
 ```
 {
   "model": "anthropic:claude-sonnet-4-6",
-  "model-settings": {
+  "model_settings": {
     "anthropic_thinking": {
       "type": "adaptive"
     }
@@ -62,7 +62,7 @@ Set the `ANTHROPIC_API_KEY` environment variable to authenticate.
 ```
 {
   "model": "openai:gpt-5.2",
-  "model-settings": {
+  "model_settings": {
     "openai_reasoning_effort": "medium"
   }
 }
@@ -72,17 +72,17 @@ Set the `OPENAI_API_KEY` environment variable to authenticate.
 
 ### OpenRouter
 
-Providers like OpenRouter require `model-provider` to pass constructor kwargs (API key, app metadata) to the provider:
+For providers like OpenRouter, put provider-specific options in `provider_settings` (for example `api_key`, `app_url`, and `app_title`):
 
 ```
 {
   "model": "openrouter:anthropic/claude-sonnet-4.6",
-  "model-settings": {
+  "model_settings": {
     "anthropic_thinking": {
       "type": "adaptive"
     }
   },
-  "model-provider": {
+  "provider_settings": {
     "api_key": "${OPENROUTER_API_KEY}",
     "app_url": "https://my-app.example.com",
     "app_title": "freeact"
@@ -92,15 +92,15 @@ Providers like OpenRouter require `model-provider` to pass constructor kwargs (A
 
 ### OpenAI-Compatible Endpoints
 
-Any OpenAI-compatible API can be used by setting `base_url` in `model-provider`:
+Any OpenAI-compatible API can be used by setting `base_url` in `provider_settings`:
 
 ```
 {
   "model": "openai:my-custom-model",
-  "model-settings": {
+  "model_settings": {
     "temperature": 0.7
   },
-  "model-provider": {
+  "provider_settings": {
     "base_url": "https://my-api.example.com/v1",
     "api_key": "${CUSTOM_API_KEY}"
   }
@@ -109,16 +109,16 @@ Any OpenAI-compatible API can be used by setting `base_url` in `model-provider`:
 
 ## Model Settings
 
-`model-settings` is passed directly to Pydantic AI's model request. Available settings depend on the provider.
+`model_settings` is passed directly to Pydantic AI's model request. Available settings depend on the provider.
 
 ### Extended Thinking
 
-Freeact streams thinking content when the model supports it. Thinking is configured through provider-specific settings in `model-settings`.
+Freeact streams thinking content when the model supports it. Thinking is configured through provider-specific settings in `model_settings`.
 
 **Google (Gemini)**:
 
 ```
-"model-settings": {
+"model_settings": {
   "google_thinking_config": {
     "thinking_level": "high",
     "include_thoughts": true
@@ -131,7 +131,7 @@ Freeact streams thinking content when the model supports it. Thinking is configu
 **Anthropic** (Opus 4.6, Sonnet 4.6):
 
 ```
-"model-settings": {
+"model_settings": {
   "anthropic_thinking": {
     "type": "adaptive"
   },
@@ -144,7 +144,7 @@ Adaptive thinking lets the model decide when and how much to think. `anthropic_e
 **OpenAI**:
 
 ```
-"model-settings": {
+"model_settings": {
   "openai_reasoning_effort": "medium"
 }
 ```
@@ -160,10 +160,6 @@ Adaptive thinking lets the model decide when and how much to think. `anthropic_e
 
 See Pydantic AI's [settings documentation](https://ai.pydantic.dev/api/settings/) for the full reference.
 
-## Model Provider
+## Provider Settings
 
-`model-provider` configures custom API credentials, endpoints, or other provider-specific options.
-
-Provider config supports `${VAR}` placeholders resolved against the host environment. Missing variables cause a startup error.
-
-When `model-provider` is omitted, Pydantic AI resolves the provider from the model name prefix and uses its default authentication (typically an environment variable like `GEMINI_API_KEY` or `ANTHROPIC_API_KEY`).
+Use `provider_settings` for provider-specific options such as `api_key`, `base_url`, `app_url`, or `app_title`.

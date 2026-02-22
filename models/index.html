@@ -694,10 +694,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#model-provider" class="md-nav__link">
+  <a href="#provider-settings" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Model Provider
+        Provider Settings
       
     </span>
   </a>
@@ -1418,10 +1418,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#model-provider" class="md-nav__link">
+  <a href="#provider-settings" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Model Provider
+        Provider Settings
       
     </span>
   </a>
@@ -1465,14 +1465,14 @@
 <td>Model identifier in <code>provider:model-name</code> format</td>
 </tr>
 <tr>
-<td><code>model-settings</code></td>
+<td><code>model_settings</code></td>
 <td>no</td>
-<td>Provider-specific settings passed to the model (e.g., thinking config, temperature)</td>
+<td>Model behavior settings (for example thinking settings or <code>temperature</code>)</td>
 </tr>
 <tr>
-<td><code>model-provider</code></td>
+<td><code>provider_settings</code></td>
 <td>no</td>
-<td>Provider constructor kwargs for custom endpoints or credentials</td>
+<td>Provider options (for example <code>api_key</code>, <code>base_url</code>, <code>app_url</code>, or <code>app_title</code>)</td>
 </tr>
 </tbody>
 </table>
@@ -1520,7 +1520,7 @@
 <p>The default configuration uses Google's Gemini API with dynamic thinking enabled:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;google-gla:gemini-3-flash-preview&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;model_settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;google_thinking_config&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">      </span><span class="nt">&quot;thinking_level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;high&quot;</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;include_thoughts&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
@@ -1532,7 +1532,7 @@
 <h3 id="anthropic">Anthropic</h3>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;anthropic:claude-sonnet-4-6&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;model_settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;anthropic_thinking&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;adaptive&quot;</span>
 <span class="w">    </span><span class="p">}</span>
@@ -1543,22 +1543,22 @@
 <h3 id="openai">OpenAI</h3>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;openai:gpt-5.2&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;model_settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;openai_reasoning_effort&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;medium&quot;</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
 <p>Set the <code>OPENAI_API_KEY</code> environment variable to authenticate.</p>
 <h3 id="openrouter">OpenRouter</h3>
-<p>Providers like OpenRouter require <code>model-provider</code> to pass constructor kwargs (API key, app metadata) to the provider:</p>
+<p>For providers like OpenRouter, put provider-specific options in <code>provider_settings</code> (for example <code>api_key</code>, <code>app_url</code>, and <code>app_title</code>):</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;openrouter:anthropic/claude-sonnet-4.6&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;model_settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;anthropic_thinking&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;adaptive&quot;</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;model-provider&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;provider_settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;api_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${OPENROUTER_API_KEY}&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;app_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://my-app.example.com&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;app_title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;freeact&quot;</span>
@@ -1566,24 +1566,24 @@
 <span class="p">}</span>
 </code></pre></div>
 <h3 id="openai-compatible-endpoints">OpenAI-Compatible Endpoints</h3>
-<p>Any OpenAI-compatible API can be used by setting <code>base_url</code> in <code>model-provider</code>:</p>
+<p>Any OpenAI-compatible API can be used by setting <code>base_url</code> in <code>provider_settings</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;openai:my-custom-model&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;model_settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;temperature&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.7</span>
 <span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;model-provider&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;provider_settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;base_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://my-api.example.com/v1&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;api_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${CUSTOM_API_KEY}&quot;</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
 <h2 id="model-settings">Model Settings</h2>
-<p><code>model-settings</code> is passed directly to Pydantic AI's model request. Available settings depend on the provider.</p>
+<p><code>model_settings</code> is passed directly to Pydantic AI's model request. Available settings depend on the provider.</p>
 <h3 id="extended-thinking">Extended Thinking</h3>
-<p>Freeact streams thinking content when the model supports it. Thinking is configured through provider-specific settings in <code>model-settings</code>.</p>
+<p>Freeact streams thinking content when the model supports it. Thinking is configured through provider-specific settings in <code>model_settings</code>.</p>
 <p><strong>Google (Gemini)</strong>:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;model_settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;google_thinking_config&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;thinking_level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;high&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;include_thoughts&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
@@ -1592,7 +1592,7 @@
 </code></pre></div>
 <p><code>thinking_level</code> accepts <code>"low"</code>, <code>"medium"</code>, or <code>"high"</code>. Set <code>include_thoughts</code> to <code>true</code> to stream thinking content.</p>
 <p><strong>Anthropic</strong> (Opus 4.6, Sonnet 4.6):</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;model_settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;anthropic_thinking&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;adaptive&quot;</span>
 <span class="w">  </span><span class="p">},</span>
@@ -1601,7 +1601,7 @@
 </code></pre></div>
 <p>Adaptive thinking lets the model decide when and how much to think. <code>anthropic_effort</code> accepts <code>"low"</code>, <code>"medium"</code>, <code>"high"</code>, or <code>"max"</code> (Opus only). The default is <code>"high"</code>.</p>
 <p><strong>OpenAI</strong>:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;model_settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;openai_reasoning_effort&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;medium&quot;</span>
 <span class="p">}</span>
 </code></pre></div>
@@ -1626,10 +1626,8 @@
 </tbody>
 </table>
 <p>See Pydantic AI's <a href="https://ai.pydantic.dev/api/settings/" target="_blank">settings documentation</a> for the full reference.</p>
-<h2 id="model-provider">Model Provider</h2>
-<p><code>model-provider</code> configures custom API credentials, endpoints, or other provider-specific options.</p>
-<p>Provider config supports <code>${VAR}</code> placeholders resolved against the host environment. Missing variables cause a startup error.</p>
-<p>When <code>model-provider</code> is omitted, Pydantic AI resolves the provider from the model name prefix and uses its default authentication (typically an environment variable like <code>GEMINI_API_KEY</code> or <code>ANTHROPIC_API_KEY</code>).</p>
+<h2 id="provider-settings">Provider Settings</h2>
+<p>Use <code>provider_settings</code> for provider-specific options such as <code>api_key</code>, <code>base_url</code>, <code>app_url</code>, or <code>app_title</code>.</p>
 
 
 

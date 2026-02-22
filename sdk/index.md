@@ -9,23 +9,19 @@ The Agent SDK provides four main APIs:
 
 ## Configuration API
 
-Use Config.init() to scaffold the `.freeact/` directory from default templates. The Config() constructor loads all configuration from it:
+Use Config.init() to load persisted config from `.freeact/` when present, or create and save defaults on first run. Use save() and load() when explicit persistence control is needed:
 
 ```
 from freeact.agent.config import Config
 
-# Scaffold .freeact/ config directory if needed
-await Config.init()
-
-# Load configuration from .freeact/
-config = Config()
+config = await Config.init()
 ```
 
 See the [Configuration](https://gradion-ai.github.io/freeact/configuration/index.md) reference for details on the `.freeact/` directory structure.
 
 ## Generation API
 
-MCP servers [configured](https://gradion-ai.github.io/freeact/configuration/#ptc-servers) as `ptc-servers` in `agent.json` require Python API generation with generate_mcp_sources() before the agent can call their tools programmatically:
+MCP servers [configured](https://gradion-ai.github.io/freeact/configuration/#ptc_servers) as `ptc_servers` in `agent.json` require Python API generation with generate_mcp_sources() before the agent can call their tools programmatically:
 
 ```
 from freeact.tools.pytools.apigen import generate_mcp_sources
@@ -135,7 +131,7 @@ async for event in agent.stream(prompt):
             print(f"[{agent_id}] {content}")
 ```
 
-The main agent's `agent_id` is `main`, subagent IDs use the form `sub-xxxx`. Each delegated task defaults to `max_turns=100`. The [`max-subagents`](https://gradion-ai.github.io/freeact/configuration/#agent-settings) setting in `agent.json` limits concurrent subagents (default 5).
+The main agent's `agent_id` is `main`, subagent IDs use the form `sub-xxxx`. Each delegated task defaults to `max_turns=100`. The [`max_subagents`](https://gradion-ai.github.io/freeact/configuration/#agent-settings) setting in `agent.json` limits concurrent subagents (default 5).
 
 ### Approval
 
@@ -165,7 +161,7 @@ For code actions, `tool_name` is `ipybox_execute_ipython_cell` and `tool_args` c
 The agent manages MCP server connections and an IPython kernel via [ipybox](https://gradion-ai.github.io/ipybox/). On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calling connect. MCP servers configured for programmatic tool calling connect lazily on first tool call.
 
 ```
-config = Config()
+config = await Config.init()
 async with Agent(config=config) as agent:
     async for event in agent.stream(prompt):
         ...
@@ -175,7 +171,7 @@ async with Agent(config=config) as agent:
 Without using the async context manager:
 
 ```
-config = Config()
+config = await Config.init()
 agent = Agent(config=config)
 await agent.start()
 try:
@@ -189,13 +185,13 @@ finally:
 
 The agent supports two timeout settings in [`agent.json`](https://gradion-ai.github.io/freeact/configuration/#agent-settings):
 
-- **`execution-timeout`**: Maximum time in seconds for each [code execution](https://gradion-ai.github.io/freeact/execution/index.md). Approval wait time is excluded from this budget, so the timeout only counts actual execution time. Defaults to 300 seconds. Set to `null` to disable.
-- **`approval-timeout`**: Timeout for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. Defaults to `null` (no timeout).
+- `execution_timeout`: Maximum time in seconds for each [code execution](https://gradion-ai.github.io/freeact/execution/index.md). Approval wait time is excluded from this budget, so the timeout only counts actual execution time. Defaults to 300 seconds. Set to `null` to disable.
+- `approval_timeout`: Timeout for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. Defaults to `null` (no timeout).
 
 ```
 {
-  "execution-timeout": 60,
-  "approval-timeout": 30
+  "execution_timeout": 60,
+  "approval_timeout": 30
 }
 ```
 

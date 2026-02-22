@@ -1467,18 +1467,14 @@
 <li><a href="../api/permissions/">Permissions API</a> for managing approval decisions</li>
 </ul>
 <h2 id="configuration-api">Configuration API</h2>
-<p>Use <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config.init"><code>Config.init()</code></a> to scaffold the <code>.freeact/</code> directory from default templates. The <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config"><code>Config()</code></a> constructor loads all configuration from it:</p>
+<p>Use <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config.init"><code>Config.init()</code></a> to load persisted config from <code>.freeact/</code> when present, or create and save defaults on first run. Use <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config.save"><code>save()</code></a> and <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config.load"><code>load()</code></a> when explicit persistence control is needed:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
 
-<span class="c1"># Scaffold .freeact/ config directory if needed</span>
-<span class="k">await</span> <span class="n">Config</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
-
-<span class="c1"># Load configuration from .freeact/</span>
-<span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
+<span class="n">config</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Config</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
 </code></pre></div>
 <p>See the <a href="../configuration/">Configuration</a> reference for details on the <code>.freeact/</code> directory structure.</p>
 <h2 id="generation-api">Generation API</h2>
-<p>MCP servers <a href="../configuration/#ptc-servers">configured</a> as <code>ptc-servers</code> in <code>agent.json</code> require Python API generation with <a class="autorefs autorefs-internal" href="../api/generate/#freeact.tools.pytools.apigen.generate_mcp_sources"><code>generate_mcp_sources()</code></a> before the agent can call their tools programmatically:</p>
+<p>MCP servers <a href="../configuration/#ptc_servers">configured</a> as <code>ptc_servers</code> in <code>agent.json</code> require Python API generation with <a class="autorefs autorefs-internal" href="../api/generate/#freeact.tools.pytools.apigen.generate_mcp_sources"><code>generate_mcp_sources()</code></a> before the agent can call their tools programmatically:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">freeact.tools.pytools.apigen</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_mcp_sources</span>
 
 <span class="c1"># Generate Python APIs for MCP servers in ptc_servers</span>
@@ -1582,7 +1578,7 @@
 <tbody>
 <tr>
 <td>read, write</td>
-<td><a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.FILESYSTEM_CONFIG"><code>filesystem</code></a> MCP server</td>
+<td><a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.FILESYSTEM_MCP_SERVER_CONFIG"><code>filesystem</code></a> MCP server</td>
 <td>Reading and writing files via JSON tool calls</td>
 </tr>
 <tr>
@@ -1597,7 +1593,7 @@
 </tr>
 <tr>
 <td>tool search</td>
-<td><code>pytools</code> MCP server for <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.PYTOOLS_BASIC_CONFIG">basic search</a> and <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.PYTOOLS_HYBRID_CONFIG">hybrid search</a></td>
+<td><code>pytools</code> MCP server for <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.BASIC_SEARCH_MCP_SERVER_CONFIG">basic search</a> and <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.HYBRID_SEARCH_MCP_SERVER_CONFIG">hybrid search</a></td>
 <td>Tool discovery via category browsing or hybrid search</td>
 </tr>
 </tbody>
@@ -1618,7 +1614,7 @@
         <span class="k">case</span> <span class="n">Response</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span> <span class="n">agent_id</span><span class="o">=</span><span class="n">agent_id</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">agent_id</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
-<p>The main agent's <code>agent_id</code> is <code>main</code>, subagent IDs use the form <code>sub-xxxx</code>. Each delegated task defaults to <code>max_turns=100</code>. The <a href="../configuration/#agent-settings"><code>max-subagents</code></a> setting in <code>agent.json</code> limits concurrent subagents (default 5).</p>
+<p>The main agent's <code>agent_id</code> is <code>main</code>, subagent IDs use the form <code>sub-xxxx</code>. Each delegated task defaults to <code>max_turns=100</code>. The <a href="../configuration/#agent-settings"><code>max_subagents</code></a> setting in <code>agent.json</code> limits concurrent subagents (default 5).</p>
 <h3 id="approval">Approval</h3>
 <p>The agent provides a unified approval mechanism. It yields <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.ApprovalRequest"><code>ApprovalRequest</code></a> for all code actions, programmatic tool calls, and JSON tool calls. Execution is suspended until <code>approve()</code> is called. Calling <code>approve(True)</code> executes the code action or tool call; <code>approve(False)</code> rejects it and ends the current agent turn.</p>
 <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">prompt</span><span class="p">):</span>
@@ -1640,14 +1636,14 @@
 </div>
 <h3 id="lifecycle">Lifecycle</h3>
 <p>The agent manages MCP server connections and an IPython kernel via <a href="https://gradion-ai.github.io/ipybox/">ipybox</a>. On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calling connect. MCP servers configured for programmatic tool calling connect lazily on first tool call.</p>
-<div class="highlight"><pre><span></span><code><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><span class="n">config</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Config</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
 <span class="k">async</span> <span class="k">with</span> <span class="n">Agent</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span> <span class="k">as</span> <span class="n">agent</span><span class="p">:</span>
     <span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">prompt</span><span class="p">):</span>
         <span class="o">...</span>
 <span class="c1"># Connections closed, kernel stopped</span>
 </code></pre></div>
 <p>Without using the async context manager:</p>
-<div class="highlight"><pre><span></span><code><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><span class="n">config</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Config</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
 <span class="n">agent</span> <span class="o">=</span> <span class="n">Agent</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
 <span class="k">await</span> <span class="n">agent</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 <span class="k">try</span><span class="p">:</span>
@@ -1659,12 +1655,12 @@
 <h3 id="timeouts">Timeouts</h3>
 <p>The agent supports two timeout settings in <a href="../configuration/#agent-settings"><code>agent.json</code></a>:</p>
 <ul>
-<li><strong><code>execution-timeout</code></strong>: Maximum time in seconds for each <a href="../execution/">code execution</a>. Approval wait time is excluded from this budget, so the timeout only counts actual execution time. Defaults to 300 seconds. Set to <code>null</code> to disable.</li>
-<li><strong><code>approval-timeout</code></strong>: Timeout for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. Defaults to <code>null</code> (no timeout).</li>
+<li><code>execution_timeout</code>: Maximum time in seconds for each <a href="../execution/">code execution</a>. Approval wait time is excluded from this budget, so the timeout only counts actual execution time. Defaults to 300 seconds. Set to <code>null</code> to disable.</li>
+<li><code>approval_timeout</code>: Timeout for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. Defaults to <code>null</code> (no timeout).</li>
 </ul>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;execution-timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">60</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;approval-timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span>
+<span class="w">  </span><span class="nt">&quot;execution_timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">60</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;approval_timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span>
 <span class="p">}</span>
 </code></pre></div>
 <h3 id="persistence">Persistence</h3>

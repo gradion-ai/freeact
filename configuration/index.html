@@ -533,10 +533,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#tool-search" class="md-nav__link">
+  <a href="#tool_search" class="md-nav__link">
     <span class="md-ellipsis">
       
-        tool-search
+        tool_search
       
     </span>
   </a>
@@ -544,10 +544,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#mcp-servers" class="md-nav__link">
+  <a href="#mcp_servers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        mcp-servers
+        mcp_servers
       
     </span>
   </a>
@@ -555,10 +555,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#ptc-servers" class="md-nav__link">
+  <a href="#ptc_servers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ptc-servers
+        ptc_servers
       
     </span>
   </a>
@@ -1474,10 +1474,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#tool-search" class="md-nav__link">
+  <a href="#tool_search" class="md-nav__link">
     <span class="md-ellipsis">
       
-        tool-search
+        tool_search
       
     </span>
   </a>
@@ -1485,10 +1485,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#mcp-servers" class="md-nav__link">
+  <a href="#mcp_servers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        mcp-servers
+        mcp_servers
       
     </span>
   </a>
@@ -1496,10 +1496,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#ptc-servers" class="md-nav__link">
+  <a href="#ptc_servers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ptc-servers
+        ptc_servers
       
     </span>
   </a>
@@ -1717,7 +1717,7 @@
 <h1 id="configuration">Configuration</h1>
 <p>Freeact configuration is stored in the <code>.freeact/</code> directory. This page describes the directory structure and configuration formats. It also describes the structure of <a href="#tool-directories">tool directories</a>.</p>
 <h2 id="initialization">Initialization</h2>
-<p>The <code>.freeact/</code> directory is created and populated from bundled templates through three entry points:</p>
+<p>The <code>.freeact/</code> directory is initialized through CLI entry points:</p>
 <table>
 <thead>
 <tr>
@@ -1728,25 +1728,15 @@
 <tbody>
 <tr>
 <td><code>freeact</code> or<br/> <code>freeact run</code></td>
-<td>Creates config with <a href="../cli/">CLI tool</a> before starting the agent</td>
+<td>Initializes <code>.freeact/</code> on first run, then starts the agent.</td>
 </tr>
 <tr>
 <td><code>freeact init</code></td>
-<td>Creates config with <a href="../cli/">CLI tool</a> without starting the agent</td>
-</tr>
-<tr>
-<td><a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config.init"><code>Config.init()</code></a></td>
-<td>Creates config programmatically without starting the agent</td>
+<td>Initializes <code>.freeact/</code> without starting the agent.</td>
 </tr>
 </tbody>
 </table>
-<p>All three entry points share the same behavior:</p>
-<ul>
-<li><strong>Missing files are created</strong> from <a href="https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates">default templates</a></li>
-<li><strong>Existing files are preserved</strong> and never overwritten</li>
-<li><strong>User modifications persist</strong> across restarts and updates</li>
-</ul>
-<p>This allows safe customization: edit any configuration file, and your changes remain intact. If you delete a file, it is recreated from the default template on next initialization.</p>
+<p>Both CLI entry points initialize only when <code>.freeact/</code> is missing. For programmatic agent configuration, see the <a href="../sdk/">Agent SDK</a> and <a href="../api/config/">Configuration API</a>.</p>
 <h2 id="directory-structure">Directory Structure</h2>
 <p>Freeact stores agent configuration and runtime state in <code>.freeact/</code>. Project-level customization uses <code>AGENTS.md</code> for <a href="#project-instructions">project instructions</a> and <code>.agents/skills/</code> for <a href="#custom-skills">custom skills</a>.</p>
 <div class="highlight"><pre><span></span><code>&lt;working-dir&gt;/
@@ -1764,7 +1754,7 @@
     │       ├── SKILL.md    # Skill metadata and instructions
     │       └── ...         # Further skill resources
     ├── generated/          # Generated tool sources (on PYTHONPATH)
-    │   ├── mcptools/       # Generated Python APIs from ptc-servers
+    │   ├── mcptools/       # Generated Python APIs from ptc_servers
     │   └── gentools/       # User-defined tools saved from code actions
     ├── plans/              # Task plan storage
     ├── sessions/           # Session trace storage
@@ -1777,16 +1767,16 @@
 <p>The <code>agent.json</code> file contains agent settings and MCP server configurations:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;google-gla:gemini-3-flash-preview&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;model-settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;tool-search&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;basic&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;images-dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;execution-timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">300</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;approval-timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;enable-subagents&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;max-subagents&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;kernel-env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
-<span class="w">  </span><span class="nt">&quot;mcp-servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
-<span class="w">  </span><span class="nt">&quot;ptc-servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;model_settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;tool_search&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;basic&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;images_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;execution_timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">300</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;approval_timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;enable_subagents&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;max_subagents&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;kernel_env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
+<span class="w">  </span><span class="nt">&quot;mcp_servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
+<span class="w">  </span><span class="nt">&quot;ptc_servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;server-name&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
@@ -1807,48 +1797,48 @@
 <td><a href="../models/#model-identifier">Model identifier</a> in <code>provider:model-name</code> format</td>
 </tr>
 <tr>
-<td><code>model-settings</code></td>
+<td><code>model_settings</code></td>
 <td><code>{}</code></td>
 <td>Provider-specific <a href="../models/#model-settings">model settings</a> (e.g., thinking config, temperature)</td>
 </tr>
 <tr>
-<td><code>model-provider</code></td>
+<td><code>provider_settings</code></td>
 <td><code>null</code></td>
-<td>Custom API credentials, endpoints, or other <a href="../models/#model-provider">provider-specific options</a></td>
+<td>Custom API credentials, endpoints, or other <a href="../models/#provider-settings">provider-specific options</a></td>
 </tr>
 <tr>
-<td><code>images-dir</code></td>
+<td><code>images_dir</code></td>
 <td><code>null</code></td>
 <td>Directory for saving generated images to disk. <code>null</code> defaults to <code>images</code> in the working directory.</td>
 </tr>
 <tr>
-<td><code>execution-timeout</code></td>
+<td><code>execution_timeout</code></td>
 <td><code>300</code></td>
 <td>Maximum time in seconds for <a href="../execution/">code execution</a>. Approval wait time is excluded. <code>null</code> means no timeout.</td>
 </tr>
 <tr>
-<td><code>approval-timeout</code></td>
+<td><code>approval_timeout</code></td>
 <td><code>null</code></td>
 <td>Timeout in seconds for PTC approval requests. <code>null</code> means no timeout.</td>
 </tr>
 <tr>
-<td><code>enable-subagents</code></td>
+<td><code>enable_subagents</code></td>
 <td><code>true</code></td>
 <td>Whether to enable subagent delegation</td>
 </tr>
 <tr>
-<td><code>max-subagents</code></td>
+<td><code>max_subagents</code></td>
 <td><code>5</code></td>
 <td>Maximum number of concurrent subagents</td>
 </tr>
 <tr>
-<td><code>kernel-env</code></td>
+<td><code>kernel_env</code></td>
 <td><code>{}</code></td>
 <td>Environment variables passed to the IPython kernel. Supports <code>${VAR}</code> placeholders resolved against the host environment.</td>
 </tr>
 </tbody>
 </table>
-<h3 id="tool-search"><code>tool-search</code></h3>
+<h3 id="tool_search"><code>tool_search</code></h3>
 <p>Controls how the agent discovers Python tools:</p>
 <table>
 <thead>
@@ -1868,19 +1858,19 @@
 </tr>
 </tbody>
 </table>
-<p>The <code>tool-search</code> setting also selects the matching system prompt template (see <a href="#system-prompt">System Prompt</a>). For hybrid mode environment variables, see <a href="#hybrid-search">Hybrid Search</a>.</p>
-<h3 id="mcp-servers"><code>mcp-servers</code></h3>
-<p>MCP servers called directly via JSON tool calls. Internal servers (<code>pytools</code> for <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.PYTOOLS_BASIC_CONFIG">basic</a> or <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.PYTOOLS_HYBRID_CONFIG">hybrid</a> tool search and <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.FILESYSTEM_CONFIG"><code>filesystem</code></a> for file operations) are provided automatically and do not need to be configured. User-defined servers in this section are merged with the internal defaults. If a user entry uses the same key as an internal server, the user entry takes precedence.</p>
+<p>The <code>tool_search</code> setting also selects the matching system prompt template (see <a href="#system-prompt">System Prompt</a>). For hybrid mode environment variables, see <a href="#hybrid-search">Hybrid Search</a>.</p>
+<h3 id="mcp_servers"><code>mcp_servers</code></h3>
+<p>MCP servers called directly via JSON tool calls. Internal servers (<code>pytools</code> for <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.BASIC_SEARCH_MCP_SERVER_CONFIG">basic</a> or <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.HYBRID_SEARCH_MCP_SERVER_CONFIG">hybrid</a> tool search and <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.FILESYSTEM_MCP_SERVER_CONFIG"><code>filesystem</code></a> for file operations) are provided automatically and do not need to be configured. User-defined servers in this section are merged with the internal defaults. If a user entry uses the same key as an internal server, the user entry takes precedence.</p>
 <div class="admonition tip">
 <p class="admonition-title">Custom MCP servers</p>
 <p>Application-specific MCP servers for JSON tool calls can be added to this section as needed.</p>
 </div>
-<h3 id="ptc-servers"><code>ptc-servers</code></h3>
+<h3 id="ptc_servers"><code>ptc_servers</code></h3>
 <p>MCP servers called programmatically via generated Python APIs. This is freeact's implementation of <em>code mode</em><sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup>, where the agent calls MCP tools by writing code against generated APIs rather than through JSON tool calls. This allows composing multiple tool calls, processing intermediate results, and using control flow within a single code action.</p>
-<p>Python APIs must be generated from <code>ptc-servers</code> to <code>.freeact/generated/mcptools/&lt;server-name&gt;/&lt;tool&gt;.py</code> before the agent can use them. The <a href="../cli/">CLI tool</a> handles this automatically. When using the <a href="../sdk/">Agent SDK</a>, call <a class="autorefs autorefs-internal" href="../api/generate/#freeact.tools.pytools.apigen.generate_mcp_sources"><code>generate_mcp_sources()</code></a> explicitly. Code actions can then import and call the generated APIs because <code>.freeact/generated/</code> is on the kernel's <code>PYTHONPATH</code>.</p>
+<p>Python APIs must be generated from <code>ptc_servers</code> to <code>.freeact/generated/mcptools/&lt;server-name&gt;/&lt;tool&gt;.py</code> before the agent can use them. The <a href="../cli/">CLI tool</a> handles this automatically. When using the <a href="../sdk/">Agent SDK</a>, call <a class="autorefs autorefs-internal" href="../api/generate/#freeact.tools.pytools.apigen.generate_mcp_sources"><code>generate_mcp_sources()</code></a> explicitly. Code actions can then import and call the generated APIs because <code>.freeact/generated/</code> is on the kernel's <code>PYTHONPATH</code>.</p>
 <p>The default configuration includes the bundled <code>google</code> MCP server (web search via Gemini):</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;ptc-servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;ptc_servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;google&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;python&quot;</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;freeact.tools.gsearch&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--thinking-level&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;medium&quot;</span><span class="p">],</span>
@@ -1891,14 +1881,14 @@
 </code></pre></div>
 <div class="admonition tip">
 <p class="admonition-title">Custom MCP servers</p>
-<p>Application-specific MCP servers can be added as needed to <code>ptc-servers</code> for programmatic tool calling.</p>
+<p>Application-specific MCP servers can be added as needed to <code>ptc_servers</code> for programmatic tool calling.</p>
 </div>
 <h3 id="server-formats">Server Formats</h3>
-<p>Both <code>mcp-servers</code> and <code>ptc-servers</code> support stdio servers and streamable HTTP servers.</p>
+<p>Both <code>mcp_servers</code> and <code>ptc_servers</code> support stdio servers and streamable HTTP servers.</p>
 <h3 id="environment-variables">Environment Variables</h3>
 <p>Server configurations support environment variable references using <code>${VAR_NAME}</code> syntax. <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config"><code>Config()</code></a> validates that all referenced variables are set. If a variable is missing, loading fails with an error.</p>
 <h2 id="hybrid-search">Hybrid Search</h2>
-<p>When <code>tool-search</code> is set to <code>"hybrid"</code> in <code>agent.json</code>, the hybrid search server reads additional configuration from environment variables. Default values are provided for all optional variables:</p>
+<p>When <code>tool_search</code> is set to <code>"hybrid"</code> in <code>agent.json</code>, the hybrid search server reads additional configuration from environment variables. Default values are provided for all optional variables:</p>
 <table>
 <thead>
 <tr>
@@ -1961,7 +1951,7 @@
 <p>Set <code>PYTOOLS_EMBEDDING_MODEL=test</code> to use a test embedder that generates deterministic embeddings. This is useful for development and testing but produces meaningless search results.</p>
 </div>
 <h2 id="system-prompt">System Prompt</h2>
-<p>The system prompt is an internal resource bundled with the package. The template used depends on the <code>tool-search</code> setting in <code>agent.json</code>:</p>
+<p>The system prompt is an internal resource bundled with the package. The template used depends on the <code>tool_search</code> setting in <code>agent.json</code>:</p>
 <table>
 <thead>
 <tr>
@@ -1973,12 +1963,12 @@
 <tbody>
 <tr>
 <td><code>basic</code></td>
-<td><code>system-basic.md</code></td>
+<td><a href="https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-basic.md"><code>system-basic.md</code></a></td>
 <td>Category browsing with <code>pytools_list_categories</code> and <code>pytools_list_tools</code></td>
 </tr>
 <tr>
 <td><code>hybrid</code></td>
-<td><code>system-hybrid.md</code></td>
+<td><a href="https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-hybrid.md"><code>system-hybrid.md</code></a></td>
 <td>Semantic search with <code>pytools_search_tools</code></td>
 </tr>
 </tbody>
@@ -2010,7 +2000,6 @@
 </tr>
 </tbody>
 </table>
-<p>See the templates for <a href="https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-basic.md">basic</a> and <a href="https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-hybrid.md">hybrid</a> modes.</p>
 <h2 id="project-instructions">Project Instructions</h2>
 <p>The agent loads project-specific instructions from an <code>AGENTS.md</code> file in the working directory. If the file exists and is non-empty, its content is injected into the system prompt. If the file is absent or empty, the section is omitted.</p>
 <p><code>AGENTS.md</code> provides project context to the agent: domain-specific conventions, workflow preferences, or any instructions relevant to the agent's tasks.</p>
@@ -2065,7 +2054,7 @@
 <h2 id="tool-directories">Tool Directories</h2>
 <p>The agent discovers tools from two directories under <code>.freeact/generated/</code>:</p>
 <h3 id="mcptools"><code>mcptools/</code></h3>
-<p>Generated Python APIs from <code>ptc-servers</code> schemas:</p>
+<p>Generated Python APIs from <code>ptc_servers</code> schemas:</p>
 <div class="highlight"><pre><span></span><code>.freeact/generated/mcptools/
 └── &lt;server-name&gt;/
     └── &lt;tool&gt;.py        # Generated tool module
@@ -2082,23 +2071,19 @@
 <h2 id="terminal-ui">Terminal UI</h2>
 <p>The <code>terminal.json</code> file configures terminal UI collapse behavior and keybindings.</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;expand-collapse&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;collapse_thoughts_on_complete&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;collapse_exec_output_on_complete&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;collapse_approved_code_actions&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;collapse_approved_tool_calls&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;collapse_tool_outputs&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;keep_rejected_actions_expanded&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;pin_pending_approval_action_expanded&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
-<span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;keys&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;toggle_expand_all&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+o&quot;</span>
-<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="nt">&quot;collapse_thoughts_on_complete&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;collapse_exec_output_on_complete&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;collapse_approved_code_actions&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;collapse_approved_tool_calls&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;collapse_tool_outputs&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;keep_rejected_actions_expanded&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;pin_pending_approval_action_expanded&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;expand_all_toggle_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+o&quot;</span>
 <span class="p">}</span>
 </code></pre></div>
 <h3 id="initialization_1">Initialization</h3>
-<p>The CLI creates <code>terminal.json</code> during <code>freeact</code> and <code>freeact init</code> when the file is missing.</p>
-<p>SDK integrations can scaffold this file by calling <code>freeact.terminal.config.Config.init()</code>.</p>
+<p>The CLI creates <code>terminal.json</code> during <code>freeact</code>, <code>freeact run</code>, and <code>freeact init</code> when the file is missing.</p>
+<p>SDK integrations can load or initialize this file by calling <code>await freeact.terminal.config.Config.init()</code>.</p>
 <h3 id="settings">Settings</h3>
 <table>
 <thead>
@@ -2110,42 +2095,42 @@
 </thead>
 <tbody>
 <tr>
-<td><code>expand-collapse.collapse_thoughts_on_complete</code></td>
+<td><code>collapse_thoughts_on_complete</code></td>
 <td><code>true</code></td>
 <td>Collapse <code>Thinking</code> boxes after a completed <code>Thoughts</code> event.</td>
 </tr>
 <tr>
-<td><code>expand-collapse.collapse_exec_output_on_complete</code></td>
+<td><code>collapse_exec_output_on_complete</code></td>
 <td><code>true</code></td>
 <td>Collapse <code>Execution Output</code> boxes after a completed <code>CodeExecutionOutput</code> event.</td>
 </tr>
 <tr>
-<td><code>expand-collapse.collapse_approved_code_actions</code></td>
+<td><code>collapse_approved_code_actions</code></td>
 <td><code>true</code></td>
 <td>Collapse approved code action previews after approval.</td>
 </tr>
 <tr>
-<td><code>expand-collapse.collapse_approved_tool_calls</code></td>
+<td><code>collapse_approved_tool_calls</code></td>
 <td><code>true</code></td>
 <td>Collapse approved tool call previews after approval.</td>
 </tr>
 <tr>
-<td><code>expand-collapse.collapse_tool_outputs</code></td>
+<td><code>collapse_tool_outputs</code></td>
 <td><code>true</code></td>
 <td>Render <code>Tool Output</code> boxes collapsed by default.</td>
 </tr>
 <tr>
-<td><code>expand-collapse.keep_rejected_actions_expanded</code></td>
+<td><code>keep_rejected_actions_expanded</code></td>
 <td><code>true</code></td>
 <td>Keep rejected action previews expanded after rejection.</td>
 </tr>
 <tr>
-<td><code>expand-collapse.pin_pending_approval_action_expanded</code></td>
+<td><code>pin_pending_approval_action_expanded</code></td>
 <td><code>true</code></td>
 <td>Keep the current pending approval action expanded until a decision is made.</td>
 </tr>
 <tr>
-<td><code>keys.toggle_expand_all</code></td>
+<td><code>expand_all_toggle_key</code></td>
 <td><code>ctrl+o</code></td>
 <td>Toggle all collapsible boxes between expanded and configured state.</td>
 </tr>

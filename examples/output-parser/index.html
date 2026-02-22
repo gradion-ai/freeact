@@ -1216,9 +1216,9 @@
 <div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>my-workspace<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>my-workspace
 uvx<span class="w"> </span>freeact<span class="w"> </span>init
 </code></pre></div>
-<p>Add the <a href="https://github.com/github/github-mcp-server">GitHub MCP server</a> to <a href="../../configuration/#ptc-servers"><code>ptc-servers</code></a> in <code>.freeact/agent.json</code>:</p>
+<p>Add the <a href="https://github.com/github/github-mcp-server">GitHub MCP server</a> to <a href="../../configuration/#ptc_servers"><code>ptc_servers</code></a> in <code>.freeact/agent.json</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;ptc-servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;ptc_servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;github&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">      </span><span class="nt">&quot;url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://api.githubcopilot.com/mcp/&quot;</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;headers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;Authorization&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Bearer ${GITHUB_API_KEY}&quot;</span><span class="p">}</span>
