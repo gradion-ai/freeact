@@ -68,7 +68,7 @@ Clipboard behavior depends on terminal key forwarding.
 
 Use `Ctrl+O` to toggle all collapsible boxes between expanded and configured state.
 
-The shortcut is configured in `.freeact/terminal.json` under `keys.toggle_expand_all`.
+The shortcut is configured in `.freeact/terminal.json` under `expand_all_toggle_key`.
 
 ### Image Attachments
 

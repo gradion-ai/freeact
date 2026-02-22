@@ -20,12 +20,12 @@ from freeact.agent.events import (
 )
 from freeact.terminal.app import (
     AtReferenceContext,
-    FreeactApp,
+    TerminalApp,
     _find_at_reference_context,
     _format_attachment_path,
     convert_at_references,
 )
-from freeact.terminal.config import ExpandCollapseBehavior, TerminalKeyConfig, TerminalUiConfig
+from freeact.terminal.config import Config as TerminalConfig
 from freeact.terminal.screens import FilePickerScreen, FilePickerTree
 from freeact.terminal.widgets import PromptInput
 
@@ -96,10 +96,27 @@ async def _response_only_scenario(_: PromptContent) -> AsyncIterator[AgentEvent]
     yield Response(content=text, agent_id=MAIN_AGENT_ID)
 
 
-async def _submit_prompt(app: FreeactApp, pilot: Pilot, text: str = "hello") -> None:
+async def _submit_prompt(app: TerminalApp, pilot: Pilot, text: str = "hello") -> None:
     prompt = app.query_one("#prompt-input", PromptInput)
     prompt.insert(text)
     await pilot.press("enter")
+
+
+def _create_app(
+    *,
+    agent_stream: ScenarioFn,
+    agent_id: str = MAIN_AGENT_ID,
+    config: TerminalConfig | None = None,
+    permission_manager: object | None = None,
+    clipboard_adapter: StubClipboardAdapter | None = None,
+) -> TerminalApp:
+    return TerminalApp(
+        config=config or TerminalConfig(),
+        agent_id=agent_id,
+        agent_stream=agent_stream,
+        permission_manager=permission_manager,  # type: ignore[arg-type]
+        clipboard_adapter=clipboard_adapter,
+    )
 
 
 @pytest.mark.parametrize(
@@ -138,7 +155,7 @@ def test_format_attachment_path_prefers_relative_to_cwd(tmp_path: Path) -> None:
 @pytest.mark.asyncio
 async def test_banner_renders_inside_conversation_scroll_container(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("freeact.terminal.app._load_banner", lambda: Text("banner"))
-    app = FreeactApp(agent_stream=MockStreamAgent(_no_events).stream, main_agent_id=MAIN_AGENT_ID)
+    app = _create_app(agent_stream=MockStreamAgent(_no_events).stream, agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:
         await pilot.pause(0.05)
@@ -153,7 +170,7 @@ async def test_banner_renders_inside_conversation_scroll_container(monkeypatch: 
 async def test_banner_viewport_starts_scrolled_to_bottom(monkeypatch: pytest.MonkeyPatch) -> None:
     tall_banner = Text("\n".join(["banner"] * 120))
     monkeypatch.setattr("freeact.terminal.app._load_banner", lambda: tall_banner)
-    app = FreeactApp(agent_stream=MockStreamAgent(_no_events).stream, main_agent_id=MAIN_AGENT_ID)
+    app = _create_app(agent_stream=MockStreamAgent(_no_events).stream, agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:
         await pilot.pause(0.05)
@@ -165,7 +182,7 @@ async def test_banner_viewport_starts_scrolled_to_bottom(monkeypatch: pytest.Mon
 @pytest.mark.asyncio
 async def test_enter_submits_prompt_clears_input_and_mounts_user_box() -> None:
     agent = MockStreamAgent(_no_events)
-    app = FreeactApp(agent_stream=agent.stream, main_agent_id=MAIN_AGENT_ID)
+    app = _create_app(agent_stream=agent.stream, agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:
         await _submit_prompt(app, pilot, "  hello world  ")
@@ -182,7 +199,7 @@ async def test_enter_submits_prompt_clears_input_and_mounts_user_box() -> None:
 @pytest.mark.asyncio
 async def test_ctrl_j_inserts_newline_without_submitting() -> None:
     agent = MockStreamAgent(_no_events)
-    app = FreeactApp(agent_stream=agent.stream, main_agent_id=MAIN_AGENT_ID)
+    app = _create_app(agent_stream=agent.stream, agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:
         prompt = app.query_one("#prompt-input", PromptInput)
@@ -198,7 +215,7 @@ async def test_alt_enter_contract_maps_to_ctrl_j_and_ctrl_j_inserts_newline() ->
     assert ANSI_SEQUENCES_KEYS["\x1b\r"] == (Keys.ControlJ,)
 
     agent = MockStreamAgent(_no_events)
-    app = FreeactApp(agent_stream=agent.stream, main_agent_id=MAIN_AGENT_ID)
+    app = _create_app(agent_stream=agent.stream, agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:
         prompt = app.query_one("#prompt-input", PromptInput)
@@ -213,7 +230,7 @@ async def test_thoughts_stream_collapses_on_terminal_event() -> None:
         yield ThoughtsChunk(content="thinking...", agent_id=MAIN_AGENT_ID)
         yield Thoughts(content="thinking...", agent_id=MAIN_AGENT_ID)
 
-    app = FreeactApp(agent_stream=MockStreamAgent(scenario).stream, main_agent_id=MAIN_AGENT_ID)
+    app = _create_app(agent_stream=MockStreamAgent(scenario).stream, agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:
         await _submit_prompt(app, pilot)
@@ -231,7 +248,7 @@ async def test_response_stream_only_mounts_for_main_agent() -> None:
         yield ResponseChunk(content="show me", agent_id=MAIN_AGENT_ID)
         yield Response(content="show me", agent_id=MAIN_AGENT_ID)
 
-    app = FreeactApp(agent_stream=MockStreamAgent(scenario).stream, main_agent_id=MAIN_AGENT_ID)
+    app = _create_app(agent_stream=MockStreamAgent(scenario).stream, agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:
         await _submit_prompt(app, pilot)
@@ -249,7 +266,7 @@ async def test_markdown_link_hover_style_is_configured_per_link() -> None:
         yield ResponseChunk(content=text, agent_id=MAIN_AGENT_ID)
         yield Response(content=text, agent_id=MAIN_AGENT_ID)
 
-    app = FreeactApp(agent_stream=MockStreamAgent(scenario).stream, main_agent_id=MAIN_AGENT_ID)
+    app = _create_app(agent_stream=MockStreamAgent(scenario).stream, agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:
         await _submit_prompt(app, pilot)
@@ -258,16 +275,16 @@ async def test_markdown_link_hover_style_is_configured_per_link() -> None:
         paragraph = app.query("MarkdownParagraph").last()
         assert str(paragraph.styles.link_style) == "underline"
         assert str(paragraph.styles.link_style_hover) == "bold underline"
-        assert "Markdown MarkdownBlock:hover" not in FreeactApp.DEFAULT_CSS
+        assert "Markdown MarkdownBlock:hover" not in TerminalApp.DEFAULT_CSS
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("copy_key", ["super+c", "ctrl+shift+c", "ctrl+insert", "ctrl+c"])
 async def test_copy_shortcuts_copy_selected_response_text(copy_key: str) -> None:
     clipboard_adapter = StubClipboardAdapter()
-    app = FreeactApp(
+    app = _create_app(
         agent_stream=MockStreamAgent(_response_only_scenario).stream,
-        main_agent_id=MAIN_AGENT_ID,
+        agent_id=MAIN_AGENT_ID,
         clipboard_adapter=clipboard_adapter,
     )
 
@@ -286,9 +303,9 @@ async def test_copy_shortcuts_copy_selected_response_text(copy_key: str) -> None
 @pytest.mark.asyncio
 async def test_user_input_box_text_is_selectable_and_copyable() -> None:
     clipboard_adapter = StubClipboardAdapter()
-    app = FreeactApp(
+    app = _create_app(
         agent_stream=MockStreamAgent(_no_events).stream,
-        main_agent_id=MAIN_AGENT_ID,
+        agent_id=MAIN_AGENT_ID,
         clipboard_adapter=clipboard_adapter,
     )
 
@@ -309,9 +326,9 @@ async def test_user_input_box_text_is_selectable_and_copyable() -> None:
 @pytest.mark.parametrize("paste_key", ["ctrl+v", "super+v", "ctrl+shift+v", "shift+insert"])
 async def test_paste_shortcuts_use_os_clipboard_value(paste_key: str) -> None:
     clipboard_adapter = StubClipboardAdapter(paste_values=["from-os"])
-    app = FreeactApp(
+    app = _create_app(
         agent_stream=MockStreamAgent(_no_events).stream,
-        main_agent_id=MAIN_AGENT_ID,
+        agent_id=MAIN_AGENT_ID,
         clipboard_adapter=clipboard_adapter,
     )
 
@@ -326,9 +343,9 @@ async def test_paste_shortcuts_use_os_clipboard_value(paste_key: str) -> None:
 @pytest.mark.asyncio
 async def test_prompt_paste_falls_back_to_local_clipboard_when_os_unavailable() -> None:
     clipboard_adapter = StubClipboardAdapter(paste_values=[None])
-    app = FreeactApp(
+    app = _create_app(
         agent_stream=MockStreamAgent(_no_events).stream,
-        main_agent_id=MAIN_AGENT_ID,
+        agent_id=MAIN_AGENT_ID,
         clipboard_adapter=clipboard_adapter,
     )
     app._clipboard = "local-fallback"
@@ -342,9 +359,9 @@ async def test_prompt_paste_falls_back_to_local_clipboard_when_os_unavailable() 
 @pytest.mark.asyncio
 async def test_prompt_paste_preserves_empty_os_clipboard_without_local_fallback() -> None:
     clipboard_adapter = StubClipboardAdapter(paste_values=[""])
-    app = FreeactApp(
+    app = _create_app(
         agent_stream=MockStreamAgent(_no_events).stream,
-        main_agent_id=MAIN_AGENT_ID,
+        agent_id=MAIN_AGENT_ID,
         clipboard_adapter=clipboard_adapter,
     )
     app._clipboard = "local-fallback"
@@ -359,7 +376,7 @@ async def test_prompt_paste_preserves_empty_os_clipboard_without_local_fallback(
 
 @pytest.mark.asyncio
 async def test_ctrl_q_triggers_quit_action(monkeypatch: pytest.MonkeyPatch) -> None:
-    app = FreeactApp(agent_stream=MockStreamAgent(_no_events).stream, main_agent_id=MAIN_AGENT_ID)
+    app = _create_app(agent_stream=MockStreamAgent(_no_events).stream, agent_id=MAIN_AGENT_ID)
     quit_calls = 0
 
     async def fake_quit() -> None:
@@ -387,7 +404,7 @@ async def test_approval_yes_collapses_action_and_mounts_tool_output() -> None:
         if await request.approved():
             yield ToolOutput(content="ok", agent_id=MAIN_AGENT_ID, corr_id="call-1")
 
-    app = FreeactApp(agent_stream=MockStreamAgent(scenario).stream, main_agent_id=MAIN_AGENT_ID)
+    app = _create_app(agent_stream=MockStreamAgent(scenario).stream, agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:
         await _submit_prompt(app, pilot)
@@ -415,7 +432,7 @@ async def test_approval_enter_works_after_clicking_other_widget() -> None:
         if await request.approved():
             yield ToolOutput(content="ok", agent_id=MAIN_AGENT_ID, corr_id="call-1")
 
-    app = FreeactApp(agent_stream=MockStreamAgent(scenario).stream, main_agent_id=MAIN_AGENT_ID)
+    app = _create_app(agent_stream=MockStreamAgent(scenario).stream, agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:
         await _submit_prompt(app, pilot)
@@ -442,7 +459,7 @@ async def test_approval_no_keeps_action_expanded_and_skips_tool_output() -> None
         if await request.approved():
             yield ToolOutput(content="ok", agent_id=MAIN_AGENT_ID, corr_id="call-1")
 
-    app = FreeactApp(agent_stream=MockStreamAgent(scenario).stream, main_agent_id=MAIN_AGENT_ID)
+    app = _create_app(agent_stream=MockStreamAgent(scenario).stream, agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:
         await _submit_prompt(app, pilot)
@@ -468,9 +485,9 @@ async def test_approval_always_calls_allow_always() -> None:
         yield request
         await request.approved()
 
-    app = FreeactApp(
+    app = _create_app(
         agent_stream=MockStreamAgent(scenario).stream,
-        main_agent_id=MAIN_AGENT_ID,
+        agent_id=MAIN_AGENT_ID,
         permission_manager=permission_manager,  # type: ignore[arg-type]
     )
 
@@ -497,9 +514,9 @@ async def test_approval_session_calls_allow_session() -> None:
         yield request
         await request.approved()
 
-    app = FreeactApp(
+    app = _create_app(
         agent_stream=MockStreamAgent(scenario).stream,
-        main_agent_id=MAIN_AGENT_ID,
+        agent_id=MAIN_AGENT_ID,
         permission_manager=permission_manager,  # type: ignore[arg-type]
     )
 
@@ -527,9 +544,9 @@ async def test_preapproved_request_skips_approval_bar() -> None:
         if await request.approved():
             yield ToolOutput(content="ok", agent_id=MAIN_AGENT_ID, corr_id="call-1")
 
-    app = FreeactApp(
+    app = _create_app(
         agent_stream=MockStreamAgent(scenario).stream,
-        main_agent_id=MAIN_AGENT_ID,
+        agent_id=MAIN_AGENT_ID,
         permission_manager=permission_manager,  # type: ignore[arg-type]
     )
 
@@ -557,9 +574,9 @@ async def test_ptc_request_uses_ptc_title_in_default_terminal() -> None:
         yield request
         await request.approved()
 
-    app = FreeactApp(
+    app = _create_app(
         agent_stream=MockStreamAgent(scenario).stream,
-        main_agent_id=MAIN_AGENT_ID,
+        agent_id=MAIN_AGENT_ID,
         permission_manager=permission_manager,  # type: ignore[arg-type]
     )
 
@@ -587,9 +604,9 @@ async def test_ctrl_o_toggles_expand_all_and_restores_configured_state() -> None
         if await request.approved():
             yield ToolOutput(content="ok", agent_id=MAIN_AGENT_ID, corr_id="call-1")
 
-    app = FreeactApp(
+    app = _create_app(
         agent_stream=MockStreamAgent(scenario).stream,
-        main_agent_id=MAIN_AGENT_ID,
+        agent_id=MAIN_AGENT_ID,
         permission_manager=permission_manager,  # type: ignore[arg-type]
     )
 
@@ -626,9 +643,9 @@ async def test_new_collapsible_boxes_render_expanded_while_expand_all_override_i
         if await request.approved():
             yield ToolOutput(content="ok", agent_id=MAIN_AGENT_ID, corr_id="call-1")
 
-    app = FreeactApp(
+    app = _create_app(
         agent_stream=MockStreamAgent(scenario).stream,
-        main_agent_id=MAIN_AGENT_ID,
+        agent_id=MAIN_AGENT_ID,
         permission_manager=permission_manager,  # type: ignore[arg-type]
     )
 
@@ -646,8 +663,8 @@ async def test_new_collapsible_boxes_render_expanded_while_expand_all_override_i
 
 @pytest.mark.asyncio
 async def test_toggle_expand_all_uses_configured_hotkey() -> None:
-    ui_config = TerminalUiConfig(keys=TerminalKeyConfig(toggle_expand_all="f6"))
-    app = FreeactApp(agent_stream=MockStreamAgent(_no_events).stream, main_agent_id=MAIN_AGENT_ID, ui_config=ui_config)
+    ui_config = TerminalConfig(expand_all_toggle_key="f6")
+    app = _create_app(agent_stream=MockStreamAgent(_no_events).stream, agent_id=MAIN_AGENT_ID, config=ui_config)
 
     async with app.run_test() as pilot:
         assert not app._expand_all_override
@@ -668,7 +685,7 @@ async def test_pending_approval_widget_stays_expanded_until_user_decides() -> No
         if await request.approved():
             yield ToolOutput(content="ok", agent_id=MAIN_AGENT_ID, corr_id="call-1")
 
-    app = FreeactApp(agent_stream=MockStreamAgent(scenario).stream, main_agent_id=MAIN_AGENT_ID)
+    app = _create_app(agent_stream=MockStreamAgent(scenario).stream, agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:
         await _submit_prompt(app, pilot)
@@ -688,11 +705,10 @@ async def test_pending_approval_widget_stays_expanded_until_user_decides() -> No
 
 @pytest.mark.asyncio
 async def test_approval_behaviors_can_disable_auto_collapse() -> None:
-    behavior = ExpandCollapseBehavior(
+    ui_config = TerminalConfig(
         collapse_approved_tool_calls=False,
         keep_rejected_actions_expanded=False,
     )
-    ui_config = TerminalUiConfig(expand_collapse=behavior)
 
     async def approved_scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
@@ -704,10 +720,10 @@ async def test_approval_behaviors_can_disable_auto_collapse() -> None:
         yield request
         await request.approved()
 
-    approved_app = FreeactApp(
+    approved_app = _create_app(
         agent_stream=MockStreamAgent(approved_scenario).stream,
-        main_agent_id=MAIN_AGENT_ID,
-        ui_config=ui_config,
+        agent_id=MAIN_AGENT_ID,
+        config=ui_config,
     )
 
     async with approved_app.run_test() as pilot:
@@ -717,11 +733,11 @@ async def test_approval_behaviors_can_disable_auto_collapse() -> None:
         await approved_app.workers.wait_for_complete()
         assert not approved_app.query(".tool-call-box").last().collapsed
 
-    preapproved_app = FreeactApp(
+    preapproved_app = _create_app(
         agent_stream=MockStreamAgent(approved_scenario).stream,
-        main_agent_id=MAIN_AGENT_ID,
+        agent_id=MAIN_AGENT_ID,
         permission_manager=StubPermissionManager(preapproved=True),  # type: ignore[arg-type]
-        ui_config=ui_config,
+        config=ui_config,
     )
 
     async with preapproved_app.run_test() as pilot:
@@ -739,10 +755,10 @@ async def test_approval_behaviors_can_disable_auto_collapse() -> None:
         yield request
         await request.approved()
 
-    rejected_app = FreeactApp(
+    rejected_app = _create_app(
         agent_stream=MockStreamAgent(rejected_scenario).stream,
-        main_agent_id=MAIN_AGENT_ID,
-        ui_config=ui_config,
+        agent_id=MAIN_AGENT_ID,
+        config=ui_config,
     )
 
     async with rejected_app.run_test() as pilot:
@@ -755,11 +771,10 @@ async def test_approval_behaviors_can_disable_auto_collapse() -> None:
 
 @pytest.mark.asyncio
 async def test_approved_code_and_tool_collapse_behaviors_are_independent() -> None:
-    behavior = ExpandCollapseBehavior(
+    ui_config = TerminalConfig(
         collapse_approved_code_actions=False,
         collapse_approved_tool_calls=True,
     )
-    ui_config = TerminalUiConfig(expand_collapse=behavior)
 
     async def tool_call_scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
@@ -771,10 +786,10 @@ async def test_approved_code_and_tool_collapse_behaviors_are_independent() -> No
         yield request
         await request.approved()
 
-    tool_app = FreeactApp(
+    tool_app = _create_app(
         agent_stream=MockStreamAgent(tool_call_scenario).stream,
-        main_agent_id=MAIN_AGENT_ID,
-        ui_config=ui_config,
+        agent_id=MAIN_AGENT_ID,
+        config=ui_config,
     )
 
     async with tool_app.run_test() as pilot:
@@ -794,10 +809,10 @@ async def test_approved_code_and_tool_collapse_behaviors_are_independent() -> No
         yield request
         await request.approved()
 
-    code_app = FreeactApp(
+    code_app = _create_app(
         agent_stream=MockStreamAgent(code_action_scenario).stream,
-        main_agent_id=MAIN_AGENT_ID,
-        ui_config=ui_config,
+        agent_id=MAIN_AGENT_ID,
+        config=ui_config,
     )
 
     async with code_app.run_test() as pilot:
@@ -810,10 +825,9 @@ async def test_approved_code_and_tool_collapse_behaviors_are_independent() -> No
 
 @pytest.mark.asyncio
 async def test_preapproved_code_action_respects_collapse_approved_code_actions() -> None:
-    behavior = ExpandCollapseBehavior(
+    ui_config = TerminalConfig(
         collapse_approved_code_actions=False,
     )
-    ui_config = TerminalUiConfig(expand_collapse=behavior)
 
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
@@ -825,11 +839,11 @@ async def test_preapproved_code_action_respects_collapse_approved_code_actions()
         yield request
         await request.approved()
 
-    app = FreeactApp(
+    app = _create_app(
         agent_stream=MockStreamAgent(scenario).stream,
-        main_agent_id=MAIN_AGENT_ID,
+        agent_id=MAIN_AGENT_ID,
         permission_manager=StubPermissionManager(preapproved=True),  # type: ignore[arg-type]
-        ui_config=ui_config,
+        config=ui_config,
     )
 
     async with app.run_test() as pilot:
@@ -840,10 +854,9 @@ async def test_preapproved_code_action_respects_collapse_approved_code_actions()
 
 @pytest.mark.asyncio
 async def test_preapproved_tool_call_respects_collapse_approved_tool_calls() -> None:
-    behavior = ExpandCollapseBehavior(
+    ui_config = TerminalConfig(
         collapse_approved_tool_calls=False,
     )
-    ui_config = TerminalUiConfig(expand_collapse=behavior)
 
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
@@ -855,11 +868,11 @@ async def test_preapproved_tool_call_respects_collapse_approved_tool_calls() -> 
         yield request
         await request.approved()
 
-    app = FreeactApp(
+    app = _create_app(
         agent_stream=MockStreamAgent(scenario).stream,
-        main_agent_id=MAIN_AGENT_ID,
+        agent_id=MAIN_AGENT_ID,
         permission_manager=StubPermissionManager(preapproved=True),  # type: ignore[arg-type]
-        ui_config=ui_config,
+        config=ui_config,
     )
 
     async with app.run_test() as pilot:
@@ -875,7 +888,7 @@ async def test_stream_exception_renders_error_and_reenables_input() -> None:
         if False:
             yield Response(content="", agent_id=MAIN_AGENT_ID)
 
-    app = FreeactApp(agent_stream=MockStreamAgent(scenario).stream, main_agent_id=MAIN_AGENT_ID)
+    app = _create_app(agent_stream=MockStreamAgent(scenario).stream, agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:
         await _submit_prompt(app, pilot)
@@ -888,7 +901,7 @@ async def test_stream_exception_renders_error_and_reenables_input() -> None:
 
 @pytest.mark.asyncio
 async def test_typing_at_opens_file_picker_screen() -> None:
-    app = FreeactApp(agent_stream=MockStreamAgent(_no_events).stream, main_agent_id=MAIN_AGENT_ID)
+    app = _create_app(agent_stream=MockStreamAgent(_no_events).stream, agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:
         await pilot.press("@")
@@ -899,7 +912,7 @@ async def test_typing_at_opens_file_picker_screen() -> None:
 
 @pytest.mark.asyncio
 async def test_file_picker_starts_at_filesystem_root() -> None:
-    app = FreeactApp(agent_stream=MockStreamAgent(_no_events).stream, main_agent_id=MAIN_AGENT_ID)
+    app = _create_app(agent_stream=MockStreamAgent(_no_events).stream, agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:
         await pilot.press("@")
@@ -914,7 +927,7 @@ async def test_file_picker_starts_at_filesystem_root() -> None:
 
 @pytest.mark.asyncio
 async def test_file_picker_cursor_starts_at_cwd() -> None:
-    app = FreeactApp(agent_stream=MockStreamAgent(_no_events).stream, main_agent_id=MAIN_AGENT_ID)
+    app = _create_app(agent_stream=MockStreamAgent(_no_events).stream, agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:
         await pilot.press("@")
@@ -930,7 +943,7 @@ async def test_file_picker_cursor_starts_at_cwd() -> None:
 
 @pytest.mark.asyncio
 async def test_file_picker_selection_replaces_existing_at_token() -> None:
-    app = FreeactApp(agent_stream=MockStreamAgent(_no_events).stream, main_agent_id=MAIN_AGENT_ID)
+    app = _create_app(agent_stream=MockStreamAgent(_no_events).stream, agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:
         prompt = app.query_one("#prompt-input", PromptInput)

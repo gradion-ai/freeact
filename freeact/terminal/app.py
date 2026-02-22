@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import TypeAlias
 
 from pydantic_ai import UserContent
+from rich.console import Console
 from rich.text import Text
 from textual import work
 from textual.app import App, ComposeResult
@@ -13,6 +14,7 @@ from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
 from textual.widgets import Collapsible, Markdown, Static
 
+from freeact.agent import Agent
 from freeact.agent.events import (
     AgentEvent,
     ApprovalRequest,
@@ -27,7 +29,7 @@ from freeact.agent.events import (
 from freeact.media import parse_prompt
 from freeact.permissions import PermissionManager
 from freeact.terminal.clipboard import ClipboardAdapter, ClipboardAdapterProtocol
-from freeact.terminal.config import DEFAULT_TERMINAL_UI_CONFIG, TerminalUiConfig
+from freeact.terminal.config import Config
 from freeact.terminal.screens import FilePickerScreen
 from freeact.terminal.tool_adapter import ToolAdapter
 from freeact.terminal.tool_data import (
@@ -133,7 +135,43 @@ def _load_banner() -> Text | None:
     return Text.from_ansi(banner_ansi)
 
 
-class FreeactApp(App[None]):
+class TerminalInterface:
+    """Textual terminal interface for interactive agent conversations."""
+
+    def __init__(
+        self,
+        agent: Agent,
+        console: Console | None = None,
+        config: Config | None = None,
+    ) -> None:
+        """Initialize a terminal session wrapper around an agent.
+
+        Args:
+            agent: Agent instance used to execute conversation turns.
+            console: Compatibility parameter for legacy interfaces. Textual
+                manages rendering directly, so this value is ignored.
+            config: Terminal UI configuration.
+        """
+        self._agent = agent
+        self._config = config or Config()
+        self._permission_manager = PermissionManager(agent._config.freeact_dir)
+        _ = console
+
+    async def run(self) -> None:
+        """Run the interactive terminal UI until the user exits."""
+        await self._permission_manager.load()
+
+        async with self._agent:
+            app = TerminalApp(
+                config=self._config,
+                agent_id=self._agent.agent_id,
+                agent_stream=self._agent.stream,
+                permission_manager=self._permission_manager,
+            )
+            await app.run_async()
+
+
+class TerminalApp(App[None]):
     """Main Textual application for the freeact terminal UI."""
 
     DEFAULT_CSS = """
@@ -198,17 +236,17 @@ class FreeactApp(App[None]):
 
     def __init__(
         self,
+        config: Config,
+        agent_id: str,
         agent_stream: AgentStreamFn,
         permission_manager: PermissionManager | None = None,
-        main_agent_id: str = "",
-        ui_config: TerminalUiConfig = DEFAULT_TERMINAL_UI_CONFIG,
         clipboard_adapter: ClipboardAdapterProtocol | None = None,
     ) -> None:
         super().__init__()
+        self._config = config
+        self._agent_id = agent_id
         self._agent_stream = agent_stream
         self._permission_manager = permission_manager or PermissionManager()
-        self._main_agent_id = main_agent_id
-        self._ui_config = ui_config
         self._clipboard_adapter = clipboard_adapter or ClipboardAdapter()
         self._approval_future: asyncio.Future[int] | None = None
         self._tool_adapter = ToolAdapter()
@@ -218,7 +256,7 @@ class FreeactApp(App[None]):
         self._pending_approval_widget_id: int | None = None
         self._banner = _load_banner()
         self._bindings.bind(
-            self._ui_config.keys.toggle_expand_all,
+            self._config.expand_all_toggle_key,
             "toggle_expand_all",
             show=False,
             priority=True,
@@ -325,7 +363,7 @@ class FreeactApp(App[None]):
         try:
             async for event in self._agent_stream(content):
                 match event:
-                    case ThoughtsChunk(agent_id=aid, content=chunk) if aid == self._main_agent_id:
+                    case ThoughtsChunk(agent_id=aid, content=chunk) if aid == self._agent_id:
                         if thoughts_stream is None:
                             box, md = create_thoughts_box(aid)
                             self._register_box(box, configured_collapsed=False)
@@ -334,16 +372,16 @@ class FreeactApp(App[None]):
 
                         await thoughts_stream.write(chunk)
 
-                    case Thoughts(agent_id=aid) if aid == self._main_agent_id:
+                    case Thoughts(agent_id=aid) if aid == self._agent_id:
                         if thoughts_stream is not None:
                             await thoughts_stream.stop()
                             thoughts_stream = None
-                            if self._ui_config.expand_collapse.collapse_thoughts_on_complete:
+                            if self._config.collapse_thoughts_on_complete:
                                 match conversation.query(".thoughts-box").last():
                                     case Collapsible() as last_box:
                                         self._set_configured_collapsed(last_box, collapsed=True)
 
-                    case ResponseChunk(agent_id=aid, content=chunk) if aid == self._main_agent_id:
+                    case ResponseChunk(agent_id=aid, content=chunk) if aid == self._agent_id:
                         if response_stream is None:
                             box, md = create_response_box(aid)
                             self._register_box(box, configured_collapsed=False)
@@ -352,7 +390,7 @@ class FreeactApp(App[None]):
 
                         await response_stream.write(chunk)
 
-                    case Response(agent_id=aid) if aid == self._main_agent_id:
+                    case Response(agent_id=aid) if aid == self._agent_id:
                         if response_stream is not None:
                             await response_stream.stop()
                             response_stream = None
@@ -373,7 +411,7 @@ class FreeactApp(App[None]):
                     case CodeExecutionOutput(agent_id=aid, text=text, images=images):
                         if exec_log is not None:
                             finalize_exec_output(exec_log, text, images)
-                            if self._ui_config.expand_collapse.collapse_exec_output_on_complete:
+                            if self._config.collapse_exec_output_on_complete:
                                 match conversation.query(".exec-output-box").last():
                                     case Collapsible() as last_box:
                                         self._set_configured_collapsed(last_box, collapsed=True)
@@ -385,7 +423,7 @@ class FreeactApp(App[None]):
                         box = create_tool_output_box(output_data, aid, corr_id=cid)
                         self._register_box(
                             box,
-                            configured_collapsed=self._ui_config.expand_collapse.collapse_tool_outputs,
+                            configured_collapsed=self._config.collapse_tool_outputs,
                         )
                         await self._mount_and_scroll(conversation, box)
         except Exception as e:
@@ -433,7 +471,7 @@ class FreeactApp(App[None]):
             case _:
                 raise ValueError(f"Unsupported action data: {action_data!r}")
 
-        pin_pending = self._ui_config.expand_collapse.pin_pending_approval_action_expanded
+        pin_pending = self._config.pin_pending_approval_action_expanded
         self._register_box(box, configured_collapsed=False, force_expanded=pin_pending)
         if pin_pending:
             self._pending_approval_widget_id = id(box)
@@ -480,7 +518,7 @@ class FreeactApp(App[None]):
         else:
             self._set_configured_collapsed(
                 box,
-                collapsed=not self._ui_config.expand_collapse.keep_rejected_actions_expanded,
+                collapsed=not self._config.keep_rejected_actions_expanded,
             )
         request.approve(approved)
 
@@ -509,9 +547,9 @@ class FreeactApp(App[None]):
     def _collapse_for_approved_action(self, action_data: ActionData) -> bool:
         match action_data:
             case CodeActionData():
-                return self._ui_config.expand_collapse.collapse_approved_code_actions
+                return self._config.collapse_approved_code_actions
             case _:
-                return self._ui_config.expand_collapse.collapse_approved_tool_calls
+                return self._config.collapse_approved_tool_calls
 
     # --- File picker integration ---
 
@@ -548,3 +586,11 @@ def convert_at_references(text: str) -> str:
         Prompt text with `@path` tokens replaced by attachment tags.
     """
     return re.sub(r"@(\S+)", r"<attachment>\1</attachment>", text)
+
+
+__all__ = [
+    "AtReferenceContext",
+    "TerminalApp",
+    "TerminalInterface",
+    "convert_at_references",
+]

@@ -15,7 +15,7 @@
 - Persist config files explicitly with `await config.save()` when a test needs on-disk config artifacts.
 
 ## Terminal TUI testing pattern (`freeact/terminal`)
-- Use `FreeactApp` with `async with app.run_test() as pilot`.
+- Use `TerminalApp` with `async with app.run_test() as pilot`.
 - Use deterministic local `agent_stream` scenarios (no stateful/time-delayed demo mocks).
 - After submit, sync with `await app.workers.wait_for_complete()`. Use short `pilot.pause(...)` only for transient UI mount timing.
 - Assert stable selectors and state (`.response-box`, `.thoughts-box`, `.tool-output-box`, `collapsed`), not rendering internals.

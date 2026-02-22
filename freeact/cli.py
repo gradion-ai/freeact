@@ -9,8 +9,8 @@ from dotenv import load_dotenv
 from freeact.agent import Agent
 from freeact.agent.config import Config as AgentConfig
 from freeact.agent.store import SessionStore
-from freeact.terminal import Terminal
-from freeact.terminal.config import Config as TerminalConfig
+from freeact.terminal import Config as TerminalConfig
+from freeact.terminal import TerminalInterface
 from freeact.tools.pytools.apigen import generate_mcp_sources
 
 logger = logging.getLogger("freeact")
@@ -111,7 +111,7 @@ async def run(namespace: argparse.Namespace) -> None:
     if agent_config.ptc_servers:
         await generate_mcp_sources(agent_config.ptc_servers, agent_config.generated_dir)
 
-    terminal = Terminal(agent=agent, ui_config=terminal_config.ui_config)
+    terminal = TerminalInterface(agent=agent, config=terminal_config)
     await terminal.run()
 
 

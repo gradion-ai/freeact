@@ -48,7 +48,7 @@ async def test_create_config_saves_defaults_when_freeact_missing(tmp_path: Path,
     assert config.freeact_dir == tmp_path / ".freeact"
     assert (config.freeact_dir / "agent.json").exists()
     assert (config.freeact_dir / "terminal.json").exists()
-    assert terminal_config.keys.toggle_expand_all == "ctrl+o"
+    assert terminal_config.expand_all_toggle_key == "ctrl+o"
 
 
 @pytest.mark.asyncio
@@ -58,12 +58,12 @@ async def test_create_config_loads_existing_without_overwrite(tmp_path: Path, mo
     freeact_dir.mkdir(parents=True)
 
     (freeact_dir / "agent.json").write_text(json.dumps({"model": "test-model", "ptc_servers": {}}))
-    (freeact_dir / "terminal.json").write_text(json.dumps({"keys": {"toggle_expand_all": "ctrl+p"}}))
+    (freeact_dir / "terminal.json").write_text(json.dumps({"expand_all_toggle_key": "ctrl+p"}))
 
     config, terminal_config = await cli.create_config()
 
     assert config.model == "test-model"
-    assert terminal_config.keys.toggle_expand_all == "ctrl+p"
+    assert terminal_config.expand_all_toggle_key == "ctrl+p"
 
 
 @pytest.mark.asyncio
@@ -77,7 +77,7 @@ async def test_create_config_creates_terminal_json_when_missing(tmp_path: Path, 
 
     terminal_json = freeact_dir / "terminal.json"
     assert terminal_json.exists()
-    assert terminal_config.keys.toggle_expand_all == "ctrl+o"
+    assert terminal_config.expand_all_toggle_key == "ctrl+o"
 
 
 def test_main_init_does_not_overwrite_existing_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -85,7 +85,7 @@ def test_main_init_does_not_overwrite_existing_config(tmp_path: Path, monkeypatc
     freeact_dir = tmp_path / ".freeact"
     freeact_dir.mkdir(parents=True)
     terminal_json = freeact_dir / "terminal.json"
-    terminal_json.write_text('{"keys": {"toggle_expand_all": "ctrl+p"}}')
+    terminal_json.write_text('{"expand_all_toggle_key": "ctrl+p"}')
 
     monkeypatch.setattr(cli, "load_dotenv", lambda: None)
     monkeypatch.setattr(
@@ -98,7 +98,7 @@ def test_main_init_does_not_overwrite_existing_config(tmp_path: Path, monkeypatc
     cli.main()
 
     data = json.loads(terminal_json.read_text())
-    assert data["keys"]["toggle_expand_all"] == "ctrl+p"
+    assert data["expand_all_toggle_key"] == "ctrl+p"
 
 
 @pytest.mark.asyncio
@@ -118,7 +118,7 @@ async def test_run_uses_provided_session_id_for_session_store(tmp_path: Path, mo
             captured["agent_kwargs"] = kwargs
 
     class FakeTerminal:
-        def __init__(self, agent, console=None, ui_config=None):
+        def __init__(self, agent, console=None, config=None):
             captured["terminal_agent"] = agent
 
         async def run(self) -> None:
@@ -130,13 +130,13 @@ async def test_run_uses_provided_session_id_for_session_store(tmp_path: Path, mo
             ptc_servers={},
             generated_dir=tmp_path / "generated",
         )
-        terminal_config = SimpleNamespace(ui_config=object())
+        terminal_config = object()
         return config, terminal_config
 
     monkeypatch.setattr(cli, "create_config", fake_create_config)
     monkeypatch.setattr(cli, "SessionStore", FakeSessionStore)
     monkeypatch.setattr(cli, "Agent", FakeAgent)
-    monkeypatch.setattr(cli, "Terminal", FakeTerminal)
+    monkeypatch.setattr(cli, "TerminalInterface", FakeTerminal)
     monkeypatch.setattr(cli, "generate_mcp_sources", AsyncMock())
 
     namespace = argparse.Namespace(
@@ -166,7 +166,7 @@ async def test_run_generates_uuid_when_session_id_missing(tmp_path: Path, monkey
             captured["agent_kwargs"] = kwargs
 
     class FakeTerminal:
-        def __init__(self, agent, console=None, ui_config=None):
+        def __init__(self, agent, console=None, config=None):
             pass
 
         async def run(self) -> None:
@@ -178,13 +178,13 @@ async def test_run_generates_uuid_when_session_id_missing(tmp_path: Path, monkey
             ptc_servers={},
             generated_dir=tmp_path / "generated",
         )
-        terminal_config = SimpleNamespace(ui_config=object())
+        terminal_config = object()
         return config, terminal_config
 
     monkeypatch.setattr(cli, "create_config", fake_create_config)
     monkeypatch.setattr(cli, "SessionStore", FakeSessionStore)
     monkeypatch.setattr(cli, "Agent", FakeAgent)
-    monkeypatch.setattr(cli, "Terminal", FakeTerminal)
+    monkeypatch.setattr(cli, "TerminalInterface", FakeTerminal)
     monkeypatch.setattr(cli, "generate_mcp_sources", AsyncMock())
     monkeypatch.setattr(cli.uuid, "uuid4", lambda: generated)
 
