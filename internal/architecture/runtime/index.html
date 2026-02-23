@@ -1219,8 +1219,10 @@ It intentionally excludes CLI, terminal UI, and longer-lived permission policy l
 </ul>
 <h2 id="sessions">Sessions</h2>
 <ul>
-<li>Session persistence: <code>freeact/agent/store.py</code>.</li>
+<li>Session persistence is owned by <code>Agent</code> in <code>freeact/agent/core.py</code>, which creates <code>SessionStore</code> internally when <code>Config.enable_persistence</code> is <code>true</code>.</li>
+<li>Session storage implementation: <code>freeact/agent/store.py</code>.</li>
 <li>Main-session rehydration loads <code>main.jsonl</code>; subagent JSONL files are persisted for audit.</li>
+<li>Tool results above <code>Config.tool_result_inline_max_bytes</code> are stored in <code>.freeact/sessions/&lt;session-id&gt;/tool-results/&lt;file-id&gt;.&lt;ext&gt;</code> and replaced inline with a threshold/size notice plus preview lines.</li>
 </ul>
 <h2 id="approvals">Approvals</h2>
 <ul>

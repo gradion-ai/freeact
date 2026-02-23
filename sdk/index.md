@@ -197,39 +197,54 @@ The agent supports two timeout settings in [`agent.json`](https://gradion-ai.git
 
 ### Persistence
 
-SessionStore persists agent message history to `.freeact/sessions/<session-uuid>/<agent-id>.jsonl`. Each agent turn appends messages incrementally, so the history is durable even if the process terminates mid-session.
+Config controls session persistence via `enable_persistence`.
+
+- Default: `true`. The agent persists history to `.freeact/sessions/<session-id>/<agent-id>.jsonl`.
+- `false`: The agent keeps history in memory only. Passing `session_id` to Agent raises `ValueError`.
+
+When persistence is enabled, construct an agent without `session_id` to create a new session ID internally. Read it from `agent.session_id`:
 
 ```
-from freeact.agent.store import SessionStore
-
-# Create a session store with a new session ID
-session_id = str(uuid.uuid4())
-session_store = SessionStore(config.sessions_dir, session_id)
-```
-
-Pass the store to Agent to enable persistence.
-
-```
-# Run agent with session persistence
-async with Agent(config=config, session_store=session_store) as agent:
+# No session_id: agent creates a new session ID internally.
+async with Agent(config=config) as agent:
+    print(f"Generated session ID: {agent.session_id}")
     await handle_events(agent, "What is the capital of France?")
     await handle_events(agent, "What about Germany?")
 ```
 
-To resume a session, create a new `SessionStore` with the same `session_id`. The agent loads the persisted message history on startup and continues from where it left off.
+Construct an agent with an explicit `session_id` for create-or-resume behavior:
 
 ```
-# Resume session with the same session ID
-session_store = SessionStore(config.sessions_dir, session_id)
+# Choose an explicit session ID.
+session_id = "countries-session"
+# Create-or-resume behavior: resume if present, otherwise start new.
+async with Agent(config=config, session_id=session_id) as agent:
+    await handle_events(agent, "What is the capital of Spain?")
+```
 
-async with Agent(config=config, session_store=session_store) as agent:
+If that `session_id` already exists, the persisted history is resumed. If it does not exist, a new session starts with that ID.
+
+To resume later, create another agent with the same `session_id`:
+
+```
+# Resume the same session ID later.
+async with Agent(config=config, session_id=session_id) as agent:
     # Previous message history is restored automatically
-    await handle_events(agent, "And what was the first country we discussed?")
+    await handle_events(agent, "And what country did we discuss in this session?")
 ```
 
 Only the main agent's message history (`main.jsonl`) is loaded on resume. Subagent messages are persisted to separate files (`sub-xxxx.jsonl`) for auditing but are not rehydrated.
 
-The [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) accepts `--session-id` to resume a session from the command line.
+The [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) accepts `--session-id` to resume a session from the command line when `enable_persistence` is `true`.
+
+#### Tool Results
+
+Tool result persistence handles outputs that are too large to keep inline in the message history. Large inline payloads can bloat context and slow down processing. When a result exceeds the inline size threshold, the full content is saved to disk and replaced inline with a short file reference notice that includes preview lines.
+
+Tool result persistence is controlled by two config options:
+
+- `tool_result_inline_max_bytes`: Maximum inline payload size for a tool result.
+- `tool_result_preview_lines`: Number of preview lines shown from both the beginning and end of large text results in the file reference notice.
 
 ## Permissions API
 

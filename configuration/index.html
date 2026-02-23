@@ -1760,7 +1760,9 @@
     ├── sessions/           # Session trace storage
     │   └── &lt;session-uuid&gt;/
     │       ├── main.jsonl
-    │       └── sub-xxxx.jsonl
+    │       ├── sub-xxxx.jsonl
+    │       └── tool-results/
+    │           └── &lt;file-id&gt;.&lt;ext&gt;   # Large tool results stored as files
     └── permissions.json    # Persisted approval decisions
 </code></pre></div>
 <h2 id="configuration-file">Configuration File</h2>
@@ -1772,6 +1774,9 @@
 <span class="w">  </span><span class="nt">&quot;images_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;execution_timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">300</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;approval_timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;tool_result_inline_max_bytes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">32768</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;tool_result_preview_lines&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;enable_persistence&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;enable_subagents&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;max_subagents&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;kernel_env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
@@ -1820,6 +1825,21 @@
 <td><code>approval_timeout</code></td>
 <td><code>null</code></td>
 <td>Timeout in seconds for PTC approval requests. <code>null</code> means no timeout.</td>
+</tr>
+<tr>
+<td><code>tool_result_inline_max_bytes</code></td>
+<td><code>32768</code></td>
+<td>Inline size threshold in bytes for tool results. Larger results are saved to <code>.freeact/sessions/&lt;session-id&gt;/tool-results/</code> and replaced with a file reference notice plus preview lines.</td>
+</tr>
+<tr>
+<td><code>tool_result_preview_lines</code></td>
+<td><code>10</code></td>
+<td>Number of preview lines included from both the beginning and end of large text results in the file reference notice.</td>
+</tr>
+<tr>
+<td><code>enable_persistence</code></td>
+<td><code>true</code></td>
+<td>Persist message history to <code>.freeact/sessions/</code> and allow session resume with <code>session_id</code>. If <code>false</code>, history stays in memory for the process lifetime only.</td>
 </tr>
 <tr>
 <td><code>enable_subagents</code></td>

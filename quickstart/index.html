@@ -504,6 +504,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#approval-prompt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Approval Prompt
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1268,6 +1279,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#approval-prompt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Approval Prompt
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1336,9 +1358,14 @@ uvx<span class="w"> </span>freeact
 <ul>
 <li><strong>Progressive tool loading</strong>: The agent progressively loads tool information: lists categories, lists tools in the <code>google</code> category, then reads the <code>web_search</code> API to understand its parameters.</li>
 <li><strong>Programmatic tool calling</strong>: The agent writes Python code that imports the <code>web_search</code> tool from <code>mcptools.google</code> and calls it programmatically (PTC) with the user's query.</li>
-<li><strong>Action approval</strong>: The code action and the programmatic <code>web_search</code> tool call are explicitly approved by the user, other tool calls were <a href="../configuration/#permissions">pre-approved</a> for this example.</li>
 </ul>
 <p>The code execution output shows the search result with source URLs. The agent response is a summary of it.</p>
+<h3 id="approval-prompt">Approval Prompt</h3>
+<p>Freeact can prompt for approval before running code actions and tool calls.
+This also includes MCP tools called programmatically through generated Python APIs.</p>
+<p>The screenshot below shows the approval prompt for a programmatic tool call (PTC):</p>
+<p><a href="../screenshots/quickstart-approve.png" rel="noopener" target="_blank"><img alt="Approval Prompt" src="../screenshots/quickstart-approve.png" /></a></p>
+<p>Code actions and tool calls can also be pre-approved. See <a href="../cli/#approval-prompt">Approval Prompt</a> for prompt options and behavior.</p>
 <h2 id="agent-sdk">Agent SDK</h2>
 <p>The CLI tool is built on the <a href="../sdk/">Agent SDK</a> that you can use directly in your applications. The following minimal example shows how to run the same task programmatically, with code actions and tool calls auto-approved:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>

@@ -719,6 +719,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Persistence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tool-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -1420,6 +1437,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Persistence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tool-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -1664,29 +1698,41 @@
 <span class="p">}</span>
 </code></pre></div>
 <h3 id="persistence">Persistence</h3>
-<p><a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.store.SessionStore"><code>SessionStore</code></a> persists agent message history to <code>.freeact/sessions/&lt;session-uuid&gt;/&lt;agent-id&gt;.jsonl</code>. Each agent turn appends messages incrementally, so the history is durable even if the process terminates mid-session.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent.store</span><span class="w"> </span><span class="kn">import</span> <span class="n">SessionStore</span>
-
-<span class="c1"># Create a session store with a new session ID</span>
-<span class="n">session_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
-<span class="n">session_store</span> <span class="o">=</span> <span class="n">SessionStore</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">sessions_dir</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span>
-</code></pre></div>
-<p>Pass the store to <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.Agent"><code>Agent</code></a> to enable persistence.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Run agent with session persistence</span>
-<span class="k">async</span> <span class="k">with</span> <span class="n">Agent</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">session_store</span><span class="o">=</span><span class="n">session_store</span><span class="p">)</span> <span class="k">as</span> <span class="n">agent</span><span class="p">:</span>
+<p><a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config"><code>Config</code></a> controls session persistence via <code>enable_persistence</code>.</p>
+<ul>
+<li>Default: <code>true</code>. The agent persists history to <code>.freeact/sessions/&lt;session-id&gt;/&lt;agent-id&gt;.jsonl</code>.</li>
+<li><code>false</code>: The agent keeps history in memory only. Passing <code>session_id</code> to <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.Agent"><code>Agent</code></a> raises <code>ValueError</code>.</li>
+</ul>
+<p>When persistence is enabled, construct an agent without <code>session_id</code> to create a new session ID internally. Read it from <code>agent.session_id</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># No session_id: agent creates a new session ID internally.</span>
+<span class="k">async</span> <span class="k">with</span> <span class="n">Agent</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span> <span class="k">as</span> <span class="n">agent</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Generated session ID: </span><span class="si">{</span><span class="n">agent</span><span class="o">.</span><span class="n">session_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">await</span> <span class="n">handle_events</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="s2">&quot;What is the capital of France?&quot;</span><span class="p">)</span>
     <span class="k">await</span> <span class="n">handle_events</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="s2">&quot;What about Germany?&quot;</span><span class="p">)</span>
 </code></pre></div>
-<p>To resume a session, create a new <code>SessionStore</code> with the same <code>session_id</code>. The agent loads the persisted message history on startup and continues from where it left off.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Resume session with the same session ID</span>
-<span class="n">session_store</span> <span class="o">=</span> <span class="n">SessionStore</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">sessions_dir</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span>
-
-<span class="k">async</span> <span class="k">with</span> <span class="n">Agent</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">session_store</span><span class="o">=</span><span class="n">session_store</span><span class="p">)</span> <span class="k">as</span> <span class="n">agent</span><span class="p">:</span>
+<p>Construct an agent with an explicit <code>session_id</code> for create-or-resume behavior:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Choose an explicit session ID.</span>
+<span class="n">session_id</span> <span class="o">=</span> <span class="s2">&quot;countries-session&quot;</span>
+<span class="c1"># Create-or-resume behavior: resume if present, otherwise start new.</span>
+<span class="k">async</span> <span class="k">with</span> <span class="n">Agent</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">session_id</span><span class="o">=</span><span class="n">session_id</span><span class="p">)</span> <span class="k">as</span> <span class="n">agent</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">handle_events</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="s2">&quot;What is the capital of Spain?&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>If that <code>session_id</code> already exists, the persisted history is resumed. If it does not exist, a new session starts with that ID.</p>
+<p>To resume later, create another agent with the same <code>session_id</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Resume the same session ID later.</span>
+<span class="k">async</span> <span class="k">with</span> <span class="n">Agent</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">session_id</span><span class="o">=</span><span class="n">session_id</span><span class="p">)</span> <span class="k">as</span> <span class="n">agent</span><span class="p">:</span>
     <span class="c1"># Previous message history is restored automatically</span>
-    <span class="k">await</span> <span class="n">handle_events</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="s2">&quot;And what was the first country we discussed?&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">handle_events</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="s2">&quot;And what country did we discuss in this session?&quot;</span><span class="p">)</span>
 </code></pre></div>
 <p>Only the main agent's message history (<code>main.jsonl</code>) is loaded on resume. Subagent messages are persisted to separate files (<code>sub-xxxx.jsonl</code>) for auditing but are not rehydrated.</p>
-<p>The <a href="../cli/">CLI tool</a> accepts <code>--session-id</code> to resume a session from the command line.</p>
+<p>The <a href="../cli/">CLI tool</a> accepts <code>--session-id</code> to resume a session from the command line when <code>enable_persistence</code> is <code>true</code>.</p>
+<h4 id="tool-results">Tool Results</h4>
+<p>Tool result persistence handles outputs that are too large to keep inline in the message history. Large inline payloads can bloat context and slow down processing. When a result exceeds the inline size threshold, the full content is saved to disk and replaced inline with a short file reference notice that includes preview lines.</p>
+<p>Tool result persistence is controlled by two config options:</p>
+<ul>
+<li><code>tool_result_inline_max_bytes</code>: Maximum inline payload size for a tool result.</li>
+<li><code>tool_result_preview_lines</code>: Number of preview lines shown from both the beginning and end of large text results in the file reference notice.</li>
+</ul>
 <h2 id="permissions-api">Permissions API</h2>
 <div class="admonition info">
 <p class="admonition-title">Work in progress</p>

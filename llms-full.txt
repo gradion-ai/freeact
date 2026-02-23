@@ -183,9 +183,16 @@ The screenshot shows:
 
 - **Progressive tool loading**: The agent progressively loads tool information: lists categories, lists tools in the `google` category, then reads the `web_search` API to understand its parameters.
 - **Programmatic tool calling**: The agent writes Python code that imports the `web_search` tool from `mcptools.google` and calls it programmatically (PTC) with the user's query.
-- **Action approval**: The code action and the programmatic `web_search` tool call are explicitly approved by the user, other tool calls were [pre-approved](https://gradion-ai.github.io/freeact/configuration/#permissions) for this example.
 
 The code execution output shows the search result with source URLs. The agent response is a summary of it.
+
+### Approval Prompt
+
+Freeact can prompt for approval before running code actions and tool calls. This also includes MCP tools called programmatically through generated Python APIs.
+
+The screenshot below shows the approval prompt for a programmatic tool call (PTC):
+
+Code actions and tool calls can also be pre-approved. See [Approval Prompt](https://gradion-ai.github.io/freeact/cli/#approval-prompt) for prompt options and behavior.
 
 ## Agent SDK
 
@@ -284,7 +291,9 @@ Freeact stores agent configuration and runtime state in `.freeact/`. Project-lev
     ├── sessions/           # Session trace storage
     │   └── <session-uuid>/
     │       ├── main.jsonl
-    │       └── sub-xxxx.jsonl
+    │       ├── sub-xxxx.jsonl
+    │       └── tool-results/
+    │           └── <file-id>.<ext>   # Large tool results stored as files
     └── permissions.json    # Persisted approval decisions
 ```
 
@@ -300,6 +309,9 @@ The `agent.json` file contains agent settings and MCP server configurations:
   "images_dir": null,
   "execution_timeout": 300,
   "approval_timeout": null,
+  "tool_result_inline_max_bytes": 32768,
+  "tool_result_preview_lines": 10,
+  "enable_persistence": true,
   "enable_subagents": true,
   "max_subagents": 5,
   "kernel_env": {},
@@ -312,17 +324,20 @@ The `agent.json` file contains agent settings and MCP server configurations:
 
 ### Agent Settings
 
-| Setting             | Default                             | Description                                                                                                                                                     |
-| ------------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `model`             | `google-gla:gemini-3-flash-preview` | [Model identifier](https://gradion-ai.github.io/freeact/models/#model-identifier) in `provider:model-name` format                                               |
-| `model_settings`    | `{}`                                | Provider-specific [model settings](https://gradion-ai.github.io/freeact/models/#model-settings) (e.g., thinking config, temperature)                            |
-| `provider_settings` | `null`                              | Custom API credentials, endpoints, or other [provider-specific options](https://gradion-ai.github.io/freeact/models/#provider-settings)                         |
-| `images_dir`        | `null`                              | Directory for saving generated images to disk. `null` defaults to `images` in the working directory.                                                            |
-| `execution_timeout` | `300`                               | Maximum time in seconds for [code execution](https://gradion-ai.github.io/freeact/execution/index.md). Approval wait time is excluded. `null` means no timeout. |
-| `approval_timeout`  | `null`                              | Timeout in seconds for PTC approval requests. `null` means no timeout.                                                                                          |
-| `enable_subagents`  | `true`                              | Whether to enable subagent delegation                                                                                                                           |
-| `max_subagents`     | `5`                                 | Maximum number of concurrent subagents                                                                                                                          |
-| `kernel_env`        | `{}`                                | Environment variables passed to the IPython kernel. Supports `${VAR}` placeholders resolved against the host environment.                                       |
+| Setting                        | Default                             | Description                                                                                                                                                                               |
+| ------------------------------ | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`                        | `google-gla:gemini-3-flash-preview` | [Model identifier](https://gradion-ai.github.io/freeact/models/#model-identifier) in `provider:model-name` format                                                                         |
+| `model_settings`               | `{}`                                | Provider-specific [model settings](https://gradion-ai.github.io/freeact/models/#model-settings) (e.g., thinking config, temperature)                                                      |
+| `provider_settings`            | `null`                              | Custom API credentials, endpoints, or other [provider-specific options](https://gradion-ai.github.io/freeact/models/#provider-settings)                                                   |
+| `images_dir`                   | `null`                              | Directory for saving generated images to disk. `null` defaults to `images` in the working directory.                                                                                      |
+| `execution_timeout`            | `300`                               | Maximum time in seconds for [code execution](https://gradion-ai.github.io/freeact/execution/index.md). Approval wait time is excluded. `null` means no timeout.                           |
+| `approval_timeout`             | `null`                              | Timeout in seconds for PTC approval requests. `null` means no timeout.                                                                                                                    |
+| `tool_result_inline_max_bytes` | `32768`                             | Inline size threshold in bytes for tool results. Larger results are saved to `.freeact/sessions/<session-id>/tool-results/` and replaced with a file reference notice plus preview lines. |
+| `tool_result_preview_lines`    | `10`                                | Number of preview lines included from both the beginning and end of large text results in the file reference notice.                                                                      |
+| `enable_persistence`           | `true`                              | Persist message history to `.freeact/sessions/` and allow session resume with `session_id`. If `false`, history stays in memory for the process lifetime only.                            |
+| `enable_subagents`             | `true`                              | Whether to enable subagent delegation                                                                                                                                                     |
+| `max_subagents`                | `5`                                 | Maximum number of concurrent subagents                                                                                                                                                    |
+| `kernel_env`                   | `{}`                                | Environment variables passed to the IPython kernel. Supports `${VAR}` placeholders resolved against the host environment.                                                                 |
 
 ### `tool_search`
 
@@ -1128,39 +1143,54 @@ The agent supports two timeout settings in [`agent.json`](https://gradion-ai.git
 
 ### Persistence
 
-SessionStore persists agent message history to `.freeact/sessions/<session-uuid>/<agent-id>.jsonl`. Each agent turn appends messages incrementally, so the history is durable even if the process terminates mid-session.
+Config controls session persistence via `enable_persistence`.
+
+- Default: `true`. The agent persists history to `.freeact/sessions/<session-id>/<agent-id>.jsonl`.
+- `false`: The agent keeps history in memory only. Passing `session_id` to Agent raises `ValueError`.
+
+When persistence is enabled, construct an agent without `session_id` to create a new session ID internally. Read it from `agent.session_id`:
 
 ```
-from freeact.agent.store import SessionStore
-
-# Create a session store with a new session ID
-session_id = str(uuid.uuid4())
-session_store = SessionStore(config.sessions_dir, session_id)
-```
-
-Pass the store to Agent to enable persistence.
-
-```
-# Run agent with session persistence
-async with Agent(config=config, session_store=session_store) as agent:
+# No session_id: agent creates a new session ID internally.
+async with Agent(config=config) as agent:
+    print(f"Generated session ID: {agent.session_id}")
     await handle_events(agent, "What is the capital of France?")
     await handle_events(agent, "What about Germany?")
 ```
 
-To resume a session, create a new `SessionStore` with the same `session_id`. The agent loads the persisted message history on startup and continues from where it left off.
+Construct an agent with an explicit `session_id` for create-or-resume behavior:
 
 ```
-# Resume session with the same session ID
-session_store = SessionStore(config.sessions_dir, session_id)
+# Choose an explicit session ID.
+session_id = "countries-session"
+# Create-or-resume behavior: resume if present, otherwise start new.
+async with Agent(config=config, session_id=session_id) as agent:
+    await handle_events(agent, "What is the capital of Spain?")
+```
 
-async with Agent(config=config, session_store=session_store) as agent:
+If that `session_id` already exists, the persisted history is resumed. If it does not exist, a new session starts with that ID.
+
+To resume later, create another agent with the same `session_id`:
+
+```
+# Resume the same session ID later.
+async with Agent(config=config, session_id=session_id) as agent:
     # Previous message history is restored automatically
-    await handle_events(agent, "And what was the first country we discussed?")
+    await handle_events(agent, "And what country did we discuss in this session?")
 ```
 
 Only the main agent's message history (`main.jsonl`) is loaded on resume. Subagent messages are persisted to separate files (`sub-xxxx.jsonl`) for auditing but are not rehydrated.
 
-The [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) accepts `--session-id` to resume a session from the command line.
+The [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) accepts `--session-id` to resume a session from the command line when `enable_persistence` is `true`.
+
+#### Tool Results
+
+Tool result persistence handles outputs that are too large to keep inline in the message history. Large inline payloads can bloat context and slow down processing. When a result exceeds the inline size threshold, the full content is saved to disk and replaced inline with a short file reference notice that includes preview lines.
+
+Tool result persistence is controlled by two config options:
+
+- `tool_result_inline_max_bytes`: Maximum inline payload size for a tool result.
+- `tool_result_preview_lines`: Number of preview lines shown from both the beginning and end of large text results in the file reference notice.
 
 ## Permissions API
 
@@ -1217,7 +1247,7 @@ freeact init
 | ----------------------- | -------------------------------------------------------------------------------------------- |
 | `--sandbox`             | Run code execution in [sandbox mode](https://gradion-ai.github.io/freeact/sandbox/index.md). |
 | `--sandbox-config PATH` | Path to sandbox configuration file.                                                          |
-| `--session-id UUID`     | Resume a previous session by its UUID. Generates a new UUID if omitted.                      |
+| `--session-id UUID`     | Resume a previous session by its UUID.                                                       |
 | `--log-level LEVEL`     | Set logging level: `debug`, `info` (default), `warning`, `error`, `critical`.                |
 
 ## Examples
@@ -1239,6 +1269,8 @@ Resuming a previous [session](https://gradion-ai.github.io/freeact/sdk/#persiste
 ```
 freeact --session-id 550e8400-e29b-41d4-a716-446655440000
 ```
+
+If `enable_persistence` is `false` in `.freeact/agent.json`, passing `--session-id` exits with an error.
 
 ## Interactive Mode
 
@@ -1308,9 +1340,9 @@ See [Permissions API](https://gradion-ai.github.io/freeact/sdk/#permissions-api)
 Agent(
     config: Config,
     agent_id: str | None = None,
+    session_id: str | None = None,
     sandbox: bool = False,
     sandbox_config: Path | None = None,
-    session_store: SessionStore | None = None,
 )
 ```
 
@@ -1329,13 +1361,27 @@ Initialize the agent.
 
 Parameters:
 
-| Name             | Type           | Description                                                                                                    | Default                                                                        |
-| ---------------- | -------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `config`         | `Config`       | Agent configuration containing model, system prompt, MCP servers, kernel env, timeouts, and subagent settings. | *required*                                                                     |
-| `agent_id`       | \`str          | None\`                                                                                                         | Identifier for this agent instance. Defaults to "main" when not provided.      |
-| `sandbox`        | `bool`         | Run the kernel in sandbox mode.                                                                                | `False`                                                                        |
-| `sandbox_config` | \`Path         | None\`                                                                                                         | Path to custom sandbox configuration.                                          |
-| `session_store`  | \`SessionStore | None\`                                                                                                         | Store for persisting message history. If None, history is kept in memory only. |
+| Name             | Type     | Description                                                                                                    | Default                                                                                                                                                                                                                                                                         |
+| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `config`         | `Config` | Agent configuration containing model, system prompt, MCP servers, kernel env, timeouts, and subagent settings. | *required*                                                                                                                                                                                                                                                                      |
+| `agent_id`       | \`str    | None\`                                                                                                         | Identifier for this agent instance. Defaults to "main" when not provided.                                                                                                                                                                                                       |
+| `session_id`     | \`str    | None\`                                                                                                         | Optional session identifier for persistence. If None and persistence is enabled, a new session ID is generated. If provided and persistence is enabled, that session ID is used. Existing session history is resumed when present; otherwise a new session starts with that ID. |
+| `sandbox`        | `bool`   | Run the kernel in sandbox mode.                                                                                | `False`                                                                                                                                                                                                                                                                         |
+| `sandbox_config` | \`Path   | None\`                                                                                                         | Path to custom sandbox configuration.                                                                                                                                                                                                                                           |
+
+Raises:
+
+| Type         | Description                                                         |
+| ------------ | ------------------------------------------------------------------- |
+| `ValueError` | If session_id is provided while config.enable_persistence is False. |
+
+### session_id
+
+```
+session_id: str | None
+```
+
+Session ID used by this agent, or `None` when persistence is disabled.
 
 ### start
 
@@ -1489,6 +1535,7 @@ Partial model thinking text (content streaming).
 CodeExecutionOutput(
     text: str | None,
     images: list[Path],
+    truncated: bool = False,
     *,
     agent_id: str = "",
     corr_id: str = ""
@@ -1526,57 +1573,6 @@ Bases: `AgentEvent`
 
 Tool or built-in operation output.
 
-## freeact.agent.store.SessionStore
-
-```
-SessionStore(
-    sessions_root: Path,
-    session_id: str,
-    flush_after_append: bool = False,
-)
-```
-
-Persist and restore per-agent pydantic-ai message history as JSONL.
-
-### append
-
-```
-append(agent_id: str, messages: list[ModelMessage]) -> None
-```
-
-Append serialized messages to an agent-specific session log.
-
-Each message is written as a versioned JSONL envelope with a UTC timestamp. The session file is created on demand.
-
-Parameters:
-
-| Name       | Type                 | Description                                                                                     | Default    |
-| ---------- | -------------------- | ----------------------------------------------------------------------------------------------- | ---------- |
-| `agent_id` | `str`                | Logical agent stream name (for example, "main" or "sub-1234"), used as the JSONL filename stem. | *required* |
-| `messages` | `list[ModelMessage]` | Messages to append in order.                                                                    | *required* |
-
-### load
-
-```
-load(agent_id: str) -> list[ModelMessage]
-```
-
-Load and validate all persisted messages for an agent.
-
-Returns an empty list when no session file exists. If the final line is truncated (for example from an interrupted write), that line is ignored. Earlier malformed lines raise `ValueError`.
-
-Parameters:
-
-| Name       | Type  | Description                                              | Default    |
-| ---------- | ----- | -------------------------------------------------------- | ---------- |
-| `agent_id` | `str` | Logical agent stream name used to locate the JSONL file. | *required* |
-
-Returns:
-
-| Type                 | Description                                   |
-| -------------------- | --------------------------------------------- |
-| `list[ModelMessage]` | Deserialized message history in append order. |
-
 ## freeact.agent.config.Config
 
 Bases: `BaseModel`
@@ -1600,6 +1596,9 @@ Fields:
 - `images_dir` (`Path | None`)
 - `execution_timeout` (`float | None`)
 - `approval_timeout` (`float | None`)
+- `tool_result_inline_max_bytes` (`int`)
+- `tool_result_preview_lines` (`int`)
+- `enable_persistence` (`bool`)
 - `enable_subagents` (`bool`)
 - `max_subagents` (`int`)
 - `kernel_env` (`dict[str, str]`)

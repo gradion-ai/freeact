@@ -4,9 +4,9 @@
 Agent(
     config: Config,
     agent_id: str | None = None,
+    session_id: str | None = None,
     sandbox: bool = False,
     sandbox_config: Path | None = None,
-    session_store: SessionStore | None = None,
 )
 ```
 
@@ -25,13 +25,27 @@ Initialize the agent.
 
 Parameters:
 
-| Name             | Type           | Description                                                                                                    | Default                                                                        |
-| ---------------- | -------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `config`         | `Config`       | Agent configuration containing model, system prompt, MCP servers, kernel env, timeouts, and subagent settings. | *required*                                                                     |
-| `agent_id`       | \`str          | None\`                                                                                                         | Identifier for this agent instance. Defaults to "main" when not provided.      |
-| `sandbox`        | `bool`         | Run the kernel in sandbox mode.                                                                                | `False`                                                                        |
-| `sandbox_config` | \`Path         | None\`                                                                                                         | Path to custom sandbox configuration.                                          |
-| `session_store`  | \`SessionStore | None\`                                                                                                         | Store for persisting message history. If None, history is kept in memory only. |
+| Name             | Type     | Description                                                                                                    | Default                                                                                                                                                                                                                                                                         |
+| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `config`         | `Config` | Agent configuration containing model, system prompt, MCP servers, kernel env, timeouts, and subagent settings. | *required*                                                                                                                                                                                                                                                                      |
+| `agent_id`       | \`str    | None\`                                                                                                         | Identifier for this agent instance. Defaults to "main" when not provided.                                                                                                                                                                                                       |
+| `session_id`     | \`str    | None\`                                                                                                         | Optional session identifier for persistence. If None and persistence is enabled, a new session ID is generated. If provided and persistence is enabled, that session ID is used. Existing session history is resumed when present; otherwise a new session starts with that ID. |
+| `sandbox`        | `bool`   | Run the kernel in sandbox mode.                                                                                | `False`                                                                                                                                                                                                                                                                         |
+| `sandbox_config` | \`Path   | None\`                                                                                                         | Path to custom sandbox configuration.                                                                                                                                                                                                                                           |
+
+Raises:
+
+| Type         | Description                                                         |
+| ------------ | ------------------------------------------------------------------- |
+| `ValueError` | If session_id is provided while config.enable_persistence is False. |
+
+### session_id
+
+```
+session_id: str | None
+```
+
+Session ID used by this agent, or `None` when persistence is disabled.
 
 ### start
 
@@ -185,6 +199,7 @@ Partial model thinking text (content streaming).
 CodeExecutionOutput(
     text: str | None,
     images: list[Path],
+    truncated: bool = False,
     *,
     agent_id: str = "",
     corr_id: str = ""
@@ -221,54 +236,3 @@ ToolOutput(
 Bases: `AgentEvent`
 
 Tool or built-in operation output.
-
-## freeact.agent.store.SessionStore
-
-```
-SessionStore(
-    sessions_root: Path,
-    session_id: str,
-    flush_after_append: bool = False,
-)
-```
-
-Persist and restore per-agent pydantic-ai message history as JSONL.
-
-### append
-
-```
-append(agent_id: str, messages: list[ModelMessage]) -> None
-```
-
-Append serialized messages to an agent-specific session log.
-
-Each message is written as a versioned JSONL envelope with a UTC timestamp. The session file is created on demand.
-
-Parameters:
-
-| Name       | Type                 | Description                                                                                     | Default    |
-| ---------- | -------------------- | ----------------------------------------------------------------------------------------------- | ---------- |
-| `agent_id` | `str`                | Logical agent stream name (for example, "main" or "sub-1234"), used as the JSONL filename stem. | *required* |
-| `messages` | `list[ModelMessage]` | Messages to append in order.                                                                    | *required* |
-
-### load
-
-```
-load(agent_id: str) -> list[ModelMessage]
-```
-
-Load and validate all persisted messages for an agent.
-
-Returns an empty list when no session file exists. If the final line is truncated (for example from an interrupted write), that line is ignored. Earlier malformed lines raise `ValueError`.
-
-Parameters:
-
-| Name       | Type  | Description                                              | Default    |
-| ---------- | ----- | -------------------------------------------------------- | ---------- |
-| `agent_id` | `str` | Logical agent stream name used to locate the JSONL file. | *required* |
-
-Returns:
-
-| Type                 | Description                                   |
-| -------------------- | --------------------------------------------- |
-| `list[ModelMessage]` | Deserialized message history in append order. |

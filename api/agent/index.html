@@ -1039,6 +1039,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#freeact.agent.Agent.session_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        session_id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#freeact.agent.Agent.start" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1200,45 +1211,6 @@
       
     </span>
   </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#freeact.agent.store.SessionStore" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        SessionStore
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="SessionStore">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#freeact.agent.store.SessionStore.append" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        append
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#freeact.agent.store.SessionStore.load" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        load
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1379,6 +1351,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#freeact.agent.Agent.session_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        session_id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#freeact.agent.Agent.start" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1543,45 +1526,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#freeact.agent.store.SessionStore" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        SessionStore
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="SessionStore">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#freeact.agent.store.SessionStore.append" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        append
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#freeact.agent.store.SessionStore.load" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        load
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1616,9 +1560,9 @@
 <div class="doc-signature highlight"><pre><span></span><code><span class="nf">Agent</span><span class="p">(</span>
     <span class="n">config</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" href="../config/#freeact.agent.config.Config">Config</a></span><span class="p">,</span>
     <span class="n">agent_id</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">session_id</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">sandbox</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">sandbox_config</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">session_store</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" href="#freeact.agent.store.SessionStore">SessionStore</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
 
@@ -1691,6 +1635,26 @@ MCP servers, kernel env, timeouts, and subagent settings.</p>
           </tr>
           <tr class="doc-section-item">
             <td>
+                <code>session_id</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional session identifier for persistence.
+If <code>None</code> and persistence is enabled, a new session ID
+is generated. If provided and persistence is enabled, that
+session ID is used. Existing session history is resumed when
+present; otherwise a new session starts with that ID.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
                 <code>sandbox</code>
             </td>
             <td>
@@ -1721,21 +1685,28 @@ MCP servers, kernel env, timeouts, and subagent settings.</p>
                   <code>None</code>
             </td>
           </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
           <tr class="doc-section-item">
             <td>
-                <code>session_store</code>
-            </td>
-            <td>
-                  <code><a class="autorefs autorefs-internal" href="#freeact.agent.store.SessionStore">SessionStore</a> | None</code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#ValueError">ValueError</a></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Store for persisting message history.
-If <code>None</code>, history is kept in memory only.</p>
+                <p>If <code>session_id</code> is provided while
+<code>config.enable_persistence</code> is <code>False</code>.</p>
               </div>
-            </td>
-            <td>
-                  <code>None</code>
             </td>
           </tr>
       </tbody>
@@ -1758,6 +1729,30 @@ If <code>None</code>, history is kept in memory only.</p>
 
 
 
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="freeact.agent.Agent.session_id" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">session_id</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">session_id</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Session ID used by this agent, or <code>None</code> when persistence is disabled.</p>
+
+    </div>
+
+</div>
 
 
 
@@ -2352,6 +2347,7 @@ the current agent turn.</p>
 <div class="doc-signature highlight"><pre><span></span><code><span class="nf">CodeExecutionOutput</span><span class="p">(</span>
     <span class="n">text</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">images</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/glossary.html#term-list">list</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span><span class="p">],</span>
+    <span class="n">truncated</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">agent_id</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
     <span class="n">corr_id</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
@@ -2499,204 +2495,6 @@ the current agent turn.</p>
 
 
 
-
-
-
-  </div>
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-class">
-
-
-
-<h2 id="freeact.agent.store.SessionStore" class="doc doc-heading">
-            <span class="doc doc-object-name doc-class-name">freeact.agent.store.SessionStore</span>
-
-
-</h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">SessionStore</span><span class="p">(</span>
-    <span class="n">sessions_root</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span><span class="p">,</span>
-    <span class="n">session_id</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
-    <span class="n">flush_after_append</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-<span class="p">)</span>
-</code></pre></div>
-
-    <div class="doc doc-contents first">
-
-
-
-        <p>Persist and restore per-agent pydantic-ai message history as JSONL.</p>
-
-
-
-
-
-
-
-
-
-
-
-  <div class="doc doc-children">
-
-
-
-
-
-
-
-
-
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="freeact.agent.store.SessionStore.append" class="doc doc-heading">
-            <span class="doc doc-object-name doc-function-name">append</span>
-
-
-</h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">append</span><span class="p">(</span><span class="n">agent_id</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n">messages</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/glossary.html#term-list">list</a></span><span class="p">[</span><span class="n"><span title="pydantic_ai.messages.ModelMessage">ModelMessage</span></span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span>
-</code></pre></div>
-
-    <div class="doc doc-contents ">
-
-        <p>Append serialized messages to an agent-specific session log.</p>
-<p>Each message is written as a versioned JSONL envelope with a UTC
-timestamp. The session file is created on demand.</p>
-
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>agent_id</code>
-            </td>
-            <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Logical agent stream name (for example, <code>"main"</code> or
-<code>"sub-1234"</code>), used as the JSONL filename stem.</p>
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>messages</code>
-            </td>
-            <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/glossary.html#term-list">list</a>[<span title="pydantic_ai.messages.ModelMessage">ModelMessage</span>]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Messages to append in order.</p>
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="freeact.agent.store.SessionStore.load" class="doc doc-heading">
-            <span class="doc doc-object-name doc-function-name">load</span>
-
-
-</h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">load</span><span class="p">(</span><span class="n">agent_id</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/glossary.html#term-list">list</a></span><span class="p">[</span><span class="n"><span title="pydantic_ai.messages.ModelMessage">ModelMessage</span></span><span class="p">]</span>
-</code></pre></div>
-
-    <div class="doc doc-contents ">
-
-        <p>Load and validate all persisted messages for an agent.</p>
-<p>Returns an empty list when no session file exists. If the final line is
-truncated (for example from an interrupted write), that line is ignored.
-Earlier malformed lines raise <code>ValueError</code>.</p>
-
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>agent_id</code>
-            </td>
-            <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Logical agent stream name used to locate the JSONL file.</p>
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/glossary.html#term-list">list</a>[<span title="pydantic_ai.messages.ModelMessage">ModelMessage</span>]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Deserialized message history in append order.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div>
 
 
 

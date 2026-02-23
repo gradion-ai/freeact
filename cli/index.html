@@ -1396,7 +1396,7 @@
 </tr>
 <tr>
 <td><code>--session-id UUID</code></td>
-<td>Resume a previous session by its UUID. Generates a new UUID if omitted.</td>
+<td>Resume a previous session by its UUID.</td>
 </tr>
 <tr>
 <td><code>--log-level LEVEL</code></td>
@@ -1414,6 +1414,7 @@
 <p>Resuming a previous <a href="../sdk/#persistence">session</a>:</p>
 <div class="highlight"><pre><span></span><code>freeact<span class="w"> </span>--session-id<span class="w"> </span>550e8400-e29b-41d4-a716-446655440000
 </code></pre></div>
+<p>If <code>enable_persistence</code> is <code>false</code> in <code>.freeact/agent.json</code>, passing <code>--session-id</code> exits with an error.</p>
 <h2 id="interactive-mode">Interactive Mode</h2>
 <p>The interactive mode provides a conversation interface with the agent in a terminal window.</p>
 <p><a href="../screenshots/cli.png" rel="noopener" target="_blank"><img alt="Interactive Mode" src="../screenshots/cli.png" /></a></p>
