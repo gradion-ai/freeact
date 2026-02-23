@@ -322,7 +322,6 @@ class TestMcpToolException:
             assert "line-1" in notice
             assert "line-2" in notice
             assert "line-3" in notice
-            assert "[truncated" in notice
 
             tool_returns = _collect_tool_return_parts(agent._message_history)
             assert len(tool_returns) == 1
@@ -395,7 +394,6 @@ class TestToolResultOverflowInCodeExecution:
             assert "alpha" in output.text
             assert "beta" in output.text
             assert "gamma" in output.text
-            assert "[truncated" in output.text
             assert output.images == []
 
             tool_returns = _collect_tool_return_parts(agent._message_history)

@@ -86,7 +86,7 @@ class SessionStore:
                     break
                 raise ValueError(f"Malformed JSONL line {index + 1} in {session_file}") from e
 
-            self._validate_envelope(envelope, index + 1, session_file)
+            _validate_envelope(envelope, index + 1, session_file)
             serialized_messages.append(envelope["message"])
 
         return ModelMessagesTypeAdapter.validate_python(serialized_messages)
@@ -105,45 +105,39 @@ class SessionStore:
                 break
 
         absolute_path.write_bytes(payload)
-
-        match (self._sessions_root.name, self._sessions_root.parent.name):
-            case ("sessions", ".freeact"):
-                relative_path = Path(".freeact") / "sessions" / self._session_id / "tool-results" / filename
-            case _:
-                relative_path = Path("sessions") / self._session_id / "tool-results" / filename
+        relative_path = self._sessions_root / self._session_id / "tool-results" / filename
 
         return StoredToolResultFile(
             absolute_path=absolute_path,
             relative_path=relative_path,
         )
 
-    @staticmethod
-    def _validate_envelope(envelope: Any, line_no: int, session_file: Path) -> None:
-        if not isinstance(envelope, dict):
-            raise ValueError(f"Malformed JSONL line {line_no} in {session_file}")
 
-        required_keys = {"v", "message", "meta"}
-        if not required_keys.issubset(envelope):
-            raise ValueError(f"Malformed JSONL line {line_no} in {session_file}")
+def _validate_envelope(envelope: Any, line_no: int, session_file: Path) -> None:
+    if not isinstance(envelope, dict):
+        raise ValueError(f"Malformed JSONL line {line_no} in {session_file}")
 
-        if envelope["v"] != 1:
-            raise ValueError(f"Unsupported session envelope version on line {line_no} in {session_file}")
+    required_keys = {"v", "message", "meta"}
+    if not required_keys.issubset(envelope):
+        raise ValueError(f"Malformed JSONL line {line_no} in {session_file}")
 
-        meta = envelope["meta"]
-        if not isinstance(meta, dict):
-            raise ValueError(f"Malformed JSONL line {line_no} in {session_file}")
+    if envelope["v"] != 1:
+        raise ValueError(f"Unsupported session envelope version on line {line_no} in {session_file}")
 
-        if "agent_id" in meta:
-            raise ValueError(
-                f"Invalid session envelope on line {line_no} in {session_file}: meta.agent_id is forbidden"
-            )
+    meta = envelope["meta"]
+    if not isinstance(meta, dict):
+        raise ValueError(f"Malformed JSONL line {line_no} in {session_file}")
 
-        if "ts" not in meta:
-            raise ValueError(f"Malformed JSONL line {line_no} in {session_file}")
+    if "agent_id" in meta:
+        raise ValueError(f"Invalid session envelope on line {line_no} in {session_file}: meta.agent_id is forbidden")
+
+    if "ts" not in meta:
+        raise ValueError(f"Malformed JSONL line {line_no} in {session_file}")
 
 
 def _sanitize_extension(extension: str) -> str:
     raw = extension.lower().lstrip(".")
+
     if not raw:
         return "bin"
 

@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
@@ -105,6 +106,71 @@ def create_code_exec_with_approval_function(
             yield CodeExecutionOutput(text=rejected_result, images=[])
 
     return execute
+
+
+class _FakeMcpServer:
+    def __init__(self, *, tool_prefix: str, result: object) -> None:
+        self.tool_prefix = tool_prefix
+        self._result = result
+        self.calls: list[tuple[str, dict[str, object]]] = []
+
+    async def direct_call_tool(self, name: str, args: dict[str, object]) -> object:
+        self.calls.append((name, args))
+        return self._result
+
+
+class TestMcpFilesystemResultExtraction:
+    @pytest.mark.asyncio
+    async def test_filesystem_read_text_file_extracts_content_from_json_string(self) -> None:
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            agent = Agent(config=create_test_config())
+
+        server = _FakeMcpServer(
+            tool_prefix="filesystem",
+            result=json.dumps({"content": "file text"}),
+        )
+        agent._tool_mapping["filesystem_read_text_file"] = server  # type: ignore[assignment]
+
+        result = await agent._call_mcp_tool("filesystem_read_text_file", {"path": "README.md"})
+
+        assert result == "file text"
+        assert server.calls == [("read_text_file", {"path": "README.md"})]
+
+    @pytest.mark.asyncio
+    async def test_filesystem_read_multiple_files_extracts_content_from_dict(self) -> None:
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            agent = Agent(config=create_test_config())
+
+        server = _FakeMcpServer(
+            tool_prefix="filesystem",
+            result={"content": "merged file text"},
+        )
+        agent._tool_mapping["filesystem_read_multiple_files"] = server  # type: ignore[assignment]
+
+        result = await agent._call_mcp_tool(
+            "filesystem_read_multiple_files",
+            {"paths": ["a.txt", "b.txt"]},
+        )
+
+        assert result == "merged file text"
+        assert server.calls == [("read_multiple_files", {"paths": ["a.txt", "b.txt"]})]
+
+    @pytest.mark.asyncio
+    async def test_non_filesystem_tools_are_not_special_cased(self) -> None:
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            agent = Agent(config=create_test_config())
+
+        raw = json.dumps({"content": "should-stay-raw"})
+        server = _FakeMcpServer(tool_prefix="test", result=raw)
+        agent._tool_mapping["test_tool_2"] = server  # type: ignore[assignment]
+
+        result = await agent._call_mcp_tool("test_tool_2", {"s": "x"})
+
+        assert result == raw
+        assert server.calls == [("tool_2", {"s": "x"})]
 
 
 class TestIpyboxExecution:

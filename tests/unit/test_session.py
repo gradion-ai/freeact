@@ -172,7 +172,7 @@ def test_save_tool_result_writes_payload_file(tmp_path: Path) -> None:
 
     assert stored.absolute_path.exists()
     assert stored.absolute_path.read_bytes() == b"tool-output"
-    assert stored.relative_path.as_posix().startswith(".freeact/sessions/session-1/tool-results/")
+    assert stored.relative_path == stored.absolute_path
 
 
 def test_save_tool_result_filename_format(tmp_path: Path) -> None:

@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 import uuid
 from collections.abc import Sequence, Set
@@ -471,7 +472,7 @@ class Agent:
                     case Response(content=content):
                         last_response = content
         except Exception as e:
-            error_content = self._process_tool_text(f"Subagent error: {e}")
+            error_content = f"Subagent error: {e}"
             yield ToolOutput(content=error_content, agent_id=self.agent_id, corr_id=corr_id)
             return
 
@@ -520,15 +521,37 @@ class Agent:
     async def _call_mcp_tool(self, tool_name: str, tool_args: dict[str, object]) -> ToolResult:
         try:
             mcp_server = self._tool_mapping[tool_name]
-            return await mcp_server.direct_call_tool(
-                name=tool_name.removeprefix(f"{mcp_server.tool_prefix}_"),
+            resolved_name = tool_name.removeprefix(f"{mcp_server.tool_prefix}_")
+            result = await mcp_server.direct_call_tool(
+                name=resolved_name,
                 args=tool_args,
             )
+            if tool_name in {"filesystem_read_text_file", "filesystem_read_multiple_files"}:
+                return self._extract_file_content(result)
+            return result
         except Exception as e:
             return f"MCP tool call failed: {str(e)}"
 
+    @staticmethod
+    def _extract_file_content(result: ToolResult) -> ToolResult:
+        match result:
+            case {"content": content} as payload if len(payload) == 1:
+                return content
+            case str() as raw:
+                try:
+                    decoded = json.loads(raw)
+                except json.JSONDecodeError:
+                    return result
+                match decoded:
+                    case {"content": content} as payload if len(payload) == 1:
+                        return content
+                    case _:
+                        return result
+            case _:
+                return result
+
     def _process_tool_result(self, content: ToolResult) -> ToolResult:
-        return self._tool_result_overflow.materialize(content).content
+        return self._tool_result_overflow.materialize(content)
 
     def _process_tool_text(self, text: str) -> str:
         content = self._process_tool_result(text)

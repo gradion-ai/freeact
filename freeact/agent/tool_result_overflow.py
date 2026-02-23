@@ -1,4 +1,3 @@
-import hashlib
 import json
 import logging
 import mimetypes
@@ -13,24 +12,11 @@ from freeact.agent.store import SessionStore, StoredToolResultFile
 
 logger = logging.getLogger("freeact")
 
-_MAX_PREVIEW_LINE_CHARS = 240
-_MAX_PREVIEW_TOTAL_BYTES = 4096
-
-
-@dataclass(frozen=True)
-class MaterializedToolResult:
-    """Tool result after applying inline-size overflow handling."""
-
-    content: ToolResult
-    overflowed: bool
-    actual_size_bytes: int
-
 
 @dataclass(frozen=True)
 class _CanonicalToolResult:
     payload: bytes
     ext: str
-    preview_header: str
     preview_lines: list[str]
 
 
@@ -50,17 +36,13 @@ class ToolResultOverflowManager:
         self._preview_lines = preview_lines
         self._working_dir = working_dir
 
-    def materialize(self, content: ToolResult) -> MaterializedToolResult:
+    def materialize(self, content: ToolResult) -> ToolResult:
         """Return inline content or an overflow notice when above size threshold."""
         canonical = self._canonicalize(content)
         actual_size_bytes = len(canonical.payload)
 
         if actual_size_bytes <= self._inline_max_bytes:
-            return MaterializedToolResult(
-                content=content,
-                overflowed=False,
-                actual_size_bytes=actual_size_bytes,
-            )
+            return content
 
         if self._session_store is None:
             logger.warning(
@@ -68,11 +50,7 @@ class ToolResultOverflowManager:
                 actual_size_bytes,
                 self._inline_max_bytes,
             )
-            return MaterializedToolResult(
-                content=content,
-                overflowed=False,
-                actual_size_bytes=actual_size_bytes,
-            )
+            return content
 
         try:
             stored_file = self._session_store.save_tool_result(canonical.payload, canonical.ext)
@@ -82,24 +60,15 @@ class ToolResultOverflowManager:
                 actual_size_bytes,
                 self._inline_max_bytes,
             )
-            return MaterializedToolResult(
-                content=content,
-                overflowed=False,
-                actual_size_bytes=actual_size_bytes,
-            )
+            return content
 
         relative_path = self._relative_path(stored_file)
         notice = self._build_notice(
-            preview_header=canonical.preview_header,
             preview_lines=canonical.preview_lines,
             actual_size_bytes=actual_size_bytes,
             relative_path=relative_path,
         )
-        return MaterializedToolResult(
-            content=notice,
-            overflowed=True,
-            actual_size_bytes=actual_size_bytes,
-        )
+        return notice
 
     def _canonicalize(self, content: ToolResult) -> _CanonicalToolResult:
         match content:
@@ -107,34 +76,15 @@ class ToolResultOverflowManager:
                 return _CanonicalToolResult(
                     payload=text.encode("utf-8"),
                     ext="txt",
-                    preview_header=f"Preview (first and last {self._preview_lines} lines):",
                     preview_lines=self._take_preview_lines(text),
                 )
             case BinaryContent(data=data, media_type=media_type):
                 ext = _media_type_to_ext(media_type)
-                match media_type:
-                    case str(mt) if mt.startswith("text/"):
-                        decoded = data.decode("utf-8", errors="replace")
-                        return _CanonicalToolResult(
-                            payload=data,
-                            ext=ext,
-                            preview_header=f"Preview (first and last {self._preview_lines} lines):",
-                            preview_lines=self._take_preview_lines(decoded),
-                        )
-                    case _:
-                        digest = hashlib.sha256(data).hexdigest()[:12]
-                        preview = [
-                            "Binary content preview unavailable.",
-                            f"media_type: {media_type}",
-                            f"size_bytes: {len(data)}",
-                            f"sha256: {digest}",
-                        ]
-                        return _CanonicalToolResult(
-                            payload=data,
-                            ext=ext,
-                            preview_header="Preview:",
-                            preview_lines=preview,
-                        )
+                return _CanonicalToolResult(
+                    payload=data,
+                    ext=ext,
+                    preview_lines=[],
+                )
             case _:
                 normalized = to_jsonable_python(content, bytes_mode="base64")
                 rendered = json.dumps(
@@ -146,11 +96,13 @@ class ToolResultOverflowManager:
                 return _CanonicalToolResult(
                     payload=rendered.encode("utf-8"),
                     ext="json",
-                    preview_header=f"Preview (first and last {self._preview_lines} lines):",
-                    preview_lines=self._take_preview_lines(rendered),
+                    preview_lines=[],
                 )
 
     def _take_preview_lines(self, text: str) -> list[str]:
+        if self._preview_lines <= 0:
+            return []
+
         lines = text.splitlines()
         if not lines:
             return ["<empty>"]
@@ -166,52 +118,11 @@ class ToolResultOverflowManager:
                 *lines[-boundary:],
             ]
 
-        capped_lines = [self._cap_preview_line(line) for line in selected]
-        return self._cap_preview_total_bytes(capped_lines)
-
-    def _cap_preview_line(self, line: str) -> str:
-        if len(line) <= _MAX_PREVIEW_LINE_CHARS:
-            return line
-
-        omitted = len(line) - _MAX_PREVIEW_LINE_CHARS
-        return f"{line[:_MAX_PREVIEW_LINE_CHARS]}... [truncated {omitted} chars]"
-
-    def _cap_preview_total_bytes(self, lines: list[str]) -> list[str]:
-        kept: list[str] = []
-        used = 0
-
-        for line in lines:
-            extra_sep = 1 if kept else 0
-            budget = _MAX_PREVIEW_TOTAL_BYTES - used - extra_sep
-            if budget <= 0:
-                break
-
-            encoded = line.encode("utf-8")
-            if len(encoded) <= budget:
-                kept.append(line)
-                used += extra_sep + len(encoded)
-                continue
-
-            trimmed = self._trim_to_byte_budget(line, budget)
-            if trimmed:
-                kept.append(trimmed)
-            break
-
-        return kept if kept else ["<preview truncated>"]
-
-    @staticmethod
-    def _trim_to_byte_budget(text: str, budget: int) -> str:
-        if budget <= 0:
-            return ""
-        trimmed = text
-        while trimmed and len(trimmed.encode("utf-8")) > budget:
-            trimmed = trimmed[:-1]
-        return trimmed
+        return selected
 
     def _build_notice(
         self,
         *,
-        preview_header: str,
         preview_lines: list[str],
         actual_size_bytes: int,
         relative_path: Path,
@@ -219,10 +130,15 @@ class ToolResultOverflowManager:
         lines = [
             f"Tool result exceeded configured inline threshold ({self._inline_max_bytes} bytes).",
             f"Actual size: {actual_size_bytes} bytes.",
-            preview_header,
-            *preview_lines,
-            f"Full content saved to: {relative_path.as_posix()}",
         ]
+        if preview_lines:
+            lines.extend(
+                [
+                    f"Preview (first and last {self._preview_lines} lines):",
+                    *preview_lines,
+                ]
+            )
+        lines.append(f"Full content saved to: {relative_path.as_posix()}")
         return "\n".join(lines)
 
     def _relative_path(self, stored_file: StoredToolResultFile) -> Path:
