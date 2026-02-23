@@ -1,3 +1,5 @@
+import json
+import uuid
 from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
@@ -36,21 +38,17 @@ class TestCodeExecutionOutput:
         output = CodeExecutionOutput(text="Normal output", images=[])
         assert output.ptc_rejected() is False
 
-    def test_format_returns_full_content_when_under_limit(self):
-        """format() returns full content when under max_chars."""
+    def test_format_returns_full_content(self):
+        """format() returns full text when no images are present."""
         output = CodeExecutionOutput(text="Short text", images=[])
-        assert output.format(max_chars=100) == "Short text"
+        assert output.format() == "Short text"
 
-    def test_format_truncates_long_output(self):
-        """format() truncates output exceeding max_chars with 80/20 split."""
+    def test_format_keeps_long_output_untruncated(self):
+        """format() returns full long text output."""
         long_text = "x" * 1000
         output = CodeExecutionOutput(text=long_text, images=[])
-        result = output.format(max_chars=100)
-        assert len(result) == 100
-        assert result.startswith("x" * 80)
-        assert "..." in result
-        # 20% of 100 = 20, minus 3 for "..." = 17
-        assert result.endswith("x" * 17)
+        result = output.format()
+        assert result == long_text
 
     def test_format_includes_image_markdown(self):
         """format() appends image markdown links."""
@@ -76,16 +74,14 @@ class TestCodeExecutionOutput:
         result = output.format()
         assert result == "![Image](/tmp/image.png)"
 
-    def test_format_truncates_with_images(self):
-        """format() truncates when text plus image markdown exceeds limit."""
+    def test_format_keeps_text_and_images_untruncated(self):
+        """format() returns full text plus image markdown links."""
         output = CodeExecutionOutput(
             text="x" * 100,
             images=[Path("/tmp/image.png")],
         )
-        # Text is 100 chars, image markdown is ~24 chars, total ~125
-        result = output.format(max_chars=50)
-        assert len(result) == 50
-        assert "..." in result
+        result = output.format()
+        assert result == f"{'x' * 100}\n![Image](/tmp/image.png)"
 
 
 def create_code_exec_function(output_text: str) -> CodeExecFunction:
@@ -111,6 +107,115 @@ def create_code_exec_with_approval_function(
             yield CodeExecutionOutput(text=rejected_result, images=[])
 
     return execute
+
+
+class _FakeMcpServer:
+    def __init__(self, *, tool_prefix: str, result: object) -> None:
+        self.tool_prefix = tool_prefix
+        self._result = result
+        self.calls: list[tuple[str, dict[str, object]]] = []
+
+    async def direct_call_tool(self, name: str, args: dict[str, object]) -> object:
+        self.calls.append((name, args))
+        return self._result
+
+
+class TestMcpFilesystemResultExtraction:
+    @pytest.mark.asyncio
+    async def test_filesystem_read_text_file_extracts_content_from_json_string(self) -> None:
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            agent = Agent(config=create_test_config())
+
+        server = _FakeMcpServer(
+            tool_prefix="filesystem",
+            result=json.dumps({"content": "file text"}),
+        )
+        agent._tool_mapping["filesystem_read_text_file"] = server  # type: ignore[assignment]
+
+        result = await agent._call_mcp_tool("filesystem_read_text_file", {"path": "README.md"})
+
+        assert result == "file text"
+        assert server.calls == [("read_text_file", {"path": "README.md"})]
+
+    @pytest.mark.asyncio
+    async def test_filesystem_read_multiple_files_extracts_content_from_dict(self) -> None:
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            agent = Agent(config=create_test_config())
+
+        server = _FakeMcpServer(
+            tool_prefix="filesystem",
+            result={"content": "merged file text"},
+        )
+        agent._tool_mapping["filesystem_read_multiple_files"] = server  # type: ignore[assignment]
+
+        result = await agent._call_mcp_tool(
+            "filesystem_read_multiple_files",
+            {"paths": ["a.txt", "b.txt"]},
+        )
+
+        assert result == "merged file text"
+        assert server.calls == [("read_multiple_files", {"paths": ["a.txt", "b.txt"]})]
+
+    @pytest.mark.asyncio
+    async def test_non_filesystem_tools_are_not_special_cased(self) -> None:
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            agent = Agent(config=create_test_config())
+
+        raw = json.dumps({"content": "should-stay-raw"})
+        server = _FakeMcpServer(tool_prefix="test", result=raw)
+        agent._tool_mapping["test_tool_2"] = server  # type: ignore[assignment]
+
+        result = await agent._call_mcp_tool("test_tool_2", {"s": "x"})
+
+        assert result == raw
+        assert server.calls == [("tool_2", {"s": "x"})]
+
+
+class TestSessionPersistenceConfig:
+    def test_agent_generates_session_id_when_missing(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        generated = uuid.uuid4()
+        monkeypatch.setattr("freeact.agent.core.uuid.uuid4", lambda: generated)
+
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            agent = Agent(config=create_test_config())
+
+        assert agent._session_id == str(generated)
+        assert agent.session_id == str(generated)
+
+    def test_agent_uses_provided_session_id(self) -> None:
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            agent = Agent(config=create_test_config(), session_id="session-1")
+
+        assert agent.session_id == "session-1"
+
+    def test_agent_creates_internal_session_store_when_enabled(self) -> None:
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            agent = Agent(config=create_test_config())
+
+        assert agent._session_id is not None
+        assert agent._session_store is not None
+
+    def test_agent_runs_without_session_store_when_disabled(self) -> None:
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            agent = Agent(config=create_test_config(enable_persistence=False))
+
+        assert agent._session_id is None
+        assert agent.session_id is None
+        assert agent._session_store is None
+        assert agent._result_materializer is None
+
+    def test_agent_rejects_session_id_when_persistence_disabled(self) -> None:
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            with pytest.raises(ValueError, match="session_id requires config.enable_persistence=True"):
+                Agent(config=create_test_config(enable_persistence=False), session_id="session-1")
 
 
 class TestIpyboxExecution:
@@ -312,10 +417,11 @@ class TestSubagentConfigPropagation:
                 config=config,
                 sandbox=True,
                 sandbox_config=Path("/tmp/sandbox.cfg"),
+                session_id="session-1",
             )
 
         with patch("freeact.agent.core.Agent", FakeSubagent):
-            events = [event async for event in agent._execute_subagent_task("subtask", max_turns=3)]
+            events = [event async for event in agent._execute_subagent_task("subtask", max_turns=3, corr_id="call-1")]
 
         assert len(events) >= 1
         sub_config = captured["config"]
@@ -323,6 +429,7 @@ class TestSubagentConfigPropagation:
         assert sub_config.kernel_env is not config.kernel_env
         assert captured["agent_id"].startswith("sub-")
         assert sub_config.enable_subagents is False
+        assert captured["session_id"] == "session-1"
         assert captured["sandbox"] is True
         assert captured["sandbox_config"] == Path("/tmp/sandbox.cfg")
 
@@ -339,3 +446,18 @@ class TestSubagentDefaults:
         schema = json.loads(SUBAGENT_TOOL_DEFS_PATH.read_text())
         max_turns_schema = schema[0]["parameters_json_schema"]["properties"]["max_turns"]
         assert max_turns_schema["default"] == 100
+
+
+class TestIpyboxToolSchema:
+    """Tests for bundled ipybox tool definition schema."""
+
+    def test_execute_schema_has_no_max_output_chars(self):
+        """ipybox_execute_ipython_cell does not expose output truncation args."""
+        import json
+
+        from freeact.tools.utils import IPYBOX_TOOL_DEFS_PATH
+
+        schema = json.loads(IPYBOX_TOOL_DEFS_PATH.read_text())
+        execute_schema = next(item for item in schema if item["name"] == "ipybox_execute_ipython_cell")
+        properties = execute_schema["parameters_json_schema"]["properties"]
+        assert "max_output_chars" not in properties

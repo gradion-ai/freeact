@@ -1,12 +1,15 @@
 import asyncio
+import json
 import logging
 import uuid
 from collections.abc import Sequence, Set
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, AsyncIterator
 
 import ipybox
 from aiostream.stream import merge
+from ipybox.utils import arun
 from mcp import types as mcp_types
 from pydantic_ai.direct import model_request_stream
 from pydantic_ai.mcp import MCPServer, MCPServerStdio, MCPServerStreamableHTTP, ToolResult
@@ -42,7 +45,7 @@ from freeact.agent.events import (
     ThoughtsChunk,
     ToolOutput,
 )
-from freeact.agent.store import SessionStore
+from freeact.agent.store import SessionStore, ToolResultMaterializer
 from freeact.tools.utils import (
     get_tool_definitions,
     load_ipybox_tool_definitions,
@@ -87,9 +90,9 @@ class Agent:
         self,
         config: Config,
         agent_id: str | None = None,
+        session_id: str | None = None,
         sandbox: bool = False,
         sandbox_config: Path | None = None,
-        session_store: SessionStore | None = None,
     ):
         """Initialize the agent.
 
@@ -98,12 +101,21 @@ class Agent:
                 MCP servers, kernel env, timeouts, and subagent settings.
             agent_id: Identifier for this agent instance. Defaults to
                 `"main"` when not provided.
+            session_id: Optional session identifier for persistence.
+                If `None` and persistence is enabled, a new session ID
+                is generated. If provided and persistence is enabled, that
+                session ID is used. Existing session history is resumed when
+                present; otherwise a new session starts with that ID.
             sandbox: Run the kernel in sandbox mode.
             sandbox_config: Path to custom sandbox configuration.
-            session_store: Store for persisting message history.
-                If `None`, history is kept in memory only.
+
+        Raises:
+            ValueError: If `session_id` is provided while
+                `config.enable_persistence` is `False`.
         """
         self._config = config
+        if session_id is not None and not config.enable_persistence:
+            raise ValueError("session_id requires config.enable_persistence=True")
 
         self.agent_id = agent_id or "main"
         self.model = config.model_instance
@@ -114,7 +126,21 @@ class Agent:
         self._enable_subagents = config.enable_subagents
         self._sandbox = sandbox
         self._sandbox_config = sandbox_config
-        self._session_store = session_store
+
+        self._session_id: str | None = None
+        self._session_store: SessionStore | None = None
+        if config.enable_persistence:
+            self._session_id = session_id or str(uuid.uuid4())
+            self._session_store = SessionStore(config.sessions_dir, self._session_id)
+
+        self._result_materializer: ToolResultMaterializer | None = None
+        if self._session_store is not None:
+            self._result_materializer = ToolResultMaterializer(
+                session_store=self._session_store,
+                inline_max_bytes=config.tool_result_inline_max_bytes,
+                preview_lines=config.tool_result_preview_lines,
+                working_dir=config.working_dir,
+            )
 
         self._mcp_servers = config.resolved_mcp_servers
         self._mcp_server_instances: dict[str, MCPServer] = {}
@@ -144,13 +170,10 @@ class Agent:
             return self.agent_id
         return "main"
 
-    def _append_message_history(self, messages: list[ModelMessage]) -> None:
-        if not messages:
-            return
-
-        self._message_history.extend(messages)
-        if self._session_store is not None:
-            self._session_store.append(agent_id=self._history_agent_id, messages=messages)
+    @property
+    def session_id(self) -> str | None:
+        """Session ID used by this agent, or `None` when persistence is disabled."""
+        return self._session_id
 
     @property
     def tool_names(self) -> list[str]:
@@ -173,7 +196,7 @@ class Agent:
             return
 
         if self._session_store is not None and self._history_agent_id == "main" and not self._message_history:
-            self._message_history = self._session_store.load(agent_id="main")
+            self._message_history = await arun(self._session_store.load_messages, agent_id="main")
 
         self._mcp_server_instances = self._create_mcp_servers()
 
@@ -291,7 +314,7 @@ class Agent:
         request = self._create_model_request(prompt)
         request_params = ModelRequestParameters(function_tools=self._tool_definitions)
 
-        self._append_message_history([request])
+        await self._append_message_history([request])
 
         turn = 0
 
@@ -325,7 +348,7 @@ class Agent:
             thoughts = "".join(thinking_parts) if thinking_parts else None
             response = "".join(response_parts)
 
-            self._append_message_history([aggregated])
+            await self._append_message_history([aggregated])
 
             if thoughts:
                 yield Thoughts(content=thoughts, agent_id=self.agent_id)
@@ -349,7 +372,7 @@ class Agent:
                         case _:
                             yield item
 
-            self._append_message_history([ModelRequest(parts=tool_returns)])
+            await self._append_message_history([ModelRequest(parts=tool_returns)])
 
             if any(tool_return.metadata.get("rejected", False) for tool_return in tool_returns):
                 content = "Tool call rejected"
@@ -394,65 +417,64 @@ class Agent:
             )
             return
 
-        result_content: ToolResult = ""
+        content: ToolResult = ""
         rejected = False
 
         match tool_name:
             case "ipybox_execute_ipython_cell":
                 async for item in self._ipybox_execute_ipython_cell(tool_args["code"]):
                     match item:
-                        case ApprovalRequest() | CodeExecutionOutput() | CodeExecutionOutputChunk():
-                            item.corr_id = corr_id
+                        case ApprovalRequest():
+                            yield replace(item, corr_id=corr_id)
+                        case CodeExecutionOutputChunk():
+                            yield replace(item, corr_id=corr_id)
+                        case CodeExecutionOutput(text=text):
+                            if item.ptc_rejected():
+                                rejected = True
+                                content = "Tool call rejected"
+                                yield replace(item, corr_id=corr_id)
+                                break
+
+                            text_orig = text or ""
+                            text = await self._process_tool_text(text_orig)
+                            item = replace(item, corr_id=corr_id, text=text, truncated=text_orig != text)
+                            content = item.format()
                             yield item
                         case _:
                             yield item
-
-                    match item:
-                        case CodeExecutionOutput() if item.ptc_rejected():
-                            rejected = True
-                            result_content = "Tool call rejected"
-                            break
-                        case CodeExecutionOutput():
-                            result_content = item.format(max_chars=tool_args.get("max_output_chars", 5000))
             case "ipybox_reset":
                 content = await self._ipybox_reset()
-                result_content = content
-                yield ToolOutput(content=content, agent_id=self.agent_id, corr_id=corr_id)
+                yield ToolOutput(corr_id=corr_id, agent_id=self.agent_id, content=content)
             case "subagent_task":
                 async for event in self._execute_subagent_task(
                     prompt=tool_args["prompt"],
                     max_turns=tool_args.get("max_turns", 100),
+                    corr_id=corr_id,
                 ):
+                    yield event
                     match event:
-                        case ApprovalRequest() | ToolOutput() | CodeExecutionOutput() | CodeExecutionOutputChunk():
-                            event.corr_id = corr_id
-                            yield event
-                        case _:
-                            yield event
-
-                    match event:
-                        case ToolOutput():
-                            result_content = event.content
+                        case ToolOutput(agent_id=agent_id, content=tool_content) if agent_id == self.agent_id:
+                            content = tool_content
             case _:
                 content = await self._call_mcp_tool(tool_name, tool_args)
-                result_content = content
+                content = await self._process_tool_result(content)
                 yield ToolOutput(content=content, agent_id=self.agent_id, corr_id=corr_id)
 
         yield ToolReturnPart(
             tool_call_id=call.tool_call_id,
             tool_name=tool_name,
-            content=result_content,
+            content=content,
             metadata={"rejected": rejected},
         )
 
-    async def _execute_subagent_task(self, prompt: str, max_turns: int) -> AsyncIterator[AgentEvent]:
+    async def _execute_subagent_task(self, prompt: str, max_turns: int, corr_id: str) -> AsyncIterator[AgentEvent]:
         subagent_config = self._config.for_subagent()
         subagent = Agent(
             config=subagent_config,
             agent_id=f"sub-{uuid.uuid4().hex[:4]}",
             sandbox=self._sandbox,
             sandbox_config=self._sandbox_config,
-            session_store=self._session_store,
+            session_id=self._session_id,
         )
         runner = _SubagentRunner(subagent=subagent, semaphore=self._subagent_semaphore)
 
@@ -464,10 +486,12 @@ class Agent:
                     case Response(content=content):
                         last_response = content
         except Exception as e:
-            yield ToolOutput(content=f"Subagent error: {e}", agent_id=self.agent_id)
+            error_content = f"Subagent error: {e}"
+            yield ToolOutput(content=error_content, agent_id=self.agent_id, corr_id=corr_id)
             return
 
-        yield ToolOutput(content=last_response, agent_id=self.agent_id)
+        final_content = await self._process_tool_text(last_response)
+        yield ToolOutput(content=final_content, agent_id=self.agent_id, corr_id=corr_id)
 
     async def _ipybox_execute_ipython_cell(
         self, code: str
@@ -511,9 +535,52 @@ class Agent:
     async def _call_mcp_tool(self, tool_name: str, tool_args: dict[str, object]) -> ToolResult:
         try:
             mcp_server = self._tool_mapping[tool_name]
-            return await mcp_server.direct_call_tool(
-                name=tool_name.removeprefix(f"{mcp_server.tool_prefix}_"),
+            resolved_name = tool_name.removeprefix(f"{mcp_server.tool_prefix}_")
+            result = await mcp_server.direct_call_tool(
+                name=resolved_name,
                 args=tool_args,
             )
+            if tool_name in {"filesystem_read_text_file", "filesystem_read_multiple_files"}:
+                return self._extract_file_content(result)
+            return result
         except Exception as e:
             return f"MCP tool call failed: {str(e)}"
+
+    @staticmethod
+    def _extract_file_content(result: ToolResult) -> ToolResult:
+        match result:
+            case {"content": content} as payload if len(payload) == 1:
+                return content
+            case str() as raw:
+                try:
+                    decoded = json.loads(raw)
+                except json.JSONDecodeError:
+                    return result
+                match decoded:
+                    case {"content": content} as payload if len(payload) == 1:
+                        return content
+                    case _:
+                        return result
+            case _:
+                return result
+
+    async def _append_message_history(self, messages: list[ModelMessage]) -> None:
+        if not messages:
+            return
+
+        self._message_history.extend(messages)
+        if self._session_store is not None:
+            await arun(
+                self._session_store.append_messages,
+                agent_id=self._history_agent_id,
+                messages=messages,
+            )
+
+    async def _process_tool_result(self, content: ToolResult) -> ToolResult:
+        if self._result_materializer is not None:
+            return await arun(self._result_materializer.materialize, content)
+        return content
+
+    async def _process_tool_text(self, text: str) -> str:
+        content = await self._process_tool_result(text)
+        return str(content)

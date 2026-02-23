@@ -102,16 +102,9 @@ def test_main_init_does_not_overwrite_existing_config(tmp_path: Path, monkeypatc
 
 
 @pytest.mark.asyncio
-async def test_run_uses_provided_session_id_for_session_store(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+async def test_run_passes_provided_session_id_to_agent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     provided = uuid.uuid4()
     captured: dict[str, object] = {}
-    sessions_dir = tmp_path / "sessions-from-config"
-
-    class FakeSessionStore:
-        def __init__(self, sessions_root: Path, session_id: str, flush_after_append: bool = False):
-            captured["sessions_root"] = sessions_root
-            captured["session_id"] = session_id
-            captured["flush_after_append"] = flush_after_append
 
     class FakeAgent:
         def __init__(self, **kwargs):
@@ -126,7 +119,7 @@ async def test_run_uses_provided_session_id_for_session_store(tmp_path: Path, mo
 
     async def fake_create_config():
         config = SimpleNamespace(
-            sessions_dir=sessions_dir,
+            enable_persistence=True,
             ptc_servers={},
             generated_dir=tmp_path / "generated",
         )
@@ -134,7 +127,6 @@ async def test_run_uses_provided_session_id_for_session_store(tmp_path: Path, mo
         return config, terminal_config
 
     monkeypatch.setattr(cli, "create_config", fake_create_config)
-    monkeypatch.setattr(cli, "SessionStore", FakeSessionStore)
     monkeypatch.setattr(cli, "Agent", FakeAgent)
     monkeypatch.setattr(cli, "TerminalInterface", FakeTerminal)
     monkeypatch.setattr(cli, "generate_mcp_sources", AsyncMock())
@@ -146,20 +138,15 @@ async def test_run_uses_provided_session_id_for_session_store(tmp_path: Path, mo
     )
     await cli.run(namespace)
 
-    assert captured["session_id"] == str(provided)
-    assert captured["sessions_root"] == sessions_dir
+    agent_kwargs = captured["agent_kwargs"]
+    assert isinstance(agent_kwargs, dict)
+    assert agent_kwargs["session_id"] == str(provided)
     assert captured["terminal_run"] is True
 
 
 @pytest.mark.asyncio
-async def test_run_generates_uuid_when_session_id_missing(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    generated = uuid.uuid4()
+async def test_run_passes_none_session_id_when_missing(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     captured: dict[str, object] = {}
-    sessions_dir = tmp_path / "sessions-from-config"
-
-    class FakeSessionStore:
-        def __init__(self, sessions_root: Path, session_id: str, flush_after_append: bool = False):
-            captured["session_id"] = session_id
 
     class FakeAgent:
         def __init__(self, **kwargs):
@@ -174,7 +161,7 @@ async def test_run_generates_uuid_when_session_id_missing(tmp_path: Path, monkey
 
     async def fake_create_config():
         config = SimpleNamespace(
-            sessions_dir=sessions_dir,
+            enable_persistence=True,
             ptc_servers={},
             generated_dir=tmp_path / "generated",
         )
@@ -182,11 +169,9 @@ async def test_run_generates_uuid_when_session_id_missing(tmp_path: Path, monkey
         return config, terminal_config
 
     monkeypatch.setattr(cli, "create_config", fake_create_config)
-    monkeypatch.setattr(cli, "SessionStore", FakeSessionStore)
     monkeypatch.setattr(cli, "Agent", FakeAgent)
     monkeypatch.setattr(cli, "TerminalInterface", FakeTerminal)
     monkeypatch.setattr(cli, "generate_mcp_sources", AsyncMock())
-    monkeypatch.setattr(cli.uuid, "uuid4", lambda: generated)
 
     namespace = argparse.Namespace(
         sandbox=False,
@@ -195,4 +180,34 @@ async def test_run_generates_uuid_when_session_id_missing(tmp_path: Path, monkey
     )
     await cli.run(namespace)
 
-    assert captured["session_id"] == str(generated)
+    agent_kwargs = captured["agent_kwargs"]
+    assert isinstance(agent_kwargs, dict)
+    assert agent_kwargs["session_id"] is None
+
+
+@pytest.mark.asyncio
+async def test_run_rejects_session_id_when_persistence_disabled(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    provided = uuid.uuid4()
+
+    async def fake_create_config():
+        config = SimpleNamespace(
+            enable_persistence=False,
+            ptc_servers={},
+            generated_dir=tmp_path / "generated",
+        )
+        terminal_config = object()
+        return config, terminal_config
+
+    monkeypatch.setattr(cli, "create_config", fake_create_config)
+    monkeypatch.setattr(cli, "Agent", object)
+    monkeypatch.setattr(cli, "TerminalInterface", object)
+    monkeypatch.setattr(cli, "generate_mcp_sources", AsyncMock())
+
+    namespace = argparse.Namespace(
+        sandbox=False,
+        sandbox_config=None,
+        session_id=provided,
+    )
+
+    with pytest.raises(SystemExit, match="--session-id requires enable_persistence=true"):
+        await cli.run(namespace)

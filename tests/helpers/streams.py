@@ -10,10 +10,11 @@ from pydantic_ai.messages import (
 from pydantic_ai.models.function import AgentInfo, DeltaThinkingPart, DeltaToolCall
 
 from freeact.agent import ApprovalRequest, CodeExecutionOutput
+from freeact.agent.events import CodeExecutionOutputChunk
 
 DeltaToolCalls = dict[int, DeltaToolCall]
 DeltaThinkingCalls = dict[int, DeltaThinkingPart]
-CodeExecFunction = Callable[..., AsyncIterator[ApprovalRequest | CodeExecutionOutput]]
+CodeExecFunction = Callable[..., AsyncIterator[ApprovalRequest | CodeExecutionOutput | CodeExecutionOutputChunk]]
 
 
 def get_tool_return_parts(messages: list[ModelMessage]) -> list[ToolReturnPart]:

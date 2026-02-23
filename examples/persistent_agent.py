@@ -1,5 +1,4 @@
 import asyncio
-import uuid
 
 from freeact.agent import (
     Agent,
@@ -10,11 +9,6 @@ from freeact.agent import (
     ToolOutput,
 )
 from freeact.agent.config import Config
-
-# --8<-- [start:session-imports]
-from freeact.agent.store import SessionStore
-
-# --8<-- [end:session-imports]
 from freeact.tools.pytools.apigen import generate_mcp_sources
 
 
@@ -45,26 +39,30 @@ async def main() -> None:
         if not (config.generated_dir / "mcptools" / server_name).exists():
             await generate_mcp_sources({server_name: params}, config.generated_dir)
 
-    # --8<-- [start:session-create]
-    # Create a session store with a new session ID
-    session_id = str(uuid.uuid4())
-    session_store = SessionStore(config.sessions_dir, session_id)
-    # --8<-- [end:session-create]
-
-    # --8<-- [start:session-run]
-    # Run agent with session persistence
-    async with Agent(config=config, session_store=session_store) as agent:
+    # --8<-- [start:session-run-no-id]
+    # No session_id: agent creates a new session ID internally.
+    async with Agent(config=config) as agent:
+        print(f"Generated session ID: {agent.session_id}")
         await handle_events(agent, "What is the capital of France?")
         await handle_events(agent, "What about Germany?")
-    # --8<-- [end:session-run]
+    # --8<-- [end:session-run-no-id]
+
+    # --8<-- [start:session-create]
+    # Choose an explicit session ID.
+    session_id = "countries-session"
+    # --8<-- [end:session-create]
+
+    # --8<-- [start:session-run-existing]
+    # Create-or-resume behavior: resume if present, otherwise start new.
+    async with Agent(config=config, session_id=session_id) as agent:
+        await handle_events(agent, "What is the capital of Spain?")
+    # --8<-- [end:session-run-existing]
 
     # --8<-- [start:session-resume]
-    # Resume session with the same session ID
-    session_store = SessionStore(config.sessions_dir, session_id)
-
-    async with Agent(config=config, session_store=session_store) as agent:
+    # Resume the same session ID later.
+    async with Agent(config=config, session_id=session_id) as agent:
         # Previous message history is restored automatically
-        await handle_events(agent, "And what was the first country we discussed?")
+        await handle_events(agent, "And what country did we discuss in this session?")
     # --8<-- [end:session-resume]
 
 

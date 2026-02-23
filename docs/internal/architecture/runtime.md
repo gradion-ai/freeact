@@ -35,8 +35,10 @@ It intentionally excludes CLI, terminal UI, and longer-lived permission policy l
 
 ## Sessions
 
-- Session persistence: `freeact/agent/store.py`.
+- Session persistence is owned by `Agent` in `freeact/agent/core.py`, which creates `SessionStore` internally when `Config.enable_persistence` is `true`.
+- Session storage implementation: `freeact/agent/store.py`.
 - Main-session rehydration loads `main.jsonl`; subagent JSONL files are persisted for audit.
+- Tool results above `Config.tool_result_inline_max_bytes` are stored in `.freeact/sessions/<session-id>/tool-results/<file-id>.<ext>` and replaced inline with a threshold/size notice plus preview lines.
 
 ## Approvals
 
