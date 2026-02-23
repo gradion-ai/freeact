@@ -165,20 +165,27 @@ The agent supports two timeout settings in [`agent.json`](configuration.md#agent
 
 ### Persistence
 
-[`SessionStore`][freeact.agent.store.SessionStore] persists agent message history to `.freeact/sessions/<session-uuid>/<agent-id>.jsonl`. Each agent turn appends messages incrementally, so the history is durable even if the process terminates mid-session.
+[`Config`][freeact.agent.config.Config] controls session persistence via `enable_persistence`.
+
+- Default: `true`. The agent persists history to `.freeact/sessions/<session-id>/<agent-id>.jsonl`.
+- `false`: The agent keeps history in memory only. Passing `session_id` to [`Agent`][freeact.agent.Agent] raises `ValueError`.
+
+When persistence is enabled, construct an agent without `session_id` to create a new session ID internally. Read it from `agent.session_id`:
 
 ```python
---8<-- "examples/persistent_agent.py:session-imports"
+--8<-- "examples/persistent_agent.py:session-run-no-id"
+```
+
+Construct an agent with an explicit `session_id` for create-or-resume behavior:
+
+```python
 --8<-- "examples/persistent_agent.py:session-create"
+--8<-- "examples/persistent_agent.py:session-run-existing"
 ```
 
-Pass the store to [`Agent`][freeact.agent.Agent] to enable persistence.
+If that `session_id` already exists, the persisted history is resumed. If it does not exist, a new session starts with that ID.
 
-```python
---8<-- "examples/persistent_agent.py:session-run"
-```
-
-To resume a session, create a new `SessionStore` with the same `session_id`. The agent loads the persisted message history on startup and continues from where it left off.
+To resume later, create another agent with the same `session_id`:
 
 ```python
 --8<-- "examples/persistent_agent.py:session-resume"
@@ -186,7 +193,7 @@ To resume a session, create a new `SessionStore` with the same `session_id`. The
 
 Only the main agent's message history (`main.jsonl`) is loaded on resume. Subagent messages are persisted to separate files (`sub-xxxx.jsonl`) for auditing but are not rehydrated.
 
-The [CLI tool](cli.md) accepts `--session-id` to resume a session from the command line.
+The [CLI tool](cli.md) accepts `--session-id` to resume a session from the command line when `enable_persistence` is `true`.
 
 ## Permissions API
 

@@ -57,12 +57,12 @@ async def _mock_code_executor():
 async def unpatched_agent(
     stream_function: Any,
     tmp_dir: Path | None = None,
-    session_store: Any | None = None,
+    session_id: str | None = None,
     **config_overrides: Any,
 ):
     """Context manager that creates and yields an agent with a real code executor."""
     config = create_test_config(tmp_dir=tmp_dir, stream_function=stream_function, **config_overrides)
-    agent = Agent(config=config, session_store=session_store)
+    agent = Agent(config=config, session_id=session_id)
     async with agent:
         yield agent
 
@@ -73,7 +73,7 @@ async def patched_agent(
     code_exec_function: CodeExecFunction | None = None,
     mcp_servers: dict[str, dict[str, Any]] | None = None,
     tmp_dir: Path | None = None,
-    session_store: Any | None = None,
+    session_id: str | None = None,
     execution_timeout: float | None = 300,
     approval_timeout: float | None = None,
     **config_overrides: Any,
@@ -87,7 +87,7 @@ async def patched_agent(
         approval_timeout=approval_timeout,
         **config_overrides,
     )
-    agent = Agent(config=config, session_store=session_store)
+    agent = Agent(config=config, session_id=session_id)
     agent._code_executor = _mock_code_executor()
     if code_exec_function is not None:
         agent._ipybox_execute_ipython_cell = types.MethodType(code_exec_function, agent)  # type: ignore[method-assign]

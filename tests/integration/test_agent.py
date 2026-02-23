@@ -12,7 +12,6 @@ from pydantic_ai.models.function import AgentInfo, DeltaThinkingPart, DeltaToolC
 
 from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput, Response
 from freeact.agent.events import CodeExecutionOutputChunk
-from freeact.agent.store import SessionStore
 from freeact.tools.pytools import MCPTOOLS_DIR
 from tests.helpers import (
     DeltaThinkingCalls,
@@ -304,7 +303,7 @@ class TestMcpToolException:
             stream_function,
             mcp_servers=mcp_servers,
             tmp_dir=tmp_path,
-            session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
+            session_id="session-1",
             tool_result_inline_max_bytes=32,
             tool_result_preview_lines=2,
         ) as agent:
@@ -345,7 +344,7 @@ class TestMcpToolException:
             stream_function,
             mcp_servers=mcp_servers,
             tmp_dir=tmp_path,
-            session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
+            session_id="session-1",
             tool_result_inline_max_bytes=1024,
         ) as agent:
 
@@ -380,7 +379,7 @@ class TestToolResultOverflowInCodeExecution:
             stream_function,
             code_exec_function=code_exec_function,
             tmp_dir=tmp_path,
-            session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
+            session_id="session-1",
             tool_result_inline_max_bytes=32,
             tool_result_preview_lines=2,
         ) as agent:
@@ -423,7 +422,7 @@ class TestToolResultOverflowInCodeExecution:
             stream_function,
             code_exec_function=code_exec_function,
             tmp_dir=tmp_path,
-            session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
+            session_id="session-1",
             tool_result_inline_max_bytes=32,
             tool_result_preview_lines=2,
         ) as agent:

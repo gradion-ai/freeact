@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 
 from freeact.agent import Agent
 from freeact.agent.config import Config as AgentConfig
-from freeact.agent.store import SessionStore
 from freeact.terminal import Config as TerminalConfig
 from freeact.terminal import TerminalInterface
 from freeact.tools.pytools.apigen import generate_mcp_sources
@@ -99,13 +98,13 @@ async def run(namespace: argparse.Namespace) -> None:
         namespace: Parsed CLI arguments.
     """
     agent_config, terminal_config = await create_config()
-    session_id = str(namespace.session_id or uuid.uuid4())
-    session_store = SessionStore(agent_config.sessions_dir, session_id)
+    if namespace.session_id is not None and not agent_config.enable_persistence:
+        raise SystemExit("--session-id requires enable_persistence=true in .freeact/agent.json")
     agent = Agent(
         config=agent_config,
         sandbox=namespace.sandbox,
         sandbox_config=namespace.sandbox_config,
-        session_store=session_store,
+        session_id=str(namespace.session_id) if namespace.session_id is not None else None,
     )
 
     if agent_config.ptc_servers:

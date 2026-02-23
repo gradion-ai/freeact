@@ -48,6 +48,7 @@ class TestConfigSave:
         assert "kernel_env" in payload
         assert "tool_result_inline_max_bytes" in payload
         assert "tool_result_preview_lines" in payload
+        assert "enable_persistence" in payload
         assert "ptc_servers" in payload
         assert "google" in payload["ptc_servers"]
         assert "tool-search" not in payload

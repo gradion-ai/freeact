@@ -59,6 +59,7 @@ The `agent.json` file contains agent settings and MCP server configurations:
   "approval_timeout": null,
   "tool_result_inline_max_bytes": 32768,
   "tool_result_preview_lines": 10,
+  "enable_persistence": true,
   "enable_subagents": true,
   "max_subagents": 5,
   "kernel_env": {},
@@ -81,6 +82,7 @@ The `agent.json` file contains agent settings and MCP server configurations:
 | `approval_timeout` | `null` | Timeout in seconds for PTC approval requests. `null` means no timeout. |
 | `tool_result_inline_max_bytes` | `32768` | Inline size threshold in bytes for tool results. Larger results are stored in `.freeact/sessions/<session-id>/tool-results/` and replaced with a notice plus preview lines. |
 | `tool_result_preview_lines` | `10` | Number of preview lines included in the overflow notice when a tool result is stored as a file. |
+| `enable_persistence` | `true` | Persist message history to `.freeact/sessions/` and allow session resume with `session_id`. If `false`, history stays in memory for the process lifetime only. |
 | `enable_subagents` | `true` | Whether to enable subagent delegation |
 | `max_subagents` | `5` | Maximum number of concurrent subagents |
 | `kernel_env` | `{}` | Environment variables passed to the IPython kernel. Supports `${VAR}` placeholders resolved against the host environment. |

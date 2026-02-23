@@ -1,4 +1,5 @@
 import json
+import uuid
 from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
@@ -171,6 +172,49 @@ class TestMcpFilesystemResultExtraction:
 
         assert result == raw
         assert server.calls == [("tool_2", {"s": "x"})]
+
+
+class TestSessionPersistenceConfig:
+    def test_agent_generates_session_id_when_missing(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        generated = uuid.uuid4()
+        monkeypatch.setattr("freeact.agent.core.uuid.uuid4", lambda: generated)
+
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            agent = Agent(config=create_test_config())
+
+        assert agent._session_id == str(generated)
+        assert agent.session_id == str(generated)
+
+    def test_agent_uses_provided_session_id(self) -> None:
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            agent = Agent(config=create_test_config(), session_id="session-1")
+
+        assert agent.session_id == "session-1"
+
+    def test_agent_creates_internal_session_store_when_enabled(self) -> None:
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            agent = Agent(config=create_test_config())
+
+        assert agent._session_id is not None
+        assert agent._session_store is not None
+
+    def test_agent_runs_without_session_store_when_disabled(self) -> None:
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            agent = Agent(config=create_test_config(enable_persistence=False))
+
+        assert agent._session_id is None
+        assert agent.session_id is None
+        assert agent._session_store is None
+
+    def test_agent_rejects_session_id_when_persistence_disabled(self) -> None:
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            with pytest.raises(ValueError, match="session_id requires config.enable_persistence=True"):
+                Agent(config=create_test_config(enable_persistence=False), session_id="session-1")
 
 
 class TestIpyboxExecution:
@@ -372,6 +416,7 @@ class TestSubagentConfigPropagation:
                 config=config,
                 sandbox=True,
                 sandbox_config=Path("/tmp/sandbox.cfg"),
+                session_id="session-1",
             )
 
         with patch("freeact.agent.core.Agent", FakeSubagent):
@@ -383,6 +428,7 @@ class TestSubagentConfigPropagation:
         assert sub_config.kernel_env is not config.kernel_env
         assert captured["agent_id"].startswith("sub-")
         assert sub_config.enable_subagents is False
+        assert captured["session_id"] == "session-1"
         assert captured["sandbox"] is True
         assert captured["sandbox_config"] == Path("/tmp/sandbox.cfg")
 

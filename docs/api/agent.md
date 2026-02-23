@@ -24,5 +24,3 @@
 ::: freeact.agent.CodeExecutionOutputChunk
 
 ::: freeact.agent.ToolOutput
-
-::: freeact.agent.store.SessionStore

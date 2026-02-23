@@ -29,8 +29,7 @@ class TestSessionPersistence:
                 }
 
         config = create_test_config(tmp_dir=tmp_path, stream_function=stream_function)
-        session_store = SessionStore(sessions_root=config.sessions_dir, session_id="session-1")
-        agent = Agent(config=config, session_store=session_store)
+        agent = Agent(config=config, session_id="session-1")
 
         async with agent:
             await collect_stream(agent, "persist this turn")
@@ -58,7 +57,7 @@ class TestSessionPersistence:
         sub_file = config.sessions_dir / "session-1" / "sub-dead.jsonl"
         sub_file.write_text("{not-json}\n")
 
-        async with unpatched_agent(stream_function, tmp_dir=tmp_path, session_store=session_store) as agent:
+        async with unpatched_agent(stream_function, tmp_dir=tmp_path, session_id="session-1") as agent:
             await collect_stream(agent, "new prompt")
 
         assert "messages" in captured
@@ -89,8 +88,7 @@ class TestSessionPersistence:
                 yield "Subagent response"
 
         config = create_test_config(tmp_dir=tmp_path, stream_function=stream_function)
-        session_store = SessionStore(sessions_root=config.sessions_dir, session_id="session-1")
-        agent = Agent(config=config, session_store=session_store)
+        agent = Agent(config=config, session_id="session-1")
 
         async with agent:
             await collect_stream(agent, "run subagent")
@@ -121,8 +119,7 @@ class TestSessionPersistence:
             tool_result_inline_max_bytes=32,
             tool_result_preview_lines=2,
         )
-        session_store = SessionStore(sessions_root=config.sessions_dir, session_id="session-1")
-        agent = Agent(config=config, session_store=session_store)
+        agent = Agent(config=config, session_id="session-1")
 
         async def large_code_output(code: str):
             _ = code
@@ -133,6 +130,7 @@ class TestSessionPersistence:
         async with agent:
             await collect_stream(agent, "persist large tool output")
 
+        session_store = SessionStore(sessions_root=config.sessions_dir, session_id="session-1")
         history = session_store.load(agent_id="main")
         tool_returns = [
             part

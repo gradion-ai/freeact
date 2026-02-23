@@ -90,9 +90,9 @@ class Agent:
         self,
         config: Config,
         agent_id: str | None = None,
+        session_id: str | None = None,
         sandbox: bool = False,
         sandbox_config: Path | None = None,
-        session_store: SessionStore | None = None,
     ):
         """Initialize the agent.
 
@@ -101,12 +101,21 @@ class Agent:
                 MCP servers, kernel env, timeouts, and subagent settings.
             agent_id: Identifier for this agent instance. Defaults to
                 `"main"` when not provided.
+            session_id: Optional session identifier for persistence.
+                If `None` and persistence is enabled, a new session ID
+                is generated. If provided and persistence is enabled, that
+                session ID is used. Existing session history is resumed when
+                present; otherwise a new session starts with that ID.
             sandbox: Run the kernel in sandbox mode.
             sandbox_config: Path to custom sandbox configuration.
-            session_store: Store for persisting message history.
-                If `None`, history is kept in memory only.
+
+        Raises:
+            ValueError: If `session_id` is provided while
+                `config.enable_persistence` is `False`.
         """
         self._config = config
+        if session_id is not None and not config.enable_persistence:
+            raise ValueError("session_id requires config.enable_persistence=True")
 
         self.agent_id = agent_id or "main"
         self.model = config.model_instance
@@ -117,9 +126,15 @@ class Agent:
         self._enable_subagents = config.enable_subagents
         self._sandbox = sandbox
         self._sandbox_config = sandbox_config
-        self._session_store = session_store
+
+        self._session_id: str | None = None
+        self._session_store: SessionStore | None = None
+        if config.enable_persistence:
+            self._session_id = session_id or str(uuid.uuid4())
+            self._session_store = SessionStore(config.sessions_dir, self._session_id)
+
         self._tool_result_overflow = ToolResultOverflowManager(
-            session_store=session_store,
+            session_store=self._session_store,
             inline_max_bytes=config.tool_result_inline_max_bytes,
             preview_lines=config.tool_result_preview_lines,
             working_dir=config.working_dir,
@@ -152,6 +167,11 @@ class Agent:
         if self.agent_id.startswith("sub-"):
             return self.agent_id
         return "main"
+
+    @property
+    def session_id(self) -> str | None:
+        """Session ID used by this agent, or `None` when persistence is disabled."""
+        return self._session_id
 
     def _append_message_history(self, messages: list[ModelMessage]) -> None:
         if not messages:
@@ -460,7 +480,7 @@ class Agent:
             agent_id=f"sub-{uuid.uuid4().hex[:4]}",
             sandbox=self._sandbox,
             sandbox_config=self._sandbox_config,
-            session_store=self._session_store,
+            session_id=self._session_id,
         )
         runner = _SubagentRunner(subagent=subagent, semaphore=self._subagent_semaphore)
 
