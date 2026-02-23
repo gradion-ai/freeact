@@ -1,14 +1,18 @@
 import asyncio
 import json
+import re
 from collections.abc import AsyncIterator
+from pathlib import Path
 
 import ipybox
 import pytest
 import pytest_asyncio
-from pydantic_ai.messages import ModelMessage
+from pydantic_ai.messages import ModelMessage, ModelRequest, ToolReturnPart
 from pydantic_ai.models.function import AgentInfo, DeltaThinkingPart, DeltaToolCall
 
 from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput, Response
+from freeact.agent.events import CodeExecutionOutputChunk
+from freeact.agent.store import SessionStore
 from freeact.tools.pytools import MCPTOOLS_DIR
 from tests.helpers import (
     DeltaThinkingCalls,
@@ -22,6 +26,26 @@ from tests.helpers import (
     unpatched_agent,
 )
 from tests.integration.mcp_server import STDIO_SERVER_PATH
+
+
+def _stored_path_from_notice(content: str, working_dir: Path) -> Path:
+    match = re.search(r"^Full content saved to: (.+)$", content, flags=re.MULTILINE)
+    if match is None:
+        raise AssertionError("Missing stored-file reference in overflow notice")
+    return working_dir / match.group(1)
+
+
+def _collect_tool_return_parts(messages: list[ModelMessage]) -> list[ToolReturnPart]:
+    parts: list[ToolReturnPart] = []
+    for message in messages:
+        match message:
+            case ModelRequest(parts=req_parts):
+                for part in req_parts:
+                    if isinstance(part, ToolReturnPart):
+                        parts.append(part)
+            case _:
+                continue
+    return parts
 
 
 @pytest_asyncio.fixture
@@ -266,6 +290,163 @@ class TestMcpToolException:
             assert len(results.tool_outputs) == 1
             assert "MCP tool call failed" in str(results.tool_outputs[0].content)
             assert "Connection failed" in str(results.tool_outputs[0].content)
+
+    @pytest.mark.asyncio
+    async def test_mcp_tool_result_overflow_is_saved_to_file(self, tmp_path: Path, mcp_servers):
+        """Large MCP results are replaced with notice text and stored in session tool-results."""
+        stream_function = create_stream_function(
+            tool_name="test_tool_2",
+            tool_args={"s": "large"},
+        )
+        payload = "line-1\nline-2\nline-3\n" + ("x" * 300)
+
+        async with patched_agent(
+            stream_function,
+            mcp_servers=mcp_servers,
+            tmp_dir=tmp_path,
+            session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
+            tool_result_inline_max_bytes=32,
+            tool_result_preview_lines=2,
+        ) as agent:
+
+            async def large_call(*args, **kwargs):
+                return payload
+
+            agent._tool_mapping["test_tool_2"].direct_call_tool = large_call
+            results = await collect_stream(agent, "trigger overflow")
+
+            assert len(results.tool_outputs) == 1
+            notice = str(results.tool_outputs[0].content)
+            assert "configured inline threshold (32 bytes)" in notice
+            assert "Preview (first and last 2 lines):" in notice
+            assert "line-1" in notice
+            assert "line-2" in notice
+            assert "line-3" in notice
+            assert "[truncated" in notice
+
+            tool_returns = _collect_tool_return_parts(agent._message_history)
+            assert len(tool_returns) == 1
+            assert tool_returns[0].content == notice
+
+            stored_path = _stored_path_from_notice(notice, tmp_path)
+            assert stored_path.exists()
+            assert stored_path.suffix == ".txt"
+            assert stored_path.read_text(encoding="utf-8") == payload
+
+    @pytest.mark.asyncio
+    async def test_mcp_tool_result_under_threshold_stays_inline(self, tmp_path: Path, mcp_servers):
+        """Small MCP results remain inline and are not replaced with overflow notices."""
+        stream_function = create_stream_function(
+            tool_name="test_tool_2",
+            tool_args={"s": "small"},
+        )
+        payload = "small result"
+
+        async with patched_agent(
+            stream_function,
+            mcp_servers=mcp_servers,
+            tmp_dir=tmp_path,
+            session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
+            tool_result_inline_max_bytes=1024,
+        ) as agent:
+
+            async def small_call(*args, **kwargs):
+                return payload
+
+            agent._tool_mapping["test_tool_2"].direct_call_tool = small_call
+            results = await collect_stream(agent, "no overflow")
+
+            assert len(results.tool_outputs) == 1
+            assert results.tool_outputs[0].content == payload
+
+            tool_returns = _collect_tool_return_parts(agent._message_history)
+            assert len(tool_returns) == 1
+            assert tool_returns[0].content == payload
+
+
+class TestToolResultOverflowInCodeExecution:
+    @pytest.mark.asyncio
+    async def test_code_execution_final_output_overflow_replaced_with_notice(self, tmp_path: Path):
+        """Large final code-exec output is replaced with an overflow notice and stored to file."""
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": "print('x')"},
+        )
+        payload = "alpha\nbeta\ngamma\n" + ("x" * 400)
+
+        async def code_exec_function(self, code: str):
+            yield CodeExecutionOutput(text=payload, images=[])
+
+        async with patched_agent(
+            stream_function,
+            code_exec_function=code_exec_function,
+            tmp_dir=tmp_path,
+            session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
+            tool_result_inline_max_bytes=32,
+            tool_result_preview_lines=2,
+        ) as agent:
+            results = await collect_stream(agent, "run large output")
+
+            assert len(results.code_outputs) == 1
+            output = results.code_outputs[0]
+            assert output.text is not None
+            assert "configured inline threshold (32 bytes)" in output.text
+            assert "Preview (first and last 2 lines):" in output.text
+            assert "alpha" in output.text
+            assert "beta" in output.text
+            assert "gamma" in output.text
+            assert "[truncated" in output.text
+            assert output.images == []
+
+            tool_returns = _collect_tool_return_parts(agent._message_history)
+            assert len(tool_returns) == 1
+            assert tool_returns[0].content == output.text
+
+            stored_path = _stored_path_from_notice(output.text, tmp_path)
+            assert stored_path.exists()
+            assert stored_path.suffix == ".txt"
+            assert stored_path.read_text(encoding="utf-8") == payload
+
+    @pytest.mark.asyncio
+    async def test_code_execution_chunk_does_not_create_duplicate_overflow_file(self, tmp_path: Path):
+        """Large streamed chunks plus final output should persist exactly one overflow file."""
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": "print('x')"},
+        )
+        payload_chunk = "row-1\nrow-2\nrow-3\n" + ("x" * 400) + "\n"
+        payload_final = payload_chunk.rstrip("\n")
+
+        async def code_exec_function(self, code: str):
+            yield CodeExecutionOutputChunk(text=payload_chunk, agent_id=self.agent_id)
+            yield CodeExecutionOutput(text=payload_final, images=[])
+
+        async with patched_agent(
+            stream_function,
+            code_exec_function=code_exec_function,
+            tmp_dir=tmp_path,
+            session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
+            tool_result_inline_max_bytes=32,
+            tool_result_preview_lines=2,
+        ) as agent:
+            results = await collect_stream(agent, "run large chunk output")
+
+            chunk_events = [event for event in results.all_events if isinstance(event, CodeExecutionOutputChunk)]
+            assert len(chunk_events) == 1
+            assert chunk_events[0].text == payload_chunk
+
+            assert len(results.code_outputs) == 1
+            output = results.code_outputs[0]
+            assert output.text is not None
+            assert "configured inline threshold (32 bytes)" in output.text
+            stored_path = _stored_path_from_notice(output.text, tmp_path)
+            assert stored_path.exists()
+            assert stored_path.suffix == ".txt"
+            assert stored_path.read_text(encoding="utf-8") == payload_final
+
+            tool_results_dir = tmp_path / ".freeact" / "sessions" / "session-1" / "tool-results"
+            files = list(tool_results_dir.glob("*.txt"))
+            assert len(files) == 1
 
 
 class TestCodeExecutionException:

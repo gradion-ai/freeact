@@ -2,6 +2,7 @@ import asyncio
 import logging
 import uuid
 from collections.abc import Sequence, Set
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, AsyncIterator
 
@@ -43,6 +44,7 @@ from freeact.agent.events import (
     ToolOutput,
 )
 from freeact.agent.store import SessionStore
+from freeact.agent.tool_result_overflow import ToolResultOverflowManager
 from freeact.tools.utils import (
     get_tool_definitions,
     load_ipybox_tool_definitions,
@@ -115,6 +117,12 @@ class Agent:
         self._sandbox = sandbox
         self._sandbox_config = sandbox_config
         self._session_store = session_store
+        self._tool_result_overflow = ToolResultOverflowManager(
+            session_store=session_store,
+            inline_max_bytes=config.tool_result_inline_max_bytes,
+            preview_lines=config.tool_result_preview_lines,
+            working_dir=config.working_dir,
+        )
 
         self._mcp_servers = config.resolved_mcp_servers
         self._mcp_server_instances: dict[str, MCPServer] = {}
@@ -401,39 +409,40 @@ class Agent:
             case "ipybox_execute_ipython_cell":
                 async for item in self._ipybox_execute_ipython_cell(tool_args["code"]):
                     match item:
-                        case ApprovalRequest() | CodeExecutionOutput() | CodeExecutionOutputChunk():
-                            item.corr_id = corr_id
+                        case ApprovalRequest():
+                            yield replace(item, corr_id=corr_id)
+                        case CodeExecutionOutputChunk():
+                            yield replace(item, corr_id=corr_id)
+                        case CodeExecutionOutput(text=text):
+                            if item.ptc_rejected():
+                                rejected = True
+                                content = "Tool call rejected"
+                                yield replace(item, corr_id=corr_id)
+                                break
+
+                            text_orig = text or ""
+                            text = self._process_tool_text(text_orig)
+                            item = replace(item, corr_id=corr_id, text=text, truncated=text_orig != text)
+                            content = item.format()
                             yield item
                         case _:
                             yield item
-
-                    match item:
-                        case CodeExecutionOutput() if item.ptc_rejected():
-                            rejected = True
-                            content = "Tool call rejected"
-                            break
-                        case CodeExecutionOutput():
-                            content = item.format()
             case "ipybox_reset":
                 content = await self._ipybox_reset()
-                yield ToolOutput(content=content, agent_id=self.agent_id, corr_id=corr_id)
+                yield ToolOutput(corr_id=corr_id, agent_id=self.agent_id, content=content)
             case "subagent_task":
                 async for event in self._execute_subagent_task(
                     prompt=tool_args["prompt"],
                     max_turns=tool_args.get("max_turns", 100),
+                    corr_id=corr_id,
                 ):
+                    yield event
                     match event:
-                        case ApprovalRequest() | ToolOutput() | CodeExecutionOutput() | CodeExecutionOutputChunk():
-                            event.corr_id = corr_id
-                            yield event
-                        case _:
-                            yield event
-
-                    match event:
-                        case ToolOutput():
-                            content = event.content
+                        case ToolOutput(agent_id=agent_id, content=tool_content) if agent_id == self.agent_id:
+                            content = tool_content
             case _:
                 content = await self._call_mcp_tool(tool_name, tool_args)
+                content = self._process_tool_result(content)
                 yield ToolOutput(content=content, agent_id=self.agent_id, corr_id=corr_id)
 
         yield ToolReturnPart(
@@ -443,7 +452,7 @@ class Agent:
             metadata={"rejected": rejected},
         )
 
-    async def _execute_subagent_task(self, prompt: str, max_turns: int) -> AsyncIterator[AgentEvent]:
+    async def _execute_subagent_task(self, prompt: str, max_turns: int, corr_id: str) -> AsyncIterator[AgentEvent]:
         subagent_config = self._config.for_subagent()
         subagent = Agent(
             config=subagent_config,
@@ -462,10 +471,12 @@ class Agent:
                     case Response(content=content):
                         last_response = content
         except Exception as e:
-            yield ToolOutput(content=f"Subagent error: {e}", agent_id=self.agent_id)
+            error_content = self._process_tool_text(f"Subagent error: {e}")
+            yield ToolOutput(content=error_content, agent_id=self.agent_id, corr_id=corr_id)
             return
 
-        yield ToolOutput(content=last_response, agent_id=self.agent_id)
+        final_content = self._process_tool_text(last_response)
+        yield ToolOutput(content=final_content, agent_id=self.agent_id, corr_id=corr_id)
 
     async def _ipybox_execute_ipython_cell(
         self, code: str
@@ -515,3 +526,14 @@ class Agent:
             )
         except Exception as e:
             return f"MCP tool call failed: {str(e)}"
+
+    def _process_tool_result(self, content: ToolResult) -> ToolResult:
+        return self._tool_result_overflow.materialize(content).content
+
+    def _process_tool_text(self, text: str) -> str:
+        content = self._process_tool_result(text)
+        match content:
+            case str() as value:
+                return value
+            case _:
+                return str(content)

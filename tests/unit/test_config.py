@@ -22,6 +22,8 @@ def test_config_constructor_is_in_memory_defaults(tmp_path: Path, monkeypatch: p
     assert config.freeact_dir == tmp_path / ".freeact"
     assert config.model == "google-gla:gemini-3-flash-preview"
     assert config.model_settings["google_thinking_config"]["thinking_level"] == "high"
+    assert config.tool_result_inline_max_bytes == 32768
+    assert config.tool_result_preview_lines == 10
     assert "google" in config.ptc_servers
     assert not config.freeact_dir.exists()
 
@@ -37,6 +39,8 @@ def test_constructor_accepts_custom_scalar_overrides(tmp_path: Path, monkeypatch
         images_dir=Path("images"),
         execution_timeout=123,
         approval_timeout=45,
+        tool_result_inline_max_bytes=64000,
+        tool_result_preview_lines=7,
         enable_subagents=False,
         max_subagents=2,
     )
@@ -47,6 +51,8 @@ def test_constructor_accepts_custom_scalar_overrides(tmp_path: Path, monkeypatch
     assert config.images_dir == Path("images")
     assert config.execution_timeout == 123
     assert config.approval_timeout == 45
+    assert config.tool_result_inline_max_bytes == 64000
+    assert config.tool_result_preview_lines == 7
     assert config.enable_subagents is False
     assert config.max_subagents == 2
 
@@ -149,6 +155,8 @@ async def test_load_save_roundtrip(tmp_path: Path) -> None:
         model="test-model",
         tool_search="basic",
         execution_timeout=42,
+        tool_result_inline_max_bytes=2048,
+        tool_result_preview_lines=3,
         max_subagents=7,
         ptc_servers={"demo": {"command": "python", "args": ["-m", "demo"]}},
     )
@@ -158,6 +166,8 @@ async def test_load_save_roundtrip(tmp_path: Path) -> None:
 
     assert loaded.model == "test-model"
     assert loaded.execution_timeout == 42
+    assert loaded.tool_result_inline_max_bytes == 2048
+    assert loaded.tool_result_preview_lines == 3
     assert loaded.max_subagents == 7
     assert "demo" in loaded.ptc_servers
 
@@ -170,6 +180,8 @@ async def test_load_save_roundtrip_preserves_constructor_overrides(tmp_path: Pat
         model_settings={"temperature": 0.3},
         execution_timeout=77,
         approval_timeout=9,
+        tool_result_inline_max_bytes=12345,
+        tool_result_preview_lines=9,
         enable_subagents=False,
         max_subagents=3,
         kernel_env={"FOO": "bar"},
@@ -184,6 +196,8 @@ async def test_load_save_roundtrip_preserves_constructor_overrides(tmp_path: Pat
     assert loaded.model_settings == {"temperature": 0.3}
     assert loaded.execution_timeout == 77
     assert loaded.approval_timeout == 9
+    assert loaded.tool_result_inline_max_bytes == 12345
+    assert loaded.tool_result_preview_lines == 9
     assert loaded.enable_subagents is False
     assert loaded.max_subagents == 3
     assert loaded.kernel_env == {"FOO": "bar"}
@@ -276,6 +290,15 @@ def test_system_prompt_renders_project_instructions(tmp_path: Path) -> None:
     prompt = config.system_prompt
 
     assert "Use pytest" in prompt
+
+
+def test_system_prompt_mentions_overflow_file_guidance(tmp_path: Path) -> None:
+    config = Config(working_dir=tmp_path)
+
+    prompt = config.system_prompt
+
+    assert "saved to a file" in prompt
+    assert "Prefer shell commands that read specific sections." in prompt
 
 
 def test_pytools_defaults_are_resolved_without_mutating_process_env(
@@ -376,3 +399,11 @@ def test_config_is_immutable(tmp_path: Path) -> None:
 
     with pytest.raises(ValidationError):
         setattr(config, "execution_timeout", 1)
+
+
+def test_tool_result_limits_must_be_positive(tmp_path: Path) -> None:
+    with pytest.raises(ValidationError):
+        Config(working_dir=tmp_path, tool_result_inline_max_bytes=0)
+
+    with pytest.raises(ValidationError):
+        Config(working_dir=tmp_path, tool_result_preview_lines=0)

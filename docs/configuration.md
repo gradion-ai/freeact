@@ -39,7 +39,9 @@ Freeact stores agent configuration and runtime state in `.freeact/`. Project-lev
     ├── sessions/           # Session trace storage
     │   └── <session-uuid>/
     │       ├── main.jsonl
-    │       └── sub-xxxx.jsonl
+    │       ├── sub-xxxx.jsonl
+    │       └── tool-results/
+    │           └── <file-id>.<ext>   # Overflow tool results
     └── permissions.json    # Persisted approval decisions
 ```
 
@@ -55,6 +57,8 @@ The `agent.json` file contains agent settings and MCP server configurations:
   "images_dir": null,
   "execution_timeout": 300,
   "approval_timeout": null,
+  "tool_result_inline_max_bytes": 32768,
+  "tool_result_preview_lines": 10,
   "enable_subagents": true,
   "max_subagents": 5,
   "kernel_env": {},
@@ -75,6 +79,8 @@ The `agent.json` file contains agent settings and MCP server configurations:
 | `images_dir` | `null` | Directory for saving generated images to disk. `null` defaults to `images` in the working directory. |
 | `execution_timeout` | `300` | Maximum time in seconds for [code execution](execution.md). Approval wait time is excluded. `null` means no timeout. |
 | `approval_timeout` | `null` | Timeout in seconds for PTC approval requests. `null` means no timeout. |
+| `tool_result_inline_max_bytes` | `32768` | Inline size threshold in bytes for tool results. Larger results are stored in `.freeact/sessions/<session-id>/tool-results/` and replaced with a notice plus preview lines. |
+| `tool_result_preview_lines` | `10` | Number of preview lines included in the overflow notice when a tool result is stored as a file. |
 | `enable_subagents` | `true` | Whether to enable subagent delegation |
 | `max_subagents` | `5` | Maximum number of concurrent subagents |
 | `kernel_env` | `{}` | Environment variables passed to the IPython kernel. Supports `${VAR}` placeholders resolved against the host environment. |

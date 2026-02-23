@@ -96,6 +96,8 @@ class Config(BaseModel):
     images_dir: Path | None = None
     execution_timeout: float | None = 300
     approval_timeout: float | None = None
+    tool_result_inline_max_bytes: int = Field(default=32768, ge=1)
+    tool_result_preview_lines: int = Field(default=10, ge=1)
     enable_subagents: bool = True
     max_subagents: int = 5
     kernel_env: dict[str, str] = Field(default_factory=dict)

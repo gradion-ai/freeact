@@ -1,10 +1,21 @@
 import json
+import re
+import uuid
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from pydantic_ai.messages import ModelMessage, ModelMessagesTypeAdapter
 from pydantic_core import to_jsonable_python
+
+
+@dataclass(frozen=True)
+class StoredToolResultFile:
+    """Location details for a persisted tool-result overflow file."""
+
+    absolute_path: Path
+    relative_path: Path
 
 
 class SessionStore:
@@ -80,6 +91,32 @@ class SessionStore:
 
         return ModelMessagesTypeAdapter.validate_python(serialized_messages)
 
+    def save_tool_result(self, payload: bytes, extension: str) -> StoredToolResultFile:
+        """Persist a tool-result payload under the session's `tool-results/` directory."""
+        safe_extension = _sanitize_extension(extension)
+        tool_results_dir = self._sessions_root / self._session_id / "tool-results"
+        tool_results_dir.mkdir(parents=True, exist_ok=True)
+
+        while True:
+            file_id = uuid.uuid4().hex[:8]
+            filename = f"{file_id}.{safe_extension}"
+            absolute_path = tool_results_dir / filename
+            if not absolute_path.exists():
+                break
+
+        absolute_path.write_bytes(payload)
+
+        match (self._sessions_root.name, self._sessions_root.parent.name):
+            case ("sessions", ".freeact"):
+                relative_path = Path(".freeact") / "sessions" / self._session_id / "tool-results" / filename
+            case _:
+                relative_path = Path("sessions") / self._session_id / "tool-results" / filename
+
+        return StoredToolResultFile(
+            absolute_path=absolute_path,
+            relative_path=relative_path,
+        )
+
     @staticmethod
     def _validate_envelope(envelope: Any, line_no: int, session_file: Path) -> None:
         if not isinstance(envelope, dict):
@@ -103,3 +140,13 @@ class SessionStore:
 
         if "ts" not in meta:
             raise ValueError(f"Malformed JSONL line {line_no} in {session_file}")
+
+
+def _sanitize_extension(extension: str) -> str:
+    raw = extension.lower().lstrip(".")
+    if not raw:
+        return "bin"
+
+    if re.fullmatch(r"[a-z0-9]+", raw):
+        return raw
+    return "bin"

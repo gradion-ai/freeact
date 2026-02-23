@@ -309,7 +309,7 @@ class TestSubagentConfigPropagation:
             )
 
         with patch("freeact.agent.core.Agent", FakeSubagent):
-            events = [event async for event in agent._execute_subagent_task("subtask", max_turns=3)]
+            events = [event async for event in agent._execute_subagent_task("subtask", max_turns=3, corr_id="call-1")]
 
         assert len(events) >= 1
         sub_config = captured["config"]

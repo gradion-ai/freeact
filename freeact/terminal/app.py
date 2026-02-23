@@ -408,9 +408,19 @@ class TerminalApp(App[None]):
                             await self._mount_and_scroll(conversation, box)
                         exec_log.write(text)
 
-                    case CodeExecutionOutput(agent_id=aid, text=text, images=images):
+                    case CodeExecutionOutput(agent_id=aid, text=text, images=images, truncated=truncated, corr_id=cid):
+                        created_now = False
+                        if exec_log is None:
+                            box, exec_log = create_exec_output_box(aid, corr_id=cid)
+                            self._register_box(box, configured_collapsed=False)
+                            await self._mount_and_scroll(conversation, box)
+                            created_now = True
+
                         if exec_log is not None:
-                            finalize_exec_output(exec_log, text, images)
+                            # Rewrite the execution widget only when content was truncated
+                            # or when no stream chunks were rendered before the final event.
+                            rewrite_text = text if (truncated or created_now) else None
+                            finalize_exec_output(exec_log, rewrite_text, images)
                             if self._config.collapse_exec_output_on_complete:
                                 match conversation.query(".exec-output-box").last():
                                     case Collapsible() as last_box:

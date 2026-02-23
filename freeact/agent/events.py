@@ -67,6 +67,7 @@ class CodeExecutionOutput(AgentEvent):
 
     text: str | None
     images: list[Path]
+    truncated: bool = False
 
     def ptc_rejected(self) -> bool:
         """Whether the output indicates a rejected programmatic tool call."""

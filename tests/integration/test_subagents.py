@@ -265,6 +265,46 @@ class TestSubagentCodeExecution:
             assert "ipybox_execute_ipython_cell" in approval_names
 
     @pytest.mark.asyncio
+    async def test_subagent_events_keep_subagent_corr_ids(self):
+        """Subagent-originated events keep their own corr_id instead of parent's task corr_id."""
+
+        async def stream_function(messages: list[ModelMessage], info: AgentInfo) -> AsyncIterator[str | DeltaToolCalls]:
+            tool_names = [t.name for t in info.function_tools]
+            if get_tool_return_parts(messages):
+                yield "Done"
+            elif "subagent_task" in tool_names:
+                yield {
+                    0: DeltaToolCall(
+                        name="subagent_task",
+                        json_args=json.dumps({"prompt": "Run code"}),
+                        tool_call_id="call_task",
+                    )
+                }
+            else:
+                yield {
+                    0: DeltaToolCall(
+                        name="ipybox_execute_ipython_cell",
+                        json_args=json.dumps({"code": "print('hi')"}),
+                        tool_call_id="call_exec",
+                    )
+                }
+
+        async with unpatched_agent(stream_function) as agent:
+            results = await collect_stream(agent, "test")
+
+            parent_task_approvals = [a for a in results.approvals if a.tool_name == "subagent_task"]
+            assert len(parent_task_approvals) == 1
+            parent_corr_id = parent_task_approvals[0].corr_id
+
+            subagent_approvals = [
+                a
+                for a in results.approvals
+                if a.agent_id != agent.agent_id and a.tool_name == "ipybox_execute_ipython_cell"
+            ]
+            assert len(subagent_approvals) >= 1
+            assert all(a.corr_id != parent_corr_id for a in subagent_approvals)
+
+    @pytest.mark.asyncio
     async def test_subagent_kernel_is_independent(self):
         """Subagent has its own kernel -- parent kernel state is not shared."""
 

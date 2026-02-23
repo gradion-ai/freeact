@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -162,3 +163,29 @@ def test_flush_after_append_false_does_not_force_flush(tmp_path: Path, monkeypat
     store.append(agent_id="main", messages=_sample_messages())
 
     assert flush_called is False
+
+
+def test_save_tool_result_writes_payload_file(tmp_path: Path) -> None:
+    store = SessionStore(sessions_root=tmp_path / ".freeact" / "sessions", session_id="session-1")
+
+    stored = store.save_tool_result(payload=b"tool-output", extension="txt")
+
+    assert stored.absolute_path.exists()
+    assert stored.absolute_path.read_bytes() == b"tool-output"
+    assert stored.relative_path.as_posix().startswith(".freeact/sessions/session-1/tool-results/")
+
+
+def test_save_tool_result_filename_format(tmp_path: Path) -> None:
+    store = SessionStore(sessions_root=tmp_path / ".freeact" / "sessions", session_id="session-1")
+
+    stored = store.save_tool_result(payload=b"x", extension="json")
+
+    assert re.fullmatch(r"[0-9a-f]{8}\.json", stored.absolute_path.name)
+
+
+def test_save_tool_result_sanitizes_extension(tmp_path: Path) -> None:
+    store = SessionStore(sessions_root=tmp_path / ".freeact" / "sessions", session_id="session-1")
+
+    stored = store.save_tool_result(payload=b"x", extension="../bad")
+
+    assert stored.absolute_path.suffix == ".bin"
