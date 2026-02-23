@@ -44,9 +44,19 @@ The screenshot shows:
 
 - **Progressive tool loading**: The agent progressively loads tool information: lists categories, lists tools in the `google` category, then reads the `web_search` API to understand its parameters.
 - **Programmatic tool calling**: The agent writes Python code that imports the `web_search` tool from `mcptools.google` and calls it programmatically (PTC) with the user's query.
-- **Action approval**: The code action and the programmatic `web_search` tool call are explicitly approved by the user, other tool calls were [pre-approved](configuration.md#permissions) for this example.
 
 The code execution output shows the search result with source URLs. The agent response is a summary of it.
+
+### Approval Prompt
+
+Freeact can prompt for approval before running code actions and tool calls.
+This also includes MCP tools called programmatically through generated Python APIs.
+
+The screenshot below shows the approval prompt for a programmatic tool call (PTC):
+
+[![Approval Prompt](screenshots/quickstart-approve.png)](screenshots/quickstart-approve.png){ target="_blank" rel="noopener" }
+
+Code actions and tool calls can also be pre-approved. See [Approval Prompt](cli.md#approval-prompt) for prompt options and behavior.
 
 ## Agent SDK
 
