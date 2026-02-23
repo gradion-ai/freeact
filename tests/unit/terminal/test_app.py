@@ -23,6 +23,8 @@ from freeact.terminal.app import (
     TerminalApp,
     _find_at_reference_context,
     _format_attachment_path,
+    _format_display_cwd,
+    _load_freeact_version,
     convert_at_references,
 )
 from freeact.terminal.config import Config as TerminalConfig
@@ -152,24 +154,49 @@ def test_format_attachment_path_prefers_relative_to_cwd(tmp_path: Path) -> None:
     assert _format_attachment_path(nested, cwd=tmp_path) == "assets/images"
 
 
+def test_format_display_cwd_prefers_tilde_relative_home(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    cwd = home / "work" / "repo"
+    cwd.mkdir(parents=True)
+
+    assert _format_display_cwd(cwd=cwd, home=home) == "~/work/repo"
+
+
+def test_load_freeact_version_omits_local_build_metadata(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("freeact.terminal.app.package_version", lambda _: "0.8.1.post1.dev0+6937613")
+
+    assert _load_freeact_version() == "0.8.1.post1.dev0"
+
+
 @pytest.mark.asyncio
 async def test_banner_renders_inside_conversation_scroll_container(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("freeact.terminal.app._load_banner", lambda: Text("banner"))
+    monkeypatch.setattr("freeact.terminal.app._load_freeact_version", lambda: "1.2.3")
+    monkeypatch.setattr("freeact.terminal.app._format_display_cwd", lambda: "~/repo")
     app = _create_app(agent_stream=MockStreamAgent(_no_events).stream, agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:
         await pilot.pause(0.05)
         conversation = app.query_one("#conversation")
         banner = app.query_one("#banner", Static)
+        metadata = app.query_one("#banner-metadata", Static)
+        divider = app.query_one("#banner-divider", Static)
         assert banner.parent is conversation
+        assert metadata.parent is conversation
+        assert divider.parent is conversation
+        assert "Version: 1.2.3" in str(metadata.render())
+        assert "cwd:" not in str(metadata.render())
+        assert "~/repo" in str(metadata.render())
         assert conversation.max_scroll_y == 0
-        assert banner.region.y >= conversation.region.bottom - 3
+        assert banner.region.y < metadata.region.y < divider.region.y
 
 
 @pytest.mark.asyncio
 async def test_banner_viewport_starts_scrolled_to_bottom(monkeypatch: pytest.MonkeyPatch) -> None:
     tall_banner = Text("\n".join(["banner"] * 120))
     monkeypatch.setattr("freeact.terminal.app._load_banner", lambda: tall_banner)
+    monkeypatch.setattr("freeact.terminal.app._load_freeact_version", lambda: "1.2.3")
+    monkeypatch.setattr("freeact.terminal.app._format_display_cwd", lambda: "~/repo")
     app = _create_app(agent_stream=MockStreamAgent(_no_events).stream, agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:

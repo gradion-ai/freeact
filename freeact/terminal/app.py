@@ -2,6 +2,8 @@ import asyncio
 import re
 from collections.abc import AsyncIterator, Callable, Sequence
 from dataclasses import dataclass
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as package_version
 from pathlib import Path
 from typing import TypeAlias
 
@@ -135,6 +137,34 @@ def _load_banner() -> Text | None:
     return Text.from_ansi(banner_ansi)
 
 
+def _load_freeact_version() -> str:
+    """Resolve the installed freeact package version via metadata.
+
+    Local build metadata (the `+...` suffix) is omitted for display because it
+    can reflect an editable-install build identifier rather than the currently
+    checked-out source state.
+    """
+    try:
+        version = package_version("freeact")
+    except PackageNotFoundError:
+        return "unknown"
+    return version.split("+", 1)[0]
+
+
+def _format_display_cwd(cwd: Path | None = None, home: Path | None = None) -> str:
+    """Format cwd for UI display, preferring `~/` when under home directory."""
+    resolved_cwd = (cwd or Path.cwd()).expanduser().resolve()
+    resolved_home = (home or Path.home()).expanduser().resolve()
+    try:
+        relative = resolved_cwd.relative_to(resolved_home)
+    except ValueError:
+        return str(resolved_cwd)
+    relative_text = relative.as_posix()
+    if not relative_text:
+        return "~/"
+    return f"~/{relative_text}"
+
+
 class TerminalInterface:
     """Textual terminal interface for interactive agent conversations."""
 
@@ -183,6 +213,15 @@ class TerminalApp(App[None]):
     }
     #banner-spacer {
         height: 1;
+    }
+    #banner-metadata {
+        padding: 0 1;
+        color: $text-muted;
+    }
+    #banner-divider {
+        height: 1;
+        border-top: solid $panel-lighten-1;
+        margin: 0 1;
     }
     #conversation {
         height: 1fr;
@@ -255,6 +294,8 @@ class TerminalApp(App[None]):
         self._forced_expanded_ids: set[int] = set()
         self._pending_approval_widget_id: int | None = None
         self._banner = _load_banner()
+        self._version = _load_freeact_version()
+        self._cwd = _format_display_cwd()
         self._bindings.bind(
             self._config.expand_all_toggle_key,
             "toggle_expand_all",
@@ -268,6 +309,8 @@ class TerminalApp(App[None]):
                 yield Static("", id="banner-top-spacer")
                 yield Static(self._banner, id="banner")
                 yield Static("", id="banner-spacer")
+            yield Static(f"Version: {self._version}\n{self._cwd}", id="banner-metadata")
+            yield Static("", id="banner-divider")
         with Vertical(id="input-dock"):
             yield PromptInput(id="prompt-input", clipboard_reader=self.read_clipboard_for_paste)
 

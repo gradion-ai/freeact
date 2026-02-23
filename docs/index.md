@@ -1,5 +1,5 @@
 <div markdown style="text-align: center; margin-bottom: 1em;">
-  ![freeact](images/banner.svg){ style="width: 100%;" }
+  ![freeact](images/banner.png){ style="width: 100%;" }
 </div>
 
 # Overview

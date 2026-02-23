@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="docs/images/banner.svg" alt="freeact" width="100%">
+    <img src="docs/images/banner.png" alt="freeact" width="100%">
 </p>
 
 <p align="left">
