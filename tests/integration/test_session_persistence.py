@@ -53,7 +53,7 @@ class TestSessionPersistence:
             ModelRequest(parts=[UserPromptPart(content="old prompt")]),
             ModelResponse(parts=[]),
         ]
-        session_store.append(agent_id="main", messages=seed_messages)
+        session_store.append_messages(agent_id="main", messages=seed_messages)
         sub_file = config.sessions_dir / "session-1" / "sub-dead.jsonl"
         sub_file.write_text("{not-json}\n")
 
@@ -131,7 +131,7 @@ class TestSessionPersistence:
             await collect_stream(agent, "persist large tool output")
 
         session_store = SessionStore(sessions_root=config.sessions_dir, session_id="session-1")
-        history = session_store.load(agent_id="main")
+        history = session_store.load_messages(agent_id="main")
         tool_returns = [
             part
             for message in history

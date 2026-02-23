@@ -209,6 +209,7 @@ class TestSessionPersistenceConfig:
         assert agent._session_id is None
         assert agent.session_id is None
         assert agent._session_store is None
+        assert agent._result_materializer is None
 
     def test_agent_rejects_session_id_when_persistence_disabled(self) -> None:
         with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:

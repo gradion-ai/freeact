@@ -9,6 +9,7 @@ from typing import Any, AsyncIterator
 
 import ipybox
 from aiostream.stream import merge
+from ipybox.utils import arun
 from mcp import types as mcp_types
 from pydantic_ai.direct import model_request_stream
 from pydantic_ai.mcp import MCPServer, MCPServerStdio, MCPServerStreamableHTTP, ToolResult
@@ -44,8 +45,7 @@ from freeact.agent.events import (
     ThoughtsChunk,
     ToolOutput,
 )
-from freeact.agent.store import SessionStore
-from freeact.agent.tool_result_overflow import ToolResultOverflowManager
+from freeact.agent.store import SessionStore, ToolResultMaterializer
 from freeact.tools.utils import (
     get_tool_definitions,
     load_ipybox_tool_definitions,
@@ -133,12 +133,14 @@ class Agent:
             self._session_id = session_id or str(uuid.uuid4())
             self._session_store = SessionStore(config.sessions_dir, self._session_id)
 
-        self._tool_result_overflow = ToolResultOverflowManager(
-            session_store=self._session_store,
-            inline_max_bytes=config.tool_result_inline_max_bytes,
-            preview_lines=config.tool_result_preview_lines,
-            working_dir=config.working_dir,
-        )
+        self._result_materializer: ToolResultMaterializer | None = None
+        if self._session_store is not None:
+            self._result_materializer = ToolResultMaterializer(
+                session_store=self._session_store,
+                inline_max_bytes=config.tool_result_inline_max_bytes,
+                preview_lines=config.tool_result_preview_lines,
+                working_dir=config.working_dir,
+            )
 
         self._mcp_servers = config.resolved_mcp_servers
         self._mcp_server_instances: dict[str, MCPServer] = {}
@@ -173,14 +175,6 @@ class Agent:
         """Session ID used by this agent, or `None` when persistence is disabled."""
         return self._session_id
 
-    def _append_message_history(self, messages: list[ModelMessage]) -> None:
-        if not messages:
-            return
-
-        self._message_history.extend(messages)
-        if self._session_store is not None:
-            self._session_store.append(agent_id=self._history_agent_id, messages=messages)
-
     @property
     def tool_names(self) -> list[str]:
         """Names of all registered tools (ipybox tools and MCP server tools)."""
@@ -202,7 +196,7 @@ class Agent:
             return
 
         if self._session_store is not None and self._history_agent_id == "main" and not self._message_history:
-            self._message_history = self._session_store.load(agent_id="main")
+            self._message_history = await arun(self._session_store.load_messages, agent_id="main")
 
         self._mcp_server_instances = self._create_mcp_servers()
 
@@ -320,7 +314,7 @@ class Agent:
         request = self._create_model_request(prompt)
         request_params = ModelRequestParameters(function_tools=self._tool_definitions)
 
-        self._append_message_history([request])
+        await self._append_message_history([request])
 
         turn = 0
 
@@ -354,7 +348,7 @@ class Agent:
             thoughts = "".join(thinking_parts) if thinking_parts else None
             response = "".join(response_parts)
 
-            self._append_message_history([aggregated])
+            await self._append_message_history([aggregated])
 
             if thoughts:
                 yield Thoughts(content=thoughts, agent_id=self.agent_id)
@@ -378,7 +372,7 @@ class Agent:
                         case _:
                             yield item
 
-            self._append_message_history([ModelRequest(parts=tool_returns)])
+            await self._append_message_history([ModelRequest(parts=tool_returns)])
 
             if any(tool_return.metadata.get("rejected", False) for tool_return in tool_returns):
                 content = "Tool call rejected"
@@ -442,7 +436,7 @@ class Agent:
                                 break
 
                             text_orig = text or ""
-                            text = self._process_tool_text(text_orig)
+                            text = await self._process_tool_text(text_orig)
                             item = replace(item, corr_id=corr_id, text=text, truncated=text_orig != text)
                             content = item.format()
                             yield item
@@ -463,7 +457,7 @@ class Agent:
                             content = tool_content
             case _:
                 content = await self._call_mcp_tool(tool_name, tool_args)
-                content = self._process_tool_result(content)
+                content = await self._process_tool_result(content)
                 yield ToolOutput(content=content, agent_id=self.agent_id, corr_id=corr_id)
 
         yield ToolReturnPart(
@@ -496,7 +490,7 @@ class Agent:
             yield ToolOutput(content=error_content, agent_id=self.agent_id, corr_id=corr_id)
             return
 
-        final_content = self._process_tool_text(last_response)
+        final_content = await self._process_tool_text(last_response)
         yield ToolOutput(content=final_content, agent_id=self.agent_id, corr_id=corr_id)
 
     async def _ipybox_execute_ipython_cell(
@@ -570,13 +564,23 @@ class Agent:
             case _:
                 return result
 
-    def _process_tool_result(self, content: ToolResult) -> ToolResult:
-        return self._tool_result_overflow.materialize(content)
+    async def _append_message_history(self, messages: list[ModelMessage]) -> None:
+        if not messages:
+            return
 
-    def _process_tool_text(self, text: str) -> str:
-        content = self._process_tool_result(text)
-        match content:
-            case str() as value:
-                return value
-            case _:
-                return str(content)
+        self._message_history.extend(messages)
+        if self._session_store is not None:
+            await arun(
+                self._session_store.append_messages,
+                agent_id=self._history_agent_id,
+                messages=messages,
+            )
+
+    async def _process_tool_result(self, content: ToolResult) -> ToolResult:
+        if self._result_materializer is not None:
+            return await arun(self._result_materializer.materialize, content)
+        return content
+
+    async def _process_tool_text(self, text: str) -> str:
+        content = await self._process_tool_result(text)
+        return str(content)

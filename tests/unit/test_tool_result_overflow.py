@@ -1,10 +1,10 @@
 import re
 from pathlib import Path
 
+import pytest
 from pydantic_ai.messages import BinaryContent
 
-from freeact.agent.store import SessionStore
-from freeact.agent.tool_result_overflow import ToolResultOverflowManager
+from freeact.agent.store import SessionStore, ToolResultMaterializer
 
 
 def _stored_path_from_notice(notice: str, working_dir: Path) -> Path:
@@ -15,7 +15,7 @@ def _stored_path_from_notice(notice: str, working_dir: Path) -> Path:
 
 
 def test_inline_result_under_threshold_is_kept(tmp_path: Path) -> None:
-    manager = ToolResultOverflowManager(
+    manager = ToolResultMaterializer(
         session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
         inline_max_bytes=10_000,
         preview_lines=10,
@@ -29,7 +29,7 @@ def test_inline_result_under_threshold_is_kept(tmp_path: Path) -> None:
 
 
 def test_large_string_result_is_saved_with_preview(tmp_path: Path) -> None:
-    manager = ToolResultOverflowManager(
+    manager = ToolResultMaterializer(
         session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
         inline_max_bytes=20,
         preview_lines=2,
@@ -53,7 +53,7 @@ def test_large_string_result_is_saved_with_preview(tmp_path: Path) -> None:
 
 
 def test_structured_result_is_saved_as_json(tmp_path: Path) -> None:
-    manager = ToolResultOverflowManager(
+    manager = ToolResultMaterializer(
         session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
         inline_max_bytes=40,
         preview_lines=3,
@@ -70,7 +70,7 @@ def test_structured_result_is_saved_as_json(tmp_path: Path) -> None:
 
 
 def test_text_binary_result_has_no_preview_lines(tmp_path: Path) -> None:
-    manager = ToolResultOverflowManager(
+    manager = ToolResultMaterializer(
         session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
         inline_max_bytes=8,
         preview_lines=2,
@@ -89,7 +89,7 @@ def test_text_binary_result_has_no_preview_lines(tmp_path: Path) -> None:
 
 
 def test_non_text_binary_result_has_no_preview_lines(tmp_path: Path) -> None:
-    manager = ToolResultOverflowManager(
+    manager = ToolResultMaterializer(
         session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
         inline_max_bytes=4,
         preview_lines=10,
@@ -108,14 +108,21 @@ def test_non_text_binary_result_has_no_preview_lines(tmp_path: Path) -> None:
     assert stored_path.read_bytes() == payload
 
 
-def test_large_result_stays_inline_when_session_store_missing(tmp_path: Path) -> None:
-    manager = ToolResultOverflowManager(
-        session_store=None,
+def test_large_result_stays_inline_when_store_write_fails(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    store = SessionStore(tmp_path / ".freeact" / "sessions", "session-1")
+    manager = ToolResultMaterializer(
+        session_store=store,
         inline_max_bytes=1,
         preview_lines=10,
         working_dir=tmp_path,
     )
     content = "too-large"
+
+    def fail_save_tool_result(payload: bytes, extension: str) -> Path:
+        _ = payload, extension
+        raise OSError("disk full")
+
+    monkeypatch.setattr(store, "save_tool_result", fail_save_tool_result)
 
     result = manager.materialize(content)
 
@@ -123,7 +130,7 @@ def test_large_result_stays_inline_when_session_store_missing(tmp_path: Path) ->
 
 
 def test_structured_result_has_no_preview_lines(tmp_path: Path) -> None:
-    manager = ToolResultOverflowManager(
+    manager = ToolResultMaterializer(
         session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
         inline_max_bytes=20,
         preview_lines=2,

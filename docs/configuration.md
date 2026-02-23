@@ -41,7 +41,7 @@ Freeact stores agent configuration and runtime state in `.freeact/`. Project-lev
     │       ├── main.jsonl
     │       ├── sub-xxxx.jsonl
     │       └── tool-results/
-    │           └── <file-id>.<ext>   # Overflow tool results
+    │           └── <file-id>.<ext>   # Large tool results stored as files
     └── permissions.json    # Persisted approval decisions
 ```
 
@@ -80,8 +80,8 @@ The `agent.json` file contains agent settings and MCP server configurations:
 | `images_dir` | `null` | Directory for saving generated images to disk. `null` defaults to `images` in the working directory. |
 | `execution_timeout` | `300` | Maximum time in seconds for [code execution](execution.md). Approval wait time is excluded. `null` means no timeout. |
 | `approval_timeout` | `null` | Timeout in seconds for PTC approval requests. `null` means no timeout. |
-| `tool_result_inline_max_bytes` | `32768` | Inline size threshold in bytes for tool results. Larger results are stored in `.freeact/sessions/<session-id>/tool-results/` and replaced with a notice plus preview lines. |
-| `tool_result_preview_lines` | `10` | Number of preview lines included in the overflow notice when a tool result is stored as a file. |
+| `tool_result_inline_max_bytes` | `32768` | Inline size threshold in bytes for tool results. Larger results are saved to `.freeact/sessions/<session-id>/tool-results/` and replaced with a file reference notice plus preview lines. |
+| `tool_result_preview_lines` | `10` | Number of preview lines included from both the beginning and end of large text results in the file reference notice. |
 | `enable_persistence` | `true` | Persist message history to `.freeact/sessions/` and allow session resume with `session_id`. If `false`, history stays in memory for the process lifetime only. |
 | `enable_subagents` | `true` | Whether to enable subagent delegation |
 | `max_subagents` | `5` | Maximum number of concurrent subagents |

@@ -24,8 +24,8 @@ def test_append_load_round_trip_model_messages(tmp_path: Path):
     store = SessionStore(sessions_root=tmp_path, session_id="session-1")
     messages = _sample_messages()
 
-    store.append(agent_id="main", messages=messages)
-    loaded = store.load(agent_id="main")
+    store.append_messages(agent_id="main", messages=messages)
+    loaded = store.load_messages(agent_id="main")
 
     assert _jsonable_messages(loaded) == _jsonable_messages(messages)
 
@@ -34,7 +34,7 @@ def test_append_writes_envelope_without_agent_id(tmp_path: Path):
     store = SessionStore(sessions_root=tmp_path, session_id="session-1")
     messages = _sample_messages()
 
-    store.append(agent_id="main", messages=messages)
+    store.append_messages(agent_id="main", messages=messages)
 
     session_file = tmp_path / "session-1" / "main.jsonl"
     lines = [json.loads(line) for line in session_file.read_text().splitlines()]
@@ -71,14 +71,14 @@ def test_load_rejects_meta_agent_id(tmp_path: Path):
     store = SessionStore(sessions_root=tmp_path, session_id="session-1")
 
     with pytest.raises(ValueError, match="meta.agent_id"):
-        store.load(agent_id="main")
+        store.load_messages(agent_id="main")
 
 
 def test_append_writes_one_line_per_message(tmp_path: Path):
     store = SessionStore(sessions_root=tmp_path, session_id="session-1")
     messages = _sample_messages() + _sample_messages()
 
-    store.append(agent_id="main", messages=messages)
+    store.append_messages(agent_id="main", messages=messages)
 
     session_file = tmp_path / "session-1" / "main.jsonl"
     assert len(session_file.read_text().splitlines()) == len(messages)
@@ -87,13 +87,13 @@ def test_append_writes_one_line_per_message(tmp_path: Path):
 def test_load_ignores_malformed_trailing_line(tmp_path: Path):
     store = SessionStore(sessions_root=tmp_path, session_id="session-1")
     messages = _sample_messages()
-    store.append(agent_id="main", messages=messages)
+    store.append_messages(agent_id="main", messages=messages)
 
     session_file = tmp_path / "session-1" / "main.jsonl"
     with session_file.open("a", encoding="utf-8") as f:
         f.write('{"v": 1, "message": ')
 
-    loaded = store.load(agent_id="main")
+    loaded = store.load_messages(agent_id="main")
     assert _jsonable_messages(loaded) == _jsonable_messages(messages)
 
 
@@ -108,7 +108,7 @@ def test_load_raises_on_non_tail_malformed_line(tmp_path: Path):
     store = SessionStore(sessions_root=tmp_path, session_id="session-1")
 
     with pytest.raises(ValueError, match="Malformed JSONL"):
-        store.load(agent_id="main")
+        store.load_messages(agent_id="main")
 
 
 def test_flush_after_append_true_calls_flush(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -133,7 +133,7 @@ def test_flush_after_append_true_calls_flush(tmp_path: Path, monkeypatch: pytest
         return _FakeFile()
 
     monkeypatch.setattr(Path, "open", fake_open)
-    store.append(agent_id="main", messages=_sample_messages())
+    store.append_messages(agent_id="main", messages=_sample_messages())
 
     assert flush_called is True
 
@@ -160,7 +160,7 @@ def test_flush_after_append_false_does_not_force_flush(tmp_path: Path, monkeypat
         return _FakeFile()
 
     monkeypatch.setattr(Path, "open", fake_open)
-    store.append(agent_id="main", messages=_sample_messages())
+    store.append_messages(agent_id="main", messages=_sample_messages())
 
     assert flush_called is False
 
@@ -170,9 +170,8 @@ def test_save_tool_result_writes_payload_file(tmp_path: Path) -> None:
 
     stored = store.save_tool_result(payload=b"tool-output", extension="txt")
 
-    assert stored.absolute_path.exists()
-    assert stored.absolute_path.read_bytes() == b"tool-output"
-    assert stored.relative_path == stored.absolute_path
+    assert stored.exists()
+    assert stored.read_bytes() == b"tool-output"
 
 
 def test_save_tool_result_filename_format(tmp_path: Path) -> None:
@@ -180,7 +179,7 @@ def test_save_tool_result_filename_format(tmp_path: Path) -> None:
 
     stored = store.save_tool_result(payload=b"x", extension="json")
 
-    assert re.fullmatch(r"[0-9a-f]{8}\.json", stored.absolute_path.name)
+    assert re.fullmatch(r"[0-9a-f]{8}\.json", stored.name)
 
 
 def test_save_tool_result_sanitizes_extension(tmp_path: Path) -> None:
@@ -188,4 +187,4 @@ def test_save_tool_result_sanitizes_extension(tmp_path: Path) -> None:
 
     stored = store.save_tool_result(payload=b"x", extension="../bad")
 
-    assert stored.absolute_path.suffix == ".bin"
+    assert stored.suffix == ".bin"
