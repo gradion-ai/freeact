@@ -1,6 +1,6 @@
 ---
 name: freeact-interaction
-description: Interact with freeact agent via tmux for testing and recording sessions
+description: Interact with freeact agent via tmux for testing
 ---
 
 # Interacting with Freeact via tmux
@@ -13,10 +13,8 @@ Freeact's terminal interface uses prompt_toolkit which requires a real TTY. Use 
 # Start detached tmux session (120x50 recommended for proper rendering)
 tmux new-session -d -s agent -x 120 -y 50
 
-# Start freeact (with optional recording)
+# Start freeact
 tmux send-keys -t agent 'uv run freeact' Enter
-# Or with recording:
-tmux send-keys -t agent 'uv run freeact --record' Enter
 ```
 
 ## Interaction Loop
@@ -37,17 +35,9 @@ tmux send-keys -t agent 'Y' Enter
 
 ## Important Notes
 
-- **Double echo**: When recording (`--record`), input appears twice - this is expected behavior for capturing input in the Rich console recording
 - **Timing**: Wait between sends for the agent to respond before sending next input
 - **Approval options**: Y (yes), n (no), a (always), s (session)
 - **Quit**: Send `q` to exit freeact cleanly
-
-## Recording Output
-
-- Default output directory: `output/`
-- Creates: `conversation.svg` and `conversation.html`
-- Custom directory: `--record-dir PATH`
-- Custom title: `--record-title "Title"`
 
 ## Cleanup
 
@@ -61,7 +51,7 @@ tmux kill-session -t agent
 ```bash
 # Setup
 tmux new-session -d -s agent -x 120 -y 50
-tmux send-keys -t agent 'uv run freeact --record' Enter
+tmux send-keys -t agent 'uv run freeact' Enter
 sleep 3
 
 # Send query
@@ -78,6 +68,4 @@ tmux capture-pane -t agent -p -S -30
 tmux send-keys -t agent 'q' Enter
 sleep 2
 tmux kill-session -t agent
-
-# Recording saved to output/conversation.{svg,html}
 ```
