@@ -17,6 +17,7 @@ from textual.containers import Vertical, VerticalScroll
 from textual.widgets import Collapsible, Markdown, Static
 
 from freeact.agent import Agent
+from freeact.agent.config.skills import SkillMetadata
 from freeact.agent.events import (
     AgentEvent,
     ApprovalRequest,
@@ -28,11 +29,11 @@ from freeact.agent.events import (
     ThoughtsChunk,
     ToolOutput,
 )
-from freeact.media import parse_prompt
 from freeact.permissions import PermissionManager
+from freeact.preproc import parse_prompt
 from freeact.terminal.clipboard import ClipboardAdapter, ClipboardAdapterProtocol
 from freeact.terminal.config import Config
-from freeact.terminal.screens import FilePickerScreen
+from freeact.terminal.screens import FilePickerScreen, SkillPickerScreen
 from freeact.terminal.tool_adapter import ToolAdapter
 from freeact.terminal.tool_data import (
     ActionData,
@@ -70,6 +71,37 @@ class AtReferenceContext:
 
     start: Location
     end: Location
+
+
+@dataclass(frozen=True)
+class SlashCommandContext:
+    """Cursor range that covers the `/command` token in the prompt."""
+
+    start: Location
+    end: Location
+
+
+def _find_slash_command_context(text: str, cursor: Location) -> SlashCommandContext | None:
+    """Detect a `/` at (0, 0) with cursor at (0, 1).
+
+    Args:
+        text: Prompt text content.
+        cursor: Current cursor location as `(row, column)`.
+
+    Returns:
+        Token bounds for skill picker, or `None` when not applicable.
+    """
+    row, col = cursor
+    if row != 0 or col != 1:
+        return None
+    lines = text.split("\n")
+    if not lines or not lines[0].startswith("/"):
+        return None
+    line = lines[0]
+    end_col = 1
+    while end_col < len(line) and not line[end_col].isspace():
+        end_col += 1
+    return SlashCommandContext(start=(0, 1), end=(0, end_col))
 
 
 def _format_attachment_path(path: Path, cwd: Path | None = None) -> str:
@@ -197,6 +229,7 @@ class TerminalInterface:
                 agent_id=self._agent.agent_id,
                 agent_stream=self._agent.stream,
                 permission_manager=self._permission_manager,
+                skills_metadata=self._agent._config.skills_metadata,
             )
             await app.run_async()
 
@@ -280,6 +313,7 @@ class TerminalApp(App[None]):
         agent_stream: AgentStreamFn,
         permission_manager: PermissionManager | None = None,
         clipboard_adapter: ClipboardAdapterProtocol | None = None,
+        skills_metadata: list[SkillMetadata] | None = None,
     ) -> None:
         super().__init__()
         self._config = config
@@ -287,6 +321,7 @@ class TerminalApp(App[None]):
         self._agent_stream = agent_stream
         self._permission_manager = permission_manager or PermissionManager()
         self._clipboard_adapter = clipboard_adapter or ClipboardAdapter()
+        self._skills_metadata = skills_metadata or []
         self._approval_future: asyncio.Future[int] | None = None
         self._tool_adapter = ToolAdapter()
         self._expand_all_override = False
@@ -384,7 +419,9 @@ class TerminalApp(App[None]):
 
     def on_prompt_input_submitted(self, event: PromptInput.Submitted) -> None:
         raw_text = event.text
-        content = parse_prompt(convert_at_references(raw_text))
+        text = convert_at_references(raw_text)
+        text = convert_slash_commands(text, self._skills_metadata)
+        content = parse_prompt(text)
         self._process_turn(raw_text, content)
 
     @work(exclusive=True)
@@ -604,14 +641,18 @@ class TerminalApp(App[None]):
             case _:
                 return self._config.collapse_approved_tool_calls
 
-    # --- File picker integration ---
+    # --- Picker integration ---
 
     def on_text_area_changed(self, event: "textual.widgets.TextArea.Changed") -> None:  # type: ignore[name-defined]  # noqa: F821
         if event.text_area.id != "prompt-input":
             return
-        context = _find_at_reference_context(event.text_area.text, event.text_area.cursor_location)
-        if context is not None:
-            self._open_file_picker(context)
+        slash_ctx = _find_slash_command_context(event.text_area.text, event.text_area.cursor_location)
+        if slash_ctx is not None and self._skills_metadata:
+            self._open_skill_picker(slash_ctx)
+            return
+        at_ctx = _find_at_reference_context(event.text_area.text, event.text_area.cursor_location)
+        if at_ctx is not None:
+            self._open_file_picker(at_ctx)
 
     def _open_file_picker(self, context: AtReferenceContext) -> None:
         async def handle_result(path: Path | None) -> None:
@@ -628,6 +669,21 @@ class TerminalApp(App[None]):
             callback=handle_result,
         )
 
+    def _open_skill_picker(self, context: SlashCommandContext) -> None:
+        async def handle_result(skill_name: str | None) -> None:
+            if skill_name is not None:
+                prompt_input = self.query_one("#prompt-input", PromptInput)
+                prompt_input.replace(
+                    f"{skill_name} ",
+                    context.start,
+                    context.end,
+                )
+
+        self.push_screen(
+            SkillPickerScreen(skills=self._skills_metadata),
+            callback=handle_result,
+        )
+
 
 def convert_at_references(text: str) -> str:
     """Convert `@path` tokens to `<attachment>...</attachment>` tags.
@@ -641,9 +697,33 @@ def convert_at_references(text: str) -> str:
     return re.sub(r"@(\S+)", r"<attachment>\1</attachment>", text)
 
 
+def convert_slash_commands(text: str, skills: list[SkillMetadata]) -> str:
+    """Convert `/skill-name args` at prompt start to `<skill>` tags.
+
+    Args:
+        text: User prompt text.
+        skills: Available skill metadata entries.
+
+    Returns:
+        Text with leading slash command replaced by a skill tag, or unchanged text.
+    """
+    match = re.match(r"^/(\S+)([\s\S]*)", text)
+    if match is None:
+        return text
+    name = match.group(1)
+    args = match.group(2).strip()
+    skills_by_name = {s.name: s for s in skills}
+    skill = skills_by_name.get(name)
+    if skill is None:
+        return text
+    return f'<skill path="{skill.path}">{args}</skill>'
+
+
 __all__ = [
     "AtReferenceContext",
+    "SlashCommandContext",
     "TerminalApp",
     "TerminalInterface",
     "convert_at_references",
+    "convert_slash_commands",
 ]

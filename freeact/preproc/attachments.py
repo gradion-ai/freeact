@@ -6,12 +6,12 @@ from pathlib import Path
 
 from pydantic_ai import UserContent
 
-from freeact.media.images import collect_images, load_image
+from freeact.preproc.images import collect_images, load_image
 
 _ATTACHMENT_TAG_PATTERN = re.compile(r"<attachment>(.*?)</attachment>")
 
 
-def parse_prompt(text: str, max_image_size: int = 1024) -> str | Sequence[UserContent]:
+def parse_attachment_tags(text: str, max_image_size: int = 1024) -> str | Sequence[UserContent]:
     """Extract `<attachment>...</attachment>` image references into multimodal content.
 
     Returns the original text unchanged if no images are found.

@@ -89,6 +89,21 @@ Reference images using `@path` syntax:
 
 Images are automatically downscaled if larger than 1024 pixels in either dimension.
 
+### Skill Invocation
+
+Invoke skills directly from the prompt using `/skill-name` syntax:
+
+```
+/plan my project requirements
+/commit fix login bug
+```
+
+- Type `/` at the start of a prompt to open a skill picker.
+- Select a skill to insert its name, then type arguments after it.
+- Arguments replace `$ARGUMENTS` in the skill content. When the skill has no `$ARGUMENTS` placeholder, arguments are appended as `ARGUMENTS: ...`.
+- Skill locations: `.agents/skills/` (project) and `.freeact/skills/` (bundled).
+- Unknown skill names are sent as-is (no expansion).
+
 ### Approval Prompt
 
 Before executing code actions or tool calls, the agent requests approval:
