@@ -30,7 +30,7 @@ from freeact.agent.events import (
     ToolOutput,
 )
 from freeact.permissions import PermissionManager
-from freeact.preproc import parse_prompt
+from freeact.preproc import preprocess_prompt
 from freeact.terminal.clipboard import ClipboardAdapter, ClipboardAdapterProtocol
 from freeact.terminal.config import Config
 from freeact.terminal.screens import FilePickerScreen, SkillPickerScreen
@@ -421,7 +421,7 @@ class TerminalApp(App[None]):
         raw_text = event.text
         text = convert_at_references(raw_text)
         text = convert_slash_commands(text, self._skills_metadata)
-        content = parse_prompt(text)
+        content = preprocess_prompt(text)
         self._process_turn(raw_text, content)
 
     @work(exclusive=True)
@@ -686,7 +686,7 @@ class TerminalApp(App[None]):
 
 
 def convert_at_references(text: str) -> str:
-    """Convert `@path` tokens to `<attachment>...</attachment>` tags.
+    """Convert `@path` tokens to `<attachment path="..."/>` tags.
 
     Args:
         text: User prompt text that may contain `@path` tokens.
@@ -694,7 +694,7 @@ def convert_at_references(text: str) -> str:
     Returns:
         Prompt text with `@path` tokens replaced by attachment tags.
     """
-    return re.sub(r"@(\S+)", r"<attachment>\1</attachment>", text)
+    return re.sub(r"@(\S+)", r'<attachment path="\1"/>', text)
 
 
 def convert_slash_commands(text: str, skills: list[SkillMetadata]) -> str:
@@ -716,7 +716,7 @@ def convert_slash_commands(text: str, skills: list[SkillMetadata]) -> str:
     skill = skills_by_name.get(name)
     if skill is None:
         return text
-    return f'<skill path="{skill.path}">{args}</skill>'
+    return f'<skill name="{skill.name}">{args}</skill>'
 
 
 __all__ = [

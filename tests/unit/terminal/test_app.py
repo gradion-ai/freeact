@@ -130,8 +130,8 @@ def _create_app(
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
-        ("See @image.png", "See <attachment>image.png</attachment>"),
-        ("@a.png and @b.jpg", "<attachment>a.png</attachment> and <attachment>b.jpg</attachment>"),
+        ("See @image.png", 'See <attachment path="image.png"/>'),
+        ("@a.png and @b.jpg", '<attachment path="a.png"/> and <attachment path="b.jpg"/>'),
     ],
 )
 def test_convert_at_references(text: str, expected: str) -> None:
@@ -1005,13 +1005,13 @@ def _make_skill(name: str, tmp_path: Path, description: str = "A skill") -> Skil
 def test_convert_slash_commands_known_skill(tmp_path: Path) -> None:
     skill = _make_skill("plan", tmp_path)
     result = convert_slash_commands("/plan my project", [skill])
-    assert result == f'<skill path="{skill.path}">my project</skill>'
+    assert result == '<skill name="plan">my project</skill>'
 
 
 def test_convert_slash_commands_no_arguments(tmp_path: Path) -> None:
     skill = _make_skill("plan", tmp_path)
     result = convert_slash_commands("/plan", [skill])
-    assert result == f'<skill path="{skill.path}"></skill>'
+    assert result == '<skill name="plan"></skill>'
 
 
 def test_convert_slash_commands_unknown_skill(tmp_path: Path) -> None:
@@ -1034,17 +1034,12 @@ def test_convert_slash_commands_empty_skills_list() -> None:
 def test_convert_slash_commands_multiline_arguments(tmp_path: Path) -> None:
     skill = _make_skill("plan", tmp_path)
     result = convert_slash_commands("/plan arg\nmore", [skill])
-    assert result == f'<skill path="{skill.path}">arg\nmore</skill>'
+    assert result == '<skill name="plan">arg\nmore</skill>'
 
 
 @pytest.mark.asyncio
-async def test_slash_command_is_expanded_before_agent_receives_prompt(tmp_path: Path) -> None:
-    skill_dir = tmp_path / "greet"
-    skill_dir.mkdir()
-    skill_file = skill_dir / "SKILL.md"
-    skill_file.write_text("---\nname: greet\ndescription: Greeting skill\n---\nHello $ARGUMENTS!")
-
-    skill = SkillMetadata(name="greet", description="Greeting skill", path=skill_file)
+async def test_slash_command_is_converted_to_skill_tag_before_agent_receives_prompt(tmp_path: Path) -> None:
+    skill = _make_skill("greet", tmp_path, description="Greeting skill")
     agent = MockStreamAgent(_no_events)
     app = _create_app(
         agent_stream=agent.stream,
@@ -1057,7 +1052,7 @@ async def test_slash_command_is_expanded_before_agent_receives_prompt(tmp_path: 
         await app.workers.wait_for_complete()
 
     assert len(agent.prompts) == 1
-    assert agent.prompts[0] == "Hello world!"
+    assert agent.prompts[0] == '<skill name="greet">world</skill>'
 
 
 # --- _find_slash_command_context tests ---
@@ -1145,11 +1140,8 @@ async def test_slash_in_middle_does_not_open_skill_picker(tmp_path: Path) -> Non
 
 @pytest.mark.asyncio
 async def test_skill_picker_to_submission_e2e(tmp_path: Path) -> None:
-    """Full flow: type /, pick skill, type args, submit, verify agent receives expanded content."""
+    """Full flow: type /, pick skill, type args, submit, verify agent receives skill tag."""
     skill = _make_skill("plan", tmp_path)
-    # Add $ARGUMENTS placeholder to the skill content
-    skill.path.write_text("---\nname: plan\ndescription: A skill\n---\nPlan for: $ARGUMENTS")
-
     agent = MockStreamAgent(_no_events)
     app = _create_app(
         agent_stream=agent.stream,
@@ -1177,4 +1169,4 @@ async def test_skill_picker_to_submission_e2e(tmp_path: Path) -> None:
         await app.workers.wait_for_complete()
 
     assert len(agent.prompts) == 1
-    assert agent.prompts[0] == "Plan for: my project"
+    assert agent.prompts[0] == '<skill name="plan">my project</skill>'

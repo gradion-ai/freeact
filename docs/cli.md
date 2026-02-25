@@ -91,7 +91,7 @@ Images are automatically downscaled if larger than 1024 pixels in either dimensi
 
 ### Skill Invocation
 
-Invoke skills directly from the prompt using `/skill-name` syntax:
+The agent automatically uses skills when a request matches a skill's description. The `/skill-name` syntax is a shortcut to invoke a specific skill explicitly:
 
 ```
 /plan my project requirements
@@ -100,9 +100,8 @@ Invoke skills directly from the prompt using `/skill-name` syntax:
 
 - Type `/` at the start of a prompt to open a skill picker.
 - Select a skill to insert its name, then type arguments after it.
-- Arguments replace `$ARGUMENTS` in the skill content. When the skill has no `$ARGUMENTS` placeholder, arguments are appended as `ARGUMENTS: ...`.
+- Text after the skill name is passed as arguments to the skill.
 - Skill locations: `.agents/skills/` (project) and `.freeact/skills/` (bundled).
-- Unknown skill names are sent as-is (no expansion).
 
 ### Approval Prompt
 

@@ -8,7 +8,7 @@
 - Source modules:
   - `freeact/agent/`: core agent, config, session store
   - `freeact/tools/`: tool definitions, Python tool generation, tool search
-  - `freeact/media/`: prompt parsing (`@file` references), image loading
+  - `freeact/preproc/`: prompt preprocessing (skill expansion, attachment extraction, image loading)
   - `freeact/terminal/`: CLI interface, display, completion, recording
   - `freeact/permissions.py`: permission management
   - `freeact/cli.py`: CLI entry point
@@ -45,6 +45,7 @@ uv run pytest -xsv tests/integration/test_agent.py::test_name  # Single test
 - All function parameters and return types must have type hints
 - Modern union syntax: `str | None` instead of `Optional[str]`
 - Prefer `match`/`case` over `isinstance()` for type dispatch
+- Package `__init__.py` files are re-exports only; do not define functions or classes in them
 
 ## Commit & Pull Request Guidelines
 - Do not include test plan in PR messages
