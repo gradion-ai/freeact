@@ -165,6 +165,11 @@ class Agent:
         self._subagent_semaphore = asyncio.Semaphore(config.max_subagents)
 
     @property
+    def config(self) -> Config:
+        """Agent configuration."""
+        return self._config
+
+    @property
     def _history_agent_id(self) -> str:
         if self.agent_id.startswith("sub-"):
             return self.agent_id

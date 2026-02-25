@@ -216,7 +216,7 @@ class TerminalInterface:
         """
         self._agent = agent
         self._config = config or Config()
-        self._permission_manager = PermissionManager(agent._config.freeact_dir)
+        self._permission_manager = PermissionManager(agent.config.freeact_dir)
         _ = console
 
     async def run(self) -> None:
@@ -229,7 +229,7 @@ class TerminalInterface:
                 agent_id=self._agent.agent_id,
                 agent_stream=self._agent.stream,
                 permission_manager=self._permission_manager,
-                skills_metadata=self._agent._config.skills_metadata,
+                skills_metadata=self._agent.config.skills_metadata,
             )
             await app.run_async()
 
