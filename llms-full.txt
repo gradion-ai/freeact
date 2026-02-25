@@ -1434,6 +1434,14 @@ Raises:
 | ------------ | ------------------------------------------------------------------- |
 | `ValueError` | If session_id is provided while config.enable_persistence is False. |
 
+### config
+
+```
+config: Config
+```
+
+Agent configuration.
+
 ### session_id
 
 ```
