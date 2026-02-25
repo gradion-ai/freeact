@@ -30,4 +30,5 @@ Execution runs locally with fine-grained approval of actions.
 - [Config](https://gradion-ai.github.io/freeact/api/config/index.md): Configuration initialization and loading
 - [Generate](https://gradion-ai.github.io/freeact/api/generate/index.md): MCP tool API generation
 - [Permissions](https://gradion-ai.github.io/freeact/api/permissions/index.md): Permission management for tool approvals
+- [Preprocessing](https://gradion-ai.github.io/freeact/api/preproc/index.md): Prompt preprocessing and attachment extraction
 

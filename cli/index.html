@@ -706,6 +706,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#skill-invocation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Skill Invocation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#approval-prompt" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1223,6 +1234,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/preproc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Preprocessing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1328,6 +1367,17 @@
     <span class="md-ellipsis">
       
         Image Attachments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#skill-invocation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Skill Invocation
       
     </span>
   </a>
@@ -1468,6 +1518,17 @@
 <li>Select a file or directory to insert its path after <code>@</code>.</li>
 </ul>
 <p>Images are automatically downscaled if larger than 1024 pixels in either dimension.</p>
+<h3 id="skill-invocation">Skill Invocation</h3>
+<p>The agent automatically uses skills when a request matches a skill's description. The <code>/skill-name</code> syntax is a shortcut to invoke a specific skill explicitly:</p>
+<div class="highlight"><pre><span></span><code>/plan my project requirements
+/commit fix login bug
+</code></pre></div>
+<ul>
+<li>Type <code>/</code> at the start of a prompt to open a skill picker.</li>
+<li>Select a skill to insert its name, then type arguments after it.</li>
+<li>Text after the skill name is passed as arguments to the skill.</li>
+<li>Skill locations: <code>.agents/skills/</code> (project) and <code>.freeact/skills/</code> (bundled).</li>
+</ul>
 <h3 id="approval-prompt">Approval Prompt</h3>
 <p>Before executing code actions or tool calls, the agent requests approval:</p>
 <div class="highlight"><pre><span></span><code>Approve? [Y/n/a/s]

@@ -1,11 +1,12 @@
 # Agent SDK
 
-The Agent SDK provides four main APIs:
+The Agent SDK provides five main APIs:
 
 - [Configuration API](https://gradion-ai.github.io/freeact/api/config/index.md) for initializing and loading configuration from `.freeact/`
 - [Generation API](https://gradion-ai.github.io/freeact/api/generate/index.md) for generating Python APIs for MCP server tools
 - [Agent API](https://gradion-ai.github.io/freeact/api/agent/index.md) for running the agentic code action loop
 - [Permissions API](https://gradion-ai.github.io/freeact/api/permissions/index.md) for managing approval decisions
+- [Preprocessing API](https://gradion-ai.github.io/freeact/api/preproc/index.md) for transforming user prompts
 
 ## Configuration API
 
@@ -279,4 +280,48 @@ async for event in agent.stream(prompt):
                         request.approve(False)
                     case _:
                         request.approve(True)
+```
+
+## Preprocessing API
+
+The terminal UI converts user-facing syntax (`/skill-name` and `@path`) into XML tags, then preprocess_prompt transforms the tagged text into agent-ready content. Attachment tags are resolved to multimodal content with image data. Skill tags pass through to the agent unchanged.
+
+A `/skill-name` command becomes a `<skill>` tag that the agent handles via skill metadata in its system prompt:
+
+```
+raw = "/review the auth module"
+
+text = convert_at_references(raw)
+text = convert_slash_commands(text, skills)
+content = preprocess_prompt(text)
+
+print(content)
+# <skill name="review">the auth module</skill>
+```
+
+An `@path` reference becomes an `<attachment path="..."/>` tag. preprocess_prompt resolves image paths to binary content:
+
+```
+raw = "Describe @screenshot.png"
+
+text = convert_at_references(raw)
+text = convert_slash_commands(text, skills)
+content = preprocess_prompt(text)
+
+print(type(content))
+# <class 'list'>
+# [BinaryContent(...), 'Describe <attachment path="screenshot.png"/>']
+```
+
+Plain text passes through unchanged:
+
+```
+raw = "Explain how async works"
+
+text = convert_at_references(raw)
+text = convert_slash_commands(text, skills)
+content = preprocess_prompt(text)
+
+print(content)
+# Explain how async works
 ```

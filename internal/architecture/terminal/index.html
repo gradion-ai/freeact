@@ -1065,6 +1065,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/preproc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Preprocessing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1205,7 +1233,7 @@ Read this first, then follow code references for details.</p>
 </ul>
 <h2 id="event-flow">Event Flow</h2>
 <ul>
-<li>Prompt submit: <code>PromptInput.Submitted</code> -&gt; <code>convert_at_references()</code> -&gt; <code>parse_prompt()</code> -&gt; <code>agent_stream(...)</code>.</li>
+<li>Prompt submit: <code>PromptInput.Submitted</code> -&gt; <code>convert_at_references()</code> -&gt; <code>preprocess_prompt()</code> -&gt; <code>agent_stream(...)</code>.</li>
 <li>Stream events map to UI:</li>
 <li><code>Thoughts*</code> / <code>Response*</code>: markdown stream boxes</li>
 <li><code>ApprovalRequest</code>: approval UI + decision gate</li>

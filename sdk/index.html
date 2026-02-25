@@ -754,6 +754,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#preprocessing-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preprocessing API
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1284,6 +1295,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/preproc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Preprocessing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1472,6 +1511,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#preprocessing-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preprocessing API
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1493,12 +1543,13 @@
 
 
 <h1 id="agent-sdk">Agent SDK</h1>
-<p>The Agent SDK provides four main APIs:</p>
+<p>The Agent SDK provides five main APIs:</p>
 <ul>
 <li><a href="../api/config/">Configuration API</a> for initializing and loading configuration from <code>.freeact/</code></li>
 <li><a href="../api/generate/">Generation API</a> for generating Python APIs for MCP server tools</li>
 <li><a href="../api/agent/">Agent API</a> for running the agentic code action loop</li>
 <li><a href="../api/permissions/">Permissions API</a> for managing approval decisions</li>
+<li><a href="../api/preproc/">Preprocessing API</a> for transforming user prompts</li>
 </ul>
 <h2 id="configuration-api">Configuration API</h2>
 <p>Use <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config.init"><code>Config.init()</code></a> to load persisted config from <code>.freeact/</code> when present, or create and save defaults on first run. Use <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config.save"><code>save()</code></a> and <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config.load"><code>load()</code></a> when explicit persistence control is needed:</p>
@@ -1763,6 +1814,39 @@
                         <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
                     <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
                         <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="preprocessing-api">Preprocessing API</h2>
+<p>The terminal UI converts user-facing syntax (<code>/skill-name</code> and <code>@path</code>) into XML tags, then <a class="autorefs autorefs-internal" href="../api/preproc/#freeact.preproc.preprocess_prompt"><code>preprocess_prompt</code></a> transforms the tagged text into agent-ready content. Attachment tags are resolved to multimodal content with image data. Skill tags pass through to the agent unchanged.</p>
+<p>A <code>/skill-name</code> command becomes a <code>&lt;skill&gt;</code> tag that the agent handles via skill metadata in its system prompt:</p>
+<div class="highlight"><pre><span></span><code><span class="n">raw</span> <span class="o">=</span> <span class="s2">&quot;/review the auth module&quot;</span>
+
+<span class="n">text</span> <span class="o">=</span> <span class="n">convert_at_references</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+<span class="n">text</span> <span class="o">=</span> <span class="n">convert_slash_commands</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">skills</span><span class="p">)</span>
+<span class="n">content</span> <span class="o">=</span> <span class="n">preprocess_prompt</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+<span class="c1"># &lt;skill name=&quot;review&quot;&gt;the auth module&lt;/skill&gt;</span>
+</code></pre></div>
+<p>An <code>@path</code> reference becomes an <code>&lt;attachment path="..."/&gt;</code> tag. <a class="autorefs autorefs-internal" href="../api/preproc/#freeact.preproc.preprocess_prompt"><code>preprocess_prompt</code></a> resolves image paths to binary content:</p>
+<div class="highlight"><pre><span></span><code><span class="n">raw</span> <span class="o">=</span> <span class="s2">&quot;Describe @screenshot.png&quot;</span>
+
+<span class="n">text</span> <span class="o">=</span> <span class="n">convert_at_references</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+<span class="n">text</span> <span class="o">=</span> <span class="n">convert_slash_commands</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">skills</span><span class="p">)</span>
+<span class="n">content</span> <span class="o">=</span> <span class="n">preprocess_prompt</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">content</span><span class="p">))</span>
+<span class="c1"># &lt;class &#39;list&#39;&gt;</span>
+<span class="c1"># [BinaryContent(...), &#39;Describe &lt;attachment path=&quot;screenshot.png&quot;/&gt;&#39;]</span>
+</code></pre></div>
+<p>Plain text passes through unchanged:</p>
+<div class="highlight"><pre><span></span><code><span class="n">raw</span> <span class="o">=</span> <span class="s2">&quot;Explain how async works&quot;</span>
+
+<span class="n">text</span> <span class="o">=</span> <span class="n">convert_at_references</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+<span class="n">text</span> <span class="o">=</span> <span class="n">convert_slash_commands</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">skills</span><span class="p">)</span>
+<span class="n">content</span> <span class="o">=</span> <span class="n">preprocess_prompt</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+<span class="c1"># Explain how async works</span>
 </code></pre></div>
 
 
