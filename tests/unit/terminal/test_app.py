@@ -9,6 +9,7 @@ from textual.keys import Keys
 from textual.pilot import Pilot
 from textual.widgets import Static
 
+from freeact.agent.config.skills import SkillMetadata
 from freeact.agent.events import (
     AgentEvent,
     ApprovalRequest,
@@ -20,15 +21,18 @@ from freeact.agent.events import (
 )
 from freeact.terminal.app import (
     AtReferenceContext,
+    SlashCommandContext,
     TerminalApp,
     _find_at_reference_context,
+    _find_slash_command_context,
     _format_attachment_path,
     _format_display_cwd,
     _load_freeact_version,
     convert_at_references,
+    convert_slash_commands,
 )
 from freeact.terminal.config import Config as TerminalConfig
-from freeact.terminal.screens import FilePickerScreen, FilePickerTree
+from freeact.terminal.screens import FilePickerScreen, FilePickerTree, SkillPickerScreen
 from freeact.terminal.widgets import PromptInput
 
 MAIN_AGENT_ID = "main-agent"
@@ -111,6 +115,7 @@ def _create_app(
     config: TerminalConfig | None = None,
     permission_manager: object | None = None,
     clipboard_adapter: StubClipboardAdapter | None = None,
+    skills_metadata: list[SkillMetadata] | None = None,
 ) -> TerminalApp:
     return TerminalApp(
         config=config or TerminalConfig(),
@@ -118,14 +123,15 @@ def _create_app(
         agent_stream=agent_stream,
         permission_manager=permission_manager,  # type: ignore[arg-type]
         clipboard_adapter=clipboard_adapter,
+        skills_metadata=skills_metadata,
     )
 
 
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
-        ("See @image.png", "See <attachment>image.png</attachment>"),
-        ("@a.png and @b.jpg", "<attachment>a.png</attachment> and <attachment>b.jpg</attachment>"),
+        ("See @image.png", 'See <attachment path="image.png"/>'),
+        ("@a.png and @b.jpg", '<attachment path="a.png"/> and <attachment path="b.jpg"/>'),
     ],
 )
 def test_convert_at_references(text: str, expected: str) -> None:
@@ -983,3 +989,184 @@ async def test_file_picker_selection_replaces_existing_at_token() -> None:
         await pilot.pause(0.05)
 
         assert prompt.text == "See @new value"
+
+
+# --- convert_slash_commands tests ---
+
+
+def _make_skill(name: str, tmp_path: Path, description: str = "A skill") -> SkillMetadata:
+    skill_dir = tmp_path / name
+    skill_dir.mkdir(exist_ok=True)
+    skill_file = skill_dir / "SKILL.md"
+    skill_file.write_text(f"---\nname: {name}\ndescription: {description}\n---\n# {name}")
+    return SkillMetadata(name=name, description=description, path=skill_file)
+
+
+def test_convert_slash_commands_known_skill(tmp_path: Path) -> None:
+    skill = _make_skill("plan", tmp_path)
+    result = convert_slash_commands("/plan my project", [skill])
+    assert result == '<skill name="plan">my project</skill>'
+
+
+def test_convert_slash_commands_no_arguments(tmp_path: Path) -> None:
+    skill = _make_skill("plan", tmp_path)
+    result = convert_slash_commands("/plan", [skill])
+    assert result == '<skill name="plan"></skill>'
+
+
+def test_convert_slash_commands_unknown_skill(tmp_path: Path) -> None:
+    skill = _make_skill("plan", tmp_path)
+    result = convert_slash_commands("/unknown foo", [skill])
+    assert result == "/unknown foo"
+
+
+def test_convert_slash_commands_not_at_start(tmp_path: Path) -> None:
+    skill = _make_skill("plan", tmp_path)
+    result = convert_slash_commands("text /plan foo", [skill])
+    assert result == "text /plan foo"
+
+
+def test_convert_slash_commands_empty_skills_list() -> None:
+    result = convert_slash_commands("/plan foo", [])
+    assert result == "/plan foo"
+
+
+def test_convert_slash_commands_multiline_arguments(tmp_path: Path) -> None:
+    skill = _make_skill("plan", tmp_path)
+    result = convert_slash_commands("/plan arg\nmore", [skill])
+    assert result == '<skill name="plan">arg\nmore</skill>'
+
+
+@pytest.mark.asyncio
+async def test_slash_command_is_converted_to_skill_tag_before_agent_receives_prompt(tmp_path: Path) -> None:
+    skill = _make_skill("greet", tmp_path, description="Greeting skill")
+    agent = MockStreamAgent(_no_events)
+    app = _create_app(
+        agent_stream=agent.stream,
+        agent_id=MAIN_AGENT_ID,
+        skills_metadata=[skill],
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot, "/greet world")
+        await app.workers.wait_for_complete()
+
+    assert len(agent.prompts) == 1
+    assert agent.prompts[0] == '<skill name="greet">world</skill>'
+
+
+# --- _find_slash_command_context tests ---
+
+
+def test_find_slash_command_context_at_start() -> None:
+    text = "/"
+    context = _find_slash_command_context(text, (0, 1))
+    assert context is not None
+    assert context == SlashCommandContext(start=(0, 1), end=(0, 1))
+
+
+def test_find_slash_command_context_not_at_start() -> None:
+    text = "text /"
+    assert _find_slash_command_context(text, (0, 6)) is None
+
+
+def test_find_slash_command_context_not_first_row() -> None:
+    text = "line0\n/"
+    assert _find_slash_command_context(text, (1, 1)) is None
+
+
+def test_find_slash_command_context_cursor_not_after_slash() -> None:
+    text = "/plan"
+    assert _find_slash_command_context(text, (0, 3)) is None
+
+
+# --- Skill picker TUI tests ---
+
+
+@pytest.mark.asyncio
+async def test_typing_slash_at_start_opens_skill_picker(tmp_path: Path) -> None:
+    skill = _make_skill("plan", tmp_path)
+    app = _create_app(
+        agent_stream=MockStreamAgent(_no_events).stream,
+        agent_id=MAIN_AGENT_ID,
+        skills_metadata=[skill],
+    )
+
+    async with app.run_test() as pilot:
+        await pilot.press("/")
+        await pilot.pause(0.05)
+
+        assert any(isinstance(screen, SkillPickerScreen) for screen in app.screen_stack)
+
+
+@pytest.mark.asyncio
+async def test_skill_picker_selection_inserts_skill_name(tmp_path: Path) -> None:
+    skill = _make_skill("plan", tmp_path)
+    app = _create_app(
+        agent_stream=MockStreamAgent(_no_events).stream,
+        agent_id=MAIN_AGENT_ID,
+        skills_metadata=[skill],
+    )
+
+    async with app.run_test() as pilot:
+        await pilot.press("/")
+        await pilot.pause(0.05)
+
+        picker = next(screen for screen in app.screen_stack if isinstance(screen, SkillPickerScreen))
+        picker.dismiss("plan")
+        await pilot.pause(0.05)
+
+        prompt = app.query_one("#prompt-input", PromptInput)
+        assert prompt.text == "/plan "
+
+
+@pytest.mark.asyncio
+async def test_slash_in_middle_does_not_open_skill_picker(tmp_path: Path) -> None:
+    skill = _make_skill("plan", tmp_path)
+    app = _create_app(
+        agent_stream=MockStreamAgent(_no_events).stream,
+        agent_id=MAIN_AGENT_ID,
+        skills_metadata=[skill],
+    )
+
+    async with app.run_test() as pilot:
+        prompt = app.query_one("#prompt-input", PromptInput)
+        prompt.insert("text ")
+        await pilot.press("/")
+        await pilot.pause(0.05)
+
+        assert not any(isinstance(screen, SkillPickerScreen) for screen in app.screen_stack)
+
+
+@pytest.mark.asyncio
+async def test_skill_picker_to_submission_e2e(tmp_path: Path) -> None:
+    """Full flow: type /, pick skill, type args, submit, verify agent receives skill tag."""
+    skill = _make_skill("plan", tmp_path)
+    agent = MockStreamAgent(_no_events)
+    app = _create_app(
+        agent_stream=agent.stream,
+        agent_id=MAIN_AGENT_ID,
+        skills_metadata=[skill],
+    )
+
+    async with app.run_test() as pilot:
+        # Type / to open picker
+        await pilot.press("/")
+        await pilot.pause(0.05)
+
+        # Pick the skill
+        picker = next(screen for screen in app.screen_stack if isinstance(screen, SkillPickerScreen))
+        picker.dismiss("plan")
+        await pilot.pause(0.05)
+
+        # Prompt should now be "/plan "
+        prompt = app.query_one("#prompt-input", PromptInput)
+        assert prompt.text == "/plan "
+
+        # Type arguments and submit
+        prompt.insert("my project")
+        await pilot.press("enter")
+        await app.workers.wait_for_complete()
+
+    assert len(agent.prompts) == 1
+    assert agent.prompts[0] == '<skill name="plan">my project</skill>'

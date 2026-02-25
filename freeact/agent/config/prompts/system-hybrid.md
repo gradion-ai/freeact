@@ -41,7 +41,7 @@ Importable tools for use in generated code:
 - Only use `subagent_task` when the user explicitly requests a subagent or subtask. Delegate the task directly without searching for tools or writing code yourself.
 - When a tool result says full content was saved to a file, avoid loading the entire file unless necessary. Prefer shell commands that read specific sections.
 - Print only final results. Store intermediate values in variables.
-- Content in `<attachment>...</attachment>` is automatically attached to messages.
+- Content in `<attachment path="..."/>` tags is automatically attached to messages.
 
 {project_instructions}
 

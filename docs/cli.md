@@ -89,6 +89,20 @@ Reference images using `@path` syntax:
 
 Images are automatically downscaled if larger than 1024 pixels in either dimension.
 
+### Skill Invocation
+
+The agent automatically uses skills when a request matches a skill's description. The `/skill-name` syntax is a shortcut to invoke a specific skill explicitly:
+
+```
+/plan my project requirements
+/commit fix login bug
+```
+
+- Type `/` at the start of a prompt to open a skill picker.
+- Select a skill to insert its name, then type arguments after it.
+- Text after the skill name is passed as arguments to the skill.
+- Skill locations: `.agents/skills/` (project) and `.freeact/skills/` (bundled).
+
 ### Approval Prompt
 
 Before executing code actions or tool calls, the agent requests approval:

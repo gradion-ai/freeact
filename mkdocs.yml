@@ -78,6 +78,7 @@ plugins:
           - api/config.md: Configuration initialization and loading
           - api/generate.md: MCP tool API generation
           - api/permissions.md: Permission management for tool approvals
+          - api/preproc.md: Prompt preprocessing and attachment extraction
 
 markdown_extensions:
   - pymdownx.highlight
@@ -122,3 +123,4 @@ nav:
     - Config: api/config.md
     - Generate: api/generate.md
     - Permissions: api/permissions.md
+    - Preprocessing: api/preproc.md

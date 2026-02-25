@@ -4,7 +4,10 @@ from typing import Any
 from textual.app import ComposeResult
 from textual.reactive import var
 from textual.screen import ModalScreen
-from textual.widgets import DirectoryTree, Label
+from textual.widgets import DirectoryTree, Label, OptionList
+from textual.widgets.option_list import Option
+
+from freeact.agent.config.skills import SkillMetadata
 
 
 def _filesystem_root(path: Path) -> Path:
@@ -153,3 +156,53 @@ class FilePickerScreen(ModalScreen[Path | None]):
             if child.allow_expand:
                 await tree.reload_node(child)
         tree.move_cursor(node, animate=False)
+
+
+class SkillPickerScreen(ModalScreen[str | None]):
+    """Modal skill picker opened from `/` prompt completion."""
+
+    DEFAULT_CSS = """
+    SkillPickerScreen {
+        align: center middle;
+    }
+    SkillPickerScreen #skill-picker-container {
+        width: 70%;
+        height: 50%;
+        background: $surface;
+        border: thick $primary;
+        padding: 1 2;
+    }
+    SkillPickerScreen #skill-picker-label {
+        dock: top;
+        padding: 0 0 1 0;
+        text-style: bold;
+    }
+    """
+
+    BINDINGS = [
+        ("escape", "cancel", "Cancel"),
+    ]
+
+    def __init__(self, skills: list[SkillMetadata]) -> None:
+        super().__init__()
+        self._skills = skills
+
+    def compose(self) -> ComposeResult:
+        from textual.containers import Vertical
+
+        with Vertical(id="skill-picker-container"):
+            yield Label("Select a skill (Enter to select, Escape to cancel)", id="skill-picker-label")
+            option_list = OptionList(
+                *[Option(s.name, id=s.name) for s in self._skills],
+                id="skill-picker-list",
+            )
+            yield option_list
+
+    def on_mount(self) -> None:
+        self.query_one("#skill-picker-list", OptionList).focus()
+
+    def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
+        self.dismiss(event.option.id)
+
+    def action_cancel(self) -> None:
+        self.dismiss(None)
