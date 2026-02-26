@@ -7,11 +7,12 @@ Type `/` at the start of a prompt to open the skill picker modal.
 tmux send-keys -t agent '/'
 ```
 
-Wait, then capture to see the picker. Navigate with `Down`/`Up`, select with `Enter`, cancel with `Escape`.
+Wait, then capture to see the picker. Navigate by typing characters to jump to the first matching skill, or use `Down`/`Up`. Select with `Enter`, cancel with `Escape`.
 
 ```bash
-# Navigate to a skill and select it
-tmux send-keys -t agent Down Down Enter
+# Navigate to a skill by typing its prefix and select it
+tmux send-keys -t agent -l 'pla'
+tmux send-keys -t agent Enter
 ```
 
 After selection, the prompt contains `/skill-name `. Type arguments and submit:

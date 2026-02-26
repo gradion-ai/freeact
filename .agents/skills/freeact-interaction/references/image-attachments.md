@@ -9,12 +9,11 @@ Type `@` to open the file picker, or type `@path` directly.
 tmux send-keys -t agent '@'
 ```
 
-Wait, then navigate with `Down`/`Up`, expand dirs with `Right`, select with `Enter`. The selected path is inserted after `@`.
+Wait, then navigate by typing characters to jump to the first matching node, or use `Down`/`Up`. Expand dirs with `Right`, select with `Enter`. The selected path is inserted after `@`.
 
 ```bash
-# Navigate to a file (e.g., 24 downs from workspace root to Burns.jpeg)
-for i in $(seq 1 24); do tmux send-keys -t agent Down; sleep 0.05; done
-# (separate call)
+# Navigate to a file by typing its name prefix
+tmux send-keys -t agent -l 'Burn'
 tmux send-keys -t agent Enter
 ```
 

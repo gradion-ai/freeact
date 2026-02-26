@@ -8,6 +8,7 @@ from textual.widgets import DirectoryTree, Label, OptionList
 from textual.widgets.option_list import Option
 
 from freeact.agent.config.skills import SkillMetadata
+from freeact.terminal.prefix_match import find_prefix_match
 
 
 def _filesystem_root(path: Path) -> Path:
@@ -64,6 +65,8 @@ class FilePickerTree(DirectoryTree):
 class FilePickerScreen(ModalScreen[Path | None]):
     """Modal file picker opened from `@path` prompt completion."""
 
+    _BASE_LABEL = "Select a file or directory (Enter to select, Escape to cancel)"
+
     DEFAULT_CSS = """
     FilePickerScreen {
         align: center middle;
@@ -86,17 +89,78 @@ class FilePickerScreen(ModalScreen[Path | None]):
         ("escape", "cancel", "Cancel"),
     ]
 
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self._prefix = ""
+
     def compose(self) -> ComposeResult:
         from textual.containers import Vertical
 
         with Vertical(id="picker-container"):
-            yield Label("Select a file or directory (Enter to select, Escape to cancel)", id="picker-label")
+            yield Label(self._BASE_LABEL, id="picker-label")
             yield FilePickerTree(_filesystem_root(Path.cwd()), id="picker-tree")
 
     async def on_mount(self) -> None:
         tree = self.query_one("#picker-tree", FilePickerTree)
         tree.focus()
         await self._focus_tree_path(tree, Path.cwd())
+
+    def _on_key(self, event: "textual.events.Key") -> None:  # type: ignore[name-defined]  # noqa: F821
+        if event.key in ("up", "down", "left", "right"):
+            self._prefix = ""
+            self._update_label()
+            return
+
+        if event.is_printable and event.character:
+            event.stop()
+            event.prevent_default()
+            self._prefix += event.character
+            self._apply_prefix_match()
+        elif event.key == "backspace":
+            event.stop()
+            event.prevent_default()
+            self._prefix = self._prefix[:-1]
+            self._apply_prefix_match()
+
+    def _apply_prefix_match(self) -> None:
+        if not self._prefix:
+            self._update_label()
+            return
+
+        tree = self.query_one("#picker-tree", FilePickerTree)
+        cursor = tree.cursor_node
+        if cursor is None:
+            self._update_label()
+            return
+
+        if cursor.is_expanded and cursor.children:
+            allowed = set(id(c) for c in cursor.children)
+        else:
+            parent = cursor.parent or tree.root
+            allowed = set(id(c) for c in parent.children)
+
+        labels: list[str] = []
+        nodes: list[Any] = []
+        for line in range(tree.last_line + 1):
+            node = tree.get_node_at_line(line)
+            if node is not None and id(node) in allowed:
+                labels.append(str(node.label))
+                nodes.append(node)
+
+        result = find_prefix_match(labels, self._prefix)
+        if result is not None:
+            index, effective = result
+            self._prefix = effective
+            tree.move_cursor(nodes[index])
+
+        self._update_label()
+
+    def _update_label(self) -> None:
+        label = self.query_one("#picker-label", Label)
+        if self._prefix:
+            label.update(f"{self._BASE_LABEL}  filter: {self._prefix}")
+        else:
+            label.update(self._BASE_LABEL)
 
     def on_directory_tree_file_selected(self, event: DirectoryTree.FileSelected) -> None:
         self.dismiss(event.path)
@@ -183,15 +247,18 @@ class SkillPickerScreen(ModalScreen[str | None]):
         ("escape", "cancel", "Cancel"),
     ]
 
+    _BASE_LABEL = "Select a skill (Enter to select, Escape to cancel)"
+
     def __init__(self, skills: list[SkillMetadata]) -> None:
         super().__init__()
         self._skills = skills
+        self._prefix = ""
 
     def compose(self) -> ComposeResult:
         from textual.containers import Vertical
 
         with Vertical(id="skill-picker-container"):
-            yield Label("Select a skill (Enter to select, Escape to cancel)", id="skill-picker-label")
+            yield Label(self._BASE_LABEL, id="skill-picker-label")
             option_list = OptionList(
                 *[Option(s.name, id=s.name) for s in self._skills],
                 id="skill-picker-list",
@@ -200,6 +267,35 @@ class SkillPickerScreen(ModalScreen[str | None]):
 
     def on_mount(self) -> None:
         self.query_one("#skill-picker-list", OptionList).focus()
+
+    def _on_key(self, event: "textual.events.Key") -> None:  # type: ignore[name-defined]  # noqa: F821
+        if event.is_printable and event.character:
+            event.stop()
+            event.prevent_default()
+            self._prefix += event.character
+            self._apply_prefix_match()
+        elif event.key == "backspace":
+            event.stop()
+            event.prevent_default()
+            self._prefix = self._prefix[:-1]
+            self._apply_prefix_match()
+
+    def _apply_prefix_match(self) -> None:
+        label = self.query_one("#skill-picker-label", Label)
+        if not self._prefix:
+            label.update(self._BASE_LABEL)
+            return
+
+        names = [s.name for s in self._skills]
+        result = find_prefix_match(names, self._prefix)
+        if result is not None:
+            index, effective = result
+            self._prefix = effective
+            option_list = self.query_one("#skill-picker-list", OptionList)
+            option_list.highlighted = index
+            option_list.scroll_to_highlight()
+
+        label.update(f"{self._BASE_LABEL}  filter: {self._prefix}")
 
     def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
         self.dismiss(event.option.id)
