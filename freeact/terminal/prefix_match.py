@@ -1,5 +1,5 @@
 def find_prefix_match(items: list[str], prefix: str) -> tuple[int, str] | None:
-    """Find the first item starting with ``prefix`` (case-insensitive).
+    """Find the first item starting with `prefix` (case-insensitive).
 
     If no item matches the full prefix, progressively shorter prefixes are
     tried so that a non-matching keystroke does not lose the current position.
@@ -9,8 +9,8 @@ def find_prefix_match(items: list[str], prefix: str) -> tuple[int, str] | None:
         prefix: Current prefix buffer to match against.
 
     Returns:
-        ``(index, effective_prefix)`` of the first match, or ``None`` when
-        nothing matches even at length 1.
+        `(index, effective_prefix)` of the first match, or `None` when
+            nothing matches even at length 1.
     """
     if not prefix:
         return None
