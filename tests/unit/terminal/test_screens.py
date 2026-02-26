@@ -58,12 +58,8 @@ class DirectorySelectedEvent:
 # --- Helpers for Textual screen tests ---
 
 
-def _make_skill(name: str, tmp_path: Path, description: str = "A skill") -> SkillMetadata:
-    skill_dir = tmp_path / name
-    skill_dir.mkdir(exist_ok=True)
-    skill_file = skill_dir / "SKILL.md"
-    skill_file.write_text(f"---\nname: {name}\ndescription: {description}\n---\n# {name}")
-    return SkillMetadata(name=name, description=description, path=skill_file)
+def _make_skill(name: str) -> SkillMetadata:
+    return SkillMetadata(name=name, description="A skill", path=Path(name) / "SKILL.md")
 
 
 class _SkillPickerApp(App[str | None]):
@@ -86,67 +82,57 @@ class _SkillPickerApp(App[str | None]):
 # --- Skill picker prefix matching tests ---
 
 
-@pytest.mark.asyncio
-async def test_skill_picker_char_highlights_first_match(tmp_path: Path) -> None:
-    skills = [_make_skill(n, tmp_path) for n in ["aab", "abc", "bcd"]]
-    app = _SkillPickerApp(skills)
+@pytest.fixture
+def skill_picker_app() -> _SkillPickerApp:
+    skills = [_make_skill(n) for n in ["aab", "abc", "bcd"]]
+    return _SkillPickerApp(skills)
 
-    async with app.run_test() as pilot:
+
+@pytest.mark.asyncio
+async def test_skill_picker_char_highlights_first_match(skill_picker_app: _SkillPickerApp) -> None:
+    async with skill_picker_app.run_test() as pilot:
         await pilot.pause(0.05)
         await pilot.press("a")
         await pilot.pause(0.05)
 
-        picker = next(s for s in app.screen_stack if isinstance(s, SkillPickerScreen))
-        option_list = picker.query_one("#skill-picker-list")
+        option_list = skill_picker_app.screen.query_one("#skill-picker-list")
         assert option_list.highlighted == 0
 
 
 @pytest.mark.asyncio
-async def test_skill_picker_two_char_prefix(tmp_path: Path) -> None:
-    skills = [_make_skill(n, tmp_path) for n in ["aab", "abc", "bcd"]]
-    app = _SkillPickerApp(skills)
-
-    async with app.run_test() as pilot:
+async def test_skill_picker_two_char_prefix(skill_picker_app: _SkillPickerApp) -> None:
+    async with skill_picker_app.run_test() as pilot:
         await pilot.pause(0.05)
         await pilot.press("a")
         await pilot.press("b")
         await pilot.pause(0.05)
 
-        picker = next(s for s in app.screen_stack if isinstance(s, SkillPickerScreen))
-        option_list = picker.query_one("#skill-picker-list")
+        option_list = skill_picker_app.screen.query_one("#skill-picker-list")
         assert option_list.highlighted == 1
 
 
 @pytest.mark.asyncio
-async def test_skill_picker_no_better_match_keeps_selection(tmp_path: Path) -> None:
-    skills = [_make_skill(n, tmp_path) for n in ["aab", "abc", "bcd"]]
-    app = _SkillPickerApp(skills)
-
-    async with app.run_test() as pilot:
+async def test_skill_picker_no_better_match_keeps_selection(skill_picker_app: _SkillPickerApp) -> None:
+    async with skill_picker_app.run_test() as pilot:
         await pilot.pause(0.05)
         await pilot.press("a")
         await pilot.press("b")
         await pilot.press("b")
         await pilot.pause(0.05)
 
-        picker = next(s for s in app.screen_stack if isinstance(s, SkillPickerScreen))
-        option_list = picker.query_one("#skill-picker-list")
+        option_list = skill_picker_app.screen.query_one("#skill-picker-list")
         assert option_list.highlighted == 1
 
 
 @pytest.mark.asyncio
-async def test_skill_picker_backspace(tmp_path: Path) -> None:
-    skills = [_make_skill(n, tmp_path) for n in ["aab", "abc", "bcd"]]
-    app = _SkillPickerApp(skills)
-
-    async with app.run_test() as pilot:
+async def test_skill_picker_backspace(skill_picker_app: _SkillPickerApp) -> None:
+    async with skill_picker_app.run_test() as pilot:
         await pilot.pause(0.05)
         await pilot.press("a")
         await pilot.press("b")
         await pilot.pause(0.05)
 
-        picker = next(s for s in app.screen_stack if isinstance(s, SkillPickerScreen))
-        option_list = picker.query_one("#skill-picker-list")
+        option_list = skill_picker_app.screen.query_one("#skill-picker-list")
         assert option_list.highlighted == 1
 
         await pilot.press("backspace")
@@ -155,9 +141,8 @@ async def test_skill_picker_backspace(tmp_path: Path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_skill_picker_enter_selects_highlighted(tmp_path: Path) -> None:
-    skills = [_make_skill(n, tmp_path) for n in ["aab", "abc", "bcd"]]
-    app = _SkillPickerApp(skills)
+async def test_skill_picker_enter_selects_highlighted(skill_picker_app: _SkillPickerApp) -> None:
+    app = skill_picker_app
 
     async with app.run_test() as pilot:
         await pilot.pause(0.05)

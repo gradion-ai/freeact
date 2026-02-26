@@ -134,24 +134,17 @@ class FilePickerScreen(ModalScreen[Path | None]):
             return
 
         if cursor.is_expanded and cursor.children:
-            allowed = set(id(c) for c in cursor.children)
+            siblings = cursor.children
         else:
             parent = cursor.parent or tree.root
-            allowed = set(id(c) for c in parent.children)
+            siblings = parent.children
 
-        labels: list[str] = []
-        nodes: list[Any] = []
-        for line in range(tree.last_line + 1):
-            node = tree.get_node_at_line(line)
-            if node is not None and id(node) in allowed:
-                labels.append(str(node.label))
-                nodes.append(node)
-
+        labels = [str(node.label) for node in siblings]
         result = find_prefix_match(labels, self._prefix)
         if result is not None:
             index, effective = result
             self._prefix = effective
-            tree.move_cursor(nodes[index])
+            tree.move_cursor(siblings[index])
 
         self._update_label()
 
