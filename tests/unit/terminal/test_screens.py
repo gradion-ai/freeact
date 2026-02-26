@@ -210,6 +210,83 @@ async def test_file_picker_char_navigates_to_matching_node(tmp_path: Path, monke
 
 
 @pytest.mark.asyncio
+async def test_file_picker_expanded_dir_searches_children_not_ancestors(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """When cursor is on an expanded directory, prefix search is scoped to its children.
+
+    The tree has ancestor nodes visible above the cwd. Typing a prefix that
+    matches an ancestor name must NOT jump to that ancestor -- it should only
+    search among children of the expanded cwd node.
+    """
+    # The cwd node "sub" has children "aaa.txt" and "bbb.txt".
+    # Its parent (tmp_path) is also visible and named something like
+    # "test_file_picker_expanded_...0" but more importantly the ancestor
+    # chain always contains system dirs.  We create a child dir whose name
+    # starts with a letter that also appears as a system-level ancestor
+    # (e.g. "tmp" is an ancestor).  Typing "t" from the expanded cwd must
+    # NOT jump to /tmp -- it should match "target.txt" inside cwd.
+    sub = tmp_path / "sub"
+    sub.mkdir()
+    (sub / "apple.txt").touch()
+    (sub / "target.txt").touch()
+    monkeypatch.chdir(sub)
+
+    app = _FilePickerApp()
+
+    async with app.run_test() as pilot:
+        await pilot.pause(0.5)
+
+        picker = next(s for s in app.screen_stack if isinstance(s, FilePickerScreen))
+        tree = picker.query_one("#picker-tree", FilePickerTree)
+
+        # Cursor starts on the expanded cwd ("sub")
+        assert tree.cursor_node is not None
+        assert "sub" in str(tree.cursor_node.label).lower()
+
+        # Type "t" -- should match "target.txt" (child), not /tmp (ancestor)
+        await pilot.press("t")
+        await pilot.pause(0.1)
+
+        cursor = tree.cursor_node
+        assert cursor is not None
+        assert "target" in str(cursor.label).lower()
+
+
+@pytest.mark.asyncio
+async def test_file_picker_file_cursor_searches_siblings(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """When cursor is on a file, prefix search is scoped to siblings."""
+    (tmp_path / "alpha.txt").touch()
+    (tmp_path / "beta.txt").touch()
+    (tmp_path / "gamma.txt").touch()
+    monkeypatch.chdir(tmp_path)
+
+    app = _FilePickerApp()
+
+    async with app.run_test() as pilot:
+        await pilot.pause(0.5)
+
+        picker = next(s for s in app.screen_stack if isinstance(s, FilePickerScreen))
+        tree = picker.query_one("#picker-tree", FilePickerTree)
+
+        # Move cursor down to first child (a file node)
+        await pilot.press("down")
+        await pilot.pause(0.05)
+
+        cursor_before = tree.cursor_node
+        assert cursor_before is not None
+        assert "alpha" in str(cursor_before.label).lower()
+
+        # Type "g" -- should match "gamma.txt" (sibling), not any ancestor
+        await pilot.press("g")
+        await pilot.pause(0.1)
+
+        cursor = tree.cursor_node
+        assert cursor is not None
+        assert "gamma" in str(cursor.label).lower()
+
+
+@pytest.mark.asyncio
 async def test_file_picker_arrow_keys_still_work(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     (tmp_path / "alpha.txt").touch()
     (tmp_path / "beta.txt").touch()
