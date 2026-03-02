@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import json
 import logging
 import uuid
@@ -37,6 +38,7 @@ from freeact.agent.config import Config
 from freeact.agent.events import (
     AgentEvent,
     ApprovalRequest,
+    Cancelled,
     CodeExecutionOutput,
     CodeExecutionOutputChunk,
     Response,
@@ -160,6 +162,7 @@ class Agent:
             log_level="ERROR",
         )
 
+        self._cancel_event = asyncio.Event()
         self._message_history: list[ModelMessage] = []
         self._resource_supervisors: list[_ResourceSupervisor] = []
         self._subagent_semaphore = asyncio.Semaphore(config.max_subagents)
@@ -184,6 +187,17 @@ class Agent:
     def tool_names(self) -> list[str]:
         """Names of all registered tools (ipybox tools and MCP server tools)."""
         return [tool_def.name for tool_def in self._tool_definitions]
+
+    def cancel(self) -> None:
+        """Cancel the current agent turn.
+
+        Sets an internal cancellation flag and interrupts any running
+        kernel execution. The active `stream()` call will stop at the
+        next phase boundary and yield a
+        [`Cancelled`][freeact.agent.Cancelled] event.
+        """
+        self._cancel_event.set()
+        self._code_executor.cancel()
 
     async def __aenter__(self) -> "Agent":
         await self.start()
@@ -316,6 +330,9 @@ class Agent:
         Returns:
             An async event iterator.
         """
+        if not self.agent_id.startswith("sub-"):
+            self._cancel_event.clear()
+
         request = self._create_model_request(prompt)
         request_params = ModelRequestParameters(function_tools=self._tool_definitions)
 
@@ -324,6 +341,10 @@ class Agent:
         turn = 0
 
         while True:
+            if self._cancel_event.is_set():
+                yield Cancelled(agent_id=self.agent_id, phase="between_turns")
+                return
+
             thinking_parts: list[str] = []
             response_parts: list[str] = []
 
@@ -347,6 +368,8 @@ class Agent:
                         case PartDeltaEvent(delta=TextPartDelta(content_delta=delta)) if delta:
                             response_parts.append(delta)
                             yield ResponseChunk(content=delta, agent_id=self.agent_id)
+                    if self._cancel_event.is_set():
+                        break
 
                 aggregated = event_stream.get()
 
@@ -360,6 +383,13 @@ class Agent:
 
             if response:
                 yield Response(content=response, agent_id=self.agent_id)
+
+            if self._cancel_event.is_set():
+                if aggregated.tool_calls:
+                    synthetic_returns = [self._interrupted_tool_return(c) for c in aggregated.tool_calls]
+                    await self._append_message_history([ModelRequest(parts=synthetic_returns)])
+                yield Cancelled(agent_id=self.agent_id, phase="llm_streaming")
+                return
 
             if not aggregated.tool_calls:
                 return
@@ -376,8 +406,20 @@ class Agent:
                             tool_returns.append(item)
                         case _:
                             yield item
+                    if self._cancel_event.is_set():
+                        break
+
+            # Synthetic returns for tools that didn't complete
+            returned_ids = {tr.tool_call_id for tr in tool_returns}
+            for call in aggregated.tool_calls:
+                if call.tool_call_id not in returned_ids:
+                    tool_returns.append(self._interrupted_tool_return(call))
 
             await self._append_message_history([ModelRequest(parts=tool_returns)])
+
+            if self._cancel_event.is_set():
+                yield Cancelled(agent_id=self.agent_id, phase="tool_execution")
+                return
 
             if any(tool_return.metadata.get("rejected", False) for tool_return in tool_returns):
                 content = "Tool call rejected"
@@ -389,6 +431,37 @@ class Agent:
 
             if max_turns is not None and turn >= max_turns:
                 return
+
+    @staticmethod
+    def _interrupted_tool_return(call: ToolCallPart, content: ToolResult = "") -> ToolReturnPart:
+        return ToolReturnPart(
+            tool_call_id=call.tool_call_id,
+            tool_name=call.tool_name,
+            content=content or "Interrupted by user",
+            metadata={"interrupted": True},
+        )
+
+    async def _await_approval_or_cancel(self, approval: ApprovalRequest) -> bool | None:
+        """Wait for an approval decision or cancellation.
+
+        Returns:
+            `True` if approved, `False` if rejected, `None` if cancelled.
+        """
+        cancel_waiter = asyncio.ensure_future(self._cancel_event.wait())
+        approval_waiter = asyncio.ensure_future(approval.approved())
+        done, pending = await asyncio.wait(
+            [cancel_waiter, approval_waiter],
+            return_when=asyncio.FIRST_COMPLETED,
+        )
+        for p in pending:
+            p.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await p
+
+        if cancel_waiter in done:
+            approval.approve(False)
+            return None
+        return approval_waiter.result()
 
     async def _execute_tool(self, call: ToolCallPart) -> AsyncIterator[AgentEvent | ToolReturnPart]:
         tool_name = call.tool_name
@@ -413,7 +486,11 @@ class Agent:
 
         yield approval
 
-        if not await approval.approved():
+        decision = await self._await_approval_or_cancel(approval)
+        if decision is None:
+            yield self._interrupted_tool_return(call)
+            return
+        if not decision:
             yield ToolReturnPart(
                 tool_call_id=call.tool_call_id,
                 tool_name=tool_name,
@@ -465,6 +542,10 @@ class Agent:
                 content = await self._process_tool_result(content)
                 yield ToolOutput(content=content, agent_id=self.agent_id, corr_id=corr_id)
 
+        if self._cancel_event.is_set() and not rejected:
+            yield self._interrupted_tool_return(call, content)
+            return
+
         yield ToolReturnPart(
             tool_call_id=call.tool_call_id,
             tool_name=tool_name,
@@ -481,7 +562,14 @@ class Agent:
             sandbox_config=self._sandbox_config,
             session_id=self._session_id,
         )
+        subagent._cancel_event = self._cancel_event
         runner = _SubagentRunner(subagent=subagent, semaphore=self._subagent_semaphore)
+
+        async def _cancel_monitor() -> None:
+            await self._cancel_event.wait()
+            subagent._code_executor.cancel()
+
+        monitor_task = asyncio.create_task(_cancel_monitor())
 
         last_response = ""
         try:
@@ -494,6 +582,10 @@ class Agent:
             error_content = f"Subagent error: {e}"
             yield ToolOutput(content=error_content, agent_id=self.agent_id, corr_id=corr_id)
             return
+        finally:
+            monitor_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await monitor_task
 
         final_content = await self._process_tool_text(last_response)
         yield ToolOutput(content=final_content, agent_id=self.agent_id, corr_id=corr_id)
