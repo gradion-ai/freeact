@@ -55,6 +55,16 @@ session_id: str | None
 
 Session ID used by this agent, or `None` when persistence is disabled.
 
+### cancel
+
+```
+cancel() -> None
+```
+
+Cancel the current agent turn.
+
+Sets an internal cancellation flag and interrupts any running kernel execution. The active `stream()` call will stop at the next phase boundary and yield a Cancelled event.
+
 ### start
 
 ```
@@ -138,6 +148,8 @@ approve(decision: bool) -> None
 ```
 
 Resolve this approval request.
+
+No-op if already resolved (e.g. by cancellation).
 
 Parameters:
 
@@ -244,3 +256,20 @@ ToolOutput(
 Bases: `AgentEvent`
 
 Tool or built-in operation output.
+
+## freeact.agent.Cancelled
+
+```
+Cancelled(
+    *,
+    agent_id: str = "",
+    corr_id: str = "",
+    phase: Literal[
+        "between_turns", "llm_streaming", "tool_execution"
+    ]
+)
+```
+
+Bases: `AgentEvent`
+
+Agent execution was cancelled by the user.

@@ -1039,6 +1039,7 @@ The Agent.stream() method yields events as they occur:
 | CodeExecutionOutputChunk | Partial code execution output (content streaming) |
 | CodeExecutionOutput      | Complete code execution output                    |
 | ToolOutput               | Tool or built-in operation output                 |
+| Cancelled                | Agent turn was cancelled                          |
 
 All yielded events inherit from AgentEvent and carry `agent_id`.
 
@@ -1063,6 +1064,24 @@ async for event in agent.stream(prompt, max_turns=50):
 ```
 
 If `max_turns=None` (default), the loop continues until the model produces a final response.
+
+### Cancellation
+
+Call cancel() to stop a running agent turn. The active `stream()` stops at the next phase boundary and yields a Cancelled event. Running kernel executions, including those in subagents, are interrupted immediately. Partial responses and synthetic tool returns are preserved in message history, so the conversation remains consistent for subsequent turns.
+
+```
+# From another coroutine or callback:
+agent.cancel()
+```
+
+```
+async for event in agent.stream(prompt):
+    match event:
+        case Cancelled(phase=phase):
+            print(f"Turn cancelled during {phase}")
+        case Response(content=content):
+            print(content)
+```
 
 ### Subagents
 
@@ -1328,6 +1347,7 @@ The interactive mode provides a conversation interface with the agent in a termi
 | `Enter`                                            | Send message                       |
 | `Ctrl+J`                                           | Insert newline                     |
 | `Option+Enter` (macOS) `Alt+Enter` (Linux/Windows) | Insert newline (`Ctrl+J` fallback) |
+| `Escape`                                           | Cancel the current agent turn      |
 | `Ctrl+Q`                                           | Quit                               |
 
 ### Clipboard
@@ -1374,6 +1394,10 @@ The agent automatically uses skills when a request matches a skill's description
 - Select a skill to insert its name, then type arguments after it.
 - Text after the skill name is passed as arguments to the skill.
 - Skill locations: `.agents/skills/` (project) and `.freeact/skills/` (bundled).
+
+### Cancellation
+
+Press `Escape` during an active agent turn to cancel it. This interrupts the current operation (LLM streaming, code execution, or approval wait), stops the turn, and re-enables the prompt input.
 
 ### Approval Prompt
 
@@ -1449,6 +1473,16 @@ session_id: str | None
 ```
 
 Session ID used by this agent, or `None` when persistence is disabled.
+
+### cancel
+
+```
+cancel() -> None
+```
+
+Cancel the current agent turn.
+
+Sets an internal cancellation flag and interrupts any running kernel execution. The active `stream()` call will stop at the next phase boundary and yield a Cancelled event.
 
 ### start
 
@@ -1533,6 +1567,8 @@ approve(decision: bool) -> None
 ```
 
 Resolve this approval request.
+
+No-op if already resolved (e.g. by cancellation).
 
 Parameters:
 
@@ -1639,6 +1675,23 @@ ToolOutput(
 Bases: `AgentEvent`
 
 Tool or built-in operation output.
+
+## freeact.agent.Cancelled
+
+```
+Cancelled(
+    *,
+    agent_id: str = "",
+    corr_id: str = "",
+    phase: Literal[
+        "between_turns", "llm_streaming", "tool_execution"
+    ]
+)
+```
+
+Bases: `AgentEvent`
+
+Agent execution was cancelled by the user.
 
 ## freeact.agent.config.Config
 

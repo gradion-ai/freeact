@@ -10,31 +10,27 @@
       
       
       
-        <link rel="canonical" href="https://gradion-ai.github.io/freeact/cli/">
+        <link rel="canonical" href="https://gradion-ai.github.io/freeact/internal/architecture/cancellation/">
       
       
-        <link rel="prev" href="../sdk/">
-      
-      
-        <link rel="next" href="../examples/output-parser/">
       
       
         
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
     
     
       
-        <title>CLI Tool - freeact</title>
+        <title>Cancellation - freeact</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,11 +49,11 @@
       
     
     
-      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#cli-tool" class="md-skip">
+        <a href="#cancellation" class="md-skip">
           Skip to content
         </a>
       
@@ -94,9 +90,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="freeact" class="md-header__button md-logo" aria-label="freeact" data-md-component="logo">
+    <a href="../../.." title="freeact" class="md-header__button md-logo" aria-label="freeact" data-md-component="logo">
       
-  <img src="../images/logo.png" alt="logo">
+  <img src="../../../images/logo.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -113,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              CLI Tool
+              Cancellation
             
           </span>
         </div>
@@ -198,13 +194,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href=".." class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../.." class="md-tabs__link">
           
   
   
@@ -224,7 +218,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../api/agent/" class="md-tabs__link">
+        <a href="../../../api/agent/" class="md-tabs__link">
           
   
   
@@ -258,9 +252,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="freeact" class="md-nav__button md-logo" aria-label="freeact" data-md-component="logo">
+    <a href="../../.." title="freeact" class="md-nav__button md-logo" aria-label="freeact" data-md-component="logo">
       
-  <img src="../images/logo.png" alt="logo">
+  <img src="../../../images/logo.png" alt="logo">
 
     </a>
     freeact
@@ -284,31 +278,26 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
         
           
-          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
             
   
   
@@ -326,7 +315,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_1">
             <span class="md-nav__icon md-icon"></span>
             
@@ -344,7 +333,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../../.." class="md-nav__link">
         
   
   
@@ -372,7 +361,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../installation/" class="md-nav__link">
+      <a href="../../../installation/" class="md-nav__link">
         
   
   
@@ -400,7 +389,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quickstart/" class="md-nav__link">
+      <a href="../../../quickstart/" class="md-nav__link">
         
   
   
@@ -428,7 +417,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../configuration/" class="md-nav__link">
+      <a href="../../../configuration/" class="md-nav__link">
         
   
   
@@ -456,7 +445,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../execution/" class="md-nav__link">
+      <a href="../../../execution/" class="md-nav__link">
         
   
   
@@ -484,7 +473,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../sandbox/" class="md-nav__link">
+      <a href="../../../sandbox/" class="md-nav__link">
         
   
   
@@ -512,7 +501,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../models/" class="md-nav__link">
+      <a href="../../../models/" class="md-nav__link">
         
   
   
@@ -540,7 +529,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../sdk/" class="md-nav__link">
+      <a href="../../../sdk/" class="md-nav__link">
         
   
   
@@ -565,37 +554,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    CLI Tool
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../../cli/" class="md-nav__link">
         
   
   
@@ -611,142 +573,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#options" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Options
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Examples
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#interactive-mode" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interactive Mode
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interactive Mode">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#user-messages" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        User messages
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#clipboard" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Clipboard
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#expand-and-collapse" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Expand and Collapse
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#image-attachments" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Image Attachments
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#skill-invocation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Skill Invocation
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#cancellation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Cancellation
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#approval-prompt" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Approval Prompt
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -765,20 +591,17 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_10" >
         
           
-          <label class="md-nav__link" for="__nav_1_10" id="__nav_1_10_label" tabindex="">
+          <label class="md-nav__link" for="__nav_1_10" id="__nav_1_10_label" tabindex="0">
             
   
   
@@ -814,7 +637,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../examples/output-parser/" class="md-nav__link">
+      <a href="../../../examples/output-parser/" class="md-nav__link">
         
   
   
@@ -842,7 +665,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../examples/saving-codeacts/" class="md-nav__link">
+      <a href="../../../examples/saving-codeacts/" class="md-nav__link">
         
   
   
@@ -870,7 +693,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../examples/agent-skills/" class="md-nav__link">
+      <a href="../../../examples/agent-skills/" class="md-nav__link">
         
   
   
@@ -898,7 +721,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../examples/sandbox-mode/" class="md-nav__link">
+      <a href="../../../examples/sandbox-mode/" class="md-nav__link">
         
   
   
@@ -926,7 +749,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../examples/python-packages/" class="md-nav__link">
+      <a href="../../../examples/python-packages/" class="md-nav__link">
         
   
   
@@ -968,20 +791,17 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_11" >
         
           
-          <label class="md-nav__link" for="__nav_1_11" id="__nav_1_11_label" tabindex="">
+          <label class="md-nav__link" for="__nav_1_11" id="__nav_1_11_label" tabindex="0">
             
   
   
@@ -1017,7 +837,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../llms.txt" class="md-nav__link">
+      <a href="../../../llms.txt" class="md-nav__link">
         
   
   
@@ -1045,7 +865,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../llms-full.txt" class="md-nav__link">
+      <a href="../../../llms-full.txt" class="md-nav__link">
         
   
   
@@ -1140,7 +960,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/agent/" class="md-nav__link">
+      <a href="../../../api/agent/" class="md-nav__link">
         
   
   
@@ -1168,7 +988,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/config/" class="md-nav__link">
+      <a href="../../../api/config/" class="md-nav__link">
         
   
   
@@ -1196,7 +1016,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/generate/" class="md-nav__link">
+      <a href="../../../api/generate/" class="md-nav__link">
         
   
   
@@ -1224,7 +1044,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/permissions/" class="md-nav__link">
+      <a href="../../../api/permissions/" class="md-nav__link">
         
   
   
@@ -1252,7 +1072,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/preproc/" class="md-nav__link">
+      <a href="../../../api/preproc/" class="md-nav__link">
         
   
   
@@ -1307,10 +1127,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#options" class="md-nav__link">
+  <a href="#mechanism" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Options
+        Mechanism
       
     </span>
   </a>
@@ -1318,10 +1138,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
+  <a href="#phase-boundaries" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Examples
+        Phase Boundaries
       
     </span>
   </a>
@@ -1329,96 +1149,35 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#interactive-mode" class="md-nav__link">
+  <a href="#conversation-coherence" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Interactive Mode
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interactive Mode">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#user-messages" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        User messages
+        Conversation Coherence
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#clipboard" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#subagents" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Clipboard
+        Subagents
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#expand-and-collapse" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#terminal" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Expand and Collapse
+        Terminal
       
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#image-attachments" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Image Attachments
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#skill-invocation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Skill Invocation
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#cancellation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Cancellation
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#approval-prompt" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Approval Prompt
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1442,152 +1201,40 @@
   
 
 
-<h1 id="cli-tool">CLI tool</h1>
-<p>The <code>freeact</code> or <code>freeact run</code> command starts the <a href="#interactive-mode">interactive mode</a>:</p>
-<div class="highlight"><pre><span></span><code>freeact
-</code></pre></div>
-<p>A <code>.freeact/</code> <a href="../configuration/">configuration</a> directory is created automatically if it does not exist yet. The <code>init</code> subcommand initializes the configuration directory without starting the interactive mode:</p>
-<div class="highlight"><pre><span></span><code>freeact<span class="w"> </span>init
-</code></pre></div>
-<h2 id="options">Options</h2>
-<table>
-<thead>
-<tr>
-<th>Option</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--sandbox</code></td>
-<td>Run code execution in <a href="../sandbox/">sandbox mode</a>.</td>
-</tr>
-<tr>
-<td><code>--sandbox-config PATH</code></td>
-<td>Path to sandbox configuration file.</td>
-</tr>
-<tr>
-<td><code>--session-id UUID</code></td>
-<td>Resume a previous session by its UUID.</td>
-</tr>
-<tr>
-<td><code>--log-level LEVEL</code></td>
-<td>Set logging level: <code>debug</code>, <code>info</code> (default), <code>warning</code>, <code>error</code>, <code>critical</code>.</td>
-</tr>
-</tbody>
-</table>
-<h2 id="examples">Examples</h2>
-<p>Running code execution in <a href="../sandbox/">sandbox mode</a>:</p>
-<div class="highlight"><pre><span></span><code>freeact<span class="w"> </span>--sandbox
-</code></pre></div>
-<p>Running with a <a href="../sandbox/#custom-configuration">custom sandbox configuration</a>:</p>
-<div class="highlight"><pre><span></span><code>freeact<span class="w"> </span>--sandbox<span class="w"> </span>--sandbox-config<span class="w"> </span>sandbox-config.json
-</code></pre></div>
-<p>Resuming a previous <a href="../sdk/#persistence">session</a>:</p>
-<div class="highlight"><pre><span></span><code>freeact<span class="w"> </span>--session-id<span class="w"> </span>550e8400-e29b-41d4-a716-446655440000
-</code></pre></div>
-<p>If <code>enable_persistence</code> is <code>false</code> in <code>.freeact/agent.json</code>, passing <code>--session-id</code> exits with an error.</p>
-<h2 id="interactive-mode">Interactive Mode</h2>
-<p>The interactive mode provides a conversation interface with the agent in a terminal window.</p>
-<p><a href="../screenshots/cli.png" rel="noopener" target="_blank"><img alt="Interactive Mode" src="../screenshots/cli.png" /></a></p>
-<h3 id="user-messages">User messages</h3>
-<table>
-<thead>
-<tr>
-<th>Key</th>
-<th>Action</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Enter</code></td>
-<td>Send message</td>
-</tr>
-<tr>
-<td><code>Ctrl+J</code></td>
-<td>Insert newline</td>
-</tr>
-<tr>
-<td><code>Option+Enter</code> (macOS)<br/><code>Alt+Enter</code> (Linux/Windows)</td>
-<td>Insert newline (<code>Ctrl+J</code> fallback)</td>
-</tr>
-<tr>
-<td><code>Escape</code></td>
-<td>Cancel the current agent turn</td>
-</tr>
-<tr>
-<td><code>Ctrl+Q</code></td>
-<td>Quit</td>
-</tr>
-</tbody>
-</table>
-<h3 id="clipboard">Clipboard</h3>
-<p>Clipboard behavior depends on terminal key forwarding.</p>
+<h1 id="cancellation">Cancellation</h1>
+<p>Cooperative cancellation of a running agent turn, triggered by Escape in the terminal.</p>
+<h2 id="mechanism">Mechanism</h2>
 <ul>
-<li>Paste into the prompt input: <code>Cmd+V</code> or <code>Ctrl+V</code>.</li>
-<li>Copy selected text from Freeact widgets: <code>Cmd+C</code> may not work in some terminals. Use <code>Ctrl+C</code> instead.</li>
-<li>Additional terminal fallbacks: <code>Ctrl+Shift+C</code> / <code>Ctrl+Insert</code> for copy, <code>Ctrl+Shift+V</code> / <code>Shift+Insert</code> for paste.</li>
+<li><code>Agent</code> owns an <code>asyncio.Event</code> (<code>_cancel_event</code>) checked at phase boundaries inside <code>stream()</code>.</li>
+<li><code>Agent.cancel()</code> sets the event and calls <code>self._code_executor.cancel()</code> (kernel SIGINT + drain).</li>
+<li>The active <code>stream()</code> stops at the next boundary and yields a <code>Cancelled</code> event.</li>
+<li>No <code>CancelledError</code> propagation -- all cancellation is flag-based.</li>
 </ul>
-<h3 id="expand-and-collapse">Expand and Collapse</h3>
-<p>Use <code>Ctrl+O</code> to toggle all collapsible boxes between expanded and configured state.</p>
-<p>The shortcut is configured in <code>.freeact/terminal.json</code> under <code>expand_all_toggle_key</code>.</p>
-<h3 id="image-attachments">Image Attachments</h3>
-<p>Reference images using <code>@path</code> syntax:</p>
-<div class="highlight"><pre><span></span><code>@screenshot.png What does this show?
-@images/ Describe these images
-</code></pre></div>
+<h2 id="phase-boundaries">Phase Boundaries</h2>
+<p>The cancel event is cleared at the start of each <code>stream()</code> call (main agent only, not subagents).</p>
 <ul>
-<li>Single file: <code>@path/to/image.png</code></li>
-<li>Directory: <code>@path/to/dir/</code> includes all images in directory, non-recursive</li>
-<li>Supported formats: PNG, JPG, JPEG, GIF, WEBP</li>
-<li>Type <code>@</code> in the prompt to open a file picker.</li>
-<li>Select a file or directory to insert its path after <code>@</code>.</li>
+<li><strong>Between turns</strong>: top of <code>while True</code> loop. Yields <code>Cancelled(phase="between_turns")</code>.</li>
+<li><strong>LLM streaming</strong>: after each chunk. Breaks out; partial response preserved in history.</li>
+<li><strong>Post-LLM with tool calls</strong>: synthetic <code>ToolReturnPart</code> for all emitted calls, then <code>Cancelled(phase="llm_streaming")</code>.</li>
+<li><strong>Approval wait</strong>: <code>_await_approval_or_cancel()</code> races cancel against <code>approval.approved()</code>. Cancel auto-rejects.</li>
+<li><strong>Tool execution</strong>: after each item in the <code>aiostream.merge()</code> loop. Synthetic returns for incomplete tools, then <code>Cancelled(phase="tool_execution")</code>.</li>
+<li><strong>Individual tool end</strong>: <code>_execute_tool()</code> yields an interrupted return if cancelled (preserving partial output).</li>
 </ul>
-<p>Images are automatically downscaled if larger than 1024 pixels in either dimension.</p>
-<h3 id="skill-invocation">Skill Invocation</h3>
-<p>The agent automatically uses skills when a request matches a skill's description. The <code>/skill-name</code> syntax is a shortcut to invoke a specific skill explicitly:</p>
-<div class="highlight"><pre><span></span><code>/plan my project requirements
-/commit fix login bug
-</code></pre></div>
+<h2 id="conversation-coherence">Conversation Coherence</h2>
+<p>Orphaned tool calls get synthetic returns via <code>_interrupted_tool_return()</code>: <code>ToolReturnPart(content="Interrupted by user", metadata={"interrupted": True})</code>. This preserves the strict <code>[tool_use] -&gt; [tool_result]</code> sequencing required by model APIs. Partial responses are kept in history, not discarded.</p>
+<h2 id="subagents">Subagents</h2>
 <ul>
-<li>Type <code>/</code> at the start of a prompt to open a skill picker.</li>
-<li>Select a skill to insert its name, then type arguments after it.</li>
-<li>Text after the skill name is passed as arguments to the skill.</li>
-<li>Skill locations: <code>.agents/skills/</code> (project) and <code>.freeact/skills/</code> (bundled).</li>
+<li>Parent shares <code>_cancel_event</code> with the subagent.</li>
+<li>A monitor task in <code>_execute_subagent_task()</code> watches the event and calls <code>subagent._code_executor.cancel()</code>.</li>
+<li>Subagents do not clear the shared event.</li>
 </ul>
-<h3 id="cancellation">Cancellation</h3>
-<p>Press <code>Escape</code> during an active agent turn to cancel it. This interrupts the current operation (LLM streaming, code execution, or approval wait), stops the turn, and re-enables the prompt input.</p>
-<h3 id="approval-prompt">Approval Prompt</h3>
-<p>Before executing code actions or tool calls, the agent requests approval:</p>
-<div class="highlight"><pre><span></span><code>Approve? [Y/n/a/s]
-</code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Response</th>
-<th>Effect</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Y</code> or <code>Enter</code></td>
-<td>Approve once</td>
-</tr>
-<tr>
-<td><code>n</code></td>
-<td>Reject once (ends the current agent turn)</td>
-</tr>
-<tr>
-<td><code>a</code></td>
-<td>Approve always (persists to <code>.freeact/permissions.json</code>)</td>
-</tr>
-<tr>
-<td><code>s</code></td>
-<td>Approve for current session</td>
-</tr>
-</tbody>
-</table>
-<p>See <a href="../sdk/#permissions-api">Permissions API</a> for details.</p>
+<h2 id="terminal">Terminal</h2>
+<ul>
+<li><code>TerminalApp</code> receives <code>cancel_fn</code> (bound to <code>Agent.cancel</code>) and tracks <code>_turn_in_progress</code>.</li>
+<li>Escape binding (<code>action_cancel_turn</code>): calls <code>cancel_fn()</code> and resolves any pending <code>_approval_future</code>.</li>
+<li><code>check_action</code> guards the binding: only fires during an active turn.</li>
+<li><code>ApprovalRequest.approve()</code> is idempotent to handle the race between cancel and terminal approval resolution.</li>
+</ul>
 
 
 
@@ -1649,10 +1296,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.preview", "navigation.instant.progress", "navigation.top", "navigation.tracking", "search.suggest", "toc.follow", "content.code.copy", "content.code.select", "content.code.annotate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.preview", "navigation.instant.progress", "navigation.top", "navigation.tracking", "search.suggest", "toc.follow", "content.code.copy", "content.code.select", "content.code.annotate"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

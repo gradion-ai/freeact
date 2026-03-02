@@ -1061,6 +1061,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#freeact.agent.Agent.cancel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cancel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#freeact.agent.Agent.start" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1219,6 +1230,17 @@
     <span class="md-ellipsis">
       
         ToolOutput
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#freeact.agent.Cancelled" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cancelled
       
     </span>
   </a>
@@ -1412,6 +1434,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#freeact.agent.Agent.cancel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cancel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#freeact.agent.Agent.start" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1570,6 +1603,17 @@
     <span class="md-ellipsis">
       
         ToolOutput
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#freeact.agent.Cancelled" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cancelled
       
     </span>
   </a>
@@ -1830,6 +1874,30 @@ present; otherwise a new session starts with that ID.</p>
 
 
 
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="freeact.agent.Agent.cancel" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">cancel</span>
+
+
+</h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">cancel</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Cancel the current agent turn.</p>
+<p>Sets an internal cancellation flag and interrupts any running
+kernel execution. The active <code>stream()</code> call will stop at the
+next phase boundary and yield a
+<a class="autorefs autorefs-internal" href="#freeact.agent.Cancelled"><code>Cancelled</code></a> event.</p>
+
+
+    </div>
+
+</div>
 
 <div class="doc doc-object doc-function">
 
@@ -2115,6 +2183,7 @@ The stream is suspended until <code>approve()</code> is called.</p>
     <div class="doc doc-contents ">
 
         <p>Resolve this approval request.</p>
+<p>No-op if already resolved (e.g. by cancellation).</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -2548,6 +2617,66 @@ the current agent turn.</p>
 
 
         <p>Tool or built-in operation output.</p>
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="freeact.agent.Cancelled" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">freeact.agent.Cancelled</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">Cancelled</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">agent_id</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="n">corr_id</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="n">phase</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Literal" href="https://docs.python.org/3/library/typing.html#typing.Literal">Literal</a></span><span class="p">[</span>
+        <span class="s2">&quot;between_turns&quot;</span><span class="p">,</span> <span class="s2">&quot;llm_streaming&quot;</span><span class="p">,</span> <span class="s2">&quot;tool_execution&quot;</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" href="#freeact.agent.AgentEvent">AgentEvent</a></code></p>
+
+
+
+        <p>Agent execution was cancelled by the user.</p>
 
 
 

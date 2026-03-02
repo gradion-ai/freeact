@@ -667,6 +667,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#cancellation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cancellation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#subagents" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1424,6 +1435,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#cancellation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cancellation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#subagents" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1647,6 +1669,10 @@
 <td><a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.ToolOutput"><code>ToolOutput</code></a></td>
 <td>Tool or built-in operation output</td>
 </tr>
+<tr>
+<td><a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.Cancelled"><code>Cancelled</code></a></td>
+<td>Agent turn was cancelled</td>
+</tr>
 </tbody>
 </table>
 <p>All yielded events inherit from <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.AgentEvent"><code>AgentEvent</code></a> and carry <code>agent_id</code>.</p>
@@ -1689,6 +1715,18 @@
     <span class="o">...</span>
 </code></pre></div>
 <p>If <code>max_turns=None</code> (default), the loop continues until the model produces a final response.</p>
+<h3 id="cancellation">Cancellation</h3>
+<p>Call <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.Agent.cancel"><code>cancel()</code></a> to stop a running agent turn. The active <code>stream()</code> stops at the next phase boundary and yields a <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.Cancelled"><code>Cancelled</code></a> event. Running kernel executions, including those in subagents, are interrupted immediately. Partial responses and synthetic tool returns are preserved in message history, so the conversation remains consistent for subsequent turns.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># From another coroutine or callback:</span>
+<span class="n">agent</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">prompt</span><span class="p">):</span>
+    <span class="k">match</span> <span class="n">event</span><span class="p">:</span>
+        <span class="k">case</span> <span class="n">Cancelled</span><span class="p">(</span><span class="n">phase</span><span class="o">=</span><span class="n">phase</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Turn cancelled during </span><span class="si">{</span><span class="n">phase</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">case</span> <span class="n">Response</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+</code></pre></div>
 <h3 id="subagents">Subagents</h3>
 <p>The built-in <code>subagent_task</code> tool delegates a subtask to a child agent with a fresh IPython kernel and fresh MCP server connections. The child inherits model, system prompt, and sandbox settings from the parent. Its events flow through the parent's stream using the same <a href="#approval">approval</a> mechanism, with <code>agent_id</code> identifying the source:</p>
 <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">prompt</span><span class="p">):</span>
