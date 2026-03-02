@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import AsyncIterator, Callable, Sequence
 from pathlib import Path
 
@@ -13,6 +14,7 @@ from freeact.agent.config.skills import SkillMetadata
 from freeact.agent.events import (
     AgentEvent,
     ApprovalRequest,
+    Cancelled,
     Response,
     ResponseChunk,
     Thoughts,
@@ -113,6 +115,7 @@ def _create_app(
     agent_stream: ScenarioFn,
     agent_id: str = MAIN_AGENT_ID,
     config: TerminalConfig | None = None,
+    cancel_fn: Callable[[], None] | None = None,
     permission_manager: object | None = None,
     clipboard_adapter: StubClipboardAdapter | None = None,
     skills_metadata: list[SkillMetadata] | None = None,
@@ -121,6 +124,7 @@ def _create_app(
         config=config or TerminalConfig(),
         agent_id=agent_id,
         agent_stream=agent_stream,
+        cancel_fn=cancel_fn,
         permission_manager=permission_manager,  # type: ignore[arg-type]
         clipboard_adapter=clipboard_adapter,
         skills_metadata=skills_metadata,
@@ -1170,3 +1174,101 @@ async def test_skill_picker_to_submission_e2e(tmp_path: Path) -> None:
 
     assert len(agent.prompts) == 1
     assert agent.prompts[0] == '<skill name="plan">my project</skill>'
+
+
+# --- Escape key cancellation tests ---
+
+
+@pytest.mark.asyncio
+async def test_escape_during_turn_cancels() -> None:
+    cancel_calls = 0
+
+    def fake_cancel() -> None:
+        nonlocal cancel_calls
+        cancel_calls += 1
+
+    turn_started = asyncio.Event()
+
+    async def slow_scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        turn_started.set()
+        yield ResponseChunk(content="streaming...", agent_id=MAIN_AGENT_ID)
+        # Wait long enough for Escape to be pressed
+        await asyncio.sleep(5)
+        yield Response(content="streaming...", agent_id=MAIN_AGENT_ID)
+
+    agent = MockStreamAgent(slow_scenario)
+    app = _create_app(
+        agent_stream=agent.stream,
+        agent_id=MAIN_AGENT_ID,
+        cancel_fn=fake_cancel,
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await pilot.pause(0.05)
+        await pilot.press("escape")
+        await pilot.pause(0.05)
+
+        assert cancel_calls == 1
+
+
+@pytest.mark.asyncio
+async def test_escape_when_idle_does_nothing() -> None:
+    cancel_calls = 0
+
+    def fake_cancel() -> None:
+        nonlocal cancel_calls
+        cancel_calls += 1
+
+    app = _create_app(
+        agent_stream=MockStreamAgent(_no_events).stream,
+        agent_id=MAIN_AGENT_ID,
+        cancel_fn=fake_cancel,
+    )
+
+    async with app.run_test() as pilot:
+        await pilot.press("escape")
+        await pilot.pause(0.05)
+
+        assert cancel_calls == 0
+
+
+@pytest.mark.asyncio
+async def test_escape_resolves_pending_approval() -> None:
+    cancel_calls = 0
+
+    def fake_cancel() -> None:
+        nonlocal cancel_calls
+        cancel_calls += 1
+
+    async def approval_scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        request = ApprovalRequest(
+            tool_name="database_query",
+            tool_args={"query": "SELECT 1"},
+            agent_id=MAIN_AGENT_ID,
+            corr_id="call-1",
+        )
+        yield request
+        approved = await request.approved()
+        if not approved:
+            yield Cancelled(agent_id=MAIN_AGENT_ID, phase="tool_execution")
+
+    agent = MockStreamAgent(approval_scenario)
+    app = _create_app(
+        agent_stream=agent.stream,
+        agent_id=MAIN_AGENT_ID,
+        cancel_fn=fake_cancel,
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await pilot.pause(0.05)
+        assert len(app.query("ApprovalBar")) == 1
+
+        await pilot.press("escape")
+        await app.workers.wait_for_complete()
+
+        assert cancel_calls == 1
+        assert len(app.query("ApprovalBar")) == 0
+        prompt = app.query_one("#prompt-input", PromptInput)
+        assert not prompt.disabled

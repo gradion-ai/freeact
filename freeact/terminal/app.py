@@ -21,6 +21,7 @@ from freeact.agent.config.skills import SkillMetadata
 from freeact.agent.events import (
     AgentEvent,
     ApprovalRequest,
+    Cancelled,
     CodeExecutionOutput,
     CodeExecutionOutputChunk,
     Response,
@@ -228,6 +229,7 @@ class TerminalInterface:
                 config=self._config,
                 agent_id=self._agent.agent_id,
                 agent_stream=self._agent.stream,
+                cancel_fn=self._agent.cancel,
                 permission_manager=self._permission_manager,
                 skills_metadata=self._agent.config.skills_metadata,
             )
@@ -298,6 +300,7 @@ class TerminalApp(App[None]):
         Binding("super+c", "screen.copy_text", "Copy", show=False, priority=True),
         Binding("ctrl+shift+c", "screen.copy_text", "Copy", show=False, priority=True),
         Binding("ctrl+insert", "screen.copy_text", "Copy", show=False, priority=True),
+        Binding("escape", "cancel_turn", "Cancel", show=False, priority=True),
         Binding("enter", "approve_hotkey(1)", show=False, priority=True),
         Binding("ctrl+m", "approve_hotkey(1)", show=False, priority=True),
         Binding("y", "approve_hotkey(1)", show=False, priority=True),
@@ -311,6 +314,7 @@ class TerminalApp(App[None]):
         config: Config,
         agent_id: str,
         agent_stream: AgentStreamFn,
+        cancel_fn: Callable[[], None] | None = None,
         permission_manager: PermissionManager | None = None,
         clipboard_adapter: ClipboardAdapterProtocol | None = None,
         skills_metadata: list[SkillMetadata] | None = None,
@@ -319,10 +323,12 @@ class TerminalApp(App[None]):
         self._config = config
         self._agent_id = agent_id
         self._agent_stream = agent_stream
+        self._cancel_fn = cancel_fn
         self._permission_manager = permission_manager or PermissionManager()
         self._clipboard_adapter = clipboard_adapter or ClipboardAdapter()
         self._skills_metadata = skills_metadata or []
         self._approval_future: asyncio.Future[int] | None = None
+        self._turn_in_progress = False
         self._tool_adapter = ToolAdapter()
         self._expand_all_override = False
         self._configured_collapsed: dict[int, bool] = {}
@@ -440,6 +446,7 @@ class TerminalApp(App[None]):
         exec_log = None
         tool_calls: dict[str, ActionData] = {}
 
+        self._turn_in_progress = True
         try:
             async for event in self._agent_stream(content):
                 match event:
@@ -516,11 +523,14 @@ class TerminalApp(App[None]):
                             configured_collapsed=self._config.collapse_tool_outputs,
                         )
                         await self._mount_and_scroll(conversation, box)
+                    case Cancelled():
+                        pass  # stream ends naturally after this
         except Exception as e:
             error_box = create_error_box(f"{type(e).__name__}: {e}")
             self._register_box(error_box, configured_collapsed=False)
             await self._mount_and_scroll(conversation, error_box)
         finally:
+            self._turn_in_progress = False
             prompt_input.disabled = False
             prompt_input.focus()
 
@@ -618,7 +628,15 @@ class TerminalApp(App[None]):
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if action == "approve_hotkey":
             return self._has_pending_approval()
+        if action == "cancel_turn":
+            return self._turn_in_progress and self._cancel_fn is not None
         return super().check_action(action, parameters)
+
+    def action_cancel_turn(self) -> None:
+        if self._cancel_fn is not None:
+            self._cancel_fn()
+        if self._approval_future is not None and not self._approval_future.done():
+            self._approval_future.set_result(0)
 
     def action_approve_hotkey(self, decision: int) -> None:
         future = self._approval_future

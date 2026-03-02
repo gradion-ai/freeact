@@ -2,6 +2,7 @@
     options:
       filters:
         - "!^tool_names$"
+        - "!^_await_approval_or_cancel$"
 
 ::: freeact.agent.AgentEvent
 
@@ -24,3 +25,5 @@
 ::: freeact.agent.CodeExecutionOutputChunk
 
 ::: freeact.agent.ToolOutput
+
+::: freeact.agent.Cancelled

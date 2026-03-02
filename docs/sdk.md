@@ -61,6 +61,7 @@ The [`Agent.stream()`][freeact.agent.Agent.stream] method yields events as they 
 | [`CodeExecutionOutputChunk`][freeact.agent.CodeExecutionOutputChunk] | Partial code execution output (content streaming) |
 | [`CodeExecutionOutput`][freeact.agent.CodeExecutionOutput] | Complete code execution output |
 | [`ToolOutput`][freeact.agent.ToolOutput] | Tool or built-in operation output |
+| [`Cancelled`][freeact.agent.Cancelled] | Agent turn was cancelled |
 
 All yielded events inherit from [`AgentEvent`][freeact.agent.AgentEvent] and carry `agent_id`.
 
@@ -85,6 +86,24 @@ async for event in agent.stream(prompt, max_turns=50):
 ```
 
 If `max_turns=None` (default), the loop continues until the model produces a final response.
+
+### Cancellation
+
+Call [`cancel()`][freeact.agent.Agent.cancel] to stop a running agent turn. The active `stream()` stops at the next phase boundary and yields a [`Cancelled`][freeact.agent.Cancelled] event. Running kernel executions, including those in subagents, are interrupted immediately. Partial responses and synthetic tool returns are preserved in message history, so the conversation remains consistent for subsequent turns.
+
+```python
+# From another coroutine or callback:
+agent.cancel()
+```
+
+```python
+async for event in agent.stream(prompt):
+    match event:
+        case Cancelled(phase=phase):
+            print(f"Turn cancelled during {phase}")
+        case Response(content=content):
+            print(content)
+```
 
 ### Subagents
 

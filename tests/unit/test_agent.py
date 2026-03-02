@@ -1,3 +1,4 @@
+import asyncio
 import json
 import uuid
 from pathlib import Path
@@ -5,14 +6,16 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
+from pydantic_ai.models.function import DeltaToolCall
 
-from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput
+from freeact.agent import Agent, ApprovalRequest, Cancelled, CodeExecutionOutput
 from freeact.agent.config import Config
 from tests.helpers import (
     CodeExecFunction,
     collect_stream,
     create_stream_function,
     create_test_config,
+    get_tool_return_parts,
     patched_agent,
 )
 
@@ -433,6 +436,51 @@ class TestSubagentConfigPropagation:
         assert captured["sandbox"] is True
         assert captured["sandbox_config"] == Path("/tmp/sandbox.cfg")
 
+    @pytest.mark.asyncio
+    async def test_cancel_propagates_to_subagent_code_executor(self):
+        """Parent cancel triggers cancel on subagent's code executor."""
+        subagent_executor_cancelled = asyncio.Event()
+
+        class FakeSubagent:
+            def __init__(self, config: Config, agent_id: str | None = None, **kwargs: Any):
+                self.agent_id = agent_id or "main"
+                mock_exec = MagicMock()
+                mock_exec.cancel = lambda: subagent_executor_cancelled.set()
+                self._code_executor = mock_exec
+
+            async def __aenter__(self) -> "FakeSubagent":
+                return self
+
+            async def __aexit__(self, *args: object) -> None:
+                return None
+
+            async def stream(self, prompt: str, max_turns: int | None = None):  # type: ignore[return]
+                from freeact.agent.events import Response
+
+                yield Response(content="working", agent_id=self.agent_id)
+                try:
+                    await asyncio.wait_for(subagent_executor_cancelled.wait(), timeout=5)
+                except asyncio.TimeoutError:
+                    pass
+                yield Response(content="done", agent_id=self.agent_id)
+
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            agent = Agent(config=create_test_config())
+
+        async def set_cancel_later() -> None:
+            await asyncio.sleep(0.05)
+            agent._cancel_event.set()
+
+        with patch("freeact.agent.core.Agent", FakeSubagent):
+            cancel_task = asyncio.create_task(set_cancel_later())
+            # consume events to drive the subagent stream to completion
+            async for _ in agent._execute_subagent_task("subtask", max_turns=3, corr_id="call-1"):
+                pass
+            await cancel_task
+
+        assert subagent_executor_cancelled.is_set()
+
 
 class TestSubagentDefaults:
     """Tests for subagent tool definition defaults."""
@@ -461,3 +509,169 @@ class TestIpyboxToolSchema:
         execute_schema = next(item for item in schema if item["name"] == "ipybox_execute_ipython_cell")
         properties = execute_schema["parameters_json_schema"]["properties"]
         assert "max_output_chars" not in properties
+
+
+class TestCancellation:
+    """Tests for agent cancellation via cancel() / _cancel_event."""
+
+    @pytest.mark.asyncio
+    async def test_cancel_during_tool_execution(self):
+        """Cancel during code execution yields Cancelled(phase='tool_execution')."""
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": "print(1)"},
+        )
+
+        async def cancel_on_exec(self: Agent, code: str):  # type: ignore[override]
+            self._cancel_event.set()
+            yield CodeExecutionOutput(text="output", images=[])
+
+        async with patched_agent(stream_function, cancel_on_exec) as agent:
+            results = await collect_stream(agent, "test")
+
+        assert len(results.cancelled) == 1
+        assert results.cancelled[0].phase == "tool_execution"
+        assert len(results.code_outputs) == 1
+
+    @pytest.mark.asyncio
+    async def test_cancel_during_llm_streaming(self):
+        """Cancel during LLM streaming preserves partial response and yields Cancelled."""
+        agent_ref: list[Agent | None] = [None]
+
+        async def stream_function(messages: Any, info: Any) -> Any:
+            yield "partial response"
+            if agent_ref[0] is not None:
+                agent_ref[0]._cancel_event.set()
+            yield " more text"
+
+        async with patched_agent(stream_function) as agent:
+            agent_ref[0] = agent
+            results = await collect_stream(agent, "test")
+
+        assert len(results.cancelled) == 1
+        assert results.cancelled[0].phase == "llm_streaming"
+        assert len(results.responses) == 1
+
+    @pytest.mark.asyncio
+    async def test_cancel_during_approval_wait(self):
+        """Cancel during approval wait produces interrupted tool return."""
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": "print(1)"},
+        )
+
+        async with patched_agent(stream_function) as agent:
+            events: list[Any] = []
+            async for event in agent.stream("test"):
+                events.append(event)
+                match event:
+                    case ApprovalRequest():
+                        agent._cancel_event.set()
+
+        cancelled = [e for e in events if isinstance(e, Cancelled)]
+        assert len(cancelled) == 1
+        assert cancelled[0].phase == "tool_execution"
+
+        tool_returns = get_tool_return_parts(agent._message_history)
+        assert len(tool_returns) == 1
+        assert tool_returns[0].content == "Interrupted by user"
+        assert tool_returns[0].metadata.get("interrupted") is True
+
+    def test_approve_after_future_resolved_is_noop(self):
+        """approve() after future already resolved is a no-op (no InvalidStateError).
+
+        When cancel races with terminal approval, both paths may try to
+        resolve the same ApprovalRequest._future. The second call must
+        not raise InvalidStateError.
+        """
+        approval = ApprovalRequest(
+            agent_id="main",
+            corr_id="test",
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": "print(1)"},
+        )
+        # Simulate _await_approval_or_cancel resolving the future first
+        approval._future.set_result(False)
+        assert approval._future.done()
+        # Simulate terminal calling approve() after cancel unblocks _handle_approval
+        approval.approve(False)  # no InvalidStateError
+        approval.approve(True)  # also safe with different value
+
+    @pytest.mark.asyncio
+    async def test_cancel_produces_synthetic_returns_for_orphaned_calls(self):
+        """Cancel during LLM streaming with tool calls generates synthetic returns."""
+        agent_ref: list[Agent | None] = [None]
+
+        async def stream_function(messages: Any, info: Any) -> Any:
+            if not get_tool_return_parts(messages):
+                yield {
+                    0: DeltaToolCall(
+                        name="ipybox_execute_ipython_cell",
+                        json_args=json.dumps({"code": "print(1)"}),
+                        tool_call_id="call_1",
+                    ),
+                    1: DeltaToolCall(
+                        name="ipybox_execute_ipython_cell",
+                        json_args=json.dumps({"code": "print(2)"}),
+                        tool_call_id="call_2",
+                    ),
+                }
+                if agent_ref[0] is not None:
+                    agent_ref[0]._cancel_event.set()
+                yield "done"
+
+        async with patched_agent(stream_function) as agent:
+            agent_ref[0] = agent
+            results = await collect_stream(agent, "test")
+
+        assert len(results.cancelled) == 1
+        assert results.cancelled[0].phase == "llm_streaming"
+
+        tool_returns = get_tool_return_parts(agent._message_history)
+        assert len(tool_returns) == 2
+        for tr in tool_returns:
+            assert tr.content == "Interrupted by user"
+            assert tr.metadata.get("interrupted") is True
+
+    @pytest.mark.asyncio
+    async def test_cancel_during_execution_with_empty_output(self):
+        """Cancel during code execution with no output yields interrupted tool return."""
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": "import time; time.sleep(30)"},
+        )
+
+        async def cancel_no_output(self: Agent, code: str):  # type: ignore[override]
+            self._cancel_event.set()
+            # ipybox cancel() causes stream() to return without yielding CodeExecutionResult,
+            # so _ipybox_execute_ipython_cell ends without yielding CodeExecutionOutput.
+            return
+            yield  # make this an async generator  # noqa: RUF028
+
+        async with patched_agent(stream_function, cancel_no_output) as agent:
+            results = await collect_stream(agent, "test")
+
+        assert len(results.cancelled) == 1
+        assert results.cancelled[0].phase == "tool_execution"
+        assert len(results.code_outputs) == 0
+
+        tool_returns = get_tool_return_parts(agent._message_history)
+        assert len(tool_returns) == 1
+        assert tool_returns[0].content == "Interrupted by user"
+        assert tool_returns[0].metadata.get("interrupted") is True
+
+    @pytest.mark.asyncio
+    async def test_stream_without_cancel_unchanged(self):
+        """Normal stream behavior is unchanged when cancel is never set."""
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": "print(1)"},
+        )
+
+        async with patched_agent(stream_function, create_code_exec_function("output")) as agent:
+            results = await collect_stream(agent, "test")
+
+        assert len(results.cancelled) == 0
+        assert len(results.approvals) == 1
+        assert len(results.code_outputs) == 1
+        assert len(results.responses) >= 1

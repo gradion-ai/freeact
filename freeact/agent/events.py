@@ -2,7 +2,7 @@ import re
 from asyncio import Future
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from pydantic_ai.mcp import ToolResult
 
@@ -105,12 +105,22 @@ class ApprovalRequest(AgentEvent):
     def approve(self, decision: bool) -> None:
         """Resolve this approval request.
 
+        No-op if already resolved (e.g. by cancellation).
+
         Args:
             decision: `True` to execute, `False` to reject and end
                 the current agent turn.
         """
-        self._future.set_result(decision)
+        if not self._future.done():
+            self._future.set_result(decision)
 
     async def approved(self) -> bool:
         """Await until `approve()` is called and return the decision."""
         return await self._future
+
+
+@dataclass(kw_only=True)
+class Cancelled(AgentEvent):
+    """Agent execution was cancelled by the user."""
+
+    phase: Literal["between_turns", "llm_streaming", "tool_execution"]

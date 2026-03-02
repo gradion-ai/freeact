@@ -56,6 +56,7 @@ The interactive mode provides a conversation interface with the agent in a termi
 | `Enter` | Send message |
 | `Ctrl+J` | Insert newline |
 | `Option+Enter` (macOS)<br/>`Alt+Enter` (Linux/Windows) | Insert newline (`Ctrl+J` fallback) |
+| `Escape` | Cancel the current agent turn |
 | `Ctrl+Q` | Quit |
 
 ### Clipboard
@@ -102,6 +103,10 @@ The agent automatically uses skills when a request matches a skill's description
 - Select a skill to insert its name, then type arguments after it.
 - Text after the skill name is passed as arguments to the skill.
 - Skill locations: `.agents/skills/` (project) and `.freeact/skills/` (bundled).
+
+### Cancellation
+
+Press `Escape` during an active agent turn to cancel it. This interrupts the current operation (LLM streaming, code execution, or approval wait), stops the turn, and re-enables the prompt input.
 
 ### Approval Prompt
 

@@ -9,7 +9,7 @@ from typing import Any
 
 from pydantic_ai.models.function import FunctionModel
 
-from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput, Response, ToolOutput
+from freeact.agent import Agent, ApprovalRequest, Cancelled, CodeExecutionOutput, Response, ToolOutput
 from freeact.agent.config import Config
 from freeact.agent.events import ResponseChunk, Thoughts, ThoughtsChunk
 
@@ -103,6 +103,7 @@ class StreamResults:
     """Container for collected stream events."""
 
     approvals: list[ApprovalRequest] = field(default_factory=list)
+    cancelled: list[Cancelled] = field(default_factory=list)
     code_outputs: list[CodeExecutionOutput] = field(default_factory=list)
     tool_outputs: list[ToolOutput] = field(default_factory=list)
     responses: list[Response] = field(default_factory=list)
@@ -126,6 +127,8 @@ async def collect_stream(
             case ApprovalRequest() as req:
                 results.approvals.append(req)
                 req.approve(approve_function(req))
+            case Cancelled() as c:
+                results.cancelled.append(c)
             case CodeExecutionOutput() as out:
                 results.code_outputs.append(out)
             case ToolOutput() as out:
