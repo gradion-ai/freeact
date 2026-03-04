@@ -4,7 +4,7 @@ import re
 from collections.abc import AsyncIterator
 from pathlib import Path
 
-import ipybox
+import mcpygen
 import pytest
 import pytest_asyncio
 from pydantic_ai.messages import ModelMessage, ModelRequest, ToolReturnPart
@@ -50,7 +50,7 @@ def _collect_tool_return_parts(messages: list[ModelMessage]) -> list[ToolReturnP
 @pytest_asyncio.fixture
 async def mcp_sources_dir(tmp_path):
     """Pre-generate MCP sources for PTC testing."""
-    await ipybox.generate_mcp_sources(
+    await mcpygen.generate_mcp_sources(
         "test",
         {"command": "python", "args": [str(STDIO_SERVER_PATH)]},
         tmp_path / MCPTOOLS_DIR,

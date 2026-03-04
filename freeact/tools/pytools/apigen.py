@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-import ipybox
+import mcpygen
 
 from freeact.tools.pytools import MCPTOOLS_DIR
 from freeact.tools.pytools.categories import Categories, list_categories
@@ -14,7 +14,7 @@ async def generate_mcp_sources(config: dict[str, dict[str, Any]], generated_dir:
     """Generate Python API for MCP servers in `config`.
 
     For servers not already in `mcptools/` categories, generates Python API
-    using `ipybox.generate_mcp_sources`.
+    using `mcpygen.generate_mcp_sources`.
 
     Args:
         config: Dictionary mapping server names to server configurations.
@@ -29,4 +29,4 @@ async def generate_mcp_sources(config: dict[str, dict[str, Any]], generated_dir:
     for name, params in config.items():
         if name not in categories_mcptools:
             logger.info(f"Generating Python API for MCP server: {name}")
-            await ipybox.generate_mcp_sources(name, params, generated_dir / MCPTOOLS_DIR)
+            await mcpygen.generate_mcp_sources(name, params, generated_dir / MCPTOOLS_DIR)

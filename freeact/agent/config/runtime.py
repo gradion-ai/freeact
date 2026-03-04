@@ -2,7 +2,7 @@ import copy
 from pathlib import Path
 from typing import Any, Literal, Mapping
 
-from ipybox.vars import replace_variables
+from mcpygen.vars import replace_variables
 from pydantic_ai.models import Model, infer_model
 from pydantic_ai.providers import Provider, infer_provider_class
 
