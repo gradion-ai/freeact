@@ -4,7 +4,7 @@ import logging
 import uuid
 from pathlib import Path
 
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 
 from freeact.agent import Agent
 from freeact.agent.config import Config as AgentConfig
@@ -121,7 +121,7 @@ def main() -> None:
     - freeact: Run the agent (default)
     - freeact init: Initialize .freeact/ configuration directory
     """
-    load_dotenv()
+    load_dotenv(find_dotenv(usecwd=True))
     namespace = parse_args()
     configure_logging(namespace.log_level)
 
