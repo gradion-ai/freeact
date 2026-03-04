@@ -1860,7 +1860,7 @@ generate_mcp_sources(
 
 Generate Python API for MCP servers in `config`.
 
-For servers not already in `mcptools/` categories, generates Python API using `ipybox.generate_mcp_sources`.
+For servers not already in `mcptools/` categories, generates Python API using `mcpygen.generate_mcp_sources`.
 
 Parameters:
 
