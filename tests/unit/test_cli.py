@@ -87,7 +87,8 @@ def test_main_init_does_not_overwrite_existing_config(tmp_path: Path, monkeypatc
     terminal_json = freeact_dir / "terminal.json"
     terminal_json.write_text('{"expand_all_toggle_key": "ctrl+p"}')
 
-    monkeypatch.setattr(cli, "load_dotenv", lambda: None)
+    monkeypatch.setattr(cli, "find_dotenv", lambda **kwargs: "")
+    monkeypatch.setattr(cli, "load_dotenv", lambda *args: None)
     monkeypatch.setattr(
         cli,
         "parse_args",
