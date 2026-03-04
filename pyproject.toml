@@ -18,7 +18,8 @@ dependencies = [
     "pyyaml>=6.0.3",
     "rich>=14.2.0",
     "textual>=8.0.0",
-    "ipybox>=0.7.6",
+    "ipybox>=0.8.0",
+    "mcpygen>=0.1.0",
     "sqlite-vec>=0.1.0",
     "watchfiles>=1.0.0",
 ]

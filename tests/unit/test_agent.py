@@ -28,10 +28,10 @@ class TestCodeExecutionOutput:
         output = CodeExecutionOutput(text=None, images=[])
         assert output.ptc_rejected() is False
 
-    def test_ptc_rejected_detects_rejection_pattern(self):
-        """ptc_rejected() detects ToolRunnerError pattern."""
+    def test_ptc_rejected_detects_rejection(self):
+        """ptc_rejected() detects ApprovalRejectedError in output."""
         output = CodeExecutionOutput(
-            text="ToolRunnerError: Approval request for my_tool rejected",
+            text="ApprovalRejectedError: Approval request for my_tool rejected",
             images=[],
         )
         assert output.ptc_rejected() is True
@@ -291,12 +291,12 @@ class TestIpyboxExecution:
             tool_name="ipybox_execute_ipython_cell",
             tool_args={"code": test_code},
         )
-        # rejected_result must match the pattern in CodeExecutionOutput.ptc_rejected()
+        # rejected_result must contain the class name checked by CodeExecutionOutput.ptc_rejected()
         code_exec_function = create_code_exec_with_approval_function(
             tool_name="test_tool_2",
             tool_args={"s": "ptc_rejected"},
             approved_result="You passed to tool 2: ptc_rejected",
-            rejected_result="ToolRunnerError: Approval request for test_tool_2 rejected",
+            rejected_result="ApprovalRejectedError: Approval request for test_tool_2 rejected",
         )
 
         # Approve code execution, reject PTC
@@ -311,7 +311,7 @@ class TestIpyboxExecution:
             assert results.approvals[1].tool_name == "test_tool_2"
             assert len(results.code_outputs) == 1
             assert results.code_outputs[0].text is not None
-            assert "ToolRunnerError: Approval request for test_tool_2 rejected" in results.code_outputs[0].text
+            assert "ApprovalRejectedError:" in results.code_outputs[0].text
             # Agent turn ends with rejection response
             assert any(r.content == "Tool call rejected" for r in results.responses)
 

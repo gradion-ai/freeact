@@ -1,4 +1,3 @@
-import re
 from asyncio import Future
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -74,9 +73,7 @@ class CodeExecutionOutput(AgentEvent):
         if not self.text:
             return False
 
-        # TODO: make detection of PTC rejection more robust ...
-        pattern = r"ToolRunnerError: Approval request for \S+ rejected"
-        return bool(re.search(pattern, self.text))
+        return "ApprovalRejectedError:" in self.text
 
     def format(self) -> str:
         """Format output with image markdown links."""
