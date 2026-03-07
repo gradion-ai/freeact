@@ -1,43 +1,9 @@
 import json
 from fnmatch import fnmatch
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import aiofiles
-
-_KNOWN_SUBCOMMAND_TOOLS = frozenset(
-    {
-        "git",
-        "pip",
-        "docker",
-        "kubectl",
-        "npm",
-        "yarn",
-        "cargo",
-        "go",
-        "apt",
-        "brew",
-        "conda",
-        "poetry",
-        "uv",
-        "make",
-        "systemctl",
-    }
-)
-
-
-def _suggest_shell_pattern(command: str) -> str:
-    """Suggest a glob pattern for a shell command.
-
-    Uses `cmd subcmd *` heuristic for known multi-word commands,
-    otherwise `cmd *`.
-    """
-    parts = command.split()
-    if not parts:
-        return "*"
-    if len(parts) >= 2 and parts[0] in _KNOWN_SUBCOMMAND_TOOLS:
-        return f"{parts[0]} {parts[1]} *"
-    return f"{parts[0]} *"
 
 
 class PermissionManager:
@@ -176,14 +142,14 @@ class PermissionManager:
 
         return False
 
-    async def allow_always(self, pattern: str, domain: str = "tool") -> None:
+    async def allow_always(self, pattern: str, domain: Literal["tool", "shell"] = "tool") -> None:
         """Add a pattern to the always-allow list and persist."""
         target = self._tool_allow_always if domain == "tool" else self._shell_allow_always
         if pattern not in target:
             target.append(pattern)
         await self.save()
 
-    def allow_session(self, pattern: str, domain: str = "tool") -> None:
+    def allow_session(self, pattern: str, domain: Literal["tool", "shell"] = "tool") -> None:
         """Add a pattern to the session-allow list (not persisted)."""
         target = self._tool_allow_session if domain == "tool" else self._shell_allow_session
         if pattern not in target:
@@ -199,9 +165,11 @@ class PermissionManager:
     def suggest_shell_pattern(self, command: str) -> str:
         """Suggest a permission pattern for a shell command.
 
-        Delegates to `freeact.shell.suggest_shell_pattern()`.
+        Delegates to [`suggest_shell_pattern()`][freeact.shell.suggest_shell_pattern].
         """
-        return _suggest_shell_pattern(command)
+        from freeact.shell import suggest_shell_pattern
+
+        return suggest_shell_pattern(command)
 
     def _is_within_freeact(self, path_str: str) -> bool:
         path = Path(path_str).resolve()

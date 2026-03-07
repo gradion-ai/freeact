@@ -2,13 +2,29 @@ import ast
 
 from IPython.core.inputtransformer2 import TransformerManager
 
-from freeact.permissions import _suggest_shell_pattern
-
-suggest_shell_pattern = _suggest_shell_pattern
-
 _transformer = TransformerManager()
 
 _SHELL_OPERATORS = {"&&", "||", "|", ";"}
+
+_KNOWN_SUBCOMMAND_TOOLS = frozenset(
+    {
+        "git",
+        "pip",
+        "docker",
+        "kubectl",
+        "npm",
+        "yarn",
+        "cargo",
+        "go",
+        "apt",
+        "brew",
+        "conda",
+        "poetry",
+        "uv",
+        "make",
+        "systemctl",
+    }
+)
 
 
 def extract_shell_commands(code: str) -> list[str]:
@@ -25,6 +41,9 @@ def extract_shell_commands(code: str) -> list[str]:
     Returns:
         List of shell command strings found in the cell.
     """
+    if "!" not in code and "%%bash" not in code:
+        return []
+
     transformed = _transformer.transform_cell(code)
     try:
         tree = ast.parse(transformed)
@@ -60,6 +79,20 @@ def extract_shell_commands(code: str) -> list[str]:
     return commands
 
 
+def suggest_shell_pattern(command: str) -> str:
+    """Suggest a glob pattern for a shell command.
+
+    Uses `cmd subcmd *` heuristic for known multi-word commands,
+    otherwise `cmd *`.
+    """
+    parts = command.split()
+    if not parts:
+        return "*"
+    if len(parts) >= 2 and parts[0] in _KNOWN_SUBCOMMAND_TOOLS:
+        return f"{parts[0]} {parts[1]} *"
+    return f"{parts[0]} *"
+
+
 def split_composite_command(command: str) -> list[str]:
     """Split a composite shell command on `&&`, `||`, `|`, and `;`.
 
@@ -71,11 +104,6 @@ def split_composite_command(command: str) -> list[str]:
     Returns:
         List of individual sub-command strings.
     """
-    return _split_on_operators(command)
-
-
-def _split_on_operators(command: str) -> list[str]:
-    """Split command on shell operators while respecting quotes."""
     result: list[str] = []
     current: list[str] = []
     i = 0

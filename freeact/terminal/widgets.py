@@ -178,6 +178,16 @@ class ApprovalBar(Static):
         event.input.remove()
         self.post_message(self.Decided(self._pending_decision, pattern=self._pattern))
 
+    @property
+    def editing(self) -> bool:
+        """Whether the pattern input is currently active."""
+        return self._editing
+
+    @property
+    def pattern(self) -> str:
+        """Current pattern value."""
+        return self._pattern
+
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if self._editing and action in ("decide", "save_rule"):
             return False

@@ -122,7 +122,7 @@ def test_approval_bar_decided_carries_pattern() -> None:
 
 def test_approval_bar_default_pattern_is_empty() -> None:
     bar = ApprovalBar()
-    assert bar._pattern == ""
+    assert bar.pattern == ""
 
 
 def test_prompt_input_css_uses_solid_border_variants() -> None:

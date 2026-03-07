@@ -48,6 +48,7 @@ from freeact.agent.events import (
     ToolOutput,
 )
 from freeact.agent.store import SessionStore, ToolResultMaterializer
+from freeact.shell import extract_shell_commands, split_composite_command
 from freeact.tools.utils import (
     get_tool_definitions,
     load_ipybox_tool_definitions,
@@ -505,8 +506,6 @@ class Agent:
         match tool_name:
             case "ipybox_execute_ipython_cell":
                 # Shell command approval (before execution)
-                from freeact.shell import extract_shell_commands, split_composite_command
-
                 raw_commands = extract_shell_commands(tool_args["code"])
                 for raw_cmd in raw_commands:
                     for sub_cmd in split_composite_command(raw_cmd):

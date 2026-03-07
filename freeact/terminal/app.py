@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as package_version
 from pathlib import Path
-from typing import TypeAlias
+from typing import Literal, TypeAlias
 
 from pydantic_ai import UserContent
 from rich.console import Console
@@ -575,19 +575,14 @@ class TerminalApp(App[None]):
             self._pending_approval_widget_id = id(box)
         await self._mount_and_scroll(conversation, box)
 
-        # Determine domain and pre-approval check
-        domain = "shell" if request.shell else "tool"
+        # Determine domain, pattern, and pre-approval
+        domain: Literal["tool", "shell"] = "shell" if request.shell else "tool"
         if domain == "shell":
-            pre_check = self._permission_manager.check_shell(request.tool_name)
             suggested_pattern = self._permission_manager.suggest_shell_pattern(request.tool_name)
+            pre_approved = self._permission_manager.check_shell(request.tool_name) == "allow"
         else:
-            pre_check = None
             suggested_pattern = self._permission_manager.suggest_tool_pattern(request.tool_name)
-
-        # Check if pre-approved
-        pre_approved = (pre_check == "allow") or (
-            domain == "tool" and self._permission_manager.is_allowed(request.tool_name, request.tool_args)
-        )
+            pre_approved = self._permission_manager.is_allowed(request.tool_name, request.tool_args)
 
         if pre_approved:
             if self._pending_approval_widget_id == id(box):
@@ -599,9 +594,6 @@ class TerminalApp(App[None]):
             )
             request.approve(True)
             return
-
-        # Always ask if ask rule matches
-        # (falls through to prompt even if no ask rule -- just no match means prompt)
 
         # Prompt user for approval
         self._approval_future = asyncio.get_running_loop().create_future()
@@ -646,7 +638,7 @@ class TerminalApp(App[None]):
             if not self._has_pending_approval():
                 return False
             bars = self.query("ApprovalBar")
-            if bars and bars.last()._editing:
+            if bars and bars.last().editing:
                 return False
             return True
         if action == "cancel_turn":
@@ -664,7 +656,7 @@ class TerminalApp(App[None]):
         if future is not None and not future.done():
             # Read pattern from the current ApprovalBar if available
             bars = self.query("ApprovalBar")
-            pattern = bars.last()._pattern if bars else ""
+            pattern = bars.last().pattern if bars else ""
             future.set_result((decision, pattern))
 
     def action_toggle_expand_all(self) -> None:
