@@ -61,17 +61,32 @@ class StubPermissionManager:
 
     def __init__(self, preapproved: bool = False) -> None:
         self._preapproved = preapproved
-        self.allow_always_calls: list[str] = []
-        self.allow_session_calls: list[str] = []
+        self.allow_always_calls: list[tuple[str, str]] = []
+        self.allow_session_calls: list[tuple[str, str]] = []
 
     def is_allowed(self, tool_name: str, tool_args: dict[str, object] | None = None) -> bool:
         return self._preapproved
 
-    async def allow_always(self, tool_name: str) -> None:
-        self.allow_always_calls.append(tool_name)
+    def check_tool(self, tool_name: str) -> str | None:
+        return "allow" if self._preapproved else None
 
-    def allow_session(self, tool_name: str) -> None:
-        self.allow_session_calls.append(tool_name)
+    def check_shell(self, command: str) -> str | None:
+        return "allow" if self._preapproved else None
+
+    def suggest_tool_pattern(self, tool_name: str) -> str:
+        return tool_name
+
+    def suggest_shell_pattern(self, command: str) -> str:
+        parts = command.split()
+        if len(parts) >= 2:
+            return f"{parts[0]} {parts[1]} *"
+        return f"{parts[0]} *" if parts else "*"
+
+    async def allow_always(self, pattern: str, domain: str = "tool") -> None:
+        self.allow_always_calls.append((pattern, domain))
+
+    def allow_session(self, pattern: str, domain: str = "tool") -> None:
+        self.allow_session_calls.append((pattern, domain))
 
 
 class StubClipboardAdapter:
@@ -532,9 +547,11 @@ async def test_approval_always_calls_allow_always() -> None:
         await _submit_prompt(app, pilot)
         await pilot.pause(0.05)
         await pilot.press("a")
+        await pilot.pause(0.05)
+        await pilot.press("enter")
         await app.workers.wait_for_complete()
 
-    assert permission_manager.allow_always_calls == ["database_query"]
+    assert permission_manager.allow_always_calls == [("database_query", "tool")]
 
 
 @pytest.mark.asyncio
@@ -561,9 +578,11 @@ async def test_approval_session_calls_allow_session() -> None:
         await _submit_prompt(app, pilot)
         await pilot.pause(0.05)
         await pilot.press("s")
+        await pilot.pause(0.05)
+        await pilot.press("enter")
         await app.workers.wait_for_complete()
 
-    assert permission_manager.allow_session_calls == ["database_query"]
+    assert permission_manager.allow_session_calls == [("database_query", "tool")]
 
 
 @pytest.mark.asyncio
@@ -1272,3 +1291,170 @@ async def test_escape_resolves_pending_approval() -> None:
         assert len(app.query("ApprovalBar")) == 0
         prompt = app.query_one("#prompt-input", PromptInput)
         assert not prompt.disabled
+
+
+# --- Pattern and domain routing tests ---
+
+
+@pytest.mark.asyncio
+async def test_approval_always_passes_pattern_to_allow_always() -> None:
+    permission_manager = StubPermissionManager()
+
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        request = ApprovalRequest(
+            tool_name="github_search_repositories",
+            tool_args={"query": "test"},
+            agent_id=MAIN_AGENT_ID,
+            corr_id="call-1",
+        )
+        yield request
+        await request.approved()
+
+    app = _create_app(
+        agent_stream=MockStreamAgent(scenario).stream,
+        agent_id=MAIN_AGENT_ID,
+        permission_manager=permission_manager,  # type: ignore[arg-type]
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await pilot.pause(0.05)
+        await pilot.press("a")
+        await pilot.pause(0.05)
+        await pilot.press("enter")
+        await app.workers.wait_for_complete()
+
+    # Pattern should be the suggested pattern (full tool name)
+    assert permission_manager.allow_always_calls == [("github_search_repositories", "tool")]
+
+
+@pytest.mark.asyncio
+async def test_approval_session_passes_pattern_to_allow_session() -> None:
+    permission_manager = StubPermissionManager()
+
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        request = ApprovalRequest(
+            tool_name="github_search_repositories",
+            tool_args={"query": "test"},
+            agent_id=MAIN_AGENT_ID,
+            corr_id="call-1",
+        )
+        yield request
+        await request.approved()
+
+    app = _create_app(
+        agent_stream=MockStreamAgent(scenario).stream,
+        agent_id=MAIN_AGENT_ID,
+        permission_manager=permission_manager,  # type: ignore[arg-type]
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await pilot.pause(0.05)
+        await pilot.press("s")
+        await pilot.pause(0.05)
+        await pilot.press("enter")
+        await app.workers.wait_for_complete()
+
+    assert permission_manager.allow_session_calls == [("github_search_repositories", "tool")]
+
+
+@pytest.mark.asyncio
+async def test_shell_approval_request_routes_to_shell_domain() -> None:
+    permission_manager = StubPermissionManager()
+
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        request = ApprovalRequest(
+            tool_name="git status",
+            tool_args={},
+            shell=True,
+            agent_id=MAIN_AGENT_ID,
+            corr_id="call-1",
+        )
+        yield request
+        await request.approved()
+
+    app = _create_app(
+        agent_stream=MockStreamAgent(scenario).stream,
+        agent_id=MAIN_AGENT_ID,
+        permission_manager=permission_manager,  # type: ignore[arg-type]
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await pilot.pause(0.05)
+        await pilot.press("a")
+        await pilot.pause(0.05)
+        await pilot.press("enter")
+        await app.workers.wait_for_complete()
+
+    # Shell domain should be used with suggested pattern
+    assert permission_manager.allow_always_calls == [("git status *", "shell")]
+
+
+@pytest.mark.asyncio
+async def test_shell_approval_uses_suggest_shell_pattern() -> None:
+    permission_manager = StubPermissionManager()
+
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        request = ApprovalRequest(
+            tool_name="git add /path/to/file.py",
+            tool_args={},
+            shell=True,
+            agent_id=MAIN_AGENT_ID,
+            corr_id="call-1",
+        )
+        yield request
+        await request.approved()
+
+    app = _create_app(
+        agent_stream=MockStreamAgent(scenario).stream,
+        agent_id=MAIN_AGENT_ID,
+        permission_manager=permission_manager,  # type: ignore[arg-type]
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await pilot.pause(0.05)
+        await pilot.press("a")
+        await pilot.pause(0.05)
+        await pilot.press("enter")
+        await app.workers.wait_for_complete()
+
+    assert permission_manager.allow_always_calls == [("git add *", "shell")]
+
+
+@pytest.mark.asyncio
+async def test_always_enters_edit_mode_and_enter_saves_and_approves() -> None:
+    permission_manager = StubPermissionManager()
+
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        request = ApprovalRequest(
+            tool_name="database_query",
+            tool_args={"query": "SELECT 1"},
+            agent_id=MAIN_AGENT_ID,
+            corr_id="call-1",
+        )
+        yield request
+        await request.approved()
+
+    app = _create_app(
+        agent_stream=MockStreamAgent(scenario).stream,
+        agent_id=MAIN_AGENT_ID,
+        permission_manager=permission_manager,  # type: ignore[arg-type]
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await pilot.pause(0.05)
+
+        # Press 'a' to enter edit mode for always-allow
+        await pilot.press("a")
+        await pilot.pause(0.05)
+
+        # Enter saves the pattern and approves in one step
+        await pilot.press("enter")
+        await app.workers.wait_for_complete()
+
+        assert len(app.query("ApprovalBar")) == 0
+        assert permission_manager.allow_always_calls == [("database_query", "tool")]

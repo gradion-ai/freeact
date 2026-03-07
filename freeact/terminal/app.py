@@ -305,8 +305,6 @@ class TerminalApp(App[None]):
         Binding("ctrl+m", "approve_hotkey(1)", show=False, priority=True),
         Binding("y", "approve_hotkey(1)", show=False, priority=True),
         Binding("n", "approve_hotkey(0)", show=False, priority=True),
-        Binding("a", "approve_hotkey(2)", show=False, priority=True),
-        Binding("s", "approve_hotkey(3)", show=False, priority=True),
     ]
 
     def __init__(
@@ -327,7 +325,7 @@ class TerminalApp(App[None]):
         self._permission_manager = permission_manager or PermissionManager()
         self._clipboard_adapter = clipboard_adapter or ClipboardAdapter()
         self._skills_metadata = skills_metadata or []
-        self._approval_future: asyncio.Future[int] | None = None
+        self._approval_future: asyncio.Future[tuple[int, str]] | None = None
         self._turn_in_progress = False
         self._tool_adapter = ToolAdapter()
         self._expand_all_override = False
@@ -577,8 +575,21 @@ class TerminalApp(App[None]):
             self._pending_approval_widget_id = id(box)
         await self._mount_and_scroll(conversation, box)
 
+        # Determine domain and pre-approval check
+        domain = "shell" if request.shell else "tool"
+        if domain == "shell":
+            pre_check = self._permission_manager.check_shell(request.tool_name)
+            suggested_pattern = self._permission_manager.suggest_shell_pattern(request.tool_name)
+        else:
+            pre_check = None
+            suggested_pattern = self._permission_manager.suggest_tool_pattern(request.tool_name)
+
         # Check if pre-approved
-        if self._permission_manager.is_allowed(request.tool_name, request.tool_args):
+        pre_approved = (pre_check == "allow") or (
+            domain == "tool" and self._permission_manager.is_allowed(request.tool_name, request.tool_args)
+        )
+
+        if pre_approved:
             if self._pending_approval_widget_id == id(box):
                 self._pending_approval_widget_id = None
                 self._set_force_expanded(box, enabled=False)
@@ -589,13 +600,16 @@ class TerminalApp(App[None]):
             request.approve(True)
             return
 
+        # Always ask if ask rule matches
+        # (falls through to prompt even if no ask rule -- just no match means prompt)
+
         # Prompt user for approval
         self._approval_future = asyncio.get_running_loop().create_future()
-        bar = ApprovalBar()
+        bar = ApprovalBar(pattern=suggested_pattern)
         await self._mount_and_scroll(conversation, bar)
         bar.focus()
 
-        decision = await self._approval_future
+        decision, pattern = await self._approval_future
         self._approval_future = None
 
         await bar.remove()
@@ -605,9 +619,9 @@ class TerminalApp(App[None]):
 
         match decision:
             case 2:
-                await self._permission_manager.allow_always(request.tool_name)
+                await self._permission_manager.allow_always(pattern, domain=domain)
             case 3:
-                self._permission_manager.allow_session(request.tool_name)
+                self._permission_manager.allow_session(pattern, domain=domain)
 
         approved = decision != 0
         if approved:
@@ -623,11 +637,18 @@ class TerminalApp(App[None]):
         request.approve(approved)
 
     def on_approval_bar_decided(self, event: ApprovalBar.Decided) -> None:
-        self.action_approve_hotkey(event.decision)
+        future = self._approval_future
+        if future is not None and not future.done():
+            future.set_result((event.decision, event.pattern))
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if action == "approve_hotkey":
-            return self._has_pending_approval()
+            if not self._has_pending_approval():
+                return False
+            bars = self.query("ApprovalBar")
+            if bars and bars.last()._editing:
+                return False
+            return True
         if action == "cancel_turn":
             return self._turn_in_progress and self._cancel_fn is not None
         return super().check_action(action, parameters)
@@ -636,12 +657,15 @@ class TerminalApp(App[None]):
         if self._cancel_fn is not None:
             self._cancel_fn()
         if self._approval_future is not None and not self._approval_future.done():
-            self._approval_future.set_result(0)
+            self._approval_future.set_result((0, ""))
 
     def action_approve_hotkey(self, decision: int) -> None:
         future = self._approval_future
         if future is not None and not future.done():
-            future.set_result(decision)
+            # Read pattern from the current ApprovalBar if available
+            bars = self.query("ApprovalBar")
+            pattern = bars.last()._pattern if bars else ""
+            future.set_result((decision, pattern))
 
     def action_toggle_expand_all(self) -> None:
         self._expand_all_override = not self._expand_all_override

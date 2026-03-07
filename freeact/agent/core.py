@@ -504,6 +504,33 @@ class Agent:
 
         match tool_name:
             case "ipybox_execute_ipython_cell":
+                # Shell command approval (before execution)
+                from freeact.shell import extract_shell_commands, split_composite_command
+
+                raw_commands = extract_shell_commands(tool_args["code"])
+                for raw_cmd in raw_commands:
+                    for sub_cmd in split_composite_command(raw_cmd):
+                        shell_approval = ApprovalRequest(
+                            tool_name=sub_cmd,
+                            tool_args={},
+                            shell=True,
+                            agent_id=self.agent_id,
+                            corr_id=corr_id,
+                        )
+                        yield shell_approval
+                        shell_decision = await self._await_approval_or_cancel(shell_approval)
+                        if shell_decision is None:
+                            yield self._interrupted_tool_return(call)
+                            return
+                        if not shell_decision:
+                            yield ToolReturnPart(
+                                tool_call_id=call.tool_call_id,
+                                tool_name=tool_name,
+                                content="Shell command rejected",
+                                metadata={"rejected": True},
+                            )
+                            return
+
                 async for item in self._ipybox_execute_ipython_cell(tool_args["code"]):
                     match item:
                         case ApprovalRequest():

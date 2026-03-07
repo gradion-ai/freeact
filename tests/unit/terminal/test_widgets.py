@@ -104,7 +104,25 @@ def test_create_tool_call_box_uses_ptc_prefix_when_requested() -> None:
 
 def test_approval_bar_prompt_text_matches_current_ui() -> None:
     bar = ApprovalBar()
-    assert str(bar.content) == "Approve? [Y/n/a/s]"
+    assert "Y/n/a/s" in str(bar.content)
+
+
+def test_approval_bar_displays_pattern() -> None:
+    bar = ApprovalBar(pattern="github_*")
+    content = str(bar.content)
+    assert "github_*" in content
+    assert content.startswith("Approve? [Y/n/a/s] ")
+
+
+def test_approval_bar_decided_carries_pattern() -> None:
+    decided = ApprovalBar.Decided(decision=2, pattern="my_pattern")
+    assert decided.decision == 2
+    assert decided.pattern == "my_pattern"
+
+
+def test_approval_bar_default_pattern_is_empty() -> None:
+    bar = ApprovalBar()
+    assert bar._pattern == ""
 
 
 def test_prompt_input_css_uses_solid_border_variants() -> None:

@@ -226,38 +226,55 @@ Tool result persistence is controlled by two config options:
 
 ## Permissions API
 
-!!! info "Work in progress"
-
-    Current permission management is preliminary and will be reimplemented in a future release.
-
-The agent requests approval for each code action and tool call but doesn't remember past decisions. [`PermissionManager`][freeact.permissions.PermissionManager] adds memory: `allow_always()` persists to `.freeact/permissions.json`, while `allow_session()` stores in-memory until the session ends:
+[`PermissionManager`][freeact.permissions.PermissionManager] provides pattern-based permission gating for tool calls and shell commands. Patterns use glob-style matching (`*`, `?`) via `fnmatch`. Rules are organized into ask/allow tiers with session and always persistence scopes.
 
 ```python
 from freeact.permissions import PermissionManager
-from ipybox.utils import arun
 
 manager = PermissionManager()
 await manager.load()
 
 async for event in agent.stream(prompt):
     match event:
+        case ApprovalRequest(shell=True) as request:
+            result = manager.check_shell(request.tool_name)
+            if result == "allow":
+                request.approve(True)
+            else:
+                pattern = manager.suggest_shell_pattern(request.tool_name)
+                choice = input(f"Allow [{pattern}]? [Y/n/a/s]: ")
+                match choice:
+                    case "a":
+                        await manager.allow_always(pattern, domain="shell")
+                        request.approve(True)
+                    case "s":
+                        manager.allow_session(pattern, domain="shell")
+                        request.approve(True)
+                    case "n":
+                        request.approve(False)
+                    case _:
+                        request.approve(True)
+
         case ApprovalRequest() as request:
             if manager.is_allowed(request.tool_name, request.tool_args):
                 request.approve(True)
             else:
-                choice = await arun(input, "Allow? [Y/n/a/s]: ")
+                pattern = manager.suggest_tool_pattern(request.tool_name)
+                choice = input(f"Allow [{pattern}]? [Y/n/a/s]: ")
                 match choice:
                     case "a":
-                        await manager.allow_always(request.tool_name)
+                        await manager.allow_always(pattern, domain="tool")
                         request.approve(True)
                     case "s":
-                        manager.allow_session(request.tool_name)
+                        manager.allow_session(pattern, domain="tool")
                         request.approve(True)
                     case "n":
                         request.approve(False)
                     case _:
                         request.approve(True)
 ```
+
+See [Permissions](configuration.md#permissions) for the persisted file format and pattern syntax.
 
 ## Preprocessing API
 

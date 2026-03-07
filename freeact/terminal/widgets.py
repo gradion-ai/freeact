@@ -105,7 +105,7 @@ class PromptInput(TextArea):
 
 
 class ApprovalBar(Static):
-    """Inline approval prompt with keyboard shortcuts."""
+    """Inline approval prompt with keyboard shortcuts and editable pattern."""
 
     can_focus = True
 
@@ -116,28 +116,72 @@ class ApprovalBar(Static):
         text-style: bold;
         color: $warning;
     }
+    ApprovalBar Input {
+        width: auto;
+        min-width: 20;
+        height: 1;
+        border: none;
+        padding: 0;
+        margin: 0 1 0 0;
+        background: $surface;
+    }
+    ApprovalBar Input:focus {
+        border: none;
+    }
     """
 
     class Decided(Message):
         """Message emitted when an approval decision is made."""
 
-        def __init__(self, decision: int) -> None:
+        def __init__(self, decision: int, pattern: str = "") -> None:
             super().__init__()
             self.decision = decision
+            self.pattern = pattern
 
     BINDINGS = [
         ("y", "decide(1)", "Yes"),
         ("enter", "decide(1)", "Yes"),
         ("n", "decide(0)", "No"),
-        ("s", "decide(3)", "Session"),
-        ("a", "decide(2)", "Always"),
+        ("a", "save_rule(2)", "Always"),
+        ("s", "save_rule(3)", "Session"),
     ]
 
-    def __init__(self, **kwargs: Any) -> None:
-        super().__init__("Approve? [Y/n/a/s]", **kwargs)
+    def __init__(self, pattern: str = "", **kwargs: Any) -> None:
+        self._pattern = pattern
+        self._editing = False
+        self._pending_decision: int = 0
+        super().__init__(self._render_text(), markup=False, **kwargs)
+
+    def _render_text(self) -> str:
+        if self._pattern:
+            return f"Approve? [Y/n/a/s] {self._pattern}"
+        return "Approve? [Y/n/a/s]"
 
     def action_decide(self, decision: int) -> None:
-        self.post_message(self.Decided(decision))
+        self.post_message(self.Decided(decision, pattern=self._pattern))
+
+    def action_save_rule(self, scope: int) -> None:
+        """Enter edit mode for the pattern before saving a rule."""
+        from textual.widgets import Input
+
+        self._editing = True
+        self._pending_decision = scope
+        self.update("")
+        input_widget = Input(value=self._pattern, id="approval-pattern-input")
+        self.mount(input_widget)
+        input_widget.focus()
+
+    def on_input_submitted(self, event: "textual.widgets.Input.Submitted") -> None:  # type: ignore[name-defined]  # noqa: F821
+        """Save the edited pattern and approve."""
+        self._pattern = event.value
+        self._editing = False
+        event.input.remove()
+        self.post_message(self.Decided(self._pending_decision, pattern=self._pattern))
+
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if self._editing and action in ("decide", "save_rule"):
+            return False
+        return super().check_action(action, parameters)
 
 
 # --- Collapsible box factory functions ---
