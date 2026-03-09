@@ -2,6 +2,8 @@ import json
 from dataclasses import dataclass
 from typing import Any
 
+from freeact.shell import suggest_shell_pattern
+
 
 @dataclass(frozen=True)
 class ToolCall:
@@ -99,7 +101,7 @@ class FileWrite(ToolCall):
     content: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class TextEdit:
     """A single text replacement within a file edit."""
 
@@ -126,14 +128,10 @@ def suggest_pattern(tool_call: ToolCall) -> str:
     """
     match tool_call:
         case ShellAction(command=command):
-            from freeact.shell import suggest_shell_pattern
-
             return suggest_shell_pattern(command)
         case FileRead(tool_name=name, paths=paths):
             return f"{name} {' '.join(paths)}"
-        case FileWrite(tool_name=name, path=path):
-            return f"{name} {path}"
-        case FileEdit(tool_name=name, path=path):
+        case FileWrite(tool_name=name, path=path) | FileEdit(tool_name=name, path=path):
             return f"{name} {path}"
         case _:
             return tool_call.tool_name
