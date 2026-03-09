@@ -2,9 +2,8 @@
 
 ```
 PermissionManager(
+    working_dir: Path | None = None,
     freeact_dir: Path = Path(".freeact"),
-    *,
-    working_dir: Path | None = None
 )
 ```
 
@@ -35,6 +34,14 @@ allow_session(tool_call: ToolCall) -> None
 Add a pattern rule to the session-allow list (not persisted).
 
 The tool call's fields may contain glob wildcards, same as allow_always. Session rules are cleared when the process ends.
+
+### init
+
+```
+init() -> None
+```
+
+Load permissions when present, otherwise save defaults.
 
 ### is_allowed
 
