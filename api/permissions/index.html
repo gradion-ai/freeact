@@ -1353,17 +1353,30 @@
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">PermissionManager</span><span class="p">(</span><span class="n">freeact_dir</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span><span class="p">(</span><span class="s1">&#39;.freeact&#39;</span><span class="p">))</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">PermissionManager</span><span class="p">(</span>
+    <span class="n">freeact_dir</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span><span class="p">(</span><span class="s2">&quot;.freeact&quot;</span><span class="p">),</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">working_dir</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span>
 </code></pre></div>
 
     <div class="doc doc-contents first">
 
 
 
-        <p>Tool permission gating with two-tier approval: always-allowed (persisted)
-and session-only (in-memory).</p>
-<p>Filesystem tools targeting paths within <code>.freeact/</code> are auto-approved
-without explicit permission grants.</p>
+        <p>Tool call permission gating with type-specific pattern rules.</p>
+<p>Rules are <code>ToolCall</code> instances whose fields may contain glob wildcards
+(<code>*</code>, <code>?</code>). Path fields (<code>path</code>, <code>paths</code>) use path-aware matching
+where <code>*</code> matches within a single directory and <code>**</code> matches across
+directory boundaries. Non-path fields (<code>tool_name</code>, <code>command</code>) use
+simple glob matching.</p>
+<p>Use <a class="autorefs autorefs-internal" href="#freeact.permissions.PermissionManager.allow_always"><code>allow_always</code></a>
+and <a class="autorefs autorefs-internal" href="#freeact.permissions.PermissionManager.allow_session"><code>allow_session</code></a>
+to store pattern rules. Use
+<a class="autorefs autorefs-internal" href="#freeact.permissions.PermissionManager.is_allowed"><code>is_allowed</code></a> to check
+concrete (no wildcards) tool calls against stored rules.</p>
+<p>Evaluation order: ask-session, ask-always, allow-session, allow-always.
+First match wins. Ask takes priority over allow.</p>
 
 
 
@@ -1398,12 +1411,16 @@ without explicit permission grants.</p>
   </span>
 
 </h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">allow_always</span><span class="p">(</span><span class="n">tool_name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">allow_always</span><span class="p">(</span><span class="n">tool_call</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" href="../agent/#freeact.agent.ToolCall">ToolCall</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
 
-        <p>Grant permanent permission for a tool and persist to disk.</p>
+        <p>Add a pattern rule to the always-allow list and persist.</p>
+<p>The tool call's fields may contain glob wildcards. For example,
+<code>ShellAction(tool_name="bash", command="git *")</code> allows all git
+subcommands, and <code>FileRead(tool_name="filesystem_*",
+paths=("src/**",))</code> allows reading any file under <code>src/</code>.</p>
 
 
     </div>
@@ -1418,12 +1435,15 @@ without explicit permission grants.</p>
 
 
 </h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">allow_session</span><span class="p">(</span><span class="n">tool_name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">allow_session</span><span class="p">(</span><span class="n">tool_call</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" href="../agent/#freeact.agent.ToolCall">ToolCall</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
 
-        <p>Grant permission for a tool until the session ends (not persisted).</p>
+        <p>Add a pattern rule to the session-allow list (not persisted).</p>
+<p>The tool call's fields may contain glob wildcards, same as
+<a class="autorefs autorefs-internal" href="#freeact.permissions.PermissionManager.allow_always"><code>allow_always</code></a>.
+Session rules are cleared when the process ends.</p>
 
 
     </div>
@@ -1438,16 +1458,78 @@ without explicit permission grants.</p>
 
 
 </h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">is_allowed</span><span class="p">(</span>
-    <span class="n">tool_name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n">tool_args</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/reference/expressions.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">is_allowed</span><span class="p">(</span><span class="n">tool_call</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" href="../agent/#freeact.agent.ToolCall">ToolCall</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
 
-        <p>Check if a tool call is pre-approved.</p>
-<p>Returns <code>True</code> if the tool is in the always-allowed or session-allowed
-set, or if it's a filesystem tool operating within <code>.freeact/</code>.</p>
+        <p>Check if a concrete tool call is pre-approved.</p>
+<p>The tool call should contain literal values (no wildcards).
+Its fields are matched against the glob patterns in stored rules.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>tool_call</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" href="../agent/#freeact.agent.ToolCall">ToolCall</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Concrete tool call to check.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p><code>True</code> if an allow rule matches and no ask rule takes</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>precedence, <code>False</code> otherwise.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
 
     </div>
@@ -1471,7 +1553,7 @@ set, or if it's a filesystem tool operating within <code>.freeact/</code>.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Load always-allowed tools from <code>.freeact/permissions.json</code>.</p>
+        <p>Load permissions from <code>.freeact/permissions.json</code>.</p>
 
 
     </div>
@@ -1495,7 +1577,7 @@ set, or if it's a filesystem tool operating within <code>.freeact/</code>.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Persist always-allowed tools to <code>.freeact/permissions.json</code>.</p>
+        <p>Persist always-tier permissions to <code>.freeact/permissions.json</code>.</p>
 
 
     </div>

@@ -204,6 +204,7 @@ import asyncio
 from freeact.agent import (
     Agent,
     ApprovalRequest,
+    CodeAction,
     CodeExecutionOutput,
     Response,
     Thoughts,
@@ -229,12 +230,11 @@ async def main() -> None:
 
         async for event in agent.stream(prompt):
             match event:
-                case ApprovalRequest(tool_name="ipybox_execute_ipython_cell", tool_args=args) as request:
-                    print(f"Code action:\n{args['code']}")
+                case ApprovalRequest(tool_call=CodeAction(code=code)) as request:
+                    print(f"Code action:\n{code}")
                     request.approve(True)
-                case ApprovalRequest(tool_name=name, tool_args=args) as request:
-                    print(f"Tool: {name}")
-                    print(f"Args: {args}")
+                case ApprovalRequest(tool_call=tool_call) as request:
+                    print(f"Tool: {tool_call.tool_name}")
                     request.approve(True)
                 case Thoughts(content=content):
                     print(f"Thinking: {content}")
@@ -468,18 +468,51 @@ See [Custom Agent Skills](https://gradion-ai.github.io/freeact/examples/agent-sk
 
 ## Permissions
 
-[Tool permissions](https://gradion-ai.github.io/freeact/sdk/#permissions-api) are stored in `.freeact/permissions.json` based on tool name:
+[Permissions](https://gradion-ai.github.io/freeact/sdk/#permissions-api) are stored in `.freeact/permissions.json` as typed entries with glob-style pattern matching. `tool_name` and `command` fields support `*` (any characters) and `?` (single character). Path fields (`path`, `paths`) use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries.
 
 ```
 {
-  "allowed_tools": [
-    "tool_name_1",
-    "tool_name_2"
+  "ask": [
+    {"type": "ShellAction", "tool_name": "bash", "command": "rm *"}
+  ],
+  "allow": [
+    {"type": "GenericCall", "tool_name": "github_*"},
+    {"type": "ShellAction", "tool_name": "bash", "command": "git *"},
+    {"type": "FileRead", "tool_name": "filesystem_*", "paths": [".freeact/**"]},
+    {"type": "FileWrite", "tool_name": "filesystem_*", "path": "src/**"}
   ]
 }
 ```
 
-Tools in `allowed_tools` are auto-approved by the [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) without prompting. Selecting `"a"` at the approval prompt adds the tool to this list.
+Each entry has a `type` field that determines which fields are matched:
+
+| Type          | Matched fields                                                    |
+| ------------- | ----------------------------------------------------------------- |
+| `GenericCall` | `tool_name`                                                       |
+| `ShellAction` | `tool_name`, `command`                                            |
+| `CodeAction`  | `tool_name`                                                       |
+| `FileRead`    | `tool_name`, `paths` (every path must match at least one pattern) |
+| `FileWrite`   | `tool_name`, `path`                                               |
+| `FileEdit`    | `tool_name`, `path`                                               |
+
+### Tiers
+
+Permissions are organized into two tiers:
+
+| Tier    | Description                          |
+| ------- | ------------------------------------ |
+| `allow` | Tool call executes without prompting |
+| `ask`   | User is always prompted for approval |
+
+Evaluation order is **ask then allow**: if an entry matches both tiers, the user is prompted. Each tier supports two persistence scopes: **always** (persisted to `permissions.json`) and **session** (in-memory, cleared when the session ends).
+
+### Tool patterns
+
+Tool patterns match against MCP tool names (e.g. `github_search_repositories`, `filesystem_read_file`). Filesystem tools (`FileRead`, `FileWrite`, `FileEdit`) additionally match on path fields, enabling path-specific rules like allowing reads only from `src/**`.
+
+### Shell command patterns
+
+Shell patterns match against individual commands extracted from code actions. Shell commands using `!cmd` syntax or `%%bash` cell magic are extracted before execution and checked against `ShellAction` permission entries. Composite commands joined with `&&`, `||`, `|`, or `;` are decomposed into individual sub-commands, each checked independently. If any sub-command is denied, the entire cell is blocked.
 
 ## Tool Directories
 
@@ -995,6 +1028,7 @@ The Agent class implements the agentic code action loop, handling code action ge
 from freeact.agent import (
     Agent,
     ApprovalRequest,
+    CodeAction,
     CodeExecutionOutput,
     Response,
     Thoughts,
@@ -1006,12 +1040,11 @@ async with Agent(config=config) as agent:
 
     async for event in agent.stream(prompt):
         match event:
-            case ApprovalRequest(tool_name="ipybox_execute_ipython_cell", tool_args=args) as request:
-                print(f"Code action:\n{args['code']}")
+            case ApprovalRequest(tool_call=CodeAction(code=code)) as request:
+                print(f"Code action:\n{code}")
                 request.approve(True)
-            case ApprovalRequest(tool_name=name, tool_args=args) as request:
-                print(f"Tool: {name}")
-                print(f"Args: {args}")
+            case ApprovalRequest(tool_call=tool_call) as request:
+                print(f"Tool: {tool_call.tool_name}")
                 request.approve(True)
             case Thoughts(content=content):
                 print(f"Thinking: {content}")
@@ -1214,15 +1247,13 @@ Tool result persistence is controlled by two config options:
 
 ## Permissions API
 
-Work in progress
+PermissionManager provides pattern-based permission gating using typed ToolCall instances. Patterns use glob-style matching (`*`, `?`). Path fields use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries. Rules are organized into ask/allow tiers with session and always persistence scopes.
 
-Current permission management is preliminary and will be reimplemented in a future release.
-
-The agent requests approval for each code action and tool call but doesn't remember past decisions. PermissionManager adds memory: `allow_always()` persists to `.freeact/permissions.json`, while `allow_session()` stores in-memory until the session ends:
+Each `ApprovalRequest` carries a `tool_call` field that is a `ToolCall` subclass (`GenericCall`, `ShellAction`, `CodeAction`, `FileRead`, `FileWrite`, `FileEdit`). Permission matching is type-specific: shell commands match on `command`, filesystem tools match on `path`/`paths`, and generic tools match on `tool_name` only.
 
 ```
 from freeact.permissions import PermissionManager
-from ipybox.utils import arun
+from freeact.agent import suggest_pattern
 
 manager = PermissionManager()
 await manager.load()
@@ -1230,22 +1261,25 @@ await manager.load()
 async for event in agent.stream(prompt):
     match event:
         case ApprovalRequest() as request:
-            if manager.is_allowed(request.tool_name, request.tool_args):
+            if manager.is_allowed(request.tool_call):
                 request.approve(True)
             else:
-                choice = await arun(input, "Allow? [Y/n/a/s]: ")
+                pattern = suggest_pattern(request.tool_call)
+                choice = input(f"Allow [{pattern}]? [Y/n/a/s]: ")
                 match choice:
                     case "a":
-                        await manager.allow_always(request.tool_name)
+                        await manager.allow_always(request.tool_call)
                         request.approve(True)
                     case "s":
-                        manager.allow_session(request.tool_name)
+                        manager.allow_session(request.tool_call)
                         request.approve(True)
                     case "n":
                         request.approve(False)
                     case _:
                         request.approve(True)
 ```
+
+See [Permissions](https://gradion-ai.github.io/freeact/configuration/#permissions) for the persisted file format and pattern syntax.
 
 ## Preprocessing API
 
@@ -1401,20 +1435,33 @@ Press `Escape` during an active agent turn to cancel it. This interrupts the cur
 
 ### Approval Prompt
 
-Before executing code actions or tool calls, the agent requests approval:
+Before executing code actions or tool calls, the agent requests approval. The prompt displays a suggested pattern that summarizes the pending action:
 
 ```
-Approve? [Y/n/a/s]
+Approve? [Y/n/a/s] git add *
 ```
 
-| Response       | Effect                                                   |
-| -------------- | -------------------------------------------------------- |
-| `Y` or `Enter` | Approve once                                             |
-| `n`            | Reject once (ends the current agent turn)                |
-| `a`            | Approve always (persists to `.freeact/permissions.json`) |
-| `s`            | Approve for current session                              |
+| Key           | Action                                        |
+| ------------- | --------------------------------------------- |
+| `y` / `Enter` | Approve this invocation only                  |
+| `n`           | Reject (ends the current agent turn)          |
+| `a`           | Edit pattern, then save as always-allow rule  |
+| `s`           | Edit pattern, then save as session-allow rule |
 
-See [Permissions API](https://gradion-ai.github.io/freeact/sdk/#permissions-api) for details.
+Pressing `a` or `s` opens the pattern for inline editing. The input is pre-filled with the suggested pattern. Edit the pattern to broaden or narrow the rule (e.g. change `filesystem_read_file src/main.py` to `filesystem_* src/**`), then press `Enter` to save the rule and approve. While editing, approval hotkeys are disabled so you can type freely.
+
+Always-allow rules persist to `.freeact/permissions.json` across sessions. Session-allow rules are in-memory and cleared when the session ends. Future tool calls matching a saved rule are auto-approved without prompting.
+
+The suggested pattern depends on the action type:
+
+| Action               | Pattern format        | Example                             |
+| -------------------- | --------------------- | ----------------------------------- |
+| Shell command        | `command *` heuristic | `git add *`                         |
+| Code action          | tool name             | `ipybox_execute_ipython_cell`       |
+| File read/write/edit | tool name + path      | `filesystem_write_file src/main.py` |
+| Other tool calls     | tool name             | `github_search_repositories`        |
+
+See [Permissions](https://gradion-ai.github.io/freeact/configuration/#permissions) for the persisted format and pattern syntax.
 # API Reference
 
 ## freeact.agent.Agent
@@ -1540,50 +1587,6 @@ Base class for all agent stream events.
 
 Carries the `agent_id` of the agent that produced the event, allowing callers to distinguish events from a parent agent vs. its subagents.
 
-## freeact.agent.ApprovalRequest
-
-```
-ApprovalRequest(
-    tool_name: str,
-    tool_args: dict[str, Any],
-    ptc: bool = False,
-    _future: Future[bool] = Future(),
-    *,
-    agent_id: str = "",
-    corr_id: str = ""
-)
-```
-
-Bases: `AgentEvent`
-
-Pending code action or tool call awaiting user approval.
-
-Yielded by Agent.stream() before executing any code action, programmatic tool call, or JSON tool call. The stream is suspended until `approve()` is called.
-
-### approve
-
-```
-approve(decision: bool) -> None
-```
-
-Resolve this approval request.
-
-No-op if already resolved (e.g. by cancellation).
-
-Parameters:
-
-| Name       | Type   | Description                                                      | Default    |
-| ---------- | ------ | ---------------------------------------------------------------- | ---------- |
-| `decision` | `bool` | True to execute, False to reject and end the current agent turn. | *required* |
-
-### approved
-
-```
-approved() -> bool
-```
-
-Await until `approve()` is called and return the decision.
-
 ## freeact.agent.Response
 
 ```
@@ -1661,6 +1664,48 @@ Bases: `AgentEvent`
 
 Partial code execution output (content streaming).
 
+## freeact.agent.ApprovalRequest
+
+```
+ApprovalRequest(
+    tool_call: ToolCall,
+    _future: Future[bool] = Future(),
+    *,
+    agent_id: str = "",
+    corr_id: str = ""
+)
+```
+
+Bases: `AgentEvent`
+
+Pending code action or tool call awaiting user approval.
+
+Yielded by Agent.stream() before executing any code action, programmatic tool call, or JSON tool call. The stream is suspended until `approve()` is called.
+
+### approve
+
+```
+approve(decision: bool) -> None
+```
+
+Resolve this approval request.
+
+No-op if already resolved (e.g. by cancellation).
+
+Parameters:
+
+| Name       | Type   | Description                                                      | Default    |
+| ---------- | ------ | ---------------------------------------------------------------- | ---------- |
+| `decision` | `bool` | True to execute, False to reject and end the current agent turn. | *required* |
+
+### approved
+
+```
+approved() -> bool
+```
+
+Await until `approve()` is called and return the decision.
+
 ## freeact.agent.ToolOutput
 
 ```
@@ -1692,6 +1737,116 @@ Cancelled(
 Bases: `AgentEvent`
 
 Agent execution was cancelled by the user.
+
+## freeact.agent.ToolCall
+
+```
+ToolCall(tool_name: str)
+```
+
+Base class for typed tool call representations.
+
+### from_raw
+
+```
+from_raw(
+    tool_name: str, tool_args: dict[str, Any]
+) -> ToolCall
+```
+
+Construct the appropriate ToolCall subclass from raw API data.
+
+Parameters:
+
+| Name        | Type             | Description                                  | Default    |
+| ----------- | ---------------- | -------------------------------------------- | ---------- |
+| `tool_name` | `str`            | Tool identifier from the agent event stream. | *required* |
+| `tool_args` | `dict[str, Any]` | Raw tool argument payload.                   | *required* |
+
+Returns:
+
+| Type       | Description              |
+| ---------- | ------------------------ |
+| `ToolCall` | Typed ToolCall instance. |
+
+## freeact.agent.GenericCall
+
+```
+GenericCall(
+    tool_name: str,
+    tool_args: dict[str, Any],
+    ptc: bool = False,
+)
+```
+
+Bases: `ToolCall`
+
+Fallback for tool calls without specialized handling.
+
+## freeact.agent.ShellAction
+
+```
+ShellAction(tool_name: str, command: str)
+```
+
+Bases: `ToolCall`
+
+Shell command extracted from a code cell.
+
+## freeact.agent.CodeAction
+
+```
+CodeAction(tool_name: str, code: str)
+```
+
+Bases: `ToolCall`
+
+Code execution action.
+
+## freeact.agent.FileRead
+
+```
+FileRead(
+    tool_name: str,
+    paths: tuple[str, ...],
+    head: int | None,
+    tail: int | None,
+)
+```
+
+Bases: `ToolCall`
+
+File read action (single or multiple files).
+
+## freeact.agent.FileWrite
+
+```
+FileWrite(tool_name: str, path: str, content: str)
+```
+
+Bases: `ToolCall`
+
+File write action.
+
+## freeact.agent.FileEdit
+
+```
+FileEdit(
+    tool_name: str, path: str, edits: tuple[TextEdit, ...]
+)
+```
+
+Bases: `ToolCall`
+
+File edit action with one or more text replacements.
+
+## freeact.agent.TextEdit
+
+```
+TextEdit(old_text: str, new_text: str)
+```
+
+A single text replacement within a file edit.
 
 ## freeact.agent.config.Config
 
@@ -1872,40 +2027,63 @@ Parameters:
 ## freeact.permissions.PermissionManager
 
 ```
-PermissionManager(freeact_dir: Path = Path('.freeact'))
+PermissionManager(
+    freeact_dir: Path = Path(".freeact"),
+    *,
+    working_dir: Path | None = None
+)
 ```
 
-Tool permission gating with two-tier approval: always-allowed (persisted) and session-only (in-memory).
+Tool call permission gating with type-specific pattern rules.
 
-Filesystem tools targeting paths within `.freeact/` are auto-approved without explicit permission grants.
+Rules are `ToolCall` instances whose fields may contain glob wildcards (`*`, `?`). Path fields (`path`, `paths`) use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries. Non-path fields (`tool_name`, `command`) use simple glob matching.
+
+Use allow_always and allow_session to store pattern rules. Use is_allowed to check concrete (no wildcards) tool calls against stored rules.
+
+Evaluation order: ask-session, ask-always, allow-session, allow-always. First match wins. Ask takes priority over allow.
 
 ### allow_always
 
 ```
-allow_always(tool_name: str) -> None
+allow_always(tool_call: ToolCall) -> None
 ```
 
-Grant permanent permission for a tool and persist to disk.
+Add a pattern rule to the always-allow list and persist.
+
+The tool call's fields may contain glob wildcards. For example, `ShellAction(tool_name="bash", command="git *")` allows all git subcommands, and `FileRead(tool_name="filesystem_*", paths=("src/**",))` allows reading any file under `src/`.
 
 ### allow_session
 
 ```
-allow_session(tool_name: str) -> None
+allow_session(tool_call: ToolCall) -> None
 ```
 
-Grant permission for a tool until the session ends (not persisted).
+Add a pattern rule to the session-allow list (not persisted).
+
+The tool call's fields may contain glob wildcards, same as allow_always. Session rules are cleared when the process ends.
 
 ### is_allowed
 
 ```
-is_allowed(
-    tool_name: str, tool_args: dict[str, Any] | None = None
-) -> bool
+is_allowed(tool_call: ToolCall) -> bool
 ```
 
-Check if a tool call is pre-approved.
+Check if a concrete tool call is pre-approved.
 
-Returns `True` if the tool is in the always-allowed or session-allowed set, or if it's a filesystem tool operating within `.freeact/`.
+The tool call should contain literal values (no wildcards). Its fields are matched against the glob patterns in stored rules.
+
+Parameters:
+
+| Name        | Type       | Description                  | Default    |
+| ----------- | ---------- | ---------------------------- | ---------- |
+| `tool_call` | `ToolCall` | Concrete tool call to check. | *required* |
+
+Returns:
+
+| Type   | Description                                         |
+| ------ | --------------------------------------------------- |
+| `bool` | True if an allow rule matches and no ask rule takes |
+| `bool` | precedence, False otherwise.                        |
 
 ### load
 
@@ -1913,7 +2091,7 @@ Returns `True` if the tool is in the always-allowed or session-allowed set, or i
 load() -> None
 ```
 
-Load always-allowed tools from `.freeact/permissions.json`.
+Load permissions from `.freeact/permissions.json`.
 
 ### save
 
@@ -1921,7 +2099,7 @@ Load always-allowed tools from `.freeact/permissions.json`.
 save() -> None
 ```
 
-Persist always-allowed tools to `.freeact/permissions.json`.
+Persist always-tier permissions to `.freeact/permissions.json`.
 
 ## freeact.preproc.preprocess_prompt
 

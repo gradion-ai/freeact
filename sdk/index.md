@@ -49,6 +49,7 @@ The Agent class implements the agentic code action loop, handling code action ge
 from freeact.agent import (
     Agent,
     ApprovalRequest,
+    CodeAction,
     CodeExecutionOutput,
     Response,
     Thoughts,
@@ -60,12 +61,11 @@ async with Agent(config=config) as agent:
 
     async for event in agent.stream(prompt):
         match event:
-            case ApprovalRequest(tool_name="ipybox_execute_ipython_cell", tool_args=args) as request:
-                print(f"Code action:\n{args['code']}")
+            case ApprovalRequest(tool_call=CodeAction(code=code)) as request:
+                print(f"Code action:\n{code}")
                 request.approve(True)
-            case ApprovalRequest(tool_name=name, tool_args=args) as request:
-                print(f"Tool: {name}")
-                print(f"Args: {args}")
+            case ApprovalRequest(tool_call=tool_call) as request:
+                print(f"Tool: {tool_call.tool_name}")
                 request.approve(True)
             case Thoughts(content=content):
                 print(f"Thinking: {content}")
@@ -268,15 +268,13 @@ Tool result persistence is controlled by two config options:
 
 ## Permissions API
 
-Work in progress
+PermissionManager provides pattern-based permission gating using typed ToolCall instances. Patterns use glob-style matching (`*`, `?`). Path fields use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries. Rules are organized into ask/allow tiers with session and always persistence scopes.
 
-Current permission management is preliminary and will be reimplemented in a future release.
-
-The agent requests approval for each code action and tool call but doesn't remember past decisions. PermissionManager adds memory: `allow_always()` persists to `.freeact/permissions.json`, while `allow_session()` stores in-memory until the session ends:
+Each `ApprovalRequest` carries a `tool_call` field that is a `ToolCall` subclass (`GenericCall`, `ShellAction`, `CodeAction`, `FileRead`, `FileWrite`, `FileEdit`). Permission matching is type-specific: shell commands match on `command`, filesystem tools match on `path`/`paths`, and generic tools match on `tool_name` only.
 
 ```
 from freeact.permissions import PermissionManager
-from ipybox.utils import arun
+from freeact.agent import suggest_pattern
 
 manager = PermissionManager()
 await manager.load()
@@ -284,22 +282,25 @@ await manager.load()
 async for event in agent.stream(prompt):
     match event:
         case ApprovalRequest() as request:
-            if manager.is_allowed(request.tool_name, request.tool_args):
+            if manager.is_allowed(request.tool_call):
                 request.approve(True)
             else:
-                choice = await arun(input, "Allow? [Y/n/a/s]: ")
+                pattern = suggest_pattern(request.tool_call)
+                choice = input(f"Allow [{pattern}]? [Y/n/a/s]: ")
                 match choice:
                     case "a":
-                        await manager.allow_always(request.tool_name)
+                        await manager.allow_always(request.tool_call)
                         request.approve(True)
                     case "s":
-                        manager.allow_session(request.tool_name)
+                        manager.allow_session(request.tool_call)
                         request.approve(True)
                     case "n":
                         request.approve(False)
                     case _:
                         request.approve(True)
 ```
+
+See [Permissions](https://gradion-ai.github.io/freeact/configuration/#permissions) for the persisted file format and pattern syntax.
 
 ## Preprocessing API
 

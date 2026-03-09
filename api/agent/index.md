@@ -121,50 +121,6 @@ Base class for all agent stream events.
 
 Carries the `agent_id` of the agent that produced the event, allowing callers to distinguish events from a parent agent vs. its subagents.
 
-## freeact.agent.ApprovalRequest
-
-```
-ApprovalRequest(
-    tool_name: str,
-    tool_args: dict[str, Any],
-    ptc: bool = False,
-    _future: Future[bool] = Future(),
-    *,
-    agent_id: str = "",
-    corr_id: str = ""
-)
-```
-
-Bases: `AgentEvent`
-
-Pending code action or tool call awaiting user approval.
-
-Yielded by Agent.stream() before executing any code action, programmatic tool call, or JSON tool call. The stream is suspended until `approve()` is called.
-
-### approve
-
-```
-approve(decision: bool) -> None
-```
-
-Resolve this approval request.
-
-No-op if already resolved (e.g. by cancellation).
-
-Parameters:
-
-| Name       | Type   | Description                                                      | Default    |
-| ---------- | ------ | ---------------------------------------------------------------- | ---------- |
-| `decision` | `bool` | True to execute, False to reject and end the current agent turn. | *required* |
-
-### approved
-
-```
-approved() -> bool
-```
-
-Await until `approve()` is called and return the decision.
-
 ## freeact.agent.Response
 
 ```
@@ -242,6 +198,48 @@ Bases: `AgentEvent`
 
 Partial code execution output (content streaming).
 
+## freeact.agent.ApprovalRequest
+
+```
+ApprovalRequest(
+    tool_call: ToolCall,
+    _future: Future[bool] = Future(),
+    *,
+    agent_id: str = "",
+    corr_id: str = ""
+)
+```
+
+Bases: `AgentEvent`
+
+Pending code action or tool call awaiting user approval.
+
+Yielded by Agent.stream() before executing any code action, programmatic tool call, or JSON tool call. The stream is suspended until `approve()` is called.
+
+### approve
+
+```
+approve(decision: bool) -> None
+```
+
+Resolve this approval request.
+
+No-op if already resolved (e.g. by cancellation).
+
+Parameters:
+
+| Name       | Type   | Description                                                      | Default    |
+| ---------- | ------ | ---------------------------------------------------------------- | ---------- |
+| `decision` | `bool` | True to execute, False to reject and end the current agent turn. | *required* |
+
+### approved
+
+```
+approved() -> bool
+```
+
+Await until `approve()` is called and return the decision.
+
 ## freeact.agent.ToolOutput
 
 ```
@@ -273,3 +271,113 @@ Cancelled(
 Bases: `AgentEvent`
 
 Agent execution was cancelled by the user.
+
+## freeact.agent.ToolCall
+
+```
+ToolCall(tool_name: str)
+```
+
+Base class for typed tool call representations.
+
+### from_raw
+
+```
+from_raw(
+    tool_name: str, tool_args: dict[str, Any]
+) -> ToolCall
+```
+
+Construct the appropriate ToolCall subclass from raw API data.
+
+Parameters:
+
+| Name        | Type             | Description                                  | Default    |
+| ----------- | ---------------- | -------------------------------------------- | ---------- |
+| `tool_name` | `str`            | Tool identifier from the agent event stream. | *required* |
+| `tool_args` | `dict[str, Any]` | Raw tool argument payload.                   | *required* |
+
+Returns:
+
+| Type       | Description              |
+| ---------- | ------------------------ |
+| `ToolCall` | Typed ToolCall instance. |
+
+## freeact.agent.GenericCall
+
+```
+GenericCall(
+    tool_name: str,
+    tool_args: dict[str, Any],
+    ptc: bool = False,
+)
+```
+
+Bases: `ToolCall`
+
+Fallback for tool calls without specialized handling.
+
+## freeact.agent.ShellAction
+
+```
+ShellAction(tool_name: str, command: str)
+```
+
+Bases: `ToolCall`
+
+Shell command extracted from a code cell.
+
+## freeact.agent.CodeAction
+
+```
+CodeAction(tool_name: str, code: str)
+```
+
+Bases: `ToolCall`
+
+Code execution action.
+
+## freeact.agent.FileRead
+
+```
+FileRead(
+    tool_name: str,
+    paths: tuple[str, ...],
+    head: int | None,
+    tail: int | None,
+)
+```
+
+Bases: `ToolCall`
+
+File read action (single or multiple files).
+
+## freeact.agent.FileWrite
+
+```
+FileWrite(tool_name: str, path: str, content: str)
+```
+
+Bases: `ToolCall`
+
+File write action.
+
+## freeact.agent.FileEdit
+
+```
+FileEdit(
+    tool_name: str, path: str, edits: tuple[TextEdit, ...]
+)
+```
+
+Bases: `ToolCall`
+
+File edit action with one or more text replacements.
+
+## freeact.agent.TextEdit
+
+```
+TextEdit(old_text: str, new_text: str)
+```
+
+A single text replacement within a file edit.

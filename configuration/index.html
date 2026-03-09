@@ -673,6 +673,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Permissions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tiers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tool-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool patterns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shell-command-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shell command patterns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1642,6 +1681,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Permissions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tiers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tool-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool patterns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shell-command-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shell command patterns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2090,15 +2168,79 @@
 <p>See <a href="../examples/agent-skills/">Custom Agent Skills</a> for a walkthrough of installing and using a custom skill.</p>
 </div>
 <h2 id="permissions">Permissions</h2>
-<p><a href="../sdk/#permissions-api">Tool permissions</a> are stored in <code>.freeact/permissions.json</code> based on tool name:</p>
+<p><a href="../sdk/#permissions-api">Permissions</a> are stored in <code>.freeact/permissions.json</code> as typed entries with glob-style pattern matching. <code>tool_name</code> and <code>command</code> fields support <code>*</code> (any characters) and <code>?</code> (single character). Path fields (<code>path</code>, <code>paths</code>) use path-aware matching where <code>*</code> matches within a single directory and <code>**</code> matches across directory boundaries.</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;allowed_tools&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">    </span><span class="s2">&quot;tool_name_1&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="s2">&quot;tool_name_2&quot;</span>
+<span class="w">  </span><span class="nt">&quot;ask&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ShellAction&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;tool_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bash&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;rm *&quot;</span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;allow&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;GenericCall&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;tool_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;github_*&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ShellAction&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;tool_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bash&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;git *&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FileRead&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;tool_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;filesystem_*&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;paths&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;.freeact/**&quot;</span><span class="p">]},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FileWrite&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;tool_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;filesystem_*&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;src/**&quot;</span><span class="p">}</span>
 <span class="w">  </span><span class="p">]</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>Tools in <code>allowed_tools</code> are auto-approved by the <a href="../cli/">CLI tool</a> without prompting. Selecting <code>"a"</code> at the approval prompt adds the tool to this list.</p>
+<p>Each entry has a <code>type</code> field that determines which fields are matched:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Matched fields</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GenericCall</code></td>
+<td><code>tool_name</code></td>
+</tr>
+<tr>
+<td><code>ShellAction</code></td>
+<td><code>tool_name</code>, <code>command</code></td>
+</tr>
+<tr>
+<td><code>CodeAction</code></td>
+<td><code>tool_name</code></td>
+</tr>
+<tr>
+<td><code>FileRead</code></td>
+<td><code>tool_name</code>, <code>paths</code> (every path must match at least one pattern)</td>
+</tr>
+<tr>
+<td><code>FileWrite</code></td>
+<td><code>tool_name</code>, <code>path</code></td>
+</tr>
+<tr>
+<td><code>FileEdit</code></td>
+<td><code>tool_name</code>, <code>path</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="tiers">Tiers</h3>
+<p>Permissions are organized into two tiers:</p>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>allow</code></td>
+<td>Tool call executes without prompting</td>
+</tr>
+<tr>
+<td><code>ask</code></td>
+<td>User is always prompted for approval</td>
+</tr>
+</tbody>
+</table>
+<p>Evaluation order is <strong>ask then allow</strong>: if an entry matches both tiers, the user is prompted. Each tier supports two persistence scopes: <strong>always</strong> (persisted to <code>permissions.json</code>) and <strong>session</strong> (in-memory, cleared when the session ends).</p>
+<h3 id="tool-patterns">Tool patterns</h3>
+<p>Tool patterns match against MCP tool names (e.g. <code>github_search_repositories</code>, <code>filesystem_read_file</code>). Filesystem tools (<code>FileRead</code>, <code>FileWrite</code>, <code>FileEdit</code>) additionally match on path fields, enabling path-specific rules like allowing reads only from <code>src/**</code>.</p>
+<h3 id="shell-command-patterns">Shell command patterns</h3>
+<p>Shell patterns match against individual commands extracted from code actions. Shell commands using <code>!cmd</code> syntax or <code>%%bash</code> cell magic are extracted before execution and checked against <code>ShellAction</code> permission entries. Composite commands joined with <code>&amp;&amp;</code>, <code>||</code>, <code>|</code>, or <code>;</code> are decomposed into individual sub-commands, each checked independently. If any sub-command is denied, the entire cell is blocked.</p>
 <h2 id="tool-directories">Tool Directories</h2>
 <p>The agent discovers tools from two directories under <code>.freeact/generated/</code>:</p>
 <h3 id="mcptools"><code>mcptools/</code></h3>

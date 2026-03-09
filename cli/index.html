@@ -1558,36 +1558,70 @@
 <h3 id="cancellation">Cancellation</h3>
 <p>Press <code>Escape</code> during an active agent turn to cancel it. This interrupts the current operation (LLM streaming, code execution, or approval wait), stops the turn, and re-enables the prompt input.</p>
 <h3 id="approval-prompt">Approval Prompt</h3>
-<p>Before executing code actions or tool calls, the agent requests approval:</p>
-<div class="highlight"><pre><span></span><code>Approve? [Y/n/a/s]
+<p>Before executing code actions or tool calls, the agent requests approval. The prompt displays a suggested pattern that summarizes the pending action:</p>
+<div class="highlight"><pre><span></span><code>Approve? [Y/n/a/s] git add *
 </code></pre></div>
 <table>
 <thead>
 <tr>
-<th>Response</th>
-<th>Effect</th>
+<th>Key</th>
+<th>Action</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>Y</code> or <code>Enter</code></td>
-<td>Approve once</td>
+<td><code>y</code> / <code>Enter</code></td>
+<td>Approve this invocation only</td>
 </tr>
 <tr>
 <td><code>n</code></td>
-<td>Reject once (ends the current agent turn)</td>
+<td>Reject (ends the current agent turn)</td>
 </tr>
 <tr>
 <td><code>a</code></td>
-<td>Approve always (persists to <code>.freeact/permissions.json</code>)</td>
+<td>Edit pattern, then save as always-allow rule</td>
 </tr>
 <tr>
 <td><code>s</code></td>
-<td>Approve for current session</td>
+<td>Edit pattern, then save as session-allow rule</td>
 </tr>
 </tbody>
 </table>
-<p>See <a href="../sdk/#permissions-api">Permissions API</a> for details.</p>
+<p>Pressing <code>a</code> or <code>s</code> opens the pattern for inline editing. The input is pre-filled with the suggested pattern. Edit the pattern to broaden or narrow the rule (e.g. change <code>filesystem_read_file src/main.py</code> to <code>filesystem_* src/**</code>), then press <code>Enter</code> to save the rule and approve. While editing, approval hotkeys are disabled so you can type freely.</p>
+<p>Always-allow rules persist to <code>.freeact/permissions.json</code> across sessions. Session-allow rules are in-memory and cleared when the session ends. Future tool calls matching a saved rule are auto-approved without prompting.</p>
+<p>The suggested pattern depends on the action type:</p>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Pattern format</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shell command</td>
+<td><code>command *</code> heuristic</td>
+<td><code>git add *</code></td>
+</tr>
+<tr>
+<td>Code action</td>
+<td>tool name</td>
+<td><code>ipybox_execute_ipython_cell</code></td>
+</tr>
+<tr>
+<td>File read/write/edit</td>
+<td>tool name + path</td>
+<td><code>filesystem_write_file src/main.py</code></td>
+</tr>
+<tr>
+<td>Other tool calls</td>
+<td>tool name</td>
+<td><code>github_search_repositories</code></td>
+</tr>
+</tbody>
+</table>
+<p>See <a href="../configuration/#permissions">Permissions</a> for the persisted format and pattern syntax.</p>
 
 
 

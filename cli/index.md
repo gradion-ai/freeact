@@ -108,17 +108,30 @@ Press `Escape` during an active agent turn to cancel it. This interrupts the cur
 
 ### Approval Prompt
 
-Before executing code actions or tool calls, the agent requests approval:
+Before executing code actions or tool calls, the agent requests approval. The prompt displays a suggested pattern that summarizes the pending action:
 
 ```
-Approve? [Y/n/a/s]
+Approve? [Y/n/a/s] git add *
 ```
 
-| Response       | Effect                                                   |
-| -------------- | -------------------------------------------------------- |
-| `Y` or `Enter` | Approve once                                             |
-| `n`            | Reject once (ends the current agent turn)                |
-| `a`            | Approve always (persists to `.freeact/permissions.json`) |
-| `s`            | Approve for current session                              |
+| Key           | Action                                        |
+| ------------- | --------------------------------------------- |
+| `y` / `Enter` | Approve this invocation only                  |
+| `n`           | Reject (ends the current agent turn)          |
+| `a`           | Edit pattern, then save as always-allow rule  |
+| `s`           | Edit pattern, then save as session-allow rule |
 
-See [Permissions API](https://gradion-ai.github.io/freeact/sdk/#permissions-api) for details.
+Pressing `a` or `s` opens the pattern for inline editing. The input is pre-filled with the suggested pattern. Edit the pattern to broaden or narrow the rule (e.g. change `filesystem_read_file src/main.py` to `filesystem_* src/**`), then press `Enter` to save the rule and approve. While editing, approval hotkeys are disabled so you can type freely.
+
+Always-allow rules persist to `.freeact/permissions.json` across sessions. Session-allow rules are in-memory and cleared when the session ends. Future tool calls matching a saved rule are auto-approved without prompting.
+
+The suggested pattern depends on the action type:
+
+| Action               | Pattern format        | Example                             |
+| -------------------- | --------------------- | ----------------------------------- |
+| Shell command        | `command *` heuristic | `git add *`                         |
+| Code action          | tool name             | `ipybox_execute_ipython_cell`       |
+| File read/write/edit | tool name + path      | `filesystem_write_file src/main.py` |
+| Other tool calls     | tool name             | `github_search_repositories`        |
+
+See [Permissions](https://gradion-ai.github.io/freeact/configuration/#permissions) for the persisted format and pattern syntax.

@@ -1,40 +1,63 @@
 ## freeact.permissions.PermissionManager
 
 ```
-PermissionManager(freeact_dir: Path = Path('.freeact'))
+PermissionManager(
+    freeact_dir: Path = Path(".freeact"),
+    *,
+    working_dir: Path | None = None
+)
 ```
 
-Tool permission gating with two-tier approval: always-allowed (persisted) and session-only (in-memory).
+Tool call permission gating with type-specific pattern rules.
 
-Filesystem tools targeting paths within `.freeact/` are auto-approved without explicit permission grants.
+Rules are `ToolCall` instances whose fields may contain glob wildcards (`*`, `?`). Path fields (`path`, `paths`) use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries. Non-path fields (`tool_name`, `command`) use simple glob matching.
+
+Use allow_always and allow_session to store pattern rules. Use is_allowed to check concrete (no wildcards) tool calls against stored rules.
+
+Evaluation order: ask-session, ask-always, allow-session, allow-always. First match wins. Ask takes priority over allow.
 
 ### allow_always
 
 ```
-allow_always(tool_name: str) -> None
+allow_always(tool_call: ToolCall) -> None
 ```
 
-Grant permanent permission for a tool and persist to disk.
+Add a pattern rule to the always-allow list and persist.
+
+The tool call's fields may contain glob wildcards. For example, `ShellAction(tool_name="bash", command="git *")` allows all git subcommands, and `FileRead(tool_name="filesystem_*", paths=("src/**",))` allows reading any file under `src/`.
 
 ### allow_session
 
 ```
-allow_session(tool_name: str) -> None
+allow_session(tool_call: ToolCall) -> None
 ```
 
-Grant permission for a tool until the session ends (not persisted).
+Add a pattern rule to the session-allow list (not persisted).
+
+The tool call's fields may contain glob wildcards, same as allow_always. Session rules are cleared when the process ends.
 
 ### is_allowed
 
 ```
-is_allowed(
-    tool_name: str, tool_args: dict[str, Any] | None = None
-) -> bool
+is_allowed(tool_call: ToolCall) -> bool
 ```
 
-Check if a tool call is pre-approved.
+Check if a concrete tool call is pre-approved.
 
-Returns `True` if the tool is in the always-allowed or session-allowed set, or if it's a filesystem tool operating within `.freeact/`.
+The tool call should contain literal values (no wildcards). Its fields are matched against the glob patterns in stored rules.
+
+Parameters:
+
+| Name        | Type       | Description                  | Default    |
+| ----------- | ---------- | ---------------------------- | ---------- |
+| `tool_call` | `ToolCall` | Concrete tool call to check. | *required* |
+
+Returns:
+
+| Type   | Description                                         |
+| ------ | --------------------------------------------------- |
+| `bool` | True if an allow rule matches and no ask rule takes |
+| `bool` | precedence, False otherwise.                        |
 
 ### load
 
@@ -42,7 +65,7 @@ Returns `True` if the tool is in the always-allowed or session-allowed set, or i
 load() -> None
 ```
 
-Load always-allowed tools from `.freeact/permissions.json`.
+Load permissions from `.freeact/permissions.json`.
 
 ### save
 
@@ -50,4 +73,4 @@ Load always-allowed tools from `.freeact/permissions.json`.
 save() -> None
 ```
 
-Persist always-allowed tools to `.freeact/permissions.json`.
+Persist always-tier permissions to `.freeact/permissions.json`.
