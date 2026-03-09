@@ -6,8 +6,6 @@
 
 ::: freeact.agent.AgentEvent
 
-::: freeact.agent.ApprovalRequest
-
 ::: freeact.agent.Response
 
 ::: freeact.agent.ResponseChunk
@@ -24,6 +22,24 @@
 
 ::: freeact.agent.CodeExecutionOutputChunk
 
+::: freeact.agent.ApprovalRequest
+
 ::: freeact.agent.ToolOutput
 
 ::: freeact.agent.Cancelled
+
+::: freeact.agent.ToolCall
+
+::: freeact.agent.GenericCall
+
+::: freeact.agent.ShellAction
+
+::: freeact.agent.CodeAction
+
+::: freeact.agent.FileRead
+
+::: freeact.agent.FileWrite
+
+::: freeact.agent.FileEdit
+
+::: freeact.agent.TextEdit

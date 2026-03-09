@@ -226,15 +226,13 @@ Tool result persistence is controlled by two config options:
 
 ## Permissions API
 
-!!! info "Work in progress"
+[`PermissionManager`][freeact.permissions.PermissionManager] provides pattern-based permission gating using typed [`ToolCall`][freeact.agent.call.ToolCall] instances. Patterns use glob-style matching (`*`, `?`). Path fields use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries. Rules are organized into ask/allow tiers with session and always persistence scopes.
 
-    Current permission management is preliminary and will be reimplemented in a future release.
-
-The agent requests approval for each code action and tool call but doesn't remember past decisions. [`PermissionManager`][freeact.permissions.PermissionManager] adds memory: `allow_always()` persists to `.freeact/permissions.json`, while `allow_session()` stores in-memory until the session ends:
+Each `ApprovalRequest` carries a `tool_call` field that is a `ToolCall` subclass (`GenericCall`, `ShellAction`, `CodeAction`, `FileRead`, `FileWrite`, `FileEdit`). Permission matching is type-specific: shell commands match on `command`, filesystem tools match on `path`/`paths`, and generic tools match on `tool_name` only.
 
 ```python
 from freeact.permissions import PermissionManager
-from ipybox.utils import arun
+from freeact.agent import suggest_pattern
 
 manager = PermissionManager()
 await manager.load()
@@ -242,22 +240,25 @@ await manager.load()
 async for event in agent.stream(prompt):
     match event:
         case ApprovalRequest() as request:
-            if manager.is_allowed(request.tool_name, request.tool_args):
+            if manager.is_allowed(request.tool_call):
                 request.approve(True)
             else:
-                choice = await arun(input, "Allow? [Y/n/a/s]: ")
+                pattern = suggest_pattern(request.tool_call)
+                choice = input(f"Allow [{pattern}]? [Y/n/a/s]: ")
                 match choice:
                     case "a":
-                        await manager.allow_always(request.tool_name)
+                        await manager.allow_always(request.tool_call)
                         request.approve(True)
                     case "s":
-                        manager.allow_session(request.tool_name)
+                        manager.allow_session(request.tool_call)
                         request.approve(True)
                     case "n":
                         request.approve(False)
                     case _:
                         request.approve(True)
 ```
+
+See [Permissions](configuration.md#permissions) for the persisted file format and pattern syntax.
 
 ## Preprocessing API
 

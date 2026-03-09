@@ -1,7 +1,7 @@
 from textual.binding import Binding
 from textual.widgets import Static
 
-from freeact.terminal.tool_data import TextEditData, ToolOutputData
+from freeact.agent.call import TextEdit
 from freeact.terminal.widgets import (
     ApprovalBar,
     PromptInput,
@@ -45,7 +45,7 @@ def test_create_file_read_action_box_multiple_paths_metadata() -> None:
 def test_create_file_edit_action_box_has_diff_class_and_is_expanded() -> None:
     box = create_file_edit_action_box(
         path="src/config.py",
-        edits=(TextEditData(old_text="DEBUG = True", new_text="DEBUG = False"),),
+        edits=(TextEdit(old_text="DEBUG = True", new_text="DEBUG = False"),),
         agent_id="agent-1",
         corr_id="corr-1",
     )
@@ -65,7 +65,7 @@ def test_create_error_box_has_error_class_and_is_expanded() -> None:
 
 def test_create_tool_output_box_generic_is_collapsed() -> None:
     box = create_tool_output_box(
-        ToolOutputData(content="ok"),
+        "ok",
         agent_id="agent-1",
         corr_id="corr-1",
     )
@@ -104,7 +104,25 @@ def test_create_tool_call_box_uses_ptc_prefix_when_requested() -> None:
 
 def test_approval_bar_prompt_text_matches_current_ui() -> None:
     bar = ApprovalBar()
-    assert str(bar.content) == "Approve? [Y/n/a/s]"
+    assert "Y/n/a/s" in str(bar.content)
+
+
+def test_approval_bar_displays_pattern() -> None:
+    bar = ApprovalBar(pattern="github_*")
+    content = str(bar.content)
+    assert "github_*" in content
+    assert content.startswith("Approve? [Y/n/a/s] ")
+
+
+def test_approval_bar_decided_carries_pattern() -> None:
+    decided = ApprovalBar.Decided(decision=2, pattern="my_pattern")
+    assert decided.decision == 2
+    assert decided.pattern == "my_pattern"
+
+
+def test_approval_bar_default_pattern_is_empty() -> None:
+    bar = ApprovalBar()
+    assert bar.pattern == ""
 
 
 def test_prompt_input_css_uses_solid_border_variants() -> None:

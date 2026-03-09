@@ -9,6 +9,7 @@ import pytest
 from pydantic_ai.models.function import DeltaToolCall
 
 from freeact.agent import Agent, ApprovalRequest, Cancelled, CodeExecutionOutput
+from freeact.agent.call import CodeAction, GenericCall
 from freeact.agent.config import Config
 from tests.helpers import (
     CodeExecFunction,
@@ -102,7 +103,9 @@ def create_code_exec_with_approval_function(
     """Returns an execute function that simulates a PTC approval flow."""
 
     async def execute(self, code: str):
-        approval = ApprovalRequest(tool_name=tool_name, tool_args=tool_args)
+        approval = ApprovalRequest(
+            tool_call=GenericCall(tool_name=tool_name, tool_args=tool_args, ptc=True),
+        )
         yield approval
         if await approval.approved():
             yield CodeExecutionOutput(text=approved_result, images=[])
@@ -237,8 +240,8 @@ class TestIpyboxExecution:
             results = await collect_stream(agent, "test prompt")
 
             assert len(results.approvals) == 1
-            assert results.approvals[0].tool_name == "ipybox_execute_ipython_cell"
-            assert results.approvals[0].tool_args == {"code": test_code}
+            assert results.approvals[0].tool_call.tool_name == "ipybox_execute_ipython_cell"
+            assert isinstance(results.approvals[0].tool_call, CodeAction)
             assert len(results.code_outputs) == 1
             assert results.code_outputs[0].text == "approved execution"
 
@@ -278,8 +281,8 @@ class TestIpyboxExecution:
             results = await collect_stream(agent, "test prompt")
 
             assert len(results.approvals) == 2
-            assert results.approvals[0].tool_name == "ipybox_execute_ipython_cell"
-            assert results.approvals[1].tool_name == "test_tool_2"
+            assert results.approvals[0].tool_call.tool_name == "ipybox_execute_ipython_cell"
+            assert results.approvals[1].tool_call.tool_name == "test_tool_2"
             assert len(results.code_outputs) == 1
             assert results.code_outputs[0].text == "You passed to tool 2: ptc_approved"
 
@@ -301,14 +304,14 @@ class TestIpyboxExecution:
 
         # Approve code execution, reject PTC
         def approve_function(req: ApprovalRequest) -> bool:
-            return req.tool_name == "ipybox_execute_ipython_cell"
+            return req.tool_call.tool_name == "ipybox_execute_ipython_cell"
 
         async with patched_agent(stream_function, code_exec_function) as agent:
             results = await collect_stream(agent, "test prompt", approve_function=approve_function)
 
             assert len(results.approvals) == 2
-            assert results.approvals[0].tool_name == "ipybox_execute_ipython_cell"
-            assert results.approvals[1].tool_name == "test_tool_2"
+            assert results.approvals[0].tool_call.tool_name == "ipybox_execute_ipython_cell"
+            assert results.approvals[1].tool_call.tool_name == "test_tool_2"
             assert len(results.code_outputs) == 1
             assert results.code_outputs[0].text is not None
             assert "ApprovalRejectedError:" in results.code_outputs[0].text
@@ -587,8 +590,7 @@ class TestCancellation:
         approval = ApprovalRequest(
             agent_id="main",
             corr_id="test",
-            tool_name="ipybox_execute_ipython_cell",
-            tool_args={"code": "print(1)"},
+            tool_call=CodeAction(tool_name="ipybox_execute_ipython_cell", code="print(1)"),
         )
         # Simulate _await_approval_or_cancel resolving the future first
         approval._future.set_result(False)

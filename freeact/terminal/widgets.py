@@ -12,10 +12,7 @@ from textual.message import Message
 from textual.strip import Strip
 from textual.widgets import Collapsible, Markdown, RichLog, Static, TextArea
 
-from freeact.terminal.tool_data import (
-    TextEditData,
-    ToolOutputData,
-)
+from freeact.agent.call import TextEdit
 
 # Register Alt+Enter (ESC + CR) to produce the same key event as Ctrl+J,
 # which PromptInput handles as newline insertion. Without this, the xterm
@@ -105,7 +102,7 @@ class PromptInput(TextArea):
 
 
 class ApprovalBar(Static):
-    """Inline approval prompt with keyboard shortcuts."""
+    """Inline approval prompt with keyboard shortcuts and editable pattern."""
 
     can_focus = True
 
@@ -116,28 +113,82 @@ class ApprovalBar(Static):
         text-style: bold;
         color: $warning;
     }
+    ApprovalBar Input {
+        width: auto;
+        min-width: 20;
+        height: 1;
+        border: none;
+        padding: 0;
+        margin: 0 1 0 0;
+        background: $surface;
+    }
+    ApprovalBar Input:focus {
+        border: none;
+    }
     """
 
     class Decided(Message):
         """Message emitted when an approval decision is made."""
 
-        def __init__(self, decision: int) -> None:
+        def __init__(self, decision: int, pattern: str = "") -> None:
             super().__init__()
             self.decision = decision
+            self.pattern = pattern
 
     BINDINGS = [
         ("y", "decide(1)", "Yes"),
         ("enter", "decide(1)", "Yes"),
         ("n", "decide(0)", "No"),
-        ("s", "decide(3)", "Session"),
-        ("a", "decide(2)", "Always"),
+        ("a", "save_rule(2)", "Always"),
+        ("s", "save_rule(3)", "Session"),
     ]
 
-    def __init__(self, **kwargs: Any) -> None:
-        super().__init__("Approve? [Y/n/a/s]", **kwargs)
+    def __init__(self, pattern: str = "", **kwargs: Any) -> None:
+        self._pattern = pattern
+        self._editing = False
+        self._pending_decision: int = 0
+        super().__init__(self._render_text(), markup=False, **kwargs)
+
+    def _render_text(self) -> str:
+        if self._pattern:
+            return f"Approve? [Y/n/a/s] {self._pattern}"
+        return "Approve? [Y/n/a/s]"
 
     def action_decide(self, decision: int) -> None:
-        self.post_message(self.Decided(decision))
+        self.post_message(self.Decided(decision, pattern=self._pattern))
+
+    def action_save_rule(self, scope: int) -> None:
+        """Enter edit mode for the pattern before saving a rule."""
+        from textual.widgets import Input
+
+        self._editing = True
+        self._pending_decision = scope
+        self.update("")
+        input_widget = Input(value=self._pattern, id="approval-pattern-input")
+        self.mount(input_widget)
+        input_widget.focus()
+
+    def on_input_submitted(self, event: "textual.widgets.Input.Submitted") -> None:  # type: ignore[name-defined]  # noqa: F821
+        """Save the edited pattern and approve."""
+        self._pattern = event.value
+        self._editing = False
+        event.input.remove()
+        self.post_message(self.Decided(self._pending_decision, pattern=self._pattern))
+
+    @property
+    def editing(self) -> bool:
+        """Whether the pattern input is currently active."""
+        return self._editing
+
+    @property
+    def pattern(self) -> str:
+        """Current pattern value."""
+        return self._pattern
+
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if self._editing and action in ("decide", "save_rule"):
+            return False
+        return super().check_action(action, parameters)
 
 
 # --- Collapsible box factory functions ---
@@ -297,18 +348,18 @@ def finalize_exec_output(log: RichLog, text: str | None, images: list[Path]) -> 
         log.write("Produced images:\n" + "\n".join(f"  {path}" for path in images))
 
 
-def create_tool_output_box(data: ToolOutputData, agent_id: str = "", corr_id: str = "") -> Collapsible:
+def create_tool_output_box(content: str, agent_id: str = "", corr_id: str = "") -> Collapsible:
     """Create a collapsed box for generic tool output text.
 
     Args:
-        data: Canonical tool output payload.
+        content: Tool output text to display.
         agent_id: Agent identifier for the title prefix.
         corr_id: Correlation identifier for the title prefix.
 
     Returns:
         Collapsible widget that displays truncated tool output.
     """
-    display_content = data.content
+    display_content = content
     syntax = Syntax(display_content, "text", theme="monokai", line_numbers=True)
     box = Collapsible(
         Static(syntax),
@@ -405,7 +456,7 @@ def create_file_write_action_box(path: str, content: str, agent_id: str = "", co
 
 def create_file_edit_action_box(
     path: str,
-    edits: tuple[TextEditData, ...],
+    edits: tuple[TextEdit, ...],
     agent_id: str = "",
     corr_id: str = "",
 ) -> Collapsible:

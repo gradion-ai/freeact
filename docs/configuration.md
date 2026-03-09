@@ -211,18 +211,51 @@ The `.agents/skills/` directory is not managed by freeact and is not auto-create
 
 ## Permissions
 
-[Tool permissions](sdk.md#permissions-api) are stored in `.freeact/permissions.json` based on tool name:
+[Permissions](sdk.md#permissions-api) are stored in `.freeact/permissions.json` as typed entries with glob-style pattern matching. `tool_name` and `command` fields support `*` (any characters) and `?` (single character). Path fields (`path`, `paths`) use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries.
 
 ```json
 {
-  "allowed_tools": [
-    "tool_name_1",
-    "tool_name_2"
+  "ask": [
+    {"type": "ShellAction", "tool_name": "bash", "command": "rm *"}
+  ],
+  "allow": [
+    {"type": "GenericCall", "tool_name": "github_*"},
+    {"type": "ShellAction", "tool_name": "bash", "command": "git *"},
+    {"type": "FileRead", "tool_name": "filesystem_*", "paths": [".freeact/**"]},
+    {"type": "FileWrite", "tool_name": "filesystem_*", "path": "src/**"}
   ]
 }
 ```
 
-Tools in `allowed_tools` are auto-approved by the [CLI tool](cli.md) without prompting. Selecting `"a"` at the approval prompt adds the tool to this list.
+Each entry has a `type` field that determines which fields are matched:
+
+| Type | Matched fields |
+|------|---------------|
+| `GenericCall` | `tool_name` |
+| `ShellAction` | `tool_name`, `command` |
+| `CodeAction` | `tool_name` |
+| `FileRead` | `tool_name`, `paths` (every path must match at least one pattern) |
+| `FileWrite` | `tool_name`, `path` |
+| `FileEdit` | `tool_name`, `path` |
+
+### Tiers
+
+Permissions are organized into two tiers:
+
+| Tier | Description |
+|------|-------------|
+| `allow` | Tool call executes without prompting |
+| `ask` | User is always prompted for approval |
+
+Evaluation order is **ask then allow**: if an entry matches both tiers, the user is prompted. Each tier supports two persistence scopes: **always** (persisted to `permissions.json`) and **session** (in-memory, cleared when the session ends).
+
+### Tool patterns
+
+Tool patterns match against MCP tool names (e.g. `github_search_repositories`, `filesystem_read_file`). Filesystem tools (`FileRead`, `FileWrite`, `FileEdit`) additionally match on path fields, enabling path-specific rules like allowing reads only from `src/**`.
+
+### Shell command patterns
+
+Shell patterns match against individual commands extracted from code actions. Shell commands using `!cmd` syntax or `%%bash` cell magic are extracted before execution and checked against `ShellAction` permission entries. Composite commands joined with `&&`, `||`, `|`, or `;` are decomposed into individual sub-commands, each checked independently. If any sub-command is denied, the entire cell is blocked.
 
 ## Tool Directories
 

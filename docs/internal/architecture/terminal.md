@@ -32,9 +32,9 @@ Read this first, then follow code references for details.
 
 - `clipboard.py`: platform clipboard adapter (`pbcopy/pbpaste`, `wl-*`, `xclip`/`xsel`, PowerShell) with local fallback.
 - `config.py`: terminal UI collapse behavior and keybinding configuration.
-- `tool_adapter.py`: raw tool payloads -> canonical UI models (`tool_data.py`).
-- `widgets.py`: all prompt/approval widgets and box factories.
+- `widgets.py`: all prompt/approval widgets and box factories (including `ApprovalBar` with inline pattern editing).
 - `screens.py`: modal file picker for `@` insertion.
+- `freeact/agent/call.py`: `ToolCall` type hierarchy, `suggest_pattern`, `parse_pattern`, `extract_tool_output_text`.
 - `freeact.permissions.PermissionManager`: pre-approval and persisted/session allow-lists.
 
 ## Keyboard Semantics

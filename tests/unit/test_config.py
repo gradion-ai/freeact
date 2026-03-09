@@ -271,12 +271,12 @@ async def test_save_is_non_destructive_for_runtime_files(tmp_path: Path) -> None
     search_db = freeact_dir / "search.db"
     permissions = freeact_dir / "permissions.json"
     search_db.write_bytes(b"sqlite")
-    permissions.write_text('{"allowed_tools": ["x"]}')
+    permissions.write_text('{"ask": [], "allow": []}')
 
     await config.save()
 
     assert search_db.read_bytes() == b"sqlite"
-    assert permissions.read_text() == '{"allowed_tools": ["x"]}'
+    assert permissions.read_text() == '{"ask": [], "allow": []}'
 
 
 def test_project_skills_are_loaded(tmp_path: Path) -> None:

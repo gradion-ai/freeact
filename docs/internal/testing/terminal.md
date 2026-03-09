@@ -11,4 +11,3 @@
 
 - `tests/unit/terminal/test_app.py`: app flow and approvals.
 - `tests/unit/terminal/test_widgets.py`: widget metadata/state.
-- `tests/unit/terminal/test_tool_adapter.py`: payload normalization.
