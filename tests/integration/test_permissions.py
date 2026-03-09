@@ -3,6 +3,15 @@ from pathlib import Path
 
 import pytest
 
+from freeact.agent.call import (
+    CodeAction,
+    FileEdit,
+    FileRead,
+    FileWrite,
+    GenericCall,
+    ShellAction,
+    TextEdit,
+)
 from freeact.permissions import PermissionManager
 
 
@@ -13,298 +22,335 @@ def freeact_dir(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def permission_manager(freeact_dir: Path) -> PermissionManager:
+def working_dir(tmp_path: Path) -> Path:
+    return tmp_path
+
+
+@pytest.fixture
+def permission_manager(freeact_dir: Path, working_dir: Path) -> PermissionManager:
     """Return a fresh PermissionManager instance."""
-    return PermissionManager(freeact_dir)
+    return PermissionManager(freeact_dir, working_dir=working_dir)
 
 
-class TestPatternMatching:
-    """Tests for fnmatch glob matching."""
+class TestTypeSpecificMatching:
+    """Tests for is_allowed() with type-specific ToolCall matching."""
 
-    def test_exact_match(self, permission_manager: PermissionManager):
-        permission_manager._tool_allow_always.append("github_search_repositories")
-        assert permission_manager.check_tool("github_search_repositories") == "allow"
+    def test_generic_call_wildcard(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(GenericCall(tool_name="github_*", tool_args={}, ptc=False))
+        tc = GenericCall(tool_name="github_search_repositories", tool_args={"q": "test"}, ptc=False)
+        assert permission_manager.is_allowed(tc)
 
-    def test_star_wildcard(self, permission_manager: PermissionManager):
-        permission_manager._tool_allow_always.append("github_*")
-        assert permission_manager.check_tool("github_search_repositories") == "allow"
-        assert permission_manager.check_tool("github_create_issue") == "allow"
+    def test_generic_call_exact(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(GenericCall(tool_name="github_search_repositories", tool_args={}, ptc=False))
+        tc = GenericCall(tool_name="github_search_repositories", tool_args={"q": "test"}, ptc=False)
+        assert permission_manager.is_allowed(tc)
 
-    def test_question_mark_wildcard(self, permission_manager: PermissionManager):
-        permission_manager._tool_allow_always.append("tool_?")
-        assert permission_manager.check_tool("tool_a") == "allow"
-        assert permission_manager.check_tool("tool_ab") is None
+    def test_generic_call_no_match(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(GenericCall(tool_name="github_*", tool_args={}, ptc=False))
+        tc = GenericCall(tool_name="filesystem_read_file", tool_args={}, ptc=False)
+        assert not permission_manager.is_allowed(tc)
 
-    def test_no_match_returns_none(self, permission_manager: PermissionManager):
-        permission_manager._tool_allow_always.append("github_*")
-        assert permission_manager.check_tool("filesystem_read_file") is None
+    def test_shell_action_tool_name_and_command(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(ShellAction(tool_name="bash", command="git *"))
+        tc = ShellAction(tool_name="bash", command="git status")
+        assert permission_manager.is_allowed(tc)
+
+    def test_shell_action_command_mismatch(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(ShellAction(tool_name="bash", command="git *"))
+        tc = ShellAction(tool_name="bash", command="rm -rf /")
+        assert not permission_manager.is_allowed(tc)
+
+    def test_code_action_tool_name_only(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(CodeAction(tool_name="ipybox_*", code=""))
+        tc = CodeAction(tool_name="ipybox_execute_ipython_cell", code="print(1)")
+        assert permission_manager.is_allowed(tc)
+
+    def test_file_read_all_paths_must_match(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(FileRead(tool_name="filesystem_*", paths=("src/**",), head=None, tail=None))
+        tc = FileRead(
+            tool_name="filesystem_read_file",
+            paths=("src/main.py",),
+            head=None,
+            tail=None,
+        )
+        assert permission_manager.is_allowed(tc)
+
+    def test_file_read_path_mismatch(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(FileRead(tool_name="filesystem_*", paths=("src/**",), head=None, tail=None))
+        tc = FileRead(
+            tool_name="filesystem_read_file",
+            paths=("tests/test_foo.py",),
+            head=None,
+            tail=None,
+        )
+        assert not permission_manager.is_allowed(tc)
+
+    def test_file_read_multiple_paths_all_must_match(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(FileRead(tool_name="filesystem_*", paths=("src/**",), head=None, tail=None))
+        # One path matches, one doesn't
+        tc = FileRead(
+            tool_name="filesystem_read_multiple_files",
+            paths=("src/main.py", "tests/test_foo.py"),
+            head=None,
+            tail=None,
+        )
+        assert not permission_manager.is_allowed(tc)
+
+    def test_file_read_multiple_paths_all_match(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(FileRead(tool_name="filesystem_*", paths=("src/**",), head=None, tail=None))
+        tc = FileRead(
+            tool_name="filesystem_read_multiple_files",
+            paths=("src/main.py", "src/config.py"),
+            head=None,
+            tail=None,
+        )
+        assert permission_manager.is_allowed(tc)
+
+    def test_file_write_path_match(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(FileWrite(tool_name="filesystem_*", path="src/**", content=""))
+        tc = FileWrite(
+            tool_name="filesystem_write_file",
+            path="src/main.py",
+            content="print(1)",
+        )
+        assert permission_manager.is_allowed(tc)
+
+    def test_file_write_path_mismatch(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(FileWrite(tool_name="filesystem_*", path="src/**", content=""))
+        tc = FileWrite(
+            tool_name="filesystem_write_file",
+            path="tests/test.py",
+            content="pass",
+        )
+        assert not permission_manager.is_allowed(tc)
+
+    def test_file_edit_path_match(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(FileEdit(tool_name="filesystem_*", path="src/**", edits=()))
+        tc = FileEdit(
+            tool_name="filesystem_edit_file",
+            path="src/main.py",
+            edits=(TextEdit(old_text="a", new_text="b"),),
+        )
+        assert permission_manager.is_allowed(tc)
+
+    def test_file_edit_path_mismatch(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(FileEdit(tool_name="filesystem_*", path="src/**", edits=()))
+        tc = FileEdit(
+            tool_name="filesystem_edit_file",
+            path="tests/test.py",
+            edits=(TextEdit(old_text="a", new_text="b"),),
+        )
+        assert not permission_manager.is_allowed(tc)
 
 
-class TestToolPermissionEvaluation:
-    """Tests for check_tool() returning 'allow' / 'ask' / None."""
+class TestEvaluationOrder:
+    """Tests for ask/allow evaluation order: ask-session, ask-always, allow-session, allow-always."""
 
-    def test_allow_always(self, permission_manager: PermissionManager):
-        permission_manager._tool_allow_always.append("my_tool")
-        assert permission_manager.check_tool("my_tool") == "allow"
+    def test_ask_overrides_allow(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(GenericCall(tool_name="my_tool", tool_args={}, ptc=False))
+        permission_manager._ask_always.append({"type": "GenericCall", "tool_name": "my_tool"})
+        tc = GenericCall(tool_name="my_tool", tool_args={}, ptc=False)
+        assert not permission_manager.is_allowed(tc)
 
-    def test_allow_session(self, permission_manager: PermissionManager):
-        permission_manager._tool_allow_session.append("my_tool")
-        assert permission_manager.check_tool("my_tool") == "allow"
+    def test_ask_session_overrides_allow_always(self, permission_manager: PermissionManager) -> None:
+        permission_manager._allow_always.append({"type": "GenericCall", "tool_name": "my_tool"})
+        permission_manager._ask_session.append({"type": "GenericCall", "tool_name": "my_tool"})
+        tc = GenericCall(tool_name="my_tool", tool_args={}, ptc=False)
+        assert not permission_manager.is_allowed(tc)
 
-    def test_ask_always(self, permission_manager: PermissionManager):
-        permission_manager._tool_ask_always.append("my_tool")
-        assert permission_manager.check_tool("my_tool") == "ask"
+    def test_allow_session_before_allow_always(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(GenericCall(tool_name="my_tool", tool_args={}, ptc=False))
+        tc = GenericCall(tool_name="my_tool", tool_args={}, ptc=False)
+        assert permission_manager.is_allowed(tc)
 
-    def test_ask_session(self, permission_manager: PermissionManager):
-        permission_manager._tool_ask_session.append("my_tool")
-        assert permission_manager.check_tool("my_tool") == "ask"
-
-    def test_ask_overrides_allow(self, permission_manager: PermissionManager):
-        permission_manager._tool_allow_always.append("my_tool")
-        permission_manager._tool_ask_always.append("my_tool")
-        assert permission_manager.check_tool("my_tool") == "ask"
-
-    def test_ask_session_overrides_allow_always(self, permission_manager: PermissionManager):
-        permission_manager._tool_allow_always.append("my_tool")
-        permission_manager._tool_ask_session.append("my_tool")
-        assert permission_manager.check_tool("my_tool") == "ask"
-
-    def test_no_match(self, permission_manager: PermissionManager):
-        assert permission_manager.check_tool("unknown_tool") is None
-
-    def test_evaluation_order_ask_session_first(self, permission_manager: PermissionManager):
-        """Ask-session is checked before ask-always."""
-        permission_manager._tool_ask_session.append("tool_*")
-        permission_manager._tool_ask_always.append("tool_a")
-        # Both match, but ask-session wins (first match in evaluation order)
-        assert permission_manager.check_tool("tool_a") == "ask"
+    def test_no_match_returns_false(self, permission_manager: PermissionManager) -> None:
+        tc = GenericCall(tool_name="unknown", tool_args={}, ptc=False)
+        assert not permission_manager.is_allowed(tc)
 
 
-class TestShellPermissionEvaluation:
-    """Tests for check_shell() returning 'allow' / 'ask' / None."""
+class TestPathNormalization:
+    """Tests for absolute -> relative path normalization."""
 
-    def test_allow_always(self, permission_manager: PermissionManager):
-        permission_manager._shell_allow_always.append("git *")
-        assert permission_manager.check_shell("git status") == "allow"
+    def test_absolute_path_normalized_to_relative(
+        self, working_dir: Path, permission_manager: PermissionManager
+    ) -> None:
+        permission_manager.allow_session(FileRead(tool_name="filesystem_*", paths=("src/**",), head=None, tail=None))
+        absolute_path = str(working_dir / "src" / "main.py")
+        tc = FileRead(
+            tool_name="filesystem_read_file",
+            paths=(absolute_path,),
+            head=None,
+            tail=None,
+        )
+        assert permission_manager.is_allowed(tc)
 
-    def test_allow_session(self, permission_manager: PermissionManager):
-        permission_manager._shell_allow_session.append("git *")
-        assert permission_manager.check_shell("git push origin main") == "allow"
-
-    def test_ask_always(self, permission_manager: PermissionManager):
-        permission_manager._shell_ask_always.append("rm *")
-        assert permission_manager.check_shell("rm -rf /") == "ask"
-
-    def test_ask_overrides_allow(self, permission_manager: PermissionManager):
-        permission_manager._shell_allow_always.append("git *")
-        permission_manager._shell_ask_always.append("git push *")
-        assert permission_manager.check_shell("git push origin main") == "ask"
-
-    def test_no_match(self, permission_manager: PermissionManager):
-        assert permission_manager.check_shell("curl http://example.com") is None
+    def test_path_outside_workspace_stays_absolute(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(FileRead(tool_name="filesystem_*", paths=("/etc/**",), head=None, tail=None))
+        tc = FileRead(
+            tool_name="filesystem_read_file",
+            paths=("/etc/hosts",),
+            head=None,
+            tail=None,
+        )
+        assert permission_manager.is_allowed(tc)
 
 
-class TestNewPersistence:
-    """Tests for new JSON format save/load, migration, and roundtrip."""
+class TestPersistenceRoundtrip:
+    """Tests for save/load with new typed dict format."""
 
     @pytest.mark.asyncio
-    async def test_new_format_save(self, freeact_dir: Path, permission_manager: PermissionManager):
-        permission_manager._tool_allow_always.append("github_*")
-        permission_manager._tool_ask_always.append("dangerous_tool")
-        permission_manager._shell_allow_always.append("git *")
-        permission_manager._shell_ask_always.append("rm *")
-
-        await permission_manager.save()
+    async def test_save_new_format(self, freeact_dir: Path, working_dir: Path) -> None:
+        manager = PermissionManager(freeact_dir, working_dir=working_dir)
+        await manager.allow_always(GenericCall(tool_name="github_*", tool_args={}, ptc=False))
+        await manager.allow_always(ShellAction(tool_name="bash", command="git *"))
 
         data = json.loads((freeact_dir / "permissions.json").read_text())
         assert data == {
-            "tool_permissions": {
-                "ask": ["dangerous_tool"],
-                "allow": ["github_*"],
-            },
-            "shell_permissions": {
-                "ask": ["rm *"],
-                "allow": ["git *"],
-            },
+            "ask": [],
+            "allow": [
+                {"type": "GenericCall", "tool_name": "github_*"},
+                {"type": "ShellAction", "tool_name": "bash", "command": "git *"},
+            ],
         }
 
     @pytest.mark.asyncio
-    async def test_new_format_load(self, freeact_dir: Path):
+    async def test_load_new_format(self, freeact_dir: Path, working_dir: Path) -> None:
         freeact_dir.mkdir(parents=True)
         data = {
-            "tool_permissions": {
-                "ask": ["dangerous_*"],
-                "allow": ["safe_*"],
-            },
-            "shell_permissions": {
-                "ask": ["rm *"],
-                "allow": ["git *"],
-            },
+            "ask": [{"type": "ShellAction", "tool_name": "bash", "command": "rm *"}],
+            "allow": [
+                {"type": "GenericCall", "tool_name": "safe_*"},
+                {"type": "ShellAction", "tool_name": "bash", "command": "git *"},
+            ],
         }
         (freeact_dir / "permissions.json").write_text(json.dumps(data))
 
-        manager = PermissionManager(freeact_dir)
+        manager = PermissionManager(freeact_dir, working_dir=working_dir)
         await manager.load()
 
-        assert manager._tool_ask_always == ["dangerous_*"]
-        assert manager._tool_allow_always == ["safe_*"]
-        assert manager._shell_ask_always == ["rm *"]
-        assert manager._shell_allow_always == ["git *"]
+        assert manager.is_allowed(GenericCall(tool_name="safe_tool", tool_args={}, ptc=False))
+        assert manager.is_allowed(ShellAction(tool_name="bash", command="git status"))
+        assert not manager.is_allowed(ShellAction(tool_name="bash", command="rm -rf /"))
 
     @pytest.mark.asyncio
-    async def test_old_format_migration(self, freeact_dir: Path):
-        """Old format with 'allowed_tools' is auto-migrated."""
-        freeact_dir.mkdir(parents=True)
-        old_data = {"allowed_tools": ["tool_a", "tool_b"]}
-        (freeact_dir / "permissions.json").write_text(json.dumps(old_data))
+    async def test_roundtrip(self, freeact_dir: Path, working_dir: Path) -> None:
+        m1 = PermissionManager(freeact_dir, working_dir=working_dir)
+        await m1.allow_always(GenericCall(tool_name="github_*", tool_args={}, ptc=False))
+        await m1.allow_always(ShellAction(tool_name="bash", command="git *"))
 
-        manager = PermissionManager(freeact_dir)
+        m2 = PermissionManager(freeact_dir, working_dir=working_dir)
+        await m2.load()
+
+        assert m2.is_allowed(GenericCall(tool_name="github_search", tool_args={}, ptc=False))
+        assert m2.is_allowed(ShellAction(tool_name="bash", command="git status"))
+
+    @pytest.mark.asyncio
+    async def test_load_empty(self, freeact_dir: Path, working_dir: Path) -> None:
+        manager = PermissionManager(freeact_dir, working_dir=working_dir)
         await manager.load()
-
-        assert manager._tool_allow_always == ["tool_a", "tool_b"]
-        assert manager._tool_ask_always == []
-
-        # Verify re-save uses new format
-        await manager.save()
-        new_data = json.loads((freeact_dir / "permissions.json").read_text())
-        assert "allowed_tools" not in new_data
-        assert new_data["tool_permissions"]["allow"] == ["tool_a", "tool_b"]
-
-    @pytest.mark.asyncio
-    async def test_roundtrip(self, freeact_dir: Path):
-        manager1 = PermissionManager(freeact_dir)
-        manager1._tool_allow_always = ["github_*", "filesystem_*"]
-        manager1._tool_ask_always = ["dangerous_*"]
-        manager1._shell_allow_always = ["git *"]
-        manager1._shell_ask_always = ["rm *"]
-        await manager1.save()
-
-        manager2 = PermissionManager(freeact_dir)
-        await manager2.load()
-
-        assert manager2._tool_allow_always == ["github_*", "filesystem_*"]
-        assert manager2._tool_ask_always == ["dangerous_*"]
-        assert manager2._shell_allow_always == ["git *"]
-        assert manager2._shell_ask_always == ["rm *"]
-
-    @pytest.mark.asyncio
-    async def test_load_empty(self, permission_manager: PermissionManager):
-        """Load from non-existent file returns empty lists."""
-        await permission_manager.load()
-        assert permission_manager._tool_allow_always == []
-        assert permission_manager._tool_ask_always == []
-        assert permission_manager._shell_allow_always == []
-        assert permission_manager._shell_ask_always == []
-
-
-class TestPatternSuggestion:
-    """Tests for suggest_tool_pattern() and suggest_shell_pattern()."""
-
-    def test_suggest_tool_pattern_returns_full_name(self, permission_manager: PermissionManager):
-        assert permission_manager.suggest_tool_pattern("github_search_repositories") == "github_search_repositories"
-
-    def test_suggest_shell_pattern_command_with_subcommand(self, permission_manager: PermissionManager):
-        assert permission_manager.suggest_shell_pattern("git add /path/to/file.py") == "git add *"
-
-    def test_suggest_shell_pattern_single_token(self, permission_manager: PermissionManager):
-        assert permission_manager.suggest_shell_pattern("ls") == "ls *"
-
-    def test_suggest_shell_pattern_command_only(self, permission_manager: PermissionManager):
-        assert permission_manager.suggest_shell_pattern("ls -la /tmp") == "ls *"
-
-    def test_suggest_shell_pattern_pip_install(self, permission_manager: PermissionManager):
-        assert permission_manager.suggest_shell_pattern("pip install pandas") == "pip install *"
-
-
-class TestIsAllowedBackwardCompat:
-    """Tests for is_allowed() backward compatibility."""
-
-    @pytest.mark.asyncio
-    async def test_is_allowed_true_when_check_tool_returns_allow(self, permission_manager: PermissionManager):
-        await permission_manager.allow_always("my_tool", domain="tool")
-        assert permission_manager.is_allowed("my_tool")
-
-    def test_is_allowed_false_when_no_match(self, permission_manager: PermissionManager):
-        assert not permission_manager.is_allowed("unknown")
-
-    def test_is_allowed_false_when_ask(self, permission_manager: PermissionManager):
-        permission_manager._tool_ask_always.append("my_tool")
-        assert not permission_manager.is_allowed("my_tool")
-
-    def test_is_allowed_filesystem_auto_approval(self, freeact_dir: Path, permission_manager: PermissionManager):
-        target = str(freeact_dir / "subdir" / "file.txt")
-        assert permission_manager.is_allowed("filesystem_read_file", {"path": target})
-
-    def test_is_allowed_filesystem_outside_freeact(self, tmp_path: Path, permission_manager: PermissionManager):
-        outside = str(tmp_path / "outside" / "file.txt")
-        assert not permission_manager.is_allowed("filesystem_read_file", {"path": outside})
+        assert manager._ask_always == []
+        assert manager._allow_always == []
 
 
 class TestAllowMethods:
-    """Tests for allow_always() and allow_session() with domain parameter."""
+    """Tests for allow_always() and allow_session() with deduplication."""
 
     @pytest.mark.asyncio
-    async def test_allow_always_tool(self, permission_manager: PermissionManager):
-        await permission_manager.allow_always("github_*", domain="tool")
-        assert "github_*" in permission_manager._tool_allow_always
+    async def test_allow_always_persists(self, freeact_dir: Path, working_dir: Path) -> None:
+        m1 = PermissionManager(freeact_dir, working_dir=working_dir)
+        await m1.allow_always(GenericCall(tool_name="github_*", tool_args={}, ptc=False))
+
+        m2 = PermissionManager(freeact_dir, working_dir=working_dir)
+        await m2.load()
+        assert m2.is_allowed(GenericCall(tool_name="github_search", tool_args={}, ptc=False))
+
+    def test_allow_session_not_persisted(self, freeact_dir: Path, working_dir: Path) -> None:
+        m1 = PermissionManager(freeact_dir, working_dir=working_dir)
+        m1.allow_session(GenericCall(tool_name="temp_tool", tool_args={}, ptc=False))
+
+        m2 = PermissionManager(freeact_dir, working_dir=working_dir)
+        assert not m2.is_allowed(GenericCall(tool_name="temp_tool", tool_args={}, ptc=False))
 
     @pytest.mark.asyncio
-    async def test_allow_always_shell(self, permission_manager: PermissionManager):
-        await permission_manager.allow_always("git *", domain="shell")
-        assert "git *" in permission_manager._shell_allow_always
+    async def test_allow_always_deduplicates(self, freeact_dir: Path, working_dir: Path) -> None:
+        manager = PermissionManager(freeact_dir, working_dir=working_dir)
+        await manager.allow_always(GenericCall(tool_name="github_*", tool_args={}, ptc=False))
+        await manager.allow_always(GenericCall(tool_name="github_*", tool_args={}, ptc=False))
 
-    def test_allow_session_tool(self, permission_manager: PermissionManager):
-        permission_manager.allow_session("github_*", domain="tool")
-        assert "github_*" in permission_manager._tool_allow_session
+        data = json.loads((freeact_dir / "permissions.json").read_text())
+        allow_entries = [e for e in data["allow"] if e.get("tool_name") == "github_*"]
+        assert len(allow_entries) == 1
 
-    def test_allow_session_shell(self, permission_manager: PermissionManager):
-        permission_manager.allow_session("git *", domain="shell")
-        assert "git *" in permission_manager._shell_allow_session
-
-    @pytest.mark.asyncio
-    async def test_allow_always_persists(self, freeact_dir: Path):
-        manager1 = PermissionManager(freeact_dir)
-        await manager1.allow_always("github_*", domain="tool")
-
-        manager2 = PermissionManager(freeact_dir)
-        await manager2.load()
-        assert "github_*" in manager2._tool_allow_always
-
-    def test_allow_session_not_persisted(self, freeact_dir: Path):
-        manager1 = PermissionManager(freeact_dir)
-        manager1.allow_session("temp_tool", domain="tool")
-
-        manager2 = PermissionManager(freeact_dir)
-        assert "temp_tool" not in manager2._tool_allow_session
+    def test_allow_session_deduplicates(self, permission_manager: PermissionManager) -> None:
+        tc = GenericCall(tool_name="github_*", tool_args={}, ptc=False)
+        permission_manager.allow_session(tc)
+        permission_manager.allow_session(tc)
+        assert len(permission_manager._allow_session) == 1
 
 
 class TestPermissionManagerInit:
     """Tests for initialization behavior."""
 
-    def test_init_does_not_create_freeact_directory(self, freeact_dir: Path):
-        """Constructor does not eagerly create the .freeact/ directory."""
+    def test_init_does_not_create_freeact_directory(self, freeact_dir: Path, working_dir: Path) -> None:
         assert not freeact_dir.exists()
-        PermissionManager(freeact_dir)
+        PermissionManager(freeact_dir, working_dir=working_dir)
         assert not freeact_dir.exists()
 
     @pytest.mark.asyncio
-    async def test_save_creates_freeact_directory(self, freeact_dir: Path):
-        """Saving creates the .freeact/ directory if it doesn't exist."""
-        manager = PermissionManager(freeact_dir)
+    async def test_save_creates_freeact_directory(self, freeact_dir: Path, working_dir: Path) -> None:
+        manager = PermissionManager(freeact_dir, working_dir=working_dir)
         assert not freeact_dir.exists()
         await manager.save()
         assert freeact_dir.exists()
 
-    def test_init_sets_permissions_file_path(self, freeact_dir: Path, permission_manager: PermissionManager):
-        expected_path = freeact_dir / "permissions.json"
-        assert permission_manager._permissions_file == expected_path
 
-    def test_init_initializes_empty_lists(self, permission_manager: PermissionManager):
-        assert permission_manager._tool_allow_always == []
-        assert permission_manager._tool_ask_always == []
-        assert permission_manager._tool_allow_session == []
-        assert permission_manager._tool_ask_session == []
-        assert permission_manager._shell_allow_always == []
-        assert permission_manager._shell_ask_always == []
-        assert permission_manager._shell_allow_session == []
-        assert permission_manager._shell_ask_session == []
+class TestPathPatternSemantics:
+    """Tests for path pattern matching with PurePosixPath.full_match."""
+
+    def test_single_star_matches_direct_child(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(FileRead(tool_name="filesystem_*", paths=("src/*",), head=None, tail=None))
+        tc = FileRead(tool_name="filesystem_read_file", paths=("src/main.py",), head=None, tail=None)
+        assert permission_manager.is_allowed(tc)
+
+    def test_single_star_does_not_cross_slash(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(FileRead(tool_name="filesystem_*", paths=("src/*",), head=None, tail=None))
+        tc = FileRead(tool_name="filesystem_read_file", paths=("src/sub/main.py",), head=None, tail=None)
+        assert not permission_manager.is_allowed(tc)
+
+    def test_double_star_matches_any_depth(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(FileRead(tool_name="filesystem_*", paths=("src/**",), head=None, tail=None))
+        assert permission_manager.is_allowed(
+            FileRead(tool_name="filesystem_read_file", paths=("src/main.py",), head=None, tail=None)
+        )
+        assert permission_manager.is_allowed(
+            FileRead(tool_name="filesystem_read_file", paths=("src/sub/main.py",), head=None, tail=None)
+        )
+        assert permission_manager.is_allowed(
+            FileRead(tool_name="filesystem_read_file", paths=("src/a/b/c.py",), head=None, tail=None)
+        )
+
+    def test_freeact_double_star_matches_nested(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(FileWrite(tool_name="filesystem_*", path=".freeact/**", content=""))
+        tc = FileWrite(
+            tool_name="filesystem_write_file",
+            path=".freeact/sessions/abc/main.jsonl",
+            content="data",
+        )
+        assert permission_manager.is_allowed(tc)
+
+    def test_double_star_slash_star_dot_py_matches_any_depth(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(FileEdit(tool_name="filesystem_*", path="**/*.py", edits=()))
+        assert permission_manager.is_allowed(
+            FileEdit(
+                tool_name="filesystem_edit_file",
+                path="main.py",
+                edits=(TextEdit(old_text="a", new_text="b"),),
+            )
+        )
+        assert permission_manager.is_allowed(
+            FileEdit(
+                tool_name="filesystem_edit_file",
+                path="src/deep/nested/file.py",
+                edits=(TextEdit(old_text="a", new_text="b"),),
+            )
+        )

@@ -1,7 +1,7 @@
 from textual.binding import Binding
 from textual.widgets import Static
 
-from freeact.terminal.tool_data import TextEditData, ToolOutputData
+from freeact.agent.call import TextEdit
 from freeact.terminal.widgets import (
     ApprovalBar,
     PromptInput,
@@ -45,7 +45,7 @@ def test_create_file_read_action_box_multiple_paths_metadata() -> None:
 def test_create_file_edit_action_box_has_diff_class_and_is_expanded() -> None:
     box = create_file_edit_action_box(
         path="src/config.py",
-        edits=(TextEditData(old_text="DEBUG = True", new_text="DEBUG = False"),),
+        edits=(TextEdit(old_text="DEBUG = True", new_text="DEBUG = False"),),
         agent_id="agent-1",
         corr_id="corr-1",
     )
@@ -65,7 +65,7 @@ def test_create_error_box_has_error_class_and_is_expanded() -> None:
 
 def test_create_tool_output_box_generic_is_collapsed() -> None:
     box = create_tool_output_box(
-        ToolOutputData(content="ok"),
+        "ok",
         agent_id="agent-1",
         corr_id="corr-1",
     )

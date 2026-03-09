@@ -6,6 +6,7 @@ import pytest
 from pydantic_ai.messages import ModelMessage
 from pydantic_ai.models.function import AgentInfo, DeltaToolCall
 
+from freeact.agent.call import ShellAction
 from freeact.agent.events import ApprovalRequest, CodeExecutionOutput, CodeExecutionOutputChunk
 from tests.helpers.agents import collect_stream, patched_agent
 from tests.helpers.streams import DeltaToolCalls, get_tool_return_parts
@@ -46,7 +47,7 @@ async def test_code_action_with_no_shell_commands_yields_no_extra_approvals(tmp_
 
     # Only the cell-level approval, no shell approvals
     assert len(results.approvals) == 1
-    assert not results.approvals[0].shell
+    assert not isinstance(results.approvals[0].tool_call, ShellAction)
 
 
 @pytest.mark.asyncio
@@ -56,9 +57,11 @@ async def test_code_action_with_shell_command_yields_shell_approval_request(tmp_
         results = await collect_stream(agent, "run it")
 
     # Cell-level approval + shell approval
-    shell_approvals = [a for a in results.approvals if a.shell]
+    shell_approvals = [a for a in results.approvals if isinstance(a.tool_call, ShellAction)]
     assert len(shell_approvals) == 1
-    assert shell_approvals[0].tool_name == "git status"
+    tc = shell_approvals[0].tool_call
+    assert isinstance(tc, ShellAction)
+    assert tc.command == "git status"
 
 
 @pytest.mark.asyncio
@@ -67,10 +70,10 @@ async def test_shell_approval_request_has_shell_flag(tmp_path):
     async with patched_agent(_make_cell_stream(code), code_exec_function=_simple_exec, tmp_dir=tmp_path) as agent:
         results = await collect_stream(agent, "run it")
 
-    shell_approvals = [a for a in results.approvals if a.shell]
+    shell_approvals = [a for a in results.approvals if isinstance(a.tool_call, ShellAction)]
     assert len(shell_approvals) == 1
-    assert shell_approvals[0].shell is True
-    assert shell_approvals[0].ptc is False
+    assert isinstance(shell_approvals[0].tool_call, ShellAction)
+    assert shell_approvals[0].tool_call.tool_name == "bash"
 
 
 @pytest.mark.asyncio
@@ -88,7 +91,7 @@ async def test_shell_command_denied_blocks_cell_execution(tmp_path):
     async with patched_agent(_make_cell_stream(code), code_exec_function=_tracking_exec, tmp_dir=tmp_path) as agent:
 
         def deny_shell(req: ApprovalRequest) -> bool:
-            if req.shell:
+            if isinstance(req.tool_call, ShellAction):
                 return False
             return True
 
@@ -105,7 +108,7 @@ async def test_all_shell_commands_approved_cell_executes(tmp_path):
     async with patched_agent(_make_cell_stream(code), code_exec_function=_simple_exec, tmp_dir=tmp_path) as agent:
         results = await collect_stream(agent, "run it")
 
-    shell_approvals = [a for a in results.approvals if a.shell]
+    shell_approvals = [a for a in results.approvals if isinstance(a.tool_call, ShellAction)]
     assert len(shell_approvals) == 2
     # Cell should have executed
     assert len(results.code_outputs) == 1
@@ -117,7 +120,11 @@ async def test_composite_shell_commands_yield_separate_approvals(tmp_path):
     async with patched_agent(_make_cell_stream(code), code_exec_function=_simple_exec, tmp_dir=tmp_path) as agent:
         results = await collect_stream(agent, "run it")
 
-    shell_approvals = [a for a in results.approvals if a.shell]
+    shell_approvals = [a for a in results.approvals if isinstance(a.tool_call, ShellAction)]
     assert len(shell_approvals) == 2
-    assert shell_approvals[0].tool_name == "git add ."
-    assert shell_approvals[1].tool_name == "git commit -m 'msg'"
+    tc0 = shell_approvals[0].tool_call
+    tc1 = shell_approvals[1].tool_call
+    assert isinstance(tc0, ShellAction)
+    assert isinstance(tc1, ShellAction)
+    assert tc0.command == "git add ."
+    assert tc1.command == "git commit -m 'msg'"

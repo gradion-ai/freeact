@@ -226,47 +226,31 @@ Tool result persistence is controlled by two config options:
 
 ## Permissions API
 
-[`PermissionManager`][freeact.permissions.PermissionManager] provides pattern-based permission gating for tool calls and shell commands. Patterns use glob-style matching (`*`, `?`) via `fnmatch`. Rules are organized into ask/allow tiers with session and always persistence scopes.
+[`PermissionManager`][freeact.permissions.PermissionManager] provides pattern-based permission gating using typed [`ToolCall`][freeact.agent.call.ToolCall] instances. Patterns use glob-style matching (`*`, `?`). Path fields use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries. Rules are organized into ask/allow tiers with session and always persistence scopes.
+
+Each `ApprovalRequest` carries a `tool_call` field that is a `ToolCall` subclass (`GenericCall`, `ShellAction`, `CodeAction`, `FileRead`, `FileWrite`, `FileEdit`). Permission matching is type-specific: shell commands match on `command`, filesystem tools match on `path`/`paths`, and generic tools match on `tool_name` only.
 
 ```python
 from freeact.permissions import PermissionManager
+from freeact.agent import suggest_pattern
 
 manager = PermissionManager()
 await manager.load()
 
 async for event in agent.stream(prompt):
     match event:
-        case ApprovalRequest(shell=True) as request:
-            result = manager.check_shell(request.tool_name)
-            if result == "allow":
-                request.approve(True)
-            else:
-                pattern = manager.suggest_shell_pattern(request.tool_name)
-                choice = input(f"Allow [{pattern}]? [Y/n/a/s]: ")
-                match choice:
-                    case "a":
-                        await manager.allow_always(pattern, domain="shell")
-                        request.approve(True)
-                    case "s":
-                        manager.allow_session(pattern, domain="shell")
-                        request.approve(True)
-                    case "n":
-                        request.approve(False)
-                    case _:
-                        request.approve(True)
-
         case ApprovalRequest() as request:
-            if manager.is_allowed(request.tool_name, request.tool_args):
+            if manager.is_allowed(request.tool_call):
                 request.approve(True)
             else:
-                pattern = manager.suggest_tool_pattern(request.tool_name)
+                pattern = suggest_pattern(request.tool_call)
                 choice = input(f"Allow [{pattern}]? [Y/n/a/s]: ")
                 match choice:
                     case "a":
-                        await manager.allow_always(pattern, domain="tool")
+                        await manager.allow_always(request.tool_call)
                         request.approve(True)
                     case "s":
-                        manager.allow_session(pattern, domain="tool")
+                        manager.allow_session(request.tool_call)
                         request.approve(True)
                     case "n":
                         request.approve(False)

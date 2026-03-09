@@ -4,6 +4,7 @@ import asyncio
 from freeact.agent import (
     Agent,
     ApprovalRequest,
+    CodeAction,
     CodeExecutionOutput,
     Response,
     Thoughts,
@@ -39,12 +40,11 @@ async def main() -> None:
 
         async for event in agent.stream(prompt):
             match event:
-                case ApprovalRequest(tool_name="ipybox_execute_ipython_cell", tool_args=args) as request:
-                    print(f"Code action:\n{args['code']}")
+                case ApprovalRequest(tool_call=CodeAction(code=code)) as request:
+                    print(f"Code action:\n{code}")
                     request.approve(True)
-                case ApprovalRequest(tool_name=name, tool_args=args) as request:
-                    print(f"Tool: {name}")
-                    print(f"Args: {args}")
+                case ApprovalRequest(tool_call=tool_call) as request:
+                    print(f"Tool: {tool_call.tool_name}")
                     request.approve(True)
                 case Thoughts(content=content):
                     print(f"Thinking: {content}")

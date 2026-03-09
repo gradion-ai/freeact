@@ -181,7 +181,7 @@ class TestTaskExecution:
         """Rejecting the task tool approval prevents subagent from running."""
 
         def reject_task(req: ApprovalRequest) -> bool:
-            return req.tool_name != "subagent_task"
+            return req.tool_call.tool_name != "subagent_task"
 
         async with unpatched_agent(create_task_stream_function("Should not appear")) as agent:
             results = await collect_stream(agent, "test", approve_function=reject_task)
@@ -260,7 +260,7 @@ class TestSubagentCodeExecution:
             results = await collect_stream(agent, "test")
 
             # Should have approval requests from both parent (task) and subagent (ipybox)
-            approval_names = [a.tool_name for a in results.approvals]
+            approval_names = [a.tool_call.tool_name for a in results.approvals]
             assert "subagent_task" in approval_names
             assert "ipybox_execute_ipython_cell" in approval_names
 
@@ -292,14 +292,14 @@ class TestSubagentCodeExecution:
         async with unpatched_agent(stream_function) as agent:
             results = await collect_stream(agent, "test")
 
-            parent_task_approvals = [a for a in results.approvals if a.tool_name == "subagent_task"]
+            parent_task_approvals = [a for a in results.approvals if a.tool_call.tool_name == "subagent_task"]
             assert len(parent_task_approvals) == 1
             parent_corr_id = parent_task_approvals[0].corr_id
 
             subagent_approvals = [
                 a
                 for a in results.approvals
-                if a.agent_id != agent.agent_id and a.tool_name == "ipybox_execute_ipython_cell"
+                if a.agent_id != agent.agent_id and a.tool_call.tool_name == "ipybox_execute_ipython_cell"
             ]
             assert len(subagent_approvals) >= 1
             assert all(a.corr_id != parent_corr_id for a in subagent_approvals)

@@ -12,10 +12,7 @@ from textual.message import Message
 from textual.strip import Strip
 from textual.widgets import Collapsible, Markdown, RichLog, Static, TextArea
 
-from freeact.terminal.tool_data import (
-    TextEditData,
-    ToolOutputData,
-)
+from freeact.agent.call import TextEdit
 
 # Register Alt+Enter (ESC + CR) to produce the same key event as Ctrl+J,
 # which PromptInput handles as newline insertion. Without this, the xterm
@@ -351,18 +348,18 @@ def finalize_exec_output(log: RichLog, text: str | None, images: list[Path]) -> 
         log.write("Produced images:\n" + "\n".join(f"  {path}" for path in images))
 
 
-def create_tool_output_box(data: ToolOutputData, agent_id: str = "", corr_id: str = "") -> Collapsible:
+def create_tool_output_box(content: str, agent_id: str = "", corr_id: str = "") -> Collapsible:
     """Create a collapsed box for generic tool output text.
 
     Args:
-        data: Canonical tool output payload.
+        content: Tool output text to display.
         agent_id: Agent identifier for the title prefix.
         corr_id: Correlation identifier for the title prefix.
 
     Returns:
         Collapsible widget that displays truncated tool output.
     """
-    display_content = data.content
+    display_content = content
     syntax = Syntax(display_content, "text", theme="monokai", line_numbers=True)
     box = Collapsible(
         Static(syntax),
@@ -459,7 +456,7 @@ def create_file_write_action_box(path: str, content: str, agent_id: str = "", co
 
 def create_file_edit_action_box(
     path: str,
-    edits: tuple[TextEditData, ...],
+    edits: tuple[TextEdit, ...],
     agent_id: str = "",
     corr_id: str = "",
 ) -> Collapsible:

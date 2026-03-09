@@ -1,9 +1,11 @@
 from asyncio import Future
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic_ai.mcp import ToolResult
+
+from freeact.agent.call import ToolCall
 
 
 @dataclass(kw_only=True)
@@ -94,10 +96,7 @@ class ApprovalRequest(AgentEvent):
     The stream is suspended until `approve()` is called.
     """
 
-    tool_name: str
-    tool_args: dict[str, Any]
-    ptc: bool = False
-    shell: bool = False
+    tool_call: ToolCall
     _future: Future[bool] = field(default_factory=Future)
 
     def approve(self, decision: bool) -> None:

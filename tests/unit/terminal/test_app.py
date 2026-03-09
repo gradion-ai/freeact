@@ -10,6 +10,7 @@ from textual.keys import Keys
 from textual.pilot import Pilot
 from textual.widgets import Static
 
+from freeact.agent.call import CodeAction, GenericCall, ShellAction, ToolCall
 from freeact.agent.config.skills import SkillMetadata
 from freeact.agent.events import (
     AgentEvent,
@@ -61,32 +62,17 @@ class StubPermissionManager:
 
     def __init__(self, preapproved: bool = False) -> None:
         self._preapproved = preapproved
-        self.allow_always_calls: list[tuple[str, str]] = []
-        self.allow_session_calls: list[tuple[str, str]] = []
+        self.allow_always_calls: list[ToolCall] = []
+        self.allow_session_calls: list[ToolCall] = []
 
-    def is_allowed(self, tool_name: str, tool_args: dict[str, object] | None = None) -> bool:
+    def is_allowed(self, tool_call: ToolCall) -> bool:
         return self._preapproved
 
-    def check_tool(self, tool_name: str) -> str | None:
-        return "allow" if self._preapproved else None
+    async def allow_always(self, tool_call: ToolCall) -> None:
+        self.allow_always_calls.append(tool_call)
 
-    def check_shell(self, command: str) -> str | None:
-        return "allow" if self._preapproved else None
-
-    def suggest_tool_pattern(self, tool_name: str) -> str:
-        return tool_name
-
-    def suggest_shell_pattern(self, command: str) -> str:
-        parts = command.split()
-        if len(parts) >= 2:
-            return f"{parts[0]} {parts[1]} *"
-        return f"{parts[0]} *" if parts else "*"
-
-    async def allow_always(self, pattern: str, domain: str = "tool") -> None:
-        self.allow_always_calls.append((pattern, domain))
-
-    def allow_session(self, pattern: str, domain: str = "tool") -> None:
-        self.allow_session_calls.append((pattern, domain))
+    def allow_session(self, tool_call: ToolCall) -> None:
+        self.allow_session_calls.append(tool_call)
 
 
 class StubClipboardAdapter:
@@ -447,8 +433,7 @@ async def test_ctrl_q_triggers_quit_action(monkeypatch: pytest.MonkeyPatch) -> N
 async def test_approval_yes_collapses_action_and_mounts_tool_output() -> None:
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
-            tool_name="database_query",
-            tool_args={"query": "SELECT 1"},
+            tool_call=GenericCall(tool_name="database_query", tool_args={"query": "SELECT 1"}, ptc=False),
             agent_id=MAIN_AGENT_ID,
             corr_id="call-1",
         )
@@ -475,8 +460,7 @@ async def test_approval_yes_collapses_action_and_mounts_tool_output() -> None:
 async def test_approval_enter_works_after_clicking_other_widget() -> None:
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
-            tool_name="database_query",
-            tool_args={"query": "SELECT 1"},
+            tool_call=GenericCall(tool_name="database_query", tool_args={"query": "SELECT 1"}, ptc=False),
             agent_id=MAIN_AGENT_ID,
             corr_id="call-1",
         )
@@ -502,8 +486,7 @@ async def test_approval_enter_works_after_clicking_other_widget() -> None:
 async def test_approval_no_keeps_action_expanded_and_skips_tool_output() -> None:
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
-            tool_name="database_query",
-            tool_args={"query": "SELECT 1"},
+            tool_call=GenericCall(tool_name="database_query", tool_args={"query": "SELECT 1"}, ptc=False),
             agent_id=MAIN_AGENT_ID,
             corr_id="call-1",
         )
@@ -529,8 +512,7 @@ async def test_approval_always_calls_allow_always() -> None:
 
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
-            tool_name="database_query",
-            tool_args={"query": "SELECT 1"},
+            tool_call=GenericCall(tool_name="database_query", tool_args={"query": "SELECT 1"}, ptc=False),
             agent_id=MAIN_AGENT_ID,
             corr_id="call-1",
         )
@@ -551,7 +533,9 @@ async def test_approval_always_calls_allow_always() -> None:
         await pilot.press("enter")
         await app.workers.wait_for_complete()
 
-    assert permission_manager.allow_always_calls == [("database_query", "tool")]
+    assert len(permission_manager.allow_always_calls) == 1
+    assert isinstance(permission_manager.allow_always_calls[0], GenericCall)
+    assert permission_manager.allow_always_calls[0].tool_name == "database_query"
 
 
 @pytest.mark.asyncio
@@ -560,8 +544,7 @@ async def test_approval_session_calls_allow_session() -> None:
 
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
-            tool_name="database_query",
-            tool_args={"query": "SELECT 1"},
+            tool_call=GenericCall(tool_name="database_query", tool_args={"query": "SELECT 1"}, ptc=False),
             agent_id=MAIN_AGENT_ID,
             corr_id="call-1",
         )
@@ -582,7 +565,9 @@ async def test_approval_session_calls_allow_session() -> None:
         await pilot.press("enter")
         await app.workers.wait_for_complete()
 
-    assert permission_manager.allow_session_calls == [("database_query", "tool")]
+    assert len(permission_manager.allow_session_calls) == 1
+    assert isinstance(permission_manager.allow_session_calls[0], GenericCall)
+    assert permission_manager.allow_session_calls[0].tool_name == "database_query"
 
 
 @pytest.mark.asyncio
@@ -591,8 +576,7 @@ async def test_preapproved_request_skips_approval_bar() -> None:
 
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
-            tool_name="database_query",
-            tool_args={"query": "SELECT 1"},
+            tool_call=GenericCall(tool_name="database_query", tool_args={"query": "SELECT 1"}, ptc=False),
             agent_id=MAIN_AGENT_ID,
             corr_id="call-1",
         )
@@ -621,9 +605,7 @@ async def test_ptc_request_uses_ptc_title_in_default_terminal() -> None:
 
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
-            tool_name="database_query",
-            tool_args={"query": "SELECT 1"},
-            ptc=True,
+            tool_call=GenericCall(tool_name="database_query", tool_args={"query": "SELECT 1"}, ptc=True),
             agent_id=MAIN_AGENT_ID,
             corr_id="call-ptc",
         )
@@ -651,8 +633,7 @@ async def test_ctrl_o_toggles_expand_all_and_restores_configured_state() -> None
         yield ThoughtsChunk(content="thinking...", agent_id=MAIN_AGENT_ID)
         yield Thoughts(content="thinking...", agent_id=MAIN_AGENT_ID)
         request = ApprovalRequest(
-            tool_name="database_query",
-            tool_args={"query": "SELECT 1"},
+            tool_call=GenericCall(tool_name="database_query", tool_args={"query": "SELECT 1"}, ptc=False),
             agent_id=MAIN_AGENT_ID,
             corr_id="call-1",
         )
@@ -690,8 +671,7 @@ async def test_new_collapsible_boxes_render_expanded_while_expand_all_override_i
 
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
-            tool_name="database_query",
-            tool_args={"query": "SELECT 1"},
+            tool_call=GenericCall(tool_name="database_query", tool_args={"query": "SELECT 1"}, ptc=False),
             agent_id=MAIN_AGENT_ID,
             corr_id="call-1",
         )
@@ -732,8 +712,7 @@ async def test_toggle_expand_all_uses_configured_hotkey() -> None:
 async def test_pending_approval_widget_stays_expanded_until_user_decides() -> None:
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
-            tool_name="database_query",
-            tool_args={"query": "SELECT 1"},
+            tool_call=GenericCall(tool_name="database_query", tool_args={"query": "SELECT 1"}, ptc=False),
             agent_id=MAIN_AGENT_ID,
             corr_id="call-1",
         )
@@ -768,8 +747,7 @@ async def test_approval_behaviors_can_disable_auto_collapse() -> None:
 
     async def approved_scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
-            tool_name="database_query",
-            tool_args={"query": "SELECT 1"},
+            tool_call=GenericCall(tool_name="database_query", tool_args={"query": "SELECT 1"}, ptc=False),
             agent_id=MAIN_AGENT_ID,
             corr_id="call-approved",
         )
@@ -803,8 +781,7 @@ async def test_approval_behaviors_can_disable_auto_collapse() -> None:
 
     async def rejected_scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
-            tool_name="database_query",
-            tool_args={"query": "SELECT 1"},
+            tool_call=GenericCall(tool_name="database_query", tool_args={"query": "SELECT 1"}, ptc=False),
             agent_id=MAIN_AGENT_ID,
             corr_id="call-rejected",
         )
@@ -834,8 +811,7 @@ async def test_approved_code_and_tool_collapse_behaviors_are_independent() -> No
 
     async def tool_call_scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
-            tool_name="database_query",
-            tool_args={"query": "SELECT 1"},
+            tool_call=GenericCall(tool_name="database_query", tool_args={"query": "SELECT 1"}, ptc=False),
             agent_id=MAIN_AGENT_ID,
             corr_id="tool-call",
         )
@@ -857,8 +833,7 @@ async def test_approved_code_and_tool_collapse_behaviors_are_independent() -> No
 
     async def code_action_scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
-            tool_name="ipybox_execute_ipython_cell",
-            tool_args={"code": "print('ok')"},
+            tool_call=CodeAction(tool_name="ipybox_execute_ipython_cell", code="print('ok')"),
             agent_id=MAIN_AGENT_ID,
             corr_id="code-action",
         )
@@ -887,8 +862,7 @@ async def test_preapproved_code_action_respects_collapse_approved_code_actions()
 
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
-            tool_name="ipybox_execute_ipython_cell",
-            tool_args={"code": "print('ok')"},
+            tool_call=CodeAction(tool_name="ipybox_execute_ipython_cell", code="print('ok')"),
             agent_id=MAIN_AGENT_ID,
             corr_id="code-preapproved",
         )
@@ -916,8 +890,7 @@ async def test_preapproved_tool_call_respects_collapse_approved_tool_calls() -> 
 
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
-            tool_name="database_query",
-            tool_args={"query": "SELECT 1"},
+            tool_call=GenericCall(tool_name="database_query", tool_args={"query": "SELECT 1"}, ptc=False),
             agent_id=MAIN_AGENT_ID,
             corr_id="tool-preapproved",
         )
@@ -1262,8 +1235,7 @@ async def test_escape_resolves_pending_approval() -> None:
 
     async def approval_scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
-            tool_name="database_query",
-            tool_args={"query": "SELECT 1"},
+            tool_call=GenericCall(tool_name="database_query", tool_args={"query": "SELECT 1"}, ptc=False),
             agent_id=MAIN_AGENT_ID,
             corr_id="call-1",
         )
@@ -1302,8 +1274,7 @@ async def test_approval_always_passes_pattern_to_allow_always() -> None:
 
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
-            tool_name="github_search_repositories",
-            tool_args={"query": "test"},
+            tool_call=GenericCall(tool_name="github_search_repositories", tool_args={"query": "test"}, ptc=False),
             agent_id=MAIN_AGENT_ID,
             corr_id="call-1",
         )
@@ -1325,7 +1296,9 @@ async def test_approval_always_passes_pattern_to_allow_always() -> None:
         await app.workers.wait_for_complete()
 
     # Pattern should be the suggested pattern (full tool name)
-    assert permission_manager.allow_always_calls == [("github_search_repositories", "tool")]
+    assert len(permission_manager.allow_always_calls) == 1
+    assert isinstance(permission_manager.allow_always_calls[0], GenericCall)
+    assert permission_manager.allow_always_calls[0].tool_name == "github_search_repositories"
 
 
 @pytest.mark.asyncio
@@ -1334,8 +1307,7 @@ async def test_approval_session_passes_pattern_to_allow_session() -> None:
 
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
-            tool_name="github_search_repositories",
-            tool_args={"query": "test"},
+            tool_call=GenericCall(tool_name="github_search_repositories", tool_args={"query": "test"}, ptc=False),
             agent_id=MAIN_AGENT_ID,
             corr_id="call-1",
         )
@@ -1356,7 +1328,9 @@ async def test_approval_session_passes_pattern_to_allow_session() -> None:
         await pilot.press("enter")
         await app.workers.wait_for_complete()
 
-    assert permission_manager.allow_session_calls == [("github_search_repositories", "tool")]
+    assert len(permission_manager.allow_session_calls) == 1
+    assert isinstance(permission_manager.allow_session_calls[0], GenericCall)
+    assert permission_manager.allow_session_calls[0].tool_name == "github_search_repositories"
 
 
 @pytest.mark.asyncio
@@ -1365,9 +1339,7 @@ async def test_shell_approval_request_routes_to_shell_domain() -> None:
 
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
-            tool_name="git status",
-            tool_args={},
-            shell=True,
+            tool_call=ShellAction(tool_name="bash", command="git status"),
             agent_id=MAIN_AGENT_ID,
             corr_id="call-1",
         )
@@ -1389,7 +1361,9 @@ async def test_shell_approval_request_routes_to_shell_domain() -> None:
         await app.workers.wait_for_complete()
 
     # Shell domain should be used with suggested pattern
-    assert permission_manager.allow_always_calls == [("git status *", "shell")]
+    assert len(permission_manager.allow_always_calls) == 1
+    assert isinstance(permission_manager.allow_always_calls[0], ShellAction)
+    assert permission_manager.allow_always_calls[0].command == "git status *"
 
 
 @pytest.mark.asyncio
@@ -1398,9 +1372,7 @@ async def test_shell_approval_uses_suggest_shell_pattern() -> None:
 
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
-            tool_name="git add /path/to/file.py",
-            tool_args={},
-            shell=True,
+            tool_call=ShellAction(tool_name="bash", command="git add /path/to/file.py"),
             agent_id=MAIN_AGENT_ID,
             corr_id="call-1",
         )
@@ -1421,7 +1393,9 @@ async def test_shell_approval_uses_suggest_shell_pattern() -> None:
         await pilot.press("enter")
         await app.workers.wait_for_complete()
 
-    assert permission_manager.allow_always_calls == [("git add *", "shell")]
+    assert len(permission_manager.allow_always_calls) == 1
+    assert isinstance(permission_manager.allow_always_calls[0], ShellAction)
+    assert permission_manager.allow_always_calls[0].command == "git add *"
 
 
 @pytest.mark.asyncio
@@ -1430,8 +1404,7 @@ async def test_always_enters_edit_mode_and_enter_saves_and_approves() -> None:
 
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         request = ApprovalRequest(
-            tool_name="database_query",
-            tool_args={"query": "SELECT 1"},
+            tool_call=GenericCall(tool_name="database_query", tool_args={"query": "SELECT 1"}, ptc=False),
             agent_id=MAIN_AGENT_ID,
             corr_id="call-1",
         )
@@ -1457,4 +1430,6 @@ async def test_always_enters_edit_mode_and_enter_saves_and_approves() -> None:
         await app.workers.wait_for_complete()
 
         assert len(app.query("ApprovalBar")) == 0
-        assert permission_manager.allow_always_calls == [("database_query", "tool")]
+        assert len(permission_manager.allow_always_calls) == 1
+        assert isinstance(permission_manager.allow_always_calls[0], GenericCall)
+        assert permission_manager.allow_always_calls[0].tool_name == "database_query"

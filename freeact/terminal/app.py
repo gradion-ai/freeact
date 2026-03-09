@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as package_version
 from pathlib import Path
-from typing import Literal, TypeAlias
+from typing import TypeAlias
 
 from pydantic_ai import UserContent
 from rich.console import Console
@@ -17,6 +17,18 @@ from textual.containers import Vertical, VerticalScroll
 from textual.widgets import Collapsible, Markdown, Static
 
 from freeact.agent import Agent
+from freeact.agent.call import (
+    CodeAction,
+    FileEdit,
+    FileRead,
+    FileWrite,
+    GenericCall,
+    ShellAction,
+    ToolCall,
+    extract_tool_output_text,
+    parse_pattern,
+    suggest_pattern,
+)
 from freeact.agent.config.skills import SkillMetadata
 from freeact.agent.events import (
     AgentEvent,
@@ -35,15 +47,6 @@ from freeact.preproc import preprocess_prompt
 from freeact.terminal.clipboard import ClipboardAdapter, ClipboardAdapterProtocol
 from freeact.terminal.config import Config
 from freeact.terminal.screens import FilePickerScreen, SkillPickerScreen
-from freeact.terminal.tool_adapter import ToolAdapter
-from freeact.terminal.tool_data import (
-    ActionData,
-    CodeActionData,
-    FileEditData,
-    FileReadData,
-    FileWriteData,
-    GenericToolCallData,
-)
 from freeact.terminal.widgets import (
     ApprovalBar,
     PromptInput,
@@ -217,7 +220,10 @@ class TerminalInterface:
         """
         self._agent = agent
         self._config = config or Config()
-        self._permission_manager = PermissionManager(agent.config.freeact_dir)
+        self._permission_manager = PermissionManager(
+            agent.config.freeact_dir,
+            working_dir=agent.config.working_dir,
+        )
         _ = console
 
     async def run(self) -> None:
@@ -327,7 +333,6 @@ class TerminalApp(App[None]):
         self._skills_metadata = skills_metadata or []
         self._approval_future: asyncio.Future[tuple[int, str]] | None = None
         self._turn_in_progress = False
-        self._tool_adapter = ToolAdapter()
         self._expand_all_override = False
         self._configured_collapsed: dict[int, bool] = {}
         self._forced_expanded_ids: set[int] = set()
@@ -442,7 +447,7 @@ class TerminalApp(App[None]):
         thoughts_stream: "Markdown.MarkdownStream | None" = None
         response_stream: "Markdown.MarkdownStream | None" = None
         exec_log = None
-        tool_calls: dict[str, ActionData] = {}
+        tool_calls: dict[str, ToolCall] = {}
 
         self._turn_in_progress = True
         try:
@@ -481,10 +486,9 @@ class TerminalApp(App[None]):
                             response_stream = None
 
                     case ApprovalRequest() as request:
-                        request_action_data = self._tool_adapter.map_action(request.tool_name, request.tool_args)
                         if request.corr_id:
-                            tool_calls[request.corr_id] = request_action_data
-                        await self._handle_approval(request, request_action_data, conversation)
+                            tool_calls[request.corr_id] = request.tool_call
+                        await self._handle_approval(request, conversation)
 
                     case CodeExecutionOutputChunk(agent_id=aid, text=text, corr_id=cid):
                         if exec_log is None:
@@ -513,9 +517,8 @@ class TerminalApp(App[None]):
                         exec_log = None
 
                     case ToolOutput(agent_id=aid, content=tool_content, corr_id=cid):
-                        output_action_data = tool_calls.get(cid) if cid else None
-                        output_data = self._tool_adapter.map_output(output_action_data, tool_content)
-                        box = create_tool_output_box(output_data, aid, corr_id=cid)
+                        output_text = extract_tool_output_text(tool_content)
+                        box = create_tool_output_box(output_text, aid, corr_id=cid)
                         self._register_box(
                             box,
                             configured_collapsed=self._config.collapse_tool_outputs,
@@ -535,15 +538,15 @@ class TerminalApp(App[None]):
     async def _handle_approval(
         self,
         request: ApprovalRequest,
-        action_data: ActionData,
         conversation: VerticalScroll,
     ) -> None:
-        match action_data:
-            case CodeActionData(code=code):
+        tc = request.tool_call
+        match tc:
+            case CodeAction(code=code):
                 box = create_code_action_box(code, agent_id=request.agent_id, corr_id=request.corr_id)
-            case FileEditData(path=path, edits=edits):
+            case FileEdit(path=path, edits=edits):
                 box = create_file_edit_action_box(path, edits, agent_id=request.agent_id, corr_id=request.corr_id)
-            case FileReadData(paths=paths, head=head, tail=tail):
+            case FileRead(paths=paths, head=head, tail=tail):
                 box = create_file_read_action_box(
                     paths,
                     head,
@@ -551,23 +554,30 @@ class TerminalApp(App[None]):
                     agent_id=request.agent_id,
                     corr_id=request.corr_id,
                 )
-            case FileWriteData(path=path, content=content):
+            case FileWrite(path=path, content=content):
                 box = create_file_write_action_box(
                     path,
                     content,
                     agent_id=request.agent_id,
                     corr_id=request.corr_id,
                 )
-            case GenericToolCallData(tool_name=tool_name, tool_args=tool_args):
+            case ShellAction(command=command):
+                box = create_tool_call_box(
+                    "bash",
+                    {"command": command},
+                    agent_id=request.agent_id,
+                    corr_id=request.corr_id,
+                )
+            case GenericCall(tool_name=tool_name, tool_args=tool_args, ptc=ptc):
                 box = create_tool_call_box(
                     tool_name,
                     tool_args,
                     agent_id=request.agent_id,
                     corr_id=request.corr_id,
-                    ptc=request.ptc,
+                    ptc=ptc,
                 )
             case _:
-                raise ValueError(f"Unsupported action data: {action_data!r}")
+                raise ValueError(f"Unsupported tool call: {tc!r}")
 
         pin_pending = self._config.pin_pending_approval_action_expanded
         self._register_box(box, configured_collapsed=False, force_expanded=pin_pending)
@@ -575,14 +585,9 @@ class TerminalApp(App[None]):
             self._pending_approval_widget_id = id(box)
         await self._mount_and_scroll(conversation, box)
 
-        # Determine domain, pattern, and pre-approval
-        domain: Literal["tool", "shell"] = "shell" if request.shell else "tool"
-        if domain == "shell":
-            suggested_pattern = self._permission_manager.suggest_shell_pattern(request.tool_name)
-            pre_approved = self._permission_manager.check_shell(request.tool_name) == "allow"
-        else:
-            suggested_pattern = self._permission_manager.suggest_tool_pattern(request.tool_name)
-            pre_approved = self._permission_manager.is_allowed(request.tool_name, request.tool_args)
+        # Check pre-approval
+        suggested = suggest_pattern(tc)
+        pre_approved = self._permission_manager.is_allowed(tc)
 
         if pre_approved:
             if self._pending_approval_widget_id == id(box):
@@ -590,14 +595,14 @@ class TerminalApp(App[None]):
                 self._set_force_expanded(box, enabled=False)
             self._set_configured_collapsed(
                 box,
-                collapsed=self._collapse_for_approved_action(action_data),
+                collapsed=self._collapse_for_approved_action(tc),
             )
             request.approve(True)
             return
 
         # Prompt user for approval
         self._approval_future = asyncio.get_running_loop().create_future()
-        bar = ApprovalBar(pattern=suggested_pattern)
+        bar = ApprovalBar(pattern=suggested)
         await self._mount_and_scroll(conversation, bar)
         bar.focus()
 
@@ -611,15 +616,15 @@ class TerminalApp(App[None]):
 
         match decision:
             case 2:
-                await self._permission_manager.allow_always(pattern, domain=domain)
+                await self._permission_manager.allow_always(parse_pattern(pattern, tc))
             case 3:
-                self._permission_manager.allow_session(pattern, domain=domain)
+                self._permission_manager.allow_session(parse_pattern(pattern, tc))
 
         approved = decision != 0
         if approved:
             self._set_configured_collapsed(
                 box,
-                collapsed=self._collapse_for_approved_action(action_data),
+                collapsed=self._collapse_for_approved_action(tc),
             )
         else:
             self._set_configured_collapsed(
@@ -668,9 +673,9 @@ class TerminalApp(App[None]):
             return True
         return False
 
-    def _collapse_for_approved_action(self, action_data: ActionData) -> bool:
-        match action_data:
-            case CodeActionData():
+    def _collapse_for_approved_action(self, tool_call: ToolCall) -> bool:
+        match tool_call:
+            case CodeAction():
                 return self._config.collapse_approved_code_actions
             case _:
                 return self._config.collapse_approved_tool_calls

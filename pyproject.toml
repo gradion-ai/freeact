@@ -5,7 +5,7 @@ description = "Freeact code action agent"
 authors = [
     { name = "Martin Krasser", email = "martin@gradion.ai" },
 ]
-requires-python = ">=3.11,<3.15"
+requires-python = ">=3.13,<3.15"
 readme = "README.md"
 license = "Apache-2.0"
 dependencies = [

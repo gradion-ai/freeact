@@ -11,6 +11,7 @@ from pydantic_ai.messages import ModelMessage, ModelRequest, ToolReturnPart
 from pydantic_ai.models.function import AgentInfo, DeltaThinkingPart, DeltaToolCall
 
 from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput, Response
+from freeact.agent.call import GenericCall
 from freeact.agent.events import CodeExecutionOutputChunk
 from freeact.tools.pytools import MCPTOOLS_DIR
 from tests.helpers import (
@@ -97,8 +98,8 @@ class TestIpyboxExecution:
 
             # 2 approvals: code execution + PTC
             assert len(results.approvals) == 2
-            assert results.approvals[0].tool_name == "ipybox_execute_ipython_cell"
-            assert results.approvals[1].tool_name == "test_tool_2"
+            assert results.approvals[0].tool_call.tool_name == "ipybox_execute_ipython_cell"
+            assert results.approvals[1].tool_call.tool_name == "test_tool_2"
             assert len(results.code_outputs) == 1
             assert results.code_outputs[0].text is not None
             assert "You passed to tool 2: ptc_test" in results.code_outputs[0].text
@@ -120,14 +121,14 @@ class TestIpyboxExecution:
 
         # Approve code execution, reject PTC
         def approve_function(req: ApprovalRequest) -> bool:
-            return req.tool_name == "ipybox_execute_ipython_cell"
+            return req.tool_call.tool_name == "ipybox_execute_ipython_cell"
 
         async with unpatched_agent(stream_function) as agent:
             results = await collect_stream(agent, "test prompt", approve_function=approve_function)
 
             assert len(results.approvals) == 2
-            assert results.approvals[0].tool_name == "ipybox_execute_ipython_cell"
-            assert results.approvals[1].tool_name == "test_tool_2"
+            assert results.approvals[0].tool_call.tool_name == "ipybox_execute_ipython_cell"
+            assert results.approvals[1].tool_call.tool_name == "test_tool_2"
             # Agent turn ends with rejection response
             assert any(r.content == "Tool call rejected" for r in results.responses)
 
@@ -169,8 +170,9 @@ class TestMcpToolExecution:
             results = await collect_stream(agent, "test prompt")
 
             assert len(results.approvals) == 1
-            assert results.approvals[0].tool_name == "test_tool_2"
-            assert results.approvals[0].tool_args == {"s": "approved"}
+            assert results.approvals[0].tool_call.tool_name == "test_tool_2"
+            assert isinstance(results.approvals[0].tool_call, GenericCall)
+            assert results.approvals[0].tool_call.tool_args == {"s": "approved"}
             assert len(results.tool_outputs) == 1
             assert "You passed to tool 2: approved" in str(results.tool_outputs[0].content)
 
@@ -235,7 +237,7 @@ class TestIpyboxReset:
 
             # Should have approval request for reset
             assert len(results.approvals) == 1
-            assert results.approvals[0].tool_name == "ipybox_reset"
+            assert results.approvals[0].tool_call.tool_name == "ipybox_reset"
             # Should have tool output with success message
             assert len(results.tool_outputs) == 1
             assert "reset successfully" in str(results.tool_outputs[0].content).lower()
@@ -599,7 +601,7 @@ tool_2.run(tool_2.Params(s="test"))
                 match event:
                     case ApprovalRequest() as req:
                         results.approvals.append(req)
-                        if req.tool_name == "ipybox_execute_ipython_cell":
+                        if req.tool_call.tool_name == "ipybox_execute_ipython_cell":
                             req.approve(True)
                         else:
                             await asyncio.sleep(8)
@@ -615,8 +617,8 @@ tool_2.run(tool_2.Params(s="test"))
 
             # Should succeed despite 8s PTC approval delay with 5s execution timeout
             assert len(results.approvals) == 2
-            assert results.approvals[0].tool_name == "ipybox_execute_ipython_cell"
-            assert results.approvals[1].tool_name == "test_tool_2"
+            assert results.approvals[0].tool_call.tool_name == "ipybox_execute_ipython_cell"
+            assert results.approvals[1].tool_call.tool_name == "test_tool_2"
             assert len(results.code_outputs) == 1
             assert results.code_outputs[0].text is not None
             assert "You passed to tool 2: test" in results.code_outputs[0].text

@@ -211,20 +211,32 @@ The `.agents/skills/` directory is not managed by freeact and is not auto-create
 
 ## Permissions
 
-[Tool and shell command permissions](sdk.md#permissions-api) are stored in `.freeact/permissions.json` using glob-style pattern matching. Patterns support `*` (match any characters) and `?` (match single character) following `fnmatch` semantics.
+[Permissions](sdk.md#permissions-api) are stored in `.freeact/permissions.json` as typed entries with glob-style pattern matching. `tool_name` and `command` fields support `*` (any characters) and `?` (single character). Path fields (`path`, `paths`) use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries.
 
 ```json
 {
-  "tool_permissions": {
-    "ask": ["dangerous_*"],
-    "allow": ["github_*", "filesystem_read_file"]
-  },
-  "shell_permissions": {
-    "ask": ["rm *"],
-    "allow": ["git *", "pip install *"]
-  }
+  "ask": [
+    {"type": "ShellAction", "tool_name": "bash", "command": "rm *"}
+  ],
+  "allow": [
+    {"type": "GenericCall", "tool_name": "github_*"},
+    {"type": "ShellAction", "tool_name": "bash", "command": "git *"},
+    {"type": "FileRead", "tool_name": "filesystem_*", "paths": [".freeact/**"]},
+    {"type": "FileWrite", "tool_name": "filesystem_*", "path": "src/**"}
+  ]
 }
 ```
+
+Each entry has a `type` field that determines which fields are matched:
+
+| Type | Matched fields |
+|------|---------------|
+| `GenericCall` | `tool_name` |
+| `ShellAction` | `tool_name`, `command` |
+| `CodeAction` | `tool_name` |
+| `FileRead` | `tool_name`, `paths` (every path must match at least one pattern) |
+| `FileWrite` | `tool_name`, `path` |
+| `FileEdit` | `tool_name`, `path` |
 
 ### Tiers
 
@@ -232,41 +244,18 @@ Permissions are organized into two tiers:
 
 | Tier | Description |
 |------|-------------|
-| `allow` | Tool or command executes without prompting |
+| `allow` | Tool call executes without prompting |
 | `ask` | User is always prompted for approval |
 
-Evaluation order is **ask then allow**: if a pattern matches both tiers, the user is prompted. Each tier supports two persistence scopes: **always** (persisted to `permissions.json`) and **session** (in-memory, cleared when the session ends).
+Evaluation order is **ask then allow**: if an entry matches both tiers, the user is prompted. Each tier supports two persistence scopes: **always** (persisted to `permissions.json`) and **session** (in-memory, cleared when the session ends).
 
-### Tool permissions
+### Tool patterns
 
-Tool patterns match against MCP tool names (e.g. `github_search_repositories`, `filesystem_read_file`). At the approval prompt, the suggested default pattern is the full tool name. Pressing `a` or `s` opens the pattern for editing before saving (e.g. change to `github_*`).
+Tool patterns match against MCP tool names (e.g. `github_search_repositories`, `filesystem_read_file`). Filesystem tools (`FileRead`, `FileWrite`, `FileEdit`) additionally match on path fields, enabling path-specific rules like allowing reads only from `src/**`.
 
-### Shell command permissions
+### Shell command patterns
 
-Shell patterns match against individual commands extracted from code actions. Shell commands using `!cmd` syntax or `%%bash` cell magic are extracted before execution and checked against shell permission rules. Composite commands joined with `&&`, `||`, `|`, or `;` are decomposed into individual sub-commands, each checked independently.
-
-The suggested default pattern uses a `cmd subcmd *` heuristic (e.g. `git add /path/to/file.py` suggests `git add *`). Pressing `a` or `s` opens the pattern for editing before saving.
-
-If any shell command within a code action is denied, the entire cell is blocked.
-
-### Approval bar
-
-When a tool call or shell command requires approval, the terminal shows:
-
-```
-Approve? [Y/n/a/s] pattern
-```
-
-| Key | Action |
-|-----|--------|
-| `y` / `Enter` | Approve this invocation only (no rule saved) |
-| `n` | Reject this invocation |
-| `a` | Edit the pattern, then press Enter to save as an always-allow rule and approve |
-| `s` | Edit the pattern, then press Enter to save as a session-allow rule and approve |
-
-### Migration
-
-The old format (`{"allowed_tools": [...]}`) is auto-migrated on load. Existing entries become tool allow patterns in the new format.
+Shell patterns match against individual commands extracted from code actions. Shell commands using `!cmd` syntax or `%%bash` cell magic are extracted before execution and checked against `ShellAction` permission entries. Composite commands joined with `&&`, `||`, `|`, or `;` are decomposed into individual sub-commands, each checked independently. If any sub-command is denied, the entire cell is blocked.
 
 ## Tool Directories
 

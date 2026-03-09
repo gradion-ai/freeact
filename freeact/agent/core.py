@@ -34,6 +34,7 @@ from pydantic_ai.tools import ToolDefinition
 
 from freeact.agent._subagent import _SubagentRunner
 from freeact.agent._supervisor import _ResourceSupervisor
+from freeact.agent.call import GenericCall, ShellAction, ToolCall
 from freeact.agent.config import Config
 from freeact.agent.events import (
     AgentEvent,
@@ -478,9 +479,9 @@ class Agent:
             )
             return
 
+        tool_call = ToolCall.from_raw(tool_name, tool_args)
         approval = ApprovalRequest(
-            tool_name=tool_name,
-            tool_args=tool_args,
+            tool_call=tool_call,
             agent_id=self.agent_id,
             corr_id=corr_id,
         )
@@ -510,9 +511,7 @@ class Agent:
                 for raw_cmd in raw_commands:
                     for sub_cmd in split_composite_command(raw_cmd):
                         shell_approval = ApprovalRequest(
-                            tool_name=sub_cmd,
-                            tool_args={},
-                            shell=True,
+                            tool_call=ShellAction(tool_name="bash", command=sub_cmd),
                             agent_id=self.agent_id,
                             corr_id=corr_id,
                         )
@@ -629,9 +628,11 @@ class Agent:
                             tool_args=tool_args,
                         ):
                             ptc_request = ApprovalRequest(
-                                tool_name=f"{server_name}_{tool_name}",  # type: ignore[has-type]
-                                tool_args=tool_args,  # type: ignore[has-type]
-                                ptc=True,
+                                tool_call=GenericCall(
+                                    tool_name=f"{server_name}_{tool_name}",  # type: ignore[has-type]
+                                    tool_args=tool_args,  # type: ignore[has-type]
+                                    ptc=True,
+                                ),
                                 agent_id=self.agent_id,
                             )
                             yield ptc_request
