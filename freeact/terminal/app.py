@@ -221,14 +221,14 @@ class TerminalInterface:
         self._agent = agent
         self._config = config or Config()
         self._permission_manager = PermissionManager(
+            agent.config.working_dir,
             agent.config.freeact_dir,
-            working_dir=agent.config.working_dir,
         )
         _ = console
 
     async def run(self) -> None:
         """Run the interactive terminal UI until the user exits."""
-        await self._permission_manager.load()
+        await self._permission_manager.init()
 
         async with self._agent:
             app = TerminalApp(

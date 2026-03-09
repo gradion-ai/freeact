@@ -4,6 +4,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 import aiofiles
+from pydantic import BaseModel, ConfigDict
 
 from freeact.agent.call import (
     CodeAction,
@@ -14,6 +15,32 @@ from freeact.agent.call import (
     ShellAction,
     ToolCall,
 )
+
+DEFAULT_ALLOW_RULES: list[dict[str, Any]] = [
+    {"type": "GenericCall", "tool_name": "pytools_list_categories"},
+    {"type": "GenericCall", "tool_name": "pytools_list_tools"},
+    {"type": "FileRead", "tool_name": "filesystem_read_text_file", "paths": [".freeact/**"]},
+    {"type": "FileRead", "tool_name": "filesystem_read_multiple_files", "paths": [".freeact/**"]},
+]
+
+
+class PermissionsConfig(BaseModel):
+    """Data container for permission rules."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    ask: list[dict[str, Any]] = []
+    allow: list[dict[str, Any]] = []
+
+    @classmethod
+    def with_defaults(cls) -> "PermissionsConfig":
+        """Create an instance with default allow rules."""
+        return cls(allow=[rule.copy() for rule in DEFAULT_ALLOW_RULES])
+
+    @classmethod
+    def empty(cls) -> "PermissionsConfig":
+        """Create an instance with no rules."""
+        return cls()
 
 
 class PermissionManager:
@@ -35,15 +62,20 @@ class PermissionManager:
     First match wins. Ask takes priority over allow.
     """
 
-    def __init__(self, freeact_dir: Path = Path(".freeact"), *, working_dir: Path | None = None):
+    def __init__(self, working_dir: Path | None = None, freeact_dir: Path = Path(".freeact")):
         self._freeact_dir = freeact_dir.resolve()
         self._permissions_file = self._freeact_dir / "permissions.json"
         self._working_dir = (working_dir or Path.cwd()).resolve()
 
-        self._ask_always: list[dict[str, Any]] = []
-        self._allow_always: list[dict[str, Any]] = []
-        self._ask_session: list[dict[str, Any]] = []
-        self._allow_session: list[dict[str, Any]] = []
+        self._always: PermissionsConfig = PermissionsConfig.with_defaults()
+        self._session: PermissionsConfig = PermissionsConfig.empty()
+
+    async def init(self) -> None:
+        """Load permissions when present, otherwise save defaults."""
+        if self._permissions_file.exists():
+            await self.load()
+        else:
+            await self.save()
 
     async def load(self) -> None:
         """Load permissions from `.freeact/permissions.json`."""
@@ -54,17 +86,12 @@ class PermissionManager:
             text = await f.read()
         data = json.loads(text)
 
-        self._ask_always = list(data.get("ask", []))
-        self._allow_always = list(data.get("allow", []))
+        self._always = PermissionsConfig.model_validate(data)
 
     async def save(self) -> None:
         """Persist always-tier permissions to `.freeact/permissions.json`."""
         self._freeact_dir.mkdir(parents=True, exist_ok=True)
-        data = {
-            "ask": self._ask_always,
-            "allow": self._allow_always,
-        }
-        content = json.dumps(data, indent=2)
+        content = json.dumps(self._always.model_dump(), indent=2)
         async with aiofiles.open(self._permissions_file, "w") as f:
             await f.write(content)
 
@@ -93,8 +120,8 @@ class PermissionManager:
         paths=("src/**",))` allows reading any file under `src/`.
         """
         entry = _tool_call_to_entry(tool_call)
-        if entry not in self._allow_always:
-            self._allow_always.append(entry)
+        if entry not in self._always.allow:
+            self._always.allow.append(entry)
         await self.save()
 
     def allow_session(self, tool_call: ToolCall) -> None:
@@ -105,21 +132,21 @@ class PermissionManager:
         Session rules are cleared when the process ends.
         """
         entry = _tool_call_to_entry(tool_call)
-        if entry not in self._allow_session:
-            self._allow_session.append(entry)
+        if entry not in self._session.allow:
+            self._session.allow.append(entry)
 
     def _check_all(self, tool_call: ToolCall) -> str | None:
         """Evaluate all permission lists in order. First match wins."""
-        for entry in self._ask_session:
+        for entry in self._session.ask:
             if _matches(entry, tool_call, self._working_dir):
                 return "ask"
-        for entry in self._ask_always:
+        for entry in self._always.ask:
             if _matches(entry, tool_call, self._working_dir):
                 return "ask"
-        for entry in self._allow_session:
+        for entry in self._session.allow:
             if _matches(entry, tool_call, self._working_dir):
                 return "allow"
-        for entry in self._allow_always:
+        for entry in self._always.allow:
             if _matches(entry, tool_call, self._working_dir):
                 return "allow"
         return None

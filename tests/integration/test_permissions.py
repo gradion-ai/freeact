@@ -12,7 +12,7 @@ from freeact.agent.call import (
     ShellAction,
     TextEdit,
 )
-from freeact.permissions import PermissionManager
+from freeact.permissions import DEFAULT_ALLOW_RULES, PermissionManager
 
 
 @pytest.fixture
@@ -27,9 +27,9 @@ def working_dir(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def permission_manager(freeact_dir: Path, working_dir: Path) -> PermissionManager:
+def permission_manager(working_dir: Path, freeact_dir: Path) -> PermissionManager:
     """Return a fresh PermissionManager instance."""
-    return PermissionManager(freeact_dir, working_dir=working_dir)
+    return PermissionManager(working_dir, freeact_dir)
 
 
 class TestTypeSpecificMatching:
@@ -148,13 +148,13 @@ class TestEvaluationOrder:
 
     def test_ask_overrides_allow(self, permission_manager: PermissionManager) -> None:
         permission_manager.allow_session(GenericCall(tool_name="my_tool", tool_args={}, ptc=False))
-        permission_manager._ask_always.append({"type": "GenericCall", "tool_name": "my_tool"})
+        permission_manager._always.ask.append({"type": "GenericCall", "tool_name": "my_tool"})
         tc = GenericCall(tool_name="my_tool", tool_args={}, ptc=False)
         assert not permission_manager.is_allowed(tc)
 
     def test_ask_session_overrides_allow_always(self, permission_manager: PermissionManager) -> None:
-        permission_manager._allow_always.append({"type": "GenericCall", "tool_name": "my_tool"})
-        permission_manager._ask_session.append({"type": "GenericCall", "tool_name": "my_tool"})
+        permission_manager._always.allow.append({"type": "GenericCall", "tool_name": "my_tool"})
+        permission_manager._session.ask.append({"type": "GenericCall", "tool_name": "my_tool"})
         tc = GenericCall(tool_name="my_tool", tool_args={}, ptc=False)
         assert not permission_manager.is_allowed(tc)
 
@@ -200,14 +200,15 @@ class TestPersistenceRoundtrip:
 
     @pytest.mark.asyncio
     async def test_save_new_format(self, freeact_dir: Path, working_dir: Path) -> None:
-        manager = PermissionManager(freeact_dir, working_dir=working_dir)
+        manager = PermissionManager(working_dir, freeact_dir)
         await manager.allow_always(GenericCall(tool_name="github_*", tool_args={}, ptc=False))
         await manager.allow_always(ShellAction(tool_name="bash", command="git *"))
 
         data = json.loads((freeact_dir / "permissions.json").read_text())
         assert data == {
             "ask": [],
-            "allow": [
+            "allow": DEFAULT_ALLOW_RULES
+            + [
                 {"type": "GenericCall", "tool_name": "github_*"},
                 {"type": "ShellAction", "tool_name": "bash", "command": "git *"},
             ],
@@ -225,7 +226,7 @@ class TestPersistenceRoundtrip:
         }
         (freeact_dir / "permissions.json").write_text(json.dumps(data))
 
-        manager = PermissionManager(freeact_dir, working_dir=working_dir)
+        manager = PermissionManager(working_dir, freeact_dir)
         await manager.load()
 
         assert manager.is_allowed(GenericCall(tool_name="safe_tool", tool_args={}, ptc=False))
@@ -234,22 +235,22 @@ class TestPersistenceRoundtrip:
 
     @pytest.mark.asyncio
     async def test_roundtrip(self, freeact_dir: Path, working_dir: Path) -> None:
-        m1 = PermissionManager(freeact_dir, working_dir=working_dir)
+        m1 = PermissionManager(working_dir, freeact_dir)
         await m1.allow_always(GenericCall(tool_name="github_*", tool_args={}, ptc=False))
         await m1.allow_always(ShellAction(tool_name="bash", command="git *"))
 
-        m2 = PermissionManager(freeact_dir, working_dir=working_dir)
+        m2 = PermissionManager(working_dir, freeact_dir)
         await m2.load()
 
         assert m2.is_allowed(GenericCall(tool_name="github_search", tool_args={}, ptc=False))
         assert m2.is_allowed(ShellAction(tool_name="bash", command="git status"))
 
     @pytest.mark.asyncio
-    async def test_load_empty(self, freeact_dir: Path, working_dir: Path) -> None:
-        manager = PermissionManager(freeact_dir, working_dir=working_dir)
+    async def test_load_missing_file_keeps_defaults(self, freeact_dir: Path, working_dir: Path) -> None:
+        manager = PermissionManager(working_dir, freeact_dir)
         await manager.load()
-        assert manager._ask_always == []
-        assert manager._allow_always == []
+        assert manager._always.ask == []
+        assert manager._always.allow == DEFAULT_ALLOW_RULES
 
 
 class TestAllowMethods:
@@ -257,51 +258,87 @@ class TestAllowMethods:
 
     @pytest.mark.asyncio
     async def test_allow_always_persists(self, freeact_dir: Path, working_dir: Path) -> None:
-        m1 = PermissionManager(freeact_dir, working_dir=working_dir)
+        m1 = PermissionManager(working_dir, freeact_dir)
         await m1.allow_always(GenericCall(tool_name="github_*", tool_args={}, ptc=False))
 
-        m2 = PermissionManager(freeact_dir, working_dir=working_dir)
+        m2 = PermissionManager(working_dir, freeact_dir)
         await m2.load()
         assert m2.is_allowed(GenericCall(tool_name="github_search", tool_args={}, ptc=False))
 
     def test_allow_session_not_persisted(self, freeact_dir: Path, working_dir: Path) -> None:
-        m1 = PermissionManager(freeact_dir, working_dir=working_dir)
+        m1 = PermissionManager(working_dir, freeact_dir)
         m1.allow_session(GenericCall(tool_name="temp_tool", tool_args={}, ptc=False))
 
-        m2 = PermissionManager(freeact_dir, working_dir=working_dir)
+        m2 = PermissionManager(working_dir, freeact_dir)
         assert not m2.is_allowed(GenericCall(tool_name="temp_tool", tool_args={}, ptc=False))
 
     @pytest.mark.asyncio
     async def test_allow_always_deduplicates(self, freeact_dir: Path, working_dir: Path) -> None:
-        manager = PermissionManager(freeact_dir, working_dir=working_dir)
+        manager = PermissionManager(working_dir, freeact_dir)
         await manager.allow_always(GenericCall(tool_name="github_*", tool_args={}, ptc=False))
         await manager.allow_always(GenericCall(tool_name="github_*", tool_args={}, ptc=False))
 
         data = json.loads((freeact_dir / "permissions.json").read_text())
-        allow_entries = [e for e in data["allow"] if e.get("tool_name") == "github_*"]
-        assert len(allow_entries) == 1
+        github_entries = [e for e in data["allow"] if e.get("tool_name") == "github_*"]
+        assert len(github_entries) == 1
 
     def test_allow_session_deduplicates(self, permission_manager: PermissionManager) -> None:
         tc = GenericCall(tool_name="github_*", tool_args={}, ptc=False)
         permission_manager.allow_session(tc)
         permission_manager.allow_session(tc)
-        assert len(permission_manager._allow_session) == 1
+        assert len(permission_manager._session.allow) == 1
 
 
 class TestPermissionManagerInit:
     """Tests for initialization behavior."""
 
-    def test_init_does_not_create_freeact_directory(self, freeact_dir: Path, working_dir: Path) -> None:
+    def test_constructor_does_not_create_freeact_directory(self, freeact_dir: Path, working_dir: Path) -> None:
         assert not freeact_dir.exists()
-        PermissionManager(freeact_dir, working_dir=working_dir)
+        PermissionManager(working_dir, freeact_dir)
         assert not freeact_dir.exists()
 
     @pytest.mark.asyncio
     async def test_save_creates_freeact_directory(self, freeact_dir: Path, working_dir: Path) -> None:
-        manager = PermissionManager(freeact_dir, working_dir=working_dir)
+        manager = PermissionManager(working_dir, freeact_dir)
         assert not freeact_dir.exists()
         await manager.save()
         assert freeact_dir.exists()
+
+    @pytest.mark.asyncio
+    async def test_init_saves_defaults_when_no_file(self, freeact_dir: Path, working_dir: Path) -> None:
+        manager = PermissionManager(working_dir, freeact_dir)
+        await manager.init()
+        assert (freeact_dir / "permissions.json").exists()
+        data = json.loads((freeact_dir / "permissions.json").read_text())
+        assert data == {"ask": [], "allow": DEFAULT_ALLOW_RULES}
+
+    @pytest.mark.asyncio
+    async def test_init_loads_from_file_when_exists(self, freeact_dir: Path, working_dir: Path) -> None:
+        freeact_dir.mkdir(parents=True)
+        custom_rules = {
+            "ask": [],
+            "allow": [{"type": "GenericCall", "tool_name": "custom_*"}],
+        }
+        (freeact_dir / "permissions.json").write_text(json.dumps(custom_rules))
+
+        manager = PermissionManager(working_dir, freeact_dir)
+        await manager.init()
+        assert manager._always.allow == [{"type": "GenericCall", "tool_name": "custom_*"}]
+
+    @pytest.mark.asyncio
+    async def test_init_restores_defaults_after_file_deleted(self, freeact_dir: Path, working_dir: Path) -> None:
+        manager = PermissionManager(working_dir, freeact_dir)
+        await manager.init()
+        (freeact_dir / "permissions.json").unlink()
+
+        manager2 = PermissionManager(working_dir, freeact_dir)
+        await manager2.init()
+        assert manager2._always.allow == DEFAULT_ALLOW_RULES
+
+    def test_defaults_active_without_load(self, freeact_dir: Path, working_dir: Path) -> None:
+        manager = PermissionManager(working_dir, freeact_dir)
+        tc = GenericCall(tool_name="pytools_list_categories", tool_args={}, ptc=False)
+        assert manager.is_allowed(tc)
 
 
 class TestPathPatternSemantics:

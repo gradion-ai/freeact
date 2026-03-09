@@ -235,7 +235,7 @@ from freeact.permissions import PermissionManager
 from freeact.agent import suggest_pattern
 
 manager = PermissionManager()
-await manager.load()
+await manager.init()
 
 async for event in agent.stream(prompt):
     match event:
