@@ -275,6 +275,9 @@ class TerminalApp(App[None]):
         max-height: 14;
         padding: 0 1;
     }
+    #input-hints {
+        color: $text-muted;
+    }
     Collapsible.-collapsed {
         padding: 0 0 0 1;
         border-top: none;
@@ -302,6 +305,7 @@ class TerminalApp(App[None]):
     """
 
     BINDINGS = [
+        Binding("ctrl+q", "quit", "Quit", show=False, priority=True),
         Binding("ctrl+c", "screen.copy_text", "Copy", show=False, priority=True),
         Binding("super+c", "screen.copy_text", "Copy", show=False, priority=True),
         Binding("ctrl+shift+c", "screen.copy_text", "Copy", show=False, priority=True),
@@ -357,6 +361,17 @@ class TerminalApp(App[None]):
             yield Static("", id="banner-divider")
         with Vertical(id="input-dock"):
             yield PromptInput(id="prompt-input", clipboard_reader=self.read_clipboard_for_paste)
+            yield Static("ctrl+q: quit", id="input-hints")
+
+    def _update_input_hints(self) -> None:
+        results = self.query("#input-hints")
+        if not results:
+            return
+        hints = results.first(Static)
+        if self._turn_in_progress:
+            hints.update("ctrl+q: quit  esc: interrupt")
+        else:
+            hints.update("ctrl+q: quit")
 
     def copy_to_clipboard(self, text: str) -> None:
         """Copy to OS clipboard and mirror into Textual's local clipboard cache."""
@@ -450,6 +465,7 @@ class TerminalApp(App[None]):
         tool_calls: dict[str, ToolCall] = {}
 
         self._turn_in_progress = True
+        self._update_input_hints()
         try:
             async for event in self._agent_stream(content):
                 match event:
@@ -532,6 +548,7 @@ class TerminalApp(App[None]):
             await self._mount_and_scroll(conversation, error_box)
         finally:
             self._turn_in_progress = False
+            self._update_input_hints()
             prompt_input.disabled = False
             prompt_input.focus()
 
