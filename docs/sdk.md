@@ -2,11 +2,11 @@
 
 The Agent SDK provides five main APIs:
 
-- [Configuration API](api/config.md) for initializing and loading configuration from `.freeact/`
-- [Generation API](api/generate.md) for generating Python APIs for MCP server tools
-- [Agent API](api/agent.md) for running the agentic code action loop
-- [Permissions API](api/permissions.md) for managing approval decisions
-- [Preprocessing API](api/preproc.md) for transforming user prompts
+- [Configuration API](#configuration-api) for initializing and loading configuration from `.freeact/`
+- [Generation API](#generation-api) for generating Python APIs for MCP server tools
+- [Agent API](#agent-api) for running the agentic code action loop
+- [Permissions API](#permissions-api) for managing approval decisions
+- [Preprocessing API](#preprocessing-api) for transforming user prompts
 
 ## Configuration API
 

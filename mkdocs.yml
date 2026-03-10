@@ -63,7 +63,7 @@ plugins:
         Execution runs locally with fine-grained approval of actions.
       full_output: llms-full.txt
       sections:
-        User Guide:
+        Documentation:
           - index.md: Overview, usage, and capabilities
           - installation.md: Setup and installation instructions
           - quickstart.md: Getting started with code actions and MCP tools
