@@ -1567,11 +1567,11 @@
 <h1 id="agent-sdk">Agent SDK</h1>
 <p>The Agent SDK provides five main APIs:</p>
 <ul>
-<li><a href="../api/config/">Configuration API</a> for initializing and loading configuration from <code>.freeact/</code></li>
-<li><a href="../api/generate/">Generation API</a> for generating Python APIs for MCP server tools</li>
-<li><a href="../api/agent/">Agent API</a> for running the agentic code action loop</li>
-<li><a href="../api/permissions/">Permissions API</a> for managing approval decisions</li>
-<li><a href="../api/preproc/">Preprocessing API</a> for transforming user prompts</li>
+<li><a href="#configuration-api">Configuration API</a> for initializing and loading configuration from <code>.freeact/</code></li>
+<li><a href="#generation-api">Generation API</a> for generating Python APIs for MCP server tools</li>
+<li><a href="#agent-api">Agent API</a> for running the agentic code action loop</li>
+<li><a href="#permissions-api">Permissions API</a> for managing approval decisions</li>
+<li><a href="#preprocessing-api">Preprocessing API</a> for transforming user prompts</li>
 </ul>
 <h2 id="configuration-api">Configuration API</h2>
 <p>Use <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config.init"><code>Config.init()</code></a> to load persisted config from <code>.freeact/</code> when present, or create and save defaults on first run. Use <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config.save"><code>save()</code></a> and <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config.load"><code>load()</code></a> when explicit persistence control is needed:</p>

@@ -2,11 +2,11 @@
 
 The Agent SDK provides five main APIs:
 
-- [Configuration API](https://gradion-ai.github.io/freeact/api/config/index.md) for initializing and loading configuration from `.freeact/`
-- [Generation API](https://gradion-ai.github.io/freeact/api/generate/index.md) for generating Python APIs for MCP server tools
-- [Agent API](https://gradion-ai.github.io/freeact/api/agent/index.md) for running the agentic code action loop
-- [Permissions API](https://gradion-ai.github.io/freeact/api/permissions/index.md) for managing approval decisions
-- [Preprocessing API](https://gradion-ai.github.io/freeact/api/preproc/index.md) for transforming user prompts
+- [Configuration API](#configuration-api) for initializing and loading configuration from `.freeact/`
+- [Generation API](#generation-api) for generating Python APIs for MCP server tools
+- [Agent API](#agent-api) for running the agentic code action loop
+- [Permissions API](#permissions-api) for managing approval decisions
+- [Preprocessing API](#preprocessing-api) for transforming user prompts
 
 ## Configuration API
 

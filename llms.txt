@@ -12,7 +12,7 @@ Freeact has a tiny core and uses sandboxed IPython kernels to execute both Pytho
 Execution runs locally with fine-grained approval of actions.
 
 
-## User Guide
+## Documentation
 
 - [Overview](https://gradion-ai.github.io/freeact/index.md): Overview, usage, and capabilities
 - [Installation](https://gradion-ai.github.io/freeact/installation/index.md): Setup and installation instructions
