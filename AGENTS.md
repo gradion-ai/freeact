@@ -3,9 +3,6 @@
 ## Project Structure & Module Organization
 - Documentation: `docs/`
 - Project description: `docs/index.md`
-- Internal documentation:
-  - Architecture: `docs/internal/architecture/`
-  - Testing: `docs/internal/testing/`
 - Source modules:
   - `freeact/agent/`: core agent, config, session store
   - `freeact/tools/`: tool definitions, Python tool generation, tool search
@@ -48,6 +45,12 @@ uv run pytest -xsv tests/integration/test_agent.py::test_name  # Single test
 - Modern union syntax: `str | None` instead of `Optional[str]`
 - Prefer `match`/`case` over `isinstance()` for type dispatch
 - Package `__init__.py` files are re-exports only; do not define functions or classes in them
+- Absolute imports everywhere (no relative imports)
+
+## Architecture Constraints
+- `docs/internal/architecture/README.md`: index of constraint files and runtime docs
+- Load only the constraint file relevant to your current task
+- Flag when a change may require updating or extending a constraint file
 
 ## Commit & Pull Request Guidelines
 - Do not include test plan in PR messages
