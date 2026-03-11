@@ -280,6 +280,14 @@ ToolCall(tool_name: str)
 
 Base class for typed tool call representations.
 
+### from_pattern
+
+```
+from_pattern(pattern: str) -> ToolCall
+```
+
+Reconstruct a ToolCall from a user-edited pattern string.
+
 ### from_raw
 
 ```
@@ -302,6 +310,32 @@ Returns:
 | Type       | Description              |
 | ---------- | ------------------------ |
 | `ToolCall` | Typed ToolCall instance. |
+
+### matches_entry
+
+```
+matches_entry(
+    entry: dict[str, Any], working_dir: Path
+) -> bool
+```
+
+Check if a permission entry matches this tool call.
+
+### to_entry
+
+```
+to_entry() -> dict[str, Any]
+```
+
+Serialize this tool call's pattern-relevant fields to a dict entry.
+
+### to_pattern
+
+```
+to_pattern() -> str
+```
+
+Suggest a permission pattern string for this tool call.
 
 ## freeact.agent.GenericCall
 

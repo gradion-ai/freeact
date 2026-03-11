@@ -1,15 +1,12 @@
 ## freeact.agent.config.Config
 
-Bases: `BaseModel`
+Bases: `PersistentConfig`
 
 Agent configuration.
 
 Config:
 
 - `arbitrary_types_allowed`: `True`
-- `extra`: `forbid`
-- `validate_assignment`: `True`
-- `frozen`: `True`
 
 Fields:
 
@@ -29,30 +26,6 @@ Fields:
 - `kernel_env` (`dict[str, str]`)
 - `mcp_servers` (`dict[str, dict[str, Any]]`)
 - `ptc_servers` (`dict[str, dict[str, Any]]`)
-
-### init
-
-```
-init(working_dir: Path | None = None) -> Config
-```
-
-Load config from `.freeact/` when present, otherwise save defaults.
-
-### load
-
-```
-load(working_dir: Path | None = None) -> Config
-```
-
-Load persisted config if present, otherwise return defaults.
-
-### save
-
-```
-save() -> None
-```
-
-Persist config and scaffold static directories and bundled skills.
 
 ## freeact.agent.config.SkillMetadata
 

@@ -1260,10 +1260,54 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#freeact.agent.ToolCall.from_pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        from_pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#freeact.agent.ToolCall.from_raw" class="md-nav__link">
     <span class="md-ellipsis">
       
         from_raw
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freeact.agent.ToolCall.matches_entry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        matches_entry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freeact.agent.ToolCall.to_entry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_entry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freeact.agent.ToolCall.to_pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_pattern
       
     </span>
   </a>
@@ -1738,10 +1782,54 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#freeact.agent.ToolCall.from_pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        from_pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#freeact.agent.ToolCall.from_raw" class="md-nav__link">
     <span class="md-ellipsis">
       
         from_raw
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freeact.agent.ToolCall.matches_entry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        matches_entry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freeact.agent.ToolCall.to_entry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_entry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freeact.agent.ToolCall.to_pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_pattern
       
     </span>
   </a>
@@ -2961,6 +3049,26 @@ the current agent turn.</p>
 <div class="doc doc-object doc-function">
 
 
+<h3 id="freeact.agent.ToolCall.from_pattern" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">from_pattern</span>
+
+
+</h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">from_pattern</span><span class="p">(</span><span class="n">pattern</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" href="#freeact.agent.ToolCall">ToolCall</a></span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Reconstruct a ToolCall from a user-edited pattern string.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
 <h3 id="freeact.agent.ToolCall.from_raw" class="doc doc-heading">
             <span class="doc doc-object-name doc-function-name">from_raw</span>
 
@@ -3048,6 +3156,68 @@ the current agent turn.</p>
           </tr>
       </tbody>
     </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="freeact.agent.ToolCall.matches_entry" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">matches_entry</span>
+
+
+</h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">matches_entry</span><span class="p">(</span>
+    <span class="n">entry</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/reference/expressions.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">],</span> <span class="n">working_dir</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Check if a permission entry matches this tool call.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="freeact.agent.ToolCall.to_entry" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">to_entry</span>
+
+
+</h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">to_entry</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/reference/expressions.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Serialize this tool call's pattern-relevant fields to a dict entry.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="freeact.agent.ToolCall.to_pattern" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">to_pattern</span>
+
+
+</h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">to_pattern</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Suggest a permission pattern string for this tool call.</p>
 
 
     </div>
