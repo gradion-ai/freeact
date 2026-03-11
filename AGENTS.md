@@ -19,6 +19,23 @@
 - `docs/AGENTS.md`: documentation authoring
 - `tests/AGENTS.md`: testing conventions and utilities
 
+## Architecture Constraints
+- `docs/internal/architecture/README.md`: index of constraint files and runtime docs
+- Load only the constraint file relevant to your current task
+- Flag when a change may require updating or extending a constraint file
+
+## Coding Guidelines
+- All function parameters and return types must have type hints
+- Modern union syntax: `str | None` instead of `Optional[str]`
+- Prefer `match`/`case` over `isinstance()` for type dispatch
+- Package `__init__.py` files are re-exports only; do not define functions or classes in them
+- Absolute imports everywhere (no relative imports)
+
+## Docstring Guidelines
+- Use mkdocs-formatter and mkdocs-docstrings skills for docstrings
+- Use Markdown formatting, not reST
+- Do not add module-level docstrings
+
 ## Development Commands
 
 ```bash
@@ -34,23 +51,6 @@ uv run pytest -xsv tests/integration/test_agent.py::test_name  # Single test
 ```
 
 - `invoke cc` only checks files under version control. Run `git add` on new files first.
-
-## Docstring Guidelines
-- Use mkdocs-formatter and mkdocs-docstrings skills for docstrings
-- Use Markdown formatting, not reST
-- Do not add module-level docstrings
-
-## Coding Guidelines
-- All function parameters and return types must have type hints
-- Modern union syntax: `str | None` instead of `Optional[str]`
-- Prefer `match`/`case` over `isinstance()` for type dispatch
-- Package `__init__.py` files are re-exports only; do not define functions or classes in them
-- Absolute imports everywhere (no relative imports)
-
-## Architecture Constraints
-- `docs/internal/architecture/README.md`: index of constraint files and runtime docs
-- Load only the constraint file relevant to your current task
-- Flag when a change may require updating or extending a constraint file
 
 ## Commit & Pull Request Guidelines
 - Do not include test plan in PR messages
