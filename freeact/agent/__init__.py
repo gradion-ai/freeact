@@ -1,5 +1,3 @@
-"""Agent package - core agent, configuration, and factory."""
-
 from freeact.agent.call import (
     CodeAction,
     FileEdit,

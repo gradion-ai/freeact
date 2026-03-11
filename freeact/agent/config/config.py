@@ -1,23 +1,20 @@
 import copy
-import json
 import os
 from pathlib import Path
 from typing import Any, Literal
 
-from ipybox.utils import arun
-from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
+from pydantic import ConfigDict, Field, PrivateAttr
 from pydantic_ai.models import Model
 
-from .prompts import load_system_prompt
-from .runtime import (
+from freeact.agent.config.prompts import load_system_prompt
+from freeact.agent.config.runtime import (
     resolve_kernel_env,
     resolve_mcp_servers,
     resolve_model_instance,
     validate_ptc_servers,
 )
-from .skills import SkillMetadata, load_skills_metadata, materialize_bundled_skills
-
-FREEACT_DIR_NAME = ".freeact"
+from freeact.agent.config.skills import SkillMetadata, load_skills_metadata, materialize_bundled_skills
+from freeact.config import PersistentConfig
 
 DEFAULT_MODEL_NAME = "google-gla:gemini-3-flash-preview"
 DEFAULT_MODEL_SETTINGS: dict[str, Any] = {
@@ -82,11 +79,11 @@ GOOGLE_SEARCH_MCP_SERVER_CONFIG: dict[str, Any] = {
 }
 
 
-class Config(BaseModel):
+class Config(PersistentConfig):
     """Agent configuration."""
 
-    model_config = ConfigDict(arbitrary_types_allowed=True, extra="forbid", validate_assignment=True, frozen=True)
-    working_dir: Path = Field(default_factory=Path.cwd, exclude=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    _config_filename = "agent.json"
 
     model: str | Model = DEFAULT_MODEL_NAME
     model_settings: dict[str, Any] = Field(default_factory=lambda: copy.deepcopy(DEFAULT_MODEL_SETTINGS))
@@ -116,7 +113,7 @@ class Config(BaseModel):
     _subagent_mode: bool = PrivateAttr(default=False)
 
     def model_post_init(self, __context: Any) -> None:
-        object.__setattr__(self, "working_dir", self.working_dir.resolve())
+        super().model_post_init(__context)
         resolution_env = self._resolution_env()
         object.__setattr__(
             self,
@@ -152,40 +149,6 @@ class Config(BaseModel):
             ptc_servers=self.ptc_servers,
             resolution_env=resolution_env,
         )
-
-    async def save(self) -> None:
-        """Persist config and scaffold static directories and bundled skills."""
-        await arun(self._save_sync)
-
-    @classmethod
-    async def load(cls, working_dir: Path | None = None) -> "Config":
-        """Load persisted config if present, otherwise return defaults."""
-        config = cls(working_dir=working_dir or Path.cwd())
-        config_file = config.freeact_dir / "agent.json"
-        if not config_file.exists():
-            return config
-
-        data = await arun(lambda: json.loads(config_file.read_text()))
-        return cls.model_validate(
-            {
-                **data,
-                "working_dir": config.working_dir,
-            }
-        )
-
-    @classmethod
-    async def init(cls, working_dir: Path | None = None) -> "Config":
-        """Load config from `.freeact/` when present, otherwise save defaults."""
-        config = cls(working_dir=working_dir or Path.cwd())
-        if config.freeact_dir.exists():
-            return await cls.load(working_dir=config.working_dir)
-
-        await config.save()
-        return config
-
-    @property
-    def freeact_dir(self) -> Path:
-        return self.working_dir / FREEACT_DIR_NAME
 
     @property
     def skills_dir(self) -> Path:
@@ -265,11 +228,7 @@ class Config(BaseModel):
         if not isinstance(self.model, str):
             raise ValueError("model must be a string when saving config")
 
-        self.freeact_dir.mkdir(parents=True, exist_ok=True)
-
-        payload = self.model_dump(mode="json", exclude={"working_dir"})
-        config_file = self.freeact_dir / "agent.json"
-        config_file.write_text(json.dumps(payload, indent=2) + "\n")
+        super()._save_sync()
 
         self.generated_dir.mkdir(parents=True, exist_ok=True)
         self.plans_dir.mkdir(parents=True, exist_ok=True)

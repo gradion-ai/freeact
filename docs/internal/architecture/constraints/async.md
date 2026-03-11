@@ -12,17 +12,15 @@ Multiple concurrent tool executions from one model turn are merged via `aiostrea
 
 Pattern: create supervisor, `await supervisor.start()`, later `await supervisor.stop()`.
 
-## arun() for sync-in-async
+## Sync-in-async patterns
 
-Sync I/O operations are wrapped with `ipybox.utils.arun()` to run in an executor from async context:
+All file I/O in the codebase is synchronous, run from async context via `ipybox.utils.arun()`. Two patterns exist:
 
-- `Config.save()` wraps `_save_sync()`.
-- `TerminalConfig.save()` wraps `_save_sync()`.
-- `Config.load()` wraps JSON file read.
+1. **Config classes own `_save_sync` / `arun()` internally.** `PersistentConfig.save()` wraps `_save_sync()` via `arun()`. `PersistentConfig.load()` wraps JSON file read via `arun()`. Subclasses override `_save_sync` for domain logic. Callers use `await config.save()` / `await Config.load()`.
 
-Exception: `SessionStore.load_messages()` is fully sync (reads file with `read_text()`). It is called via `arun()` from async callers. `SessionStore.append_messages()` is also sync (uses `open()` with `"a"` mode). This is intentional: session I/O is simple append/read and does not benefit from async file handles.
+2. **`SessionStore` and `PermissionManager` expose sync methods, callers use `arun()`.** These classes have plain `def` methods (`load`, `save`, `init`, `allow_always`). Async callers wrap with `await arun(manager.init)` or `await arun(manager.allow_always, tool_call)`.
 
-Contrast: `PermissionManager` uses `aiofiles` for its async `load()`/`save()` methods directly.
+No `aiofiles` usage exists in the codebase.
 
 ## Approval via Future
 

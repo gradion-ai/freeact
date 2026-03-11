@@ -1,14 +1,24 @@
 # Permission System Constraints
 
-The permission system maintains a parallel structure between ToolCall subtypes and permission rule matching. Every ToolCall subtype must have a corresponding case in four functions:
+The permission system uses methods on `ToolCall` subtypes for self-description. Each subtype implements four methods:
 
-| Function | File | Purpose |
-|---|---|---|
-| `suggest_pattern()` | `freeact/agent/call.py` | Suggest editable pattern from ToolCall |
-| `parse_pattern()` | `freeact/agent/call.py` | Reconstruct ToolCall from edited pattern |
-| `_matches()` | `freeact/permissions.py` | Check if a rule matches a concrete ToolCall |
-| `_tool_call_to_entry()` | `freeact/permissions.py` | Serialize ToolCall to permission dict |
+| Method | Purpose |
+|---|---|
+| `to_pattern()` | Suggest editable pattern from ToolCall |
+| `from_pattern(pattern)` | Reconstruct ToolCall from edited pattern |
+| `to_entry()` | Serialize ToolCall to permission dict |
+| `matches_entry(entry, working_dir)` | Check if a rule matches this concrete ToolCall |
 
-When adding a new ToolCall subtype, all four functions must be updated with a new case.
+The base `ToolCall` class provides defaults (returns `tool_name` for pattern, `False` for matching). Subtypes override with type-specific logic.
 
-Additionally, `ToolCall.from_raw()` must map the tool name to the new subtype.
+Standalone functions `suggest_pattern()` and `parse_pattern()` in `freeact/agent/call.py` delegate to these methods and are kept for API stability.
+
+`PermissionManager` in `freeact/permissions.py` calls `tool_call.to_entry()` and `tool_call.matches_entry()` directly, importing only the `ToolCall` base class.
+
+When adding a new ToolCall subtype, three places must be updated:
+
+| Location | Purpose |
+|---|---|
+| `ToolCall.from_raw()` in `freeact/agent/call.py` | Map raw tool name to subtype |
+| Methods on the new subtype in `freeact/agent/call.py` | `to_pattern`, `from_pattern`, `to_entry`, `matches_entry` |
+| Widget dispatch in `freeact/terminal/app.py` | Route to UI factory |

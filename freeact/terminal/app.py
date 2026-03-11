@@ -7,6 +7,7 @@ from importlib.metadata import version as package_version
 from pathlib import Path
 from typing import TypeAlias
 
+from ipybox.utils import arun
 from pydantic_ai import UserContent
 from rich.console import Console
 from rich.text import Text
@@ -228,7 +229,7 @@ class TerminalInterface:
 
     async def run(self) -> None:
         """Run the interactive terminal UI until the user exits."""
-        await self._permission_manager.init()
+        await arun(self._permission_manager.init)
 
         async with self._agent:
             app = TerminalApp(
@@ -633,7 +634,7 @@ class TerminalApp(App[None]):
 
         match decision:
             case 2:
-                await self._permission_manager.allow_always(parse_pattern(pattern, tc))
+                await arun(self._permission_manager.allow_always, parse_pattern(pattern, tc))
             case 3:
                 self._permission_manager.allow_session(parse_pattern(pattern, tc))
 

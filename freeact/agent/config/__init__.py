@@ -1,4 +1,4 @@
-from .config import (
+from freeact.agent.config.config import (
     BASIC_SEARCH_MCP_SERVER_CONFIG,
     DEFAULT_MODEL_NAME,
     DEFAULT_MODEL_SETTINGS,

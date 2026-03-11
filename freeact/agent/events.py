@@ -8,7 +8,7 @@ from pydantic_ai.mcp import ToolResult
 from freeact.agent.call import ToolCall
 
 
-@dataclass(kw_only=True)
+@dataclass(frozen=True, kw_only=True)
 class AgentEvent:
     """Base class for all agent stream events.
 
@@ -20,49 +20,49 @@ class AgentEvent:
     corr_id: str = ""
 
 
-@dataclass
+@dataclass(frozen=True)
 class ResponseChunk(AgentEvent):
     """Partial model response text (content streaming)."""
 
     content: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class Response(AgentEvent):
     """Complete model response at a given step."""
 
     content: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class ThoughtsChunk(AgentEvent):
     """Partial model thinking text (content streaming)."""
 
     content: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class Thoughts(AgentEvent):
     """Complete model thoughts at a given step."""
 
     content: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class ToolOutput(AgentEvent):
     """Tool or built-in operation output."""
 
     content: ToolResult
 
 
-@dataclass
+@dataclass(frozen=True)
 class CodeExecutionOutputChunk(AgentEvent):
     """Partial code execution output (content streaming)."""
 
     text: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class CodeExecutionOutput(AgentEvent):
     """Complete code execution output."""
 
@@ -87,7 +87,7 @@ class CodeExecutionOutput(AgentEvent):
         return "\n".join(parts) if parts else ""
 
 
-@dataclass
+@dataclass(frozen=True)
 class ApprovalRequest(AgentEvent):
     """Pending code action or tool call awaiting user approval.
 
@@ -116,7 +116,7 @@ class ApprovalRequest(AgentEvent):
         return await self._future
 
 
-@dataclass(kw_only=True)
+@dataclass(frozen=True, kw_only=True)
 class Cancelled(AgentEvent):
     """Agent execution was cancelled by the user."""
 

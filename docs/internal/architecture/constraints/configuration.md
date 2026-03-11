@@ -1,17 +1,33 @@
 # Configuration Constraints
 
-Agent config and terminal config follow the same structural pattern:
+## PersistentConfig base class
 
-| Aspect | Agent Config | Terminal Config |
-|---|---|---|
-| Class | `Config` in `freeact/agent/config/config.py` | `Config` in `freeact/terminal/config.py` |
-| Storage | `.freeact/agent.json` | `.freeact/terminal.json` |
-| `model_post_init` | Resolves model, MCP servers, kernel env | Resolves `working_dir` |
-| `init()` classmethod | Load if `.freeact/` exists, else save defaults | Load if file exists, else save defaults |
-| `load()` classmethod | Read JSON, `model_validate` with `working_dir` | Same pattern |
-| `save()` async method | Delegates to `_save_sync` via `arun()` | Same pattern |
-| `_save_sync` | `model_dump(mode="json", exclude={"working_dir"})` | Same pattern |
-| `working_dir` field | `Field(default_factory=Path.cwd, exclude=True)` | Same pattern |
-| Frozen | Yes | Yes |
+`PersistentConfig` (`freeact/config.py`) is the base class for all JSON-persisted configuration models. It provides the persistence lifecycle:
 
-When adding a new config domain, follow this same pattern: frozen Pydantic model, `init`/`load`/`save` classmethods, `_save_sync` for the sync core, `working_dir` excluded from serialization.
+| Aspect | PersistentConfig |
+|---|---|
+| `working_dir` field | `Field(default_factory=Path.cwd, exclude=True)` |
+| `model_post_init` | Resolves `working_dir` to absolute path |
+| `freeact_dir` property | `working_dir / ".freeact"` |
+| `_config_file` property | `freeact_dir / _config_filename` |
+| `init()` classmethod | Load if config file exists, else save defaults |
+| `load()` classmethod | Read JSON, `model_validate` with `working_dir` |
+| `save()` async method | Delegates to `_save_sync` via `arun()` |
+| `_save_sync` | `model_dump(mode="json", exclude={"working_dir"})` |
+| Frozen | Yes (`ConfigDict(frozen=True, extra="forbid", validate_assignment=True)`) |
+
+## Subclass overrides
+
+Subclasses set `_config_filename` (a `ClassVar[str]`) and may override:
+
+- `model_post_init` -- call `super().model_post_init(__context)` first, then add domain-specific resolution.
+- `_save_sync` -- call `super()._save_sync()` first, then create additional directories or materialize assets.
+
+| Subclass | File | `_config_filename` | `model_post_init` override | `_save_sync` override |
+|---|---|---|---|---|
+| Agent `Config` | `freeact/agent/config/config.py` | `"agent.json"` | Resolves model, MCP servers, kernel env | Validates model is str, creates dirs, materializes skills |
+| Terminal `Config` | `freeact/terminal/config.py` | `"terminal.json"` | None (base is sufficient) | None (base is sufficient) |
+
+Agent `Config` adds `ConfigDict(arbitrary_types_allowed=True)` which Pydantic merges with the parent's `ConfigDict`.
+
+When adding a new config domain, inherit from `PersistentConfig`, set `_config_filename`, and override `model_post_init` / `_save_sync` only if needed.

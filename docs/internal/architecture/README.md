@@ -13,10 +13,6 @@ Topic-scoped rules and invariants. Load only the file relevant to your current t
 - [persistence.md](constraints/persistence.md) -- JSONL session storage invariants
 - [error-handling.md](constraints/error-handling.md) -- exception conventions, logging
 
-## Consolidation
-
-- [consolidation.md](consolidation.md) -- actionable cleanup and refactoring backlog
-
 ## Runtime documentation
 
 - [runtime.md](runtime.md) -- agent runtime architecture (orchestration, tools, sessions, approvals)

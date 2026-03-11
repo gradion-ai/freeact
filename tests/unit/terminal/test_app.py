@@ -68,7 +68,7 @@ class StubPermissionManager:
     def is_allowed(self, tool_call: ToolCall) -> bool:
         return self._preapproved
 
-    async def allow_always(self, tool_call: ToolCall) -> None:
+    def allow_always(self, tool_call: ToolCall) -> None:
         self.allow_always_calls.append(tool_call)
 
     def allow_session(self, tool_call: ToolCall) -> None:
