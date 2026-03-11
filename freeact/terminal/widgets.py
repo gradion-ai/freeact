@@ -214,11 +214,13 @@ def _titled(label: str, agent_id: str, corr_id: str = "") -> str:
     return " ".join(parts)
 
 
-def create_user_input_box(content: str) -> Collapsible:
+def create_user_input_box(content: str, agent_id: str = "", corr_id: str = "") -> Collapsible:
     """Create an expanded collapsible box displaying the submitted user input.
 
     Args:
         content: The user's submitted prompt text.
+        agent_id: Agent identifier for the title prefix.
+        corr_id: Correlation identifier for the title prefix.
 
     Returns:
         Collapsible widget with the input text, expanded by default.
@@ -228,38 +230,40 @@ def create_user_input_box(content: str) -> Collapsible:
     text = Static(content, markup=False)
     box = Collapsible(
         text,
-        title="User Input",
+        title=_titled("User Input", agent_id, corr_id),
         collapsed=False,
         classes="user-input-box",
     )
     return box
 
 
-def create_thoughts_box(agent_id: str = "") -> tuple[Collapsible, Markdown]:
+def create_thoughts_box(agent_id: str = "", corr_id: str = "") -> tuple[Collapsible, Markdown]:
     """Create an expanded collapsible box for streaming thoughts.
 
     Args:
         agent_id: Agent identifier for the title prefix.
+        corr_id: Correlation identifier for the title prefix.
 
     Returns:
         Tuple of the Collapsible widget and the Markdown widget inside it.
     """
     md = Markdown()
-    box = Collapsible(md, title=_titled("Thinking", agent_id), collapsed=False, classes="thoughts-box")
+    box = Collapsible(md, title=_titled("Thinking", agent_id, corr_id), collapsed=False, classes="thoughts-box")
     return box, md
 
 
-def create_response_box(agent_id: str = "") -> tuple[Collapsible, Markdown]:
+def create_response_box(agent_id: str = "", corr_id: str = "") -> tuple[Collapsible, Markdown]:
     """Create an expanded collapsible box for streaming response.
 
     Args:
         agent_id: Agent identifier for the title prefix.
+        corr_id: Correlation identifier for the title prefix.
 
     Returns:
         Tuple of the Collapsible widget and the Markdown widget inside it.
     """
     md = Markdown()
-    box = Collapsible(md, title=_titled("Response", agent_id), collapsed=False, classes="response-box")
+    box = Collapsible(md, title=_titled("Response", agent_id, corr_id), collapsed=False, classes="response-box")
     return box, md
 
 
@@ -370,18 +374,20 @@ def create_tool_output_box(content: str, agent_id: str = "", corr_id: str = "") 
     return box
 
 
-def create_error_box(message: str) -> Collapsible:
+def create_error_box(message: str, agent_id: str = "", corr_id: str = "") -> Collapsible:
     """Create a collapsible box displaying an error message.
 
     Args:
         message: Error message to display.
+        agent_id: Agent identifier for the title prefix.
+        corr_id: Correlation identifier for the title prefix.
 
     Returns:
         Collapsible widget with error-styled text.
     """
     box = Collapsible(
         Static(message, classes="error-text"),
-        title="Error",
+        title=_titled("Error", agent_id, corr_id),
         collapsed=False,
         classes="error-box",
     )

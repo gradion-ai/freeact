@@ -2,7 +2,7 @@ from importlib.resources import as_file, files
 from pathlib import Path
 from typing import Literal
 
-from .skills import SkillMetadata
+from freeact.agent.config.skills import SkillMetadata
 
 
 def load_system_prompt(

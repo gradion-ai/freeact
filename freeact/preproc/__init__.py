@@ -1,5 +1,3 @@
-"""Prompt preprocessing: attachment extraction and image handling."""
-
 from freeact.preproc.attachments import preprocess_attachment_tags
 from freeact.preproc.images import (
     DEFAULT_MAX_SIZE,
