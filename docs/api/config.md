@@ -1,3 +1,5 @@
+::: freeact.config.PersistentConfig
+
 ::: freeact.agent.config.Config
 
 ::: freeact.agent.config.SkillMetadata
