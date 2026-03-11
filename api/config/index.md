@@ -1,3 +1,45 @@
+## freeact.config.PersistentConfig
+
+Bases: `BaseModel`
+
+Base class for JSON-persisted configuration models.
+
+Subclasses set `_config_filename` to their JSON filename and override `model_post_init` / `_save_sync` for domain-specific logic.
+
+Config:
+
+- `extra`: `forbid`
+- `validate_assignment`: `True`
+- `frozen`: `True`
+
+Fields:
+
+- `working_dir` (`Path`)
+
+### init
+
+```
+init(working_dir: Path | None = None) -> Self
+```
+
+Load config when present, otherwise save defaults.
+
+### load
+
+```
+load(working_dir: Path | None = None) -> Self
+```
+
+Load persisted config if present, otherwise return defaults.
+
+### save
+
+```
+save() -> None
+```
+
+Persist config to the `.freeact/` directory.
+
 ## freeact.agent.config.Config
 
 Bases: `PersistentConfig`

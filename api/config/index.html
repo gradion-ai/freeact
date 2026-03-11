@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#freeact.agent.config.Config" class="md-skip">
+        <a href="#freeact.config.PersistentConfig" class="md-skip">
           Skip to content
         </a>
       
@@ -1055,6 +1055,56 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#freeact.config.PersistentConfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PersistentConfig
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PersistentConfig">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#freeact.config.PersistentConfig.init" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        init
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freeact.config.PersistentConfig.load" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freeact.config.PersistentConfig.save" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#freeact.agent.config.Config" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1267,6 +1317,56 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#freeact.config.PersistentConfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PersistentConfig
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PersistentConfig">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#freeact.config.PersistentConfig.init" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        init
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freeact.config.PersistentConfig.load" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freeact.config.PersistentConfig.save" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#freeact.agent.config.Config" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1380,6 +1480,141 @@
 
 
 
+<h2 id="freeact.config.PersistentConfig" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">freeact.config.PersistentConfig</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+</h2>
+
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
+
+        <p>Base class for JSON-persisted configuration models.</p>
+<p>Subclasses set <code>_config_filename</code> to their JSON filename and
+override <code>model_post_init</code> / <code>_save_sync</code> for domain-specific logic.</p>
+
+    
+      <p>Config:</p>
+      <ul>
+          <li><code>extra</code>: <code class="highlight language-python"><span class="n">forbid</span></code></li>
+          <li><code>validate_assignment</code>: <code class="highlight language-python"><span class="kc">True</span></code></li>
+          <li><code>frozen</code>: <code class="highlight language-python"><span class="kc">True</span></code></li>
+      </ul>
+
+        <p>Fields:</p>
+        <ul>
+            <li>
+              <code><span title="freeact.config.PersistentConfig.working_dir">working_dir</span></code>
+                (<code><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></code>)
+            </li>
+        </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="freeact.config.PersistentConfig.init" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">init</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">init</span><span class="p">(</span><span class="n">working_dir</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Self" href="https://docs.python.org/3/library/typing.html#typing.Self">Self</a></span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Load config when present, otherwise save defaults.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="freeact.config.PersistentConfig.load" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">load</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">load</span><span class="p">(</span><span class="n">working_dir</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Self" href="https://docs.python.org/3/library/typing.html#typing.Self">Self</a></span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Load persisted config if present, otherwise return defaults.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="freeact.config.PersistentConfig.save" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">save</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+</h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">save</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Persist config to the <code>.freeact/</code> directory.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
 <h2 id="freeact.agent.config.Config" class="doc doc-heading">
             <span class="doc doc-object-name doc-class-name">freeact.agent.config.Config</span>
 
@@ -1393,7 +1628,7 @@
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><span title="freeact.config.PersistentConfig">PersistentConfig</span></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" href="#freeact.config.PersistentConfig">PersistentConfig</a></code></p>
 
         <p>Agent configuration.</p>
 
