@@ -1,7 +1,7 @@
 import copy
 import os
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, ClassVar, Literal
 
 from pydantic import ConfigDict, Field, PrivateAttr
 from pydantic_ai.models import Model
@@ -83,7 +83,7 @@ class Config(PersistentConfig):
     """Agent configuration."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    _config_filename = "agent.json"
+    _config_filename: ClassVar[str] = "agent.json"
 
     model: str | Model = DEFAULT_MODEL_NAME
     model_settings: dict[str, Any] = Field(default_factory=lambda: copy.deepcopy(DEFAULT_MODEL_SETTINGS))
