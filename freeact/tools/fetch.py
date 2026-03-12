@@ -72,7 +72,7 @@ def _truncate(text: str, max_chars: int) -> tuple[str, bool]:
 
 
 @mcp.tool(
-    name="fetch",
+    name="web_fetch",
     annotations={
         "title": "Web Fetch",
         "readOnlyHint": True,
@@ -82,7 +82,7 @@ def _truncate(text: str, max_chars: int) -> tuple[str, bool]:
     },
     structured_output=False,
 )
-async def fetch(
+async def web_fetch(
     url: Annotated[str, Field(description="URL to fetch content from")],
     max_chars: Annotated[
         int,

@@ -2,13 +2,13 @@ import json
 
 import pytest
 
-from freeact.tools.fetch import fetch
+from freeact.tools.fetch import web_fetch
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_fetches_html_page_with_trafilatura() -> None:
     """Article pages should use full trafilatura extraction with markdown."""
-    result = await fetch("https://krasserm.github.io/2025/12/16/code-actions/")
+    result = await web_fetch("https://krasserm.github.io/2025/12/16/code-actions/")
     parsed = json.loads(result)
 
     assert parsed["status"] == 200
@@ -21,10 +21,10 @@ async def test_fetches_html_page_with_trafilatura() -> None:
     assert "<<<EXTERNAL_UNTRUSTED_CONTENT" in parsed["text"]
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_falls_back_to_plain_on_index_page() -> None:
     """Index/listing pages with link-heavy headings should fall back to trafilatura-plain."""
-    result = await fetch("https://krasserm.github.io")
+    result = await web_fetch("https://krasserm.github.io")
     parsed = json.loads(result)
 
     assert parsed["status"] == 200
@@ -37,10 +37,10 @@ async def test_falls_back_to_plain_on_index_page() -> None:
     assert "single-user" in parsed["text"] or "multi-party" in parsed["text"]
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_fetches_json_endpoint() -> None:
     """JSON endpoints should be pretty-printed."""
-    result = await fetch("https://httpbin.org/json")
+    result = await web_fetch("https://httpbin.org/json")
     parsed = json.loads(result)
 
     assert parsed["status"] == 200
@@ -48,20 +48,20 @@ async def test_fetches_json_endpoint() -> None:
     assert parsed["extractor"] == "json"
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_follows_redirects() -> None:
     """Redirects should be followed, with finalUrl reflecting the destination."""
-    result = await fetch("https://httpbin.org/redirect/1")
+    result = await web_fetch("https://httpbin.org/redirect/1")
     parsed = json.loads(result)
 
     assert parsed["status"] == 200
     assert parsed["finalUrl"] != parsed["url"]
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_truncation() -> None:
     """Content exceeding max_chars should be truncated."""
-    result = await fetch("https://krasserm.github.io/2025/12/16/code-actions/", max_chars=500)
+    result = await web_fetch("https://krasserm.github.io/2025/12/16/code-actions/", max_chars=500)
     parsed = json.loads(result)
 
     assert parsed["truncated"] is True

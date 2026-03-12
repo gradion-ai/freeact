@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 import httpx
 import pytest
 
-from freeact.tools.brave_search import (
+from freeact.tools.bsearch import (
     _get_api_key,
     _parse_llm_context_results,
     _parse_web_results,
@@ -182,7 +182,7 @@ class TestWebSearchTool:
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)
         mock_client.__aexit__ = AsyncMock(return_value=False)
 
-        monkeypatch.setattr("freeact.tools.brave_search.httpx.AsyncClient", lambda: mock_client)
+        monkeypatch.setattr("freeact.tools.bsearch.httpx.AsyncClient", lambda: mock_client)
         monkeypatch.setenv("BRAVE_API_KEY", "test-key")
         monkeypatch.setattr("freeact.tools.security.secrets.token_hex", lambda n: "ab" * n)
 
@@ -215,49 +215,49 @@ class TestWebSearchTool:
             "sources": {"total": 1},
         }
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_web_mode_calls_correct_url(self, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_get = self._mock_httpx(monkeypatch, self._web_response())
         await web_search("test query", mode="web")
         call_args = mock_get.call_args
         assert "api.search.brave.com/res/v1/web/search" in call_args[0][0]
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_llm_context_mode_calls_correct_url(self, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_get = self._mock_httpx(monkeypatch, self._llm_response())
         await web_search("test query", mode="llm-context")
         call_args = mock_get.call_args
         assert "api.search.brave.com/res/v1/llm/context" in call_args[0][0]
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_passes_query_param(self, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_get = self._mock_httpx(monkeypatch, self._web_response())
         await web_search("my search query")
         call_args = mock_get.call_args
         assert call_args[1]["params"]["q"] == "my search query"
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_web_mode_passes_count_param(self, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_get = self._mock_httpx(monkeypatch, self._web_response())
         await web_search("test", mode="web")
         call_args = mock_get.call_args
         assert "count" in call_args[1]["params"]
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_llm_context_mode_omits_count_param(self, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_get = self._mock_httpx(monkeypatch, self._llm_response())
         await web_search("test", mode="llm-context")
         call_args = mock_get.call_args
         assert "count" not in call_args[1]["params"]
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_passes_auth_header(self, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_get = self._mock_httpx(monkeypatch, self._web_response())
         await web_search("test")
         call_args = mock_get.call_args
         assert call_args[1]["headers"]["X-Subscription-Token"] == "test-key"
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_web_mode_returns_json_with_results(self, monkeypatch: pytest.MonkeyPatch) -> None:
         self._mock_httpx(monkeypatch, self._web_response())
         result = await web_search("test")
@@ -266,7 +266,7 @@ class TestWebSearchTool:
         assert len(parsed["results"]) == 1
         assert parsed["results"][0]["url"] == "https://example.com/1"
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_llm_context_mode_returns_json_with_results_and_sources(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
@@ -277,7 +277,7 @@ class TestWebSearchTool:
         assert "sources" in parsed
         assert len(parsed["results"]) == 1
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_output_metadata_fields(self, monkeypatch: pytest.MonkeyPatch) -> None:
         self._mock_httpx(monkeypatch, self._web_response())
         result = await web_search("test query")
@@ -289,14 +289,14 @@ class TestWebSearchTool:
         assert isinstance(parsed["tookMs"], (int, float))
         assert parsed["externalContent"] is True
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_default_mode_is_web(self, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_get = self._mock_httpx(monkeypatch, self._web_response())
         await web_search("test")
         call_args = mock_get.call_args
         assert "api.search.brave.com/res/v1/web/search" in call_args[0][0]
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_http_error_propagates(self, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_response = MagicMock()
         mock_response.status_code = 401
@@ -309,13 +309,13 @@ class TestWebSearchTool:
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)
         mock_client.__aexit__ = AsyncMock(return_value=False)
 
-        monkeypatch.setattr("freeact.tools.brave_search.httpx.AsyncClient", lambda: mock_client)
+        monkeypatch.setattr("freeact.tools.bsearch.httpx.AsyncClient", lambda: mock_client)
         monkeypatch.setenv("BRAVE_API_KEY", "test-key")
 
         with pytest.raises(httpx.HTTPStatusError):
             await web_search("test")
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_missing_api_key_raises(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv("BRAVE_API_KEY", raising=False)
         with pytest.raises(RuntimeError):

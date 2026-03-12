@@ -2,7 +2,7 @@
 
 ## Context
 
-We're building two new PTC servers for freeact (Brave web search and web fetch). Phase 1 (content security module `freeact/tools/security.py`) and Phase 2 (Brave search server `freeact/tools/brave_search.py`) are complete. Phase 3 adds the fetch PTC server that retrieves and extracts readable content from URLs, with content-type-aware extraction and security wrapping.
+We're building two new PTC servers for freeact (Brave web search and web fetch). Phase 1 (content security module `freeact/tools/security.py`) and Phase 2 (Brave search server `freeact/tools/bsearch.py`) are complete. Phase 3 adds the fetch PTC server that retrieves and extracts readable content from URLs, with content-type-aware extraction and security wrapping.
 
 Spec: `docs/internal/features/active/web-tools/feat-spec.md`
 Plan: `docs/internal/features/active/web-tools/feat-plan.md`
@@ -22,7 +22,7 @@ No other existing files modified. Users opt in by adding the server entry to the
 
 ```python
 @mcp.tool(
-    name="fetch",
+    name="web_fetch",
     annotations={
         "title": "Web Fetch",
         "readOnlyHint": True,
@@ -32,7 +32,7 @@ No other existing files modified. Users opt in by adding the server entry to the
     },
     structured_output=False,
 )
-async def fetch(
+async def web_fetch(
     url: Annotated[str, Field(description="URL to fetch content from")],
     max_chars: Annotated[
         int,
@@ -48,7 +48,7 @@ async def fetch(
     """
 ```
 
-Follows the `brave_search.py` pattern: `FastMCP` server, `@mcp.tool()` with annotations, `structured_output=False`, returns JSON string.
+Follows the `bsearch.py` pattern: `FastMCP` server, `@mcp.tool()` with annotations, `structured_output=False`, returns JSON string.
 
 ## Internal Implementation
 
@@ -134,14 +134,14 @@ if __name__ == "__main__":
 }
 ```
 
-CamelCase JSON keys for consistency with `brave_search.py` output (`tookMs`, `externalContent`).
+CamelCase JSON keys for consistency with `bsearch.py` output (`tookMs`, `externalContent`).
 
 ## Test Plan
 
 File: `tests/unit/tools/test_fetch.py`
 
 Mock strategy:
-- httpx: same `AsyncMock`/`MagicMock` pattern as `test_brave_search.py`, extended with `mock_response.text`, `mock_response.url`, `mock_response.headers`
+- httpx: same `AsyncMock`/`MagicMock` pattern as `test_bsearch.py`, extended with `mock_response.text`, `mock_response.url`, `mock_response.headers`
 - trafilatura: `monkeypatch.setattr("freeact.tools.fetch.extract", ...)` and `monkeypatch.setattr("freeact.tools.fetch.extract_metadata", ...)`
 - security: `monkeypatch.setattr("freeact.tools.security.secrets.token_hex", lambda n: "ab" * n)`
 
@@ -168,7 +168,7 @@ Mock strategy:
 
 ### `class TestFetchTool:`
 
-Helper `_mock_httpx(self, monkeypatch, response_text, content_type, status_code, final_url)` following `test_brave_search.py::TestWebSearchTool._mock_httpx` pattern but adapted for fetch (response.text, response.url, response.headers, `AsyncClient(**kwargs)` lambda).
+Helper `_mock_httpx(self, monkeypatch, response_text, content_type, status_code, final_url)` following `test_bsearch.py::TestWebSearchTool._mock_httpx` pattern but adapted for fetch (response.text, response.url, response.headers, `AsyncClient(**kwargs)` lambda).
 
 16. `test_fetches_url_with_get` -- verify mock_get called with the URL
 17. `test_follows_redirects` -- verify AsyncClient created with `follow_redirects=True`
@@ -190,9 +190,9 @@ Helper `_mock_httpx(self, monkeypatch, response_text, content_type, status_code,
 | What | Where |
 |------|-------|
 | `wrap_fetch_content(content)` | `freeact/tools/security.py:50` |
-| FastMCP server pattern | `freeact/tools/brave_search.py` |
-| httpx mock pattern | `tests/unit/tools/test_brave_search.py:170` |
-| Test class organization | `tests/unit/tools/test_brave_search.py` |
+| FastMCP server pattern | `freeact/tools/bsearch.py` |
+| httpx mock pattern | `tests/unit/tools/test_bsearch.py:170` |
+| Test class organization | `tests/unit/tools/test_bsearch.py` |
 
 ## Implementation Order (TDD)
 
@@ -202,7 +202,7 @@ Helper `_mock_httpx(self, monkeypatch, response_text, content_type, status_code,
 4. Implement `_parse_content_type`
 5. Implement `_truncate`
 6. Implement `_extract_content` (content type dispatch with trafilatura, json, raw branches)
-7. Implement `fetch` tool function (httpx call, extraction, truncation, wrapping, JSON assembly)
+7. Implement `web_fetch` tool function (httpx call, extraction, truncation, wrapping, JSON assembly)
 8. Implement `main()` entry point
 9. Run: `uv run pytest -xvs tests/unit/tools/test_fetch.py`
 10. `git add` new files, run: `uv run invoke cc`

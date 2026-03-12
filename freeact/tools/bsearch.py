@@ -8,7 +8,7 @@ from pydantic import Field
 
 from freeact.tools.security import wrap_content
 
-mcp = FastMCP("brave_search_mcp", log_level="ERROR")
+mcp = FastMCP("brave_mcp", log_level="ERROR")
 
 SearchMode = Literal["web", "llm-context"]
 

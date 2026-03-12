@@ -9,7 +9,7 @@ from freeact.tools.fetch import (
     _extract_html,
     _parse_content_type,
     _truncate,
-    fetch,
+    web_fetch,
 )
 
 
@@ -191,15 +191,15 @@ class TestFetchTool:
         monkeypatch.setattr("freeact.tools.fetch.html2txt", lambda *a, **kw: "plain")
         monkeypatch.setattr("freeact.tools.fetch.extract_metadata", lambda *a, **kw: None)
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_fetches_url_with_get(self, monkeypatch: pytest.MonkeyPatch) -> None:
         self._mock_trafilatura(monkeypatch)
         mock_get = self._mock_httpx(monkeypatch, "<html>Hello</html>")
-        await fetch("https://example.com/page")
+        await web_fetch("https://example.com/page")
         mock_get.assert_called_once()
         assert mock_get.call_args[0][0] == "https://example.com/page"
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_follows_redirects(self, monkeypatch: pytest.MonkeyPatch) -> None:
         self._mock_trafilatura(monkeypatch)
 
@@ -227,10 +227,10 @@ class TestFetchTool:
 
         monkeypatch.setattr("freeact.tools.fetch.httpx.AsyncClient", capture_kwargs)
 
-        await fetch("https://example.com/page")
+        await web_fetch("https://example.com/page")
         assert created_kwargs.get("follow_redirects") is True
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_returns_json_with_all_fields(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr("freeact.tools.fetch.extract", lambda *a, **kw: "Extracted content")
         monkeypatch.setattr("freeact.tools.fetch.html2txt", lambda *a, **kw: "plain")
@@ -238,7 +238,7 @@ class TestFetchTool:
         metadata.title = "Test Title"
         monkeypatch.setattr("freeact.tools.fetch.extract_metadata", lambda *a, **kw: metadata)
         self._mock_httpx(monkeypatch, "<html>Hello</html>")
-        result = await fetch("https://example.com/page")
+        result = await web_fetch("https://example.com/page")
         parsed = json.loads(result)
         assert "url" in parsed
         assert "finalUrl" in parsed
@@ -253,76 +253,76 @@ class TestFetchTool:
         assert "tookMs" in parsed
         assert "externalContent" in parsed
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_html_content_extracted_as_markdown(self, monkeypatch: pytest.MonkeyPatch) -> None:
         self._mock_trafilatura(monkeypatch, extracted="# Markdown heading")
         self._mock_httpx(monkeypatch, "<html><h1>Markdown heading</h1></html>")
-        result = await fetch("https://example.com/page")
+        result = await web_fetch("https://example.com/page")
         parsed = json.loads(result)
         assert parsed["extractor"] == "trafilatura"
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_json_content_pretty_printed(self, monkeypatch: pytest.MonkeyPatch) -> None:
         self._mock_httpx(monkeypatch, '{"key":"value"}', content_type="application/json")
-        result = await fetch("https://example.com/api")
+        result = await web_fetch("https://example.com/api")
         parsed = json.loads(result)
         assert parsed["extractor"] == "json"
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_text_content_passed_through(self, monkeypatch: pytest.MonkeyPatch) -> None:
         self._mock_httpx(monkeypatch, "Plain text content", content_type="text/plain")
-        result = await fetch("https://example.com/file.txt")
+        result = await web_fetch("https://example.com/file.txt")
         parsed = json.loads(result)
         assert parsed["extractor"] == "raw"
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_content_truncated_at_max_chars(self, monkeypatch: pytest.MonkeyPatch) -> None:
         long_content = "x" * 200
         self._mock_httpx(monkeypatch, long_content, content_type="text/plain")
-        result = await fetch("https://example.com/big", max_chars=50)
+        result = await web_fetch("https://example.com/big", max_chars=50)
         parsed = json.loads(result)
         assert parsed["truncated"] is True
         assert parsed["rawLength"] == 200
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_content_security_wrapped(self, monkeypatch: pytest.MonkeyPatch) -> None:
         self._mock_httpx(monkeypatch, "Some text content", content_type="text/plain")
-        result = await fetch("https://example.com/page")
+        result = await web_fetch("https://example.com/page")
         parsed = json.loads(result)
         assert "<<<EXTERNAL_UNTRUSTED_CONTENT" in parsed["text"]
         assert "[NOTE:" in parsed["text"]
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_default_max_chars_is_50000(self, monkeypatch: pytest.MonkeyPatch) -> None:
         content = "x" * 40000
         self._mock_httpx(monkeypatch, content, content_type="text/plain")
-        result = await fetch("https://example.com/page")
+        result = await web_fetch("https://example.com/page")
         parsed = json.loads(result)
         assert parsed["truncated"] is False
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_final_url_from_response(self, monkeypatch: pytest.MonkeyPatch) -> None:
         self._mock_httpx(monkeypatch, "content", content_type="text/plain", final_url="https://example.com/redirected")
-        result = await fetch("https://example.com/original")
+        result = await web_fetch("https://example.com/original")
         parsed = json.loads(result)
         assert parsed["url"] == "https://example.com/original"
         assert parsed["finalUrl"] == "https://example.com/redirected"
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_status_code_in_output(self, monkeypatch: pytest.MonkeyPatch) -> None:
         self._mock_httpx(monkeypatch, "content", content_type="text/plain", status_code=200)
-        result = await fetch("https://example.com/page")
+        result = await web_fetch("https://example.com/page")
         parsed = json.loads(result)
         assert parsed["status"] == 200
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_took_ms_in_output(self, monkeypatch: pytest.MonkeyPatch) -> None:
         self._mock_httpx(monkeypatch, "content", content_type="text/plain")
-        result = await fetch("https://example.com/page")
+        result = await web_fetch("https://example.com/page")
         parsed = json.loads(result)
         assert parsed["tookMs"] == 450
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_http_error_propagates(self, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_response = MagicMock()
         mock_response.status_code = 404
@@ -338,11 +338,11 @@ class TestFetchTool:
         monkeypatch.setattr("freeact.tools.fetch.httpx.AsyncClient", lambda **kwargs: mock_client)
 
         with pytest.raises(httpx.HTTPStatusError):
-            await fetch("https://example.com/missing")
+            await web_fetch("https://example.com/missing")
 
-    @pytest.mark.anyio
+    @pytest.mark.asyncio
     async def test_external_content_flag(self, monkeypatch: pytest.MonkeyPatch) -> None:
         self._mock_httpx(monkeypatch, "content", content_type="text/plain")
-        result = await fetch("https://example.com/page")
+        result = await web_fetch("https://example.com/page")
         parsed = json.loads(result)
         assert parsed["externalContent"] is True

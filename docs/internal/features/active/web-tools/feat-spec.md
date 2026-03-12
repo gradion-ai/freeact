@@ -18,7 +18,7 @@ essential for research workflows where search snippets are insufficient.
 
 ### Requirements
 
-#### Brave Web Search PTC Server (`freeact/tools/brave_search.py`)
+#### Brave Web Search PTC Server (`freeact/tools/bsearch.py`)
 
 - FastMCP server with a `web_search` tool, following the pattern in `gsearch.py`
 - Calls the Brave Search API directly via HTTP (not the default Brave MCP npm package)
@@ -36,7 +36,7 @@ essential for research workflows where search snippets are insufficient.
 
 #### Fetch PTC Server (`freeact/tools/fetch.py`)
 
-- FastMCP server with a `fetch` tool
+- FastMCP server with a `web_fetch` tool
 - Fetches URL content via HTTP GET using httpx
 - Extracts readable content using trafilatura with markdown output:
   `extract(html, output_format="markdown", include_links=True, include_images=True)`
@@ -74,7 +74,7 @@ essential for research workflows where search snippets are insufficient.
   ```json
   "brave": {
     "command": "python",
-    "args": ["-m", "freeact.tools.brave_search"],
+    "args": ["-m", "freeact.tools.bsearch"],
     "env": {"BRAVE_API_KEY": "${BRAVE_API_KEY}"}
   },
   "fetch": {

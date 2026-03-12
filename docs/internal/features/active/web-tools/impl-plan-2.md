@@ -11,15 +11,15 @@ Plan: `docs/internal/features/active/web-tools/feat-plan.md`
 
 | File | Purpose |
 |------|---------|
-| `freeact/tools/brave_search.py` | Brave Search FastMCP PTC server |
-| `tests/unit/tools/test_brave_search.py` | Unit tests |
+| `freeact/tools/bsearch.py` | Brave Search FastMCP PTC server |
+| `tests/unit/tools/test_bsearch.py` | Unit tests |
 
 No existing files modified. Users opt in by adding the server to their `agent.json` manually (not enabled by default).
 
 ## Public API
 
 ```python
-# freeact/tools/brave_search.py
+# freeact/tools/bsearch.py
 from typing import Annotated, Literal
 
 SearchMode = Literal["web", "llm-context"]
@@ -157,7 +157,7 @@ Users add to their `agent.json`:
   "ptc_servers": {
     "brave": {
       "command": "python",
-      "args": ["-m", "freeact.tools.brave_search"],
+      "args": ["-m", "freeact.tools.bsearch"],
       "env": {"BRAVE_API_KEY": "${BRAVE_API_KEY}"}
     }
   }
@@ -166,7 +166,7 @@ Users add to their `agent.json`:
 
 ## Test Plan
 
-File: `tests/unit/tools/test_brave_search.py`
+File: `tests/unit/tools/test_bsearch.py`
 
 Mock strategy: `monkeypatch.setattr` on `httpx.AsyncClient` to return mock responses. `monkeypatch.setattr("freeact.tools.security.secrets.token_hex", ...)` for deterministic marker IDs where needed.
 
@@ -217,8 +217,8 @@ Mock strategy: `monkeypatch.setattr` on `httpx.AsyncClient` to return mock respo
 
 ## Implementation Order (TDD)
 
-1. Write all tests in `tests/unit/tools/test_brave_search.py` (fail with `ModuleNotFoundError`)
-2. Create `freeact/tools/brave_search.py` with stubs (correct signatures, return `""`)
+1. Write all tests in `tests/unit/tools/test_bsearch.py` (fail with `ModuleNotFoundError`)
+2. Create `freeact/tools/bsearch.py` with stubs (correct signatures, return `""`)
 3. Implement `_get_api_key` and `_request_headers`
 4. Implement `_wrap_text`
 5. Implement `_parse_web_results`
@@ -238,7 +238,7 @@ Mock strategy: `monkeypatch.setattr` on `httpx.AsyncClient` to return mock respo
 
 ## Verification
 
-1. `uv run pytest -xvs tests/unit/tools/test_brave_search.py` -- all 33 tests pass
+1. `uv run pytest -xvs tests/unit/tools/test_bsearch.py` -- all 33 tests pass
 2. `uv run invoke cc` -- ruff format + mypy pass
 3. `uv run invoke ut` -- no regressions in full unit suite
 4. End-to-end test via `freeact-interaction` skill: configure brave PTC server, agent performs a Brave search through terminal UI
