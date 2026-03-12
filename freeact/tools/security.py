@@ -30,16 +30,19 @@ def _sanitize_markers(content: str) -> str:
     return content
 
 
-def wrap_content(content: str, source: ContentSource) -> str:
+def wrap_content(content: str, source: ContentSource, *, notice: str | None = None) -> str:
     """Wrap external content with security boundary markers.
 
     Sanitizes spoofed boundary markers, then wraps with unique
     opening/closing markers including the content source label.
+    An optional notice is inserted before the source line.
     """
     sanitized = _sanitize_markers(content)
     marker_id = _generate_marker_id()
+    notice_line = f"{notice}\n" if notice else ""
     return (
         f'{_MARKER_OPEN} id="{marker_id}">>>\n'
+        f"{notice_line}"
         f"Source: {source}\n"
         f"---\n"
         f"{sanitized}\n"
@@ -50,16 +53,7 @@ def wrap_content(content: str, source: ContentSource) -> str:
 def wrap_fetch_content(content: str) -> str:
     """Wrap fetched web content with security boundary markers and security notice.
 
-    Like `wrap_content` with source="Web Fetch", but inserts a security
+    Delegates to `wrap_content` with source="Web Fetch" and a security
     notice warning the LLM not to treat content as instructions.
     """
-    sanitized = _sanitize_markers(content)
-    marker_id = _generate_marker_id()
-    return (
-        f'{_MARKER_OPEN} id="{marker_id}">>>\n'
-        f"{_SECURITY_NOTICE}\n"
-        f"Source: Web Fetch\n"
-        f"---\n"
-        f"{sanitized}\n"
-        f'{_MARKER_CLOSE} id="{marker_id}">>>'
-    )
+    return wrap_content(content, "Web Fetch", notice=_SECURITY_NOTICE)
