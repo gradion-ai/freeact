@@ -16,10 +16,9 @@ Spec: docs/internal/features/active/web-tools/SPEC.md
 **Depends on:** --
 
 **Success criteria:**
-- [ ] Security module wraps content with correct boundary format and unique IDs
-- [ ] Spoofed markers in content are sanitized before wrapping
-- [ ] Web fetch variant includes security notice prefix
-- [ ] Documentation updated
+- [x] Security module wraps content with correct boundary format and unique IDs
+- [x] Spoofed markers in content are sanitized before wrapping
+- [x] Web fetch variant includes security notice prefix
 
 ## Phase 2: Brave Web Search Server
 
@@ -40,12 +39,12 @@ Spec: docs/internal/features/active/web-tools/SPEC.md
 **Depends on:** Phase 1
 
 **Success criteria:**
-- [ ] `web_search` tool returns structured results from Brave API in "web" mode
-- [ ] `web_search` tool returns structured results in "llm-context" mode
-- [ ] All text fields in results are security-wrapped
-- [ ] Server is configurable as a PTC server entry in `agent.json`
-- [ ] End-to-end test via freeact-interaction skill: agent performs a Brave search through the terminal UI and returns results
-- [ ] Documentation updated
+- [x] `web_search` tool returns structured results from Brave API in "web" mode
+- [x] `web_search` tool returns structured results in "llm-context" mode
+- [x] All text fields in results are security-wrapped
+- [x] Server is configurable as a PTC server entry in `agent.json`
+- [x] End-to-end test via freeact-interaction skill: agent performs a Brave search through the terminal UI and returns results
+- [x] Documentation updated
 
 ## Phase 3: Fetch Server
 
@@ -66,12 +65,12 @@ Spec: docs/internal/features/active/web-tools/SPEC.md
 **Depends on:** Phase 1
 
 **Success criteria:**
-- [ ] `fetch` tool retrieves and extracts HTML pages as markdown via trafilatura
-- [ ] JSON, markdown, and other content types are handled correctly
-- [ ] Content is truncated at `max_chars` and security-wrapped
-- [ ] Server is configurable as a PTC server entry in `agent.json`
-- [ ] End-to-end test via freeact-interaction skill: agent fetches a URL through the terminal UI and returns extracted content
-- [ ] Documentation updated
+- [x] `fetch` tool retrieves and extracts HTML pages as markdown via trafilatura
+- [x] JSON, markdown, and other content types are handled correctly
+- [x] Content is truncated at `max_chars` and security-wrapped
+- [x] Server is configurable as a PTC server entry in `agent.json`
+- [x] End-to-end test via freeact-interaction skill: agent fetches a URL through the terminal UI and returns extracted content
+- [x] Documentation updated
 
 ## Coverage
 
