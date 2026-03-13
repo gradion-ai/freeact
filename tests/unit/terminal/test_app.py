@@ -703,9 +703,9 @@ async def test_toggle_expand_all_uses_configured_hotkey() -> None:
     app = _create_app(agent_stream=MockStreamAgent(_no_events).stream, agent_id=MAIN_AGENT_ID, config=ui_config)
 
     async with app.run_test() as pilot:
-        assert not app._expand_all_override
+        assert not app._collapse_state.expand_all_override
         await pilot.press("f6")
-        assert app._expand_all_override
+        assert app._collapse_state.expand_all_override
 
 
 @pytest.mark.asyncio
@@ -1679,7 +1679,7 @@ async def test_nested_subagent_approval_bar_stays_root_level_visible() -> None:
 
 
 @pytest.mark.asyncio
-async def test_active_subagent_task_moves_to_bottom_on_nested_activity() -> None:
+async def test_subagent_task_order_stays_stable_during_nested_activity() -> None:
     async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
         task_a = ApprovalRequest(
             tool_call=GenericCall(tool_name="subagent_task", tool_args={"prompt": "Task A"}, ptc=False),
@@ -1718,4 +1718,5 @@ async def test_active_subagent_task_moves_to_bottom_on_nested_activity() -> None
 
         task_boxes = list(app.query(".subagent-task-box"))
         assert len(task_boxes) == 2
-        assert task_boxes[-1].title == r"\[main-agent] \[task-a] Tool Call: subagent_task"
+        assert task_boxes[0].title == r"\[main-agent] \[task-a] Tool Call: subagent_task"
+        assert task_boxes[1].title == r"\[main-agent] \[task-b] Tool Call: subagent_task"
