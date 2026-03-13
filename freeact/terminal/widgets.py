@@ -7,6 +7,7 @@ from rich.segment import Segment
 from rich.syntax import Syntax
 from textual._ansi_sequences import ANSI_SEQUENCES_KEYS
 from textual.binding import Binding
+from textual.containers import Vertical
 from textual.keys import Keys
 from textual.message import Message
 from textual.strip import Strip
@@ -317,6 +318,38 @@ def create_tool_call_box(
         classes="tool-call-box",
     )
     return box
+
+
+def create_subagent_task_box(
+    tool_args: dict[str, Any],
+    agent_id: str = "",
+    corr_id: str = "",
+) -> tuple[Collapsible, Vertical]:
+    """Create a collapsible box for a `subagent_task` with nested child widgets.
+
+    Args:
+        tool_args: Tool arguments to display as JSON.
+        agent_id: Agent identifier for the title prefix.
+        corr_id: Correlation identifier for the title.
+
+    Returns:
+        Tuple of the task Collapsible and the nested child-widget container.
+    """
+    args_json = json.dumps(tool_args, indent=2)
+    syntax = Syntax(args_json, "json", theme="monokai")
+    trace_container = Vertical(classes="subagent-trace-container")
+    content = Vertical(
+        Static(syntax),
+        trace_container,
+        classes="subagent-task-content",
+    )
+    box = Collapsible(
+        content,
+        title=_titled("Tool Call: subagent_task", agent_id, corr_id),
+        collapsed=False,
+        classes="tool-call-box subagent-task-box",
+    )
+    return box, trace_container
 
 
 def create_exec_output_box(agent_id: str = "", corr_id: str = "") -> tuple[Collapsible, RichLog]:

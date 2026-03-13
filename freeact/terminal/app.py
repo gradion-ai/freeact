@@ -15,7 +15,7 @@ from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
-from textual.widgets import Collapsible, Markdown, Static
+from textual.widgets import Collapsible, Markdown, RichLog, Static
 
 from freeact.agent import Agent
 from freeact.agent.call import (
@@ -58,6 +58,7 @@ from freeact.terminal.widgets import (
     create_file_read_action_box,
     create_file_write_action_box,
     create_response_box,
+    create_subagent_task_box,
     create_thoughts_box,
     create_tool_call_box,
     create_tool_output_box,
@@ -84,6 +85,14 @@ class SlashCommandContext:
 
     start: Location
     end: Location
+
+
+@dataclass(frozen=True)
+class SubagentTaskBoxState:
+    """Mounted container state for a root-level `subagent_task` widget."""
+
+    box: Collapsible
+    trace_container: Vertical
 
 
 def _find_slash_command_context(text: str, cursor: Location) -> SlashCommandContext | None:
@@ -307,6 +316,12 @@ class TerminalApp(App[None]):
     .error-text {
         color: $error;
     }
+    .subagent-task-content {
+        height: auto;
+    }
+    .subagent-trace-container {
+        height: auto;
+    }
     """
 
     BINDINGS = [
@@ -320,6 +335,8 @@ class TerminalApp(App[None]):
         Binding("ctrl+m", "approve_hotkey(1)", show=False, priority=True),
         Binding("y", "approve_hotkey(1)", show=False, priority=True),
         Binding("n", "approve_hotkey(0)", show=False, priority=True),
+        Binding("a", "approval_rule_hotkey(2)", show=False, priority=True),
+        Binding("s", "approval_rule_hotkey(3)", show=False, priority=True),
     ]
 
     def __init__(
@@ -346,8 +363,12 @@ class TerminalApp(App[None]):
         self._turn_in_progress = False
         self._expand_all_override = False
         self._configured_collapsed: dict[int, bool] = {}
+        self._manual_collapsed: dict[int, bool] = {}
         self._forced_expanded_ids: set[int] = set()
+        self._suppressed_toggle_events: dict[int, int] = {}
         self._pending_approval_widget_id: int | None = None
+        self._subagent_task_boxes: dict[str, SubagentTaskBoxState] = {}
+        self._turn_tool_calls: dict[str, ToolCall] = {}
         self._banner = _load_banner()
         self._version = _load_freeact_version()
         self._cwd = _format_display_cwd()
@@ -402,20 +423,32 @@ class TerminalApp(App[None]):
         conversation = self.query_one("#conversation", VerticalScroll)
         conversation.scroll_end(animate=False)
 
-    async def _mount_and_scroll(self, conversation: VerticalScroll, *widgets: "textual.widget.Widget") -> None:  # type: ignore[name-defined]  # noqa: F821
-        """Mount widgets into the conversation and scroll to the bottom.
+    def _schedule_scroll_conversation_to_bottom(self) -> None:
+        """Re-apply bottom alignment after the next layout refresh."""
+        self.call_after_refresh(self._scroll_conversation_to_bottom)
+
+    async def _mount_and_scroll(
+        self,
+        target: Vertical | VerticalScroll,
+        conversation: VerticalScroll,
+        *widgets: "textual.widget.Widget",  # type: ignore[name-defined]  # noqa: F821
+    ) -> None:
+        """Mount widgets into a target container and scroll to the bottom.
 
         Args:
-            conversation: Conversation container that owns rendered widgets.
+            target: Container that owns the widgets.
+            conversation: Root conversation container used for scrolling.
             *widgets: Widgets to mount in order.
         """
         for widget in widgets:
-            await conversation.mount(widget)
+            await target.mount(widget)
         conversation.scroll_end(animate=False)
+        self._schedule_scroll_conversation_to_bottom()
 
     def _register_box(self, box: Collapsible, configured_collapsed: bool, force_expanded: bool = False) -> None:
         box_id = id(box)
         self._configured_collapsed[box_id] = configured_collapsed
+        self._suppressed_toggle_events[box_id] = self._suppressed_toggle_events.get(box_id, 0) + 1
         if force_expanded:
             self._forced_expanded_ids.add(box_id)
         else:
@@ -437,16 +470,97 @@ class TerminalApp(App[None]):
     def _apply_render_state(self, box: Collapsible) -> None:
         box_id = id(box)
         configured_collapsed = self._configured_collapsed.get(box_id, box.collapsed)
-        if box_id in self._forced_expanded_ids or self._expand_all_override:
-            box.collapsed = False
+        manual_collapsed = self._manual_collapsed.get(box_id)
+        if self._expand_all_override:
+            collapsed = False
+        elif manual_collapsed is not None:
+            collapsed = manual_collapsed
+        elif box_id in self._forced_expanded_ids:
+            collapsed = False
+        else:
+            collapsed = configured_collapsed
+
+        if box.collapsed == collapsed:
             return
-        box.collapsed = configured_collapsed
+
+        self._suppressed_toggle_events[box_id] = self._suppressed_toggle_events.get(box_id, 0) + 1
+        box.collapsed = collapsed
+        self._schedule_scroll_conversation_to_bottom()
 
     def _reapply_all_collapsible_states(self) -> None:
         for widget in self.query("Collapsible"):
             match widget:
                 case Collapsible() as box:
                     self._apply_render_state(box)
+
+    def _consume_suppressed_toggle(self, box: Collapsible) -> bool:
+        box_id = id(box)
+        remaining = self._suppressed_toggle_events.get(box_id, 0)
+        if remaining <= 0:
+            return False
+        if remaining == 1:
+            del self._suppressed_toggle_events[box_id]
+        else:
+            self._suppressed_toggle_events[box_id] = remaining - 1
+        return True
+
+    def on_collapsible_expanded(self, event: Collapsible.Expanded) -> None:
+        if self._consume_suppressed_toggle(event.collapsible):
+            return
+        if id(event.collapsible) in self._configured_collapsed:
+            self._manual_collapsed[id(event.collapsible)] = False
+
+    def on_collapsible_collapsed(self, event: Collapsible.Collapsed) -> None:
+        if self._consume_suppressed_toggle(event.collapsible):
+            return
+        if id(event.collapsible) in self._configured_collapsed:
+            self._manual_collapsed[id(event.collapsible)] = True
+
+    def _event_target(self, event: AgentEvent, conversation: VerticalScroll) -> Vertical | VerticalScroll:
+        if event.parent_corr_id:
+            state = self._subagent_task_boxes.get(event.parent_corr_id)
+            if state is not None:
+                return state.trace_container
+        return conversation
+
+    def _move_subagent_task_box_to_bottom(self, parent_corr_id: str, conversation: VerticalScroll) -> None:
+        state = self._subagent_task_boxes.get(parent_corr_id)
+        if state is None or state.box.parent is not conversation:
+            return
+        children = list(conversation.children)
+        if not children or children[-1] is state.box:
+            return
+        conversation.move_child(state.box, after=children[-1])
+        self._schedule_scroll_conversation_to_bottom()
+
+    def _is_subagent_task_call(self, tool_call: ToolCall) -> bool:
+        match tool_call:
+            case GenericCall(tool_name="subagent_task"):
+                return True
+            case _:
+                return False
+
+    def _mark_subagent_task_active(self, corr_id: str) -> None:
+        state = self._subagent_task_boxes.get(corr_id)
+        if state is None:
+            return
+        self._set_force_expanded(state.box, enabled=True)
+
+    def _mark_subagent_task_completed(self, corr_id: str) -> None:
+        state = self._subagent_task_boxes.get(corr_id)
+        if state is None:
+            return
+        self._set_force_expanded(state.box, enabled=False)
+        self._set_configured_collapsed(
+            state.box,
+            collapsed=self._config.collapse_completed_subagent_tasks,
+        )
+
+    def _clear_turn_subagent_task_state(self) -> None:
+        for state in self._subagent_task_boxes.values():
+            self._set_force_expanded(state.box, enabled=False)
+        self._subagent_task_boxes.clear()
+        self._turn_tool_calls.clear()
 
     def on_prompt_input_submitted(self, event: PromptInput.Submitted) -> None:
         raw_text = event.text
@@ -464,23 +578,24 @@ class TerminalApp(App[None]):
 
         user_box = create_user_input_box(raw_text)
         self._register_box(user_box, configured_collapsed=False)
-        await self._mount_and_scroll(conversation, user_box)
+        await self._mount_and_scroll(conversation, conversation, user_box)
 
         thoughts_stream: "Markdown.MarkdownStream | None" = None
         response_stream: "Markdown.MarkdownStream | None" = None
-        exec_log = None
-        tool_calls: dict[str, ToolCall] = {}
+        exec_logs: dict[tuple[str, str, str], tuple[Collapsible, RichLog]] = {}
 
         self._turn_in_progress = True
         self._update_input_hints()
         try:
             async for event in self._agent_stream(content):
+                if event.parent_corr_id:
+                    self._move_subagent_task_box_to_bottom(event.parent_corr_id, conversation)
                 match event:
                     case ThoughtsChunk(agent_id=aid, content=chunk) if aid == self._agent_id:
                         if thoughts_stream is None:
                             box, md = create_thoughts_box(aid)
                             self._register_box(box, configured_collapsed=False)
-                            await self._mount_and_scroll(conversation, box)
+                            await self._mount_and_scroll(conversation, conversation, box)
                             thoughts_stream = Markdown.get_stream(md)
 
                         await thoughts_stream.write(chunk)
@@ -498,7 +613,7 @@ class TerminalApp(App[None]):
                         if response_stream is None:
                             box, md = create_response_box(aid)
                             self._register_box(box, configured_collapsed=False)
-                            await self._mount_and_scroll(conversation, box)
+                            await self._mount_and_scroll(conversation, conversation, box)
                             response_stream = Markdown.get_stream(md)
 
                         await response_stream.write(chunk)
@@ -510,34 +625,46 @@ class TerminalApp(App[None]):
 
                     case ApprovalRequest() as request:
                         if request.corr_id:
-                            tool_calls[request.corr_id] = request.tool_call
+                            self._turn_tool_calls[request.corr_id] = request.tool_call
                         await self._handle_approval(request, conversation)
 
-                    case CodeExecutionOutputChunk(agent_id=aid, text=text, corr_id=cid):
-                        if exec_log is None:
+                    case CodeExecutionOutputChunk(agent_id=aid, text=text, corr_id=cid, parent_corr_id=parent_cid):
+                        exec_key = (aid, cid, parent_cid)
+                        box, exec_log = exec_logs.get(exec_key, (None, None))  # type: ignore[assignment]
+                        if box is None or exec_log is None:
                             box, exec_log = create_exec_output_box(aid, corr_id=cid)
                             self._register_box(box, configured_collapsed=False)
-                            await self._mount_and_scroll(conversation, box)
+                            await self._mount_and_scroll(self._event_target(event, conversation), conversation, box)
+                            exec_logs[exec_key] = (box, exec_log)
                         exec_log.write(text)
+                        self._schedule_scroll_conversation_to_bottom()
 
-                    case CodeExecutionOutput(agent_id=aid, text=text, images=images, truncated=truncated, corr_id=cid):
+                    case CodeExecutionOutput(
+                        agent_id=aid,
+                        text=text,
+                        images=images,
+                        truncated=truncated,
+                        corr_id=cid,
+                        parent_corr_id=parent_cid,
+                    ):
+                        exec_key = (aid, cid, parent_cid)
                         created_now = False
-                        if exec_log is None:
+                        box, exec_log = exec_logs.get(exec_key, (None, None))  # type: ignore[assignment]
+                        if box is None or exec_log is None:
                             box, exec_log = create_exec_output_box(aid, corr_id=cid)
                             self._register_box(box, configured_collapsed=False)
-                            await self._mount_and_scroll(conversation, box)
+                            await self._mount_and_scroll(self._event_target(event, conversation), conversation, box)
+                            exec_logs[exec_key] = (box, exec_log)
                             created_now = True
 
-                        if exec_log is not None:
-                            # Rewrite the execution widget only when content was truncated
-                            # or when no stream chunks were rendered before the final event.
-                            rewrite_text = text if (truncated or created_now) else None
-                            finalize_exec_output(exec_log, rewrite_text, images)
-                            if self._config.collapse_exec_output_on_complete:
-                                match conversation.query(".exec-output-box").last():
-                                    case Collapsible() as last_box:
-                                        self._set_configured_collapsed(last_box, collapsed=True)
-                        exec_log = None
+                        # Rewrite the execution widget only when content was truncated
+                        # or when no stream chunks were rendered before the final event.
+                        rewrite_text = text if (truncated or created_now) else None
+                        finalize_exec_output(exec_log, rewrite_text, images)
+                        if self._config.collapse_exec_output_on_complete:
+                            self._set_configured_collapsed(box, collapsed=True)
+                        self._schedule_scroll_conversation_to_bottom()
+                        del exec_logs[exec_key]
 
                     case ToolOutput(agent_id=aid, content=tool_content, corr_id=cid):
                         output_text = extract_tool_output_text(tool_content)
@@ -546,14 +673,22 @@ class TerminalApp(App[None]):
                             box,
                             configured_collapsed=self._config.collapse_tool_outputs,
                         )
-                        await self._mount_and_scroll(conversation, box)
+                        await self._mount_and_scroll(self._event_target(event, conversation), conversation, box)
+                        if (
+                            not event.parent_corr_id
+                            and cid in self._subagent_task_boxes
+                            and (tool_call := self._turn_tool_calls.get(cid)) is not None
+                            and self._is_subagent_task_call(tool_call)
+                        ):
+                            self._mark_subagent_task_completed(cid)
                     case Cancelled():
                         pass  # stream ends naturally after this
         except Exception as e:
             error_box = create_error_box(f"{type(e).__name__}: {e}")
             self._register_box(error_box, configured_collapsed=False)
-            await self._mount_and_scroll(conversation, error_box)
+            await self._mount_and_scroll(conversation, conversation, error_box)
         finally:
+            self._clear_turn_subagent_task_state()
             self._turn_in_progress = False
             self._update_input_hints()
             prompt_input.disabled = False
@@ -565,6 +700,9 @@ class TerminalApp(App[None]):
         conversation: VerticalScroll,
     ) -> None:
         tc = request.tool_call
+        target = self._event_target(request, conversation)
+        if request.parent_corr_id:
+            self._move_subagent_task_box_to_bottom(request.parent_corr_id, conversation)
         match tc:
             case CodeAction(code=code):
                 box = create_code_action_box(code, agent_id=request.agent_id, corr_id=request.corr_id)
@@ -592,6 +730,17 @@ class TerminalApp(App[None]):
                     agent_id=request.agent_id,
                     corr_id=request.corr_id,
                 )
+            case GenericCall(tool_name="subagent_task", tool_args=tool_args):
+                box, trace_container = create_subagent_task_box(
+                    tool_args,
+                    agent_id=request.agent_id,
+                    corr_id=request.corr_id,
+                )
+                if request.corr_id:
+                    self._subagent_task_boxes[request.corr_id] = SubagentTaskBoxState(
+                        box=box,
+                        trace_container=trace_container,
+                    )
             case GenericCall(tool_name=tool_name, tool_args=tool_args, ptc=ptc):
                 box = create_tool_call_box(
                     tool_name,
@@ -607,7 +756,7 @@ class TerminalApp(App[None]):
         self._register_box(box, configured_collapsed=False, force_expanded=pin_pending)
         if pin_pending:
             self._pending_approval_widget_id = id(box)
-        await self._mount_and_scroll(conversation, box)
+        await self._mount_and_scroll(target, conversation, box)
 
         # Check pre-approval
         suggested = suggest_pattern(tc)
@@ -621,14 +770,15 @@ class TerminalApp(App[None]):
                 box,
                 collapsed=self._collapse_for_approved_action(tc),
             )
+            if request.corr_id and self._is_subagent_task_call(tc):
+                self._mark_subagent_task_active(request.corr_id)
             request.approve(True)
             return
 
         # Prompt user for approval
         self._approval_future = asyncio.get_running_loop().create_future()
         bar = ApprovalBar(pattern=suggested)
-        await self._mount_and_scroll(conversation, bar)
-        bar.focus()
+        await self._mount_and_scroll(conversation, conversation, bar)
 
         decision, pattern = await self._approval_future
         self._approval_future = None
@@ -650,6 +800,8 @@ class TerminalApp(App[None]):
                 box,
                 collapsed=self._collapse_for_approved_action(tc),
             )
+            if request.corr_id and self._is_subagent_task_call(tc):
+                self._mark_subagent_task_active(request.corr_id)
         else:
             self._set_configured_collapsed(
                 box,
@@ -670,6 +822,13 @@ class TerminalApp(App[None]):
             if bars and bars.last().editing:
                 return False
             return True
+        if action == "approval_rule_hotkey":
+            if not self._has_pending_approval():
+                return False
+            bars = self.query("ApprovalBar")
+            if not bars:
+                return False
+            return not bars.last().editing
         if action == "cancel_turn":
             return self._turn_in_progress and self._cancel_fn is not None
         return super().check_action(action, parameters)
@@ -688,6 +847,12 @@ class TerminalApp(App[None]):
             pattern = bars.last().pattern if bars else ""
             future.set_result((decision, pattern))
 
+    def action_approval_rule_hotkey(self, scope: int) -> None:
+        bars = self.query("ApprovalBar")
+        if not bars:
+            return
+        bars.last().action_save_rule(scope)
+
     def action_toggle_expand_all(self) -> None:
         self._expand_all_override = not self._expand_all_override
         self._reapply_all_collapsible_states()
@@ -701,6 +866,8 @@ class TerminalApp(App[None]):
         match tool_call:
             case CodeAction():
                 return self._config.collapse_approved_code_actions
+            case GenericCall(tool_name="subagent_task"):
+                return False
             case _:
                 return self._config.collapse_approved_tool_calls
 

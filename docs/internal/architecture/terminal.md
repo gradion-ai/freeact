@@ -23,10 +23,13 @@ Read this first, then follow code references for details.
 
 - Prompt submit: `PromptInput.Submitted` -> `convert_at_references()` -> `preprocess_prompt()` -> `agent_stream(...)`.
 - Stream events map to UI:
-  - `Thoughts*` / `Response*`: markdown stream boxes
+  - Main-agent `Thoughts*` / `Response*`: markdown stream boxes
   - `ApprovalRequest`: approval UI + decision gate
   - `CodeExecutionOutput*`: execution output box
   - `ToolOutput`: normalized output box
+- Subagent `Thoughts*` / `Response*` are not rendered.
+- Subagent child events (`parent_corr_id != ""`) mount inside the matching root-level `subagent_task`.
+- The parent `subagent_task` `ToolOutput` stays at the root level and marks the task complete.
 
 ## Boundaries
 
