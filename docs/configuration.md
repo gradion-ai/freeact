@@ -313,6 +313,7 @@ The `terminal.json` file configures terminal UI collapse behavior and keybinding
   "collapse_exec_output_on_complete": true,
   "collapse_approved_code_actions": true,
   "collapse_approved_tool_calls": true,
+  "collapse_completed_subagent_tasks": true,
   "collapse_tool_outputs": true,
   "keep_rejected_actions_expanded": true,
   "pin_pending_approval_action_expanded": true,
@@ -334,6 +335,7 @@ SDK integrations can load or initialize this file by calling `await freeact.term
 | `collapse_exec_output_on_complete` | `true` | Collapse `Execution Output` boxes after a completed `CodeExecutionOutput` event. |
 | `collapse_approved_code_actions` | `true` | Collapse approved code action previews after approval. |
 | `collapse_approved_tool_calls` | `true` | Collapse approved tool call previews after approval. |
+| `collapse_completed_subagent_tasks` | `true` | Collapse completed root-level `subagent_task` widgets after the parent task `Tool Output` arrives. |
 | `collapse_tool_outputs` | `true` | Render `Tool Output` boxes collapsed by default. |
 | `keep_rejected_actions_expanded` | `true` | Keep rejected action previews expanded after rejection. |
 | `pin_pending_approval_action_expanded` | `true` | Keep the current pending approval action expanded until a decision is made. |

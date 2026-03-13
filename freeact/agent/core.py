@@ -618,6 +618,7 @@ class Agent:
         last_response = ""
         try:
             async for item in runner.stream(prompt, max_turns=max_turns):
+                item = replace(item, parent_corr_id=corr_id)
                 yield item
                 match item:
                     case Response(content=content):

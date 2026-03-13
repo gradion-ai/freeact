@@ -14,6 +14,7 @@ async def test_load_returns_defaults_when_file_missing(tmp_path: Path) -> None:
     config = await TerminalConfig.load(working_dir=tmp_path)
 
     assert config.freeact_dir == tmp_path / ".freeact"
+    assert config.collapse_completed_subagent_tasks is True
     assert config.collapse_tool_outputs is True
     assert config.expand_all_toggle_key == "ctrl+o"
 
@@ -25,6 +26,7 @@ async def test_init_saves_defaults_when_file_missing(tmp_path: Path) -> None:
     config_path = tmp_path / ".freeact" / "terminal.json"
     assert config_path.exists()
     loaded = json.loads(config_path.read_text())
+    assert loaded["collapse_completed_subagent_tasks"] is True
     assert loaded["expand_all_toggle_key"] == "ctrl+o"
     assert config.collapse_tool_outputs is True
     assert config.expand_all_toggle_key == "ctrl+o"
@@ -41,6 +43,7 @@ async def test_load_reads_valid_file(tmp_path: Path) -> None:
                 "collapse_exec_output_on_complete": True,
                 "collapse_approved_code_actions": False,
                 "collapse_approved_tool_calls": True,
+                "collapse_completed_subagent_tasks": False,
                 "collapse_tool_outputs": False,
                 "keep_rejected_actions_expanded": False,
                 "pin_pending_approval_action_expanded": True,
@@ -55,6 +58,7 @@ async def test_load_reads_valid_file(tmp_path: Path) -> None:
     assert config.collapse_exec_output_on_complete is True
     assert config.collapse_approved_code_actions is False
     assert config.collapse_approved_tool_calls is True
+    assert config.collapse_completed_subagent_tasks is False
     assert config.collapse_tool_outputs is False
     assert config.keep_rejected_actions_expanded is False
     assert config.pin_pending_approval_action_expanded is True
@@ -102,6 +106,7 @@ async def test_save_creates_file_when_missing(tmp_path: Path) -> None:
     config_path = tmp_path / ".freeact" / "terminal.json"
     assert config_path.exists()
     loaded = json.loads(config_path.read_text())
+    assert loaded["collapse_completed_subagent_tasks"] is True
     assert loaded["collapse_tool_outputs"] is True
     assert loaded["collapse_approved_code_actions"] is True
     assert loaded["collapse_approved_tool_calls"] is True

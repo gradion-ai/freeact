@@ -8,6 +8,7 @@ from freeact.terminal.widgets import (
     create_error_box,
     create_file_edit_action_box,
     create_file_read_action_box,
+    create_subagent_task_box,
     create_tool_call_box,
     create_tool_output_box,
     create_user_input_box,
@@ -100,6 +101,20 @@ def test_create_tool_call_box_uses_ptc_prefix_when_requested() -> None:
     assert "tool-call-box" in box.classes
     assert not box.collapsed
     assert box.title == r"\[agent-1] \[corr-1] PTC: mcp_list_resources"
+
+
+def test_create_subagent_task_box_has_trace_container() -> None:
+    box, trace_container = create_subagent_task_box(
+        tool_args={"prompt": "delegate work", "max_turns": 3},
+        agent_id="agent-1",
+        corr_id="corr-1",
+    )
+
+    assert "tool-call-box" in box.classes
+    assert "subagent-task-box" in box.classes
+    assert not box.collapsed
+    assert box.title == r"\[agent-1] \[corr-1] Tool Call: subagent_task"
+    assert "subagent-trace-container" in trace_container.classes
 
 
 def test_approval_bar_prompt_text_matches_current_ui() -> None:

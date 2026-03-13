@@ -18,6 +18,7 @@ class AgentEvent:
 
     agent_id: str = ""
     corr_id: str = ""
+    parent_corr_id: str = ""
 
 
 @dataclass(frozen=True)

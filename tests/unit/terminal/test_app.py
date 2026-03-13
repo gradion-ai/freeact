@@ -703,9 +703,9 @@ async def test_toggle_expand_all_uses_configured_hotkey() -> None:
     app = _create_app(agent_stream=MockStreamAgent(_no_events).stream, agent_id=MAIN_AGENT_ID, config=ui_config)
 
     async with app.run_test() as pilot:
-        assert not app._expand_all_override
+        assert not app._collapse_state.expand_all_override
         await pilot.press("f6")
-        assert app._expand_all_override
+        assert app._collapse_state.expand_all_override
 
 
 @pytest.mark.asyncio
@@ -1433,3 +1433,290 @@ async def test_always_enters_edit_mode_and_enter_saves_and_approves() -> None:
         assert len(permission_manager.allow_always_calls) == 1
         assert isinstance(permission_manager.allow_always_calls[0], GenericCall)
         assert permission_manager.allow_always_calls[0].tool_name == "database_query"
+
+
+@pytest.mark.asyncio
+async def test_subagent_widgets_mount_inside_subagent_task_box_and_parent_output_stays_root() -> None:
+    permission_manager = StubPermissionManager(preapproved=True)
+
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        task_request = ApprovalRequest(
+            tool_call=GenericCall(tool_name="subagent_task", tool_args={"prompt": "delegate"}, ptc=False),
+            agent_id=MAIN_AGENT_ID,
+            corr_id="task-1",
+        )
+        yield task_request
+        if await task_request.approved():
+            child_request = ApprovalRequest(
+                tool_call=GenericCall(tool_name="database_query", tool_args={"query": "SELECT 1"}, ptc=False),
+                agent_id="sub-abcd",
+                corr_id="child-1",
+                parent_corr_id="task-1",
+            )
+            yield child_request
+            if await child_request.approved():
+                yield ToolOutput(
+                    content="subagent result",
+                    agent_id="sub-abcd",
+                    corr_id="child-1",
+                    parent_corr_id="task-1",
+                )
+            yield ToolOutput(content="parent task result", agent_id=MAIN_AGENT_ID, corr_id="task-1")
+
+    app = _create_app(
+        agent_stream=MockStreamAgent(scenario).stream,
+        agent_id=MAIN_AGENT_ID,
+        permission_manager=permission_manager,  # type: ignore[arg-type]
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await app.workers.wait_for_complete()
+
+        task_box = app.query(".subagent-task-box").last()
+        nested_call_box = task_box.query(".tool-call-box").last()
+        nested_output_box = task_box.query(".tool-output-box").last()
+        conversation = app.query_one("#conversation")
+        root_output_boxes = [box for box in app.query(".tool-output-box") if box.parent is conversation]
+
+        assert task_box.title == r"\[main-agent] \[task-1] Tool Call: subagent_task"
+        assert nested_call_box.title == r"\[sub-abcd] \[child-1] Tool Call: database_query"
+        assert nested_output_box.title == r"\[sub-abcd] \[child-1] Tool Output"
+        assert len(root_output_boxes) == 1
+        assert root_output_boxes[0].title == r"\[main-agent] \[task-1] Tool Output"
+
+
+@pytest.mark.asyncio
+async def test_parallel_subagent_widgets_route_to_matching_task_box() -> None:
+    permission_manager = StubPermissionManager(preapproved=True)
+
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        task_a = ApprovalRequest(
+            tool_call=GenericCall(tool_name="subagent_task", tool_args={"prompt": "Task A"}, ptc=False),
+            agent_id=MAIN_AGENT_ID,
+            corr_id="task-a",
+        )
+        yield task_a
+        assert await task_a.approved()
+
+        task_b = ApprovalRequest(
+            tool_call=GenericCall(tool_name="subagent_task", tool_args={"prompt": "Task B"}, ptc=False),
+            agent_id=MAIN_AGENT_ID,
+            corr_id="task-b",
+        )
+        yield task_b
+        assert await task_b.approved()
+
+        child_a = ApprovalRequest(
+            tool_call=GenericCall(tool_name="database_query", tool_args={"query": "SELECT 'A'"}, ptc=False),
+            agent_id="sub-a",
+            corr_id="call-a",
+            parent_corr_id="task-a",
+        )
+        yield child_a
+        assert await child_a.approved()
+        yield ToolOutput(content="A", agent_id="sub-a", corr_id="call-a", parent_corr_id="task-a")
+
+        child_b = ApprovalRequest(
+            tool_call=GenericCall(tool_name="database_query", tool_args={"query": "SELECT 'B'"}, ptc=False),
+            agent_id="sub-b",
+            corr_id="call-b",
+            parent_corr_id="task-b",
+        )
+        yield child_b
+        assert await child_b.approved()
+        yield ToolOutput(content="B", agent_id="sub-b", corr_id="call-b", parent_corr_id="task-b")
+
+        yield ToolOutput(content="Task A done", agent_id=MAIN_AGENT_ID, corr_id="task-a")
+        yield ToolOutput(content="Task B done", agent_id=MAIN_AGENT_ID, corr_id="task-b")
+
+    app = _create_app(
+        agent_stream=MockStreamAgent(scenario).stream,
+        agent_id=MAIN_AGENT_ID,
+        permission_manager=permission_manager,  # type: ignore[arg-type]
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await app.workers.wait_for_complete()
+
+        task_boxes = {box.title: box for box in app.query(".subagent-task-box")}
+        task_a_box = task_boxes[r"\[main-agent] \[task-a] Tool Call: subagent_task"]
+        task_b_box = task_boxes[r"\[main-agent] \[task-b] Tool Call: subagent_task"]
+
+        assert len(task_a_box.query(".tool-call-box")) == 1
+        assert len(task_a_box.query(".tool-output-box")) == 1
+        assert task_a_box.query(".tool-call-box").last().title == r"\[sub-a] \[call-a] Tool Call: database_query"
+        assert task_a_box.query(".tool-output-box").last().title == r"\[sub-a] \[call-a] Tool Output"
+
+        assert len(task_b_box.query(".tool-call-box")) == 1
+        assert len(task_b_box.query(".tool-output-box")) == 1
+        assert task_b_box.query(".tool-call-box").last().title == r"\[sub-b] \[call-b] Tool Call: database_query"
+        assert task_b_box.query(".tool-output-box").last().title == r"\[sub-b] \[call-b] Tool Output"
+
+
+@pytest.mark.asyncio
+async def test_active_subagent_task_can_be_manually_collapsed() -> None:
+    permission_manager = StubPermissionManager(preapproved=True)
+    release_completion = asyncio.Event()
+
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        task_request = ApprovalRequest(
+            tool_call=GenericCall(tool_name="subagent_task", tool_args={"prompt": "delegate"}, ptc=False),
+            agent_id=MAIN_AGENT_ID,
+            corr_id="task-1",
+        )
+        yield task_request
+        assert await task_request.approved()
+        yield ToolOutput(content="still running", agent_id="sub-abcd", corr_id="child-1", parent_corr_id="task-1")
+        await release_completion.wait()
+        yield ToolOutput(content="done", agent_id=MAIN_AGENT_ID, corr_id="task-1")
+
+    app = _create_app(
+        agent_stream=MockStreamAgent(scenario).stream,
+        agent_id=MAIN_AGENT_ID,
+        permission_manager=permission_manager,  # type: ignore[arg-type]
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await pilot.pause(0.05)
+
+        task_box = app.query(".subagent-task-box").last()
+        assert not task_box.collapsed
+
+        task_box.collapsed = True
+        await pilot.pause(0.05)
+        assert task_box.collapsed
+
+        await pilot.press("ctrl+o")
+        assert not task_box.collapsed
+        await pilot.press("ctrl+o")
+        assert task_box.collapsed
+
+        release_completion.set()
+        await app.workers.wait_for_complete()
+        assert task_box.collapsed
+
+
+@pytest.mark.asyncio
+async def test_completed_subagent_task_auto_collapse_is_configurable() -> None:
+    permission_manager = StubPermissionManager(preapproved=True)
+
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        task_request = ApprovalRequest(
+            tool_call=GenericCall(tool_name="subagent_task", tool_args={"prompt": "delegate"}, ptc=False),
+            agent_id=MAIN_AGENT_ID,
+            corr_id="task-1",
+        )
+        yield task_request
+        assert await task_request.approved()
+        yield ToolOutput(content="subagent result", agent_id="sub-abcd", corr_id="child-1", parent_corr_id="task-1")
+        yield ToolOutput(content="done", agent_id=MAIN_AGENT_ID, corr_id="task-1")
+
+    collapsed_app = _create_app(
+        agent_stream=MockStreamAgent(scenario).stream,
+        agent_id=MAIN_AGENT_ID,
+        permission_manager=permission_manager,  # type: ignore[arg-type]
+    )
+
+    async with collapsed_app.run_test() as pilot:
+        await _submit_prompt(collapsed_app, pilot)
+        await collapsed_app.workers.wait_for_complete()
+        assert collapsed_app.query(".subagent-task-box").last().collapsed
+
+    expanded_app = _create_app(
+        agent_stream=MockStreamAgent(scenario).stream,
+        agent_id=MAIN_AGENT_ID,
+        permission_manager=permission_manager,  # type: ignore[arg-type]
+        config=TerminalConfig(collapse_completed_subagent_tasks=False),
+    )
+
+    async with expanded_app.run_test() as pilot:
+        await _submit_prompt(expanded_app, pilot)
+        await expanded_app.workers.wait_for_complete()
+        assert not expanded_app.query(".subagent-task-box").last().collapsed
+
+
+@pytest.mark.asyncio
+async def test_nested_subagent_approval_bar_stays_root_level_visible() -> None:
+    class TaskOnlyPermissionManager(StubPermissionManager):
+        def is_allowed(self, tool_call: ToolCall) -> bool:
+            return isinstance(tool_call, GenericCall) and tool_call.tool_name == "subagent_task"
+
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        task_request = ApprovalRequest(
+            tool_call=GenericCall(tool_name="subagent_task", tool_args={"prompt": "delegate"}, ptc=False),
+            agent_id=MAIN_AGENT_ID,
+            corr_id="task-1",
+        )
+        yield task_request
+        assert await task_request.approved()
+
+        child_request = ApprovalRequest(
+            tool_call=CodeAction(tool_name="ipybox_execute_ipython_cell", code="print('hi')"),
+            agent_id="sub-abcd",
+            corr_id="child-1",
+            parent_corr_id="task-1",
+        )
+        yield child_request
+        await child_request.approved()
+
+    app = _create_app(
+        agent_stream=MockStreamAgent(scenario).stream,
+        agent_id=MAIN_AGENT_ID,
+        permission_manager=TaskOnlyPermissionManager(),  # type: ignore[arg-type]
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await pilot.pause(0.05)
+
+        conversation = app.query_one("#conversation")
+        bars = list(app.query("ApprovalBar"))
+        assert len(bars) == 1
+        assert bars[0].parent is conversation
+
+
+@pytest.mark.asyncio
+async def test_subagent_task_order_stays_stable_during_nested_activity() -> None:
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        task_a = ApprovalRequest(
+            tool_call=GenericCall(tool_name="subagent_task", tool_args={"prompt": "Task A"}, ptc=False),
+            agent_id=MAIN_AGENT_ID,
+            corr_id="task-a",
+        )
+        yield task_a
+        assert await task_a.approved()
+
+        task_b = ApprovalRequest(
+            tool_call=GenericCall(tool_name="subagent_task", tool_args={"prompt": "Task B"}, ptc=False),
+            agent_id=MAIN_AGENT_ID,
+            corr_id="task-b",
+        )
+        yield task_b
+        assert await task_b.approved()
+
+        child_a = ApprovalRequest(
+            tool_call=CodeAction(tool_name="ipybox_execute_ipython_cell", code="print('A')"),
+            agent_id="sub-a",
+            corr_id="child-a",
+            parent_corr_id="task-a",
+        )
+        yield child_a
+        await child_a.approved()
+
+    app = _create_app(
+        agent_stream=MockStreamAgent(scenario).stream,
+        agent_id=MAIN_AGENT_ID,
+        permission_manager=StubPermissionManager(preapproved=True),  # type: ignore[arg-type]
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await pilot.pause(0.05)
+
+        task_boxes = list(app.query(".subagent-task-box"))
+        assert len(task_boxes) == 2
+        assert task_boxes[0].title == r"\[main-agent] \[task-a] Tool Call: subagent_task"
+        assert task_boxes[1].title == r"\[main-agent] \[task-b] Tool Call: subagent_task"

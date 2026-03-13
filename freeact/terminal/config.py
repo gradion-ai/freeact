@@ -12,6 +12,7 @@ class Config(PersistentConfig):
     collapse_exec_output_on_complete: StrictBool = True
     collapse_approved_code_actions: StrictBool = True
     collapse_approved_tool_calls: StrictBool = True
+    collapse_completed_subagent_tasks: StrictBool = True
     collapse_tool_outputs: StrictBool = True
     keep_rejected_actions_expanded: StrictBool = True
     pin_pending_approval_action_expanded: StrictBool = True

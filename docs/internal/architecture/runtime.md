@@ -10,7 +10,7 @@ It intentionally excludes CLI, terminal UI, and longer-lived permission policy l
 - `freeact/agent/core.py` contains the `Agent` class and main orchestration loop.
 - `freeact/agent/_supervisor.py` contains `_ResourceSupervisor`, a generic async lifecycle utility for context managers.
 - `freeact/agent/_subagent.py` contains `_SubagentRunner`, which bridges subagent events via a queue.
-- `_execute_tool()` handles approval, `_dispatch_tool()` routes to the appropriate handler.
+- `_execute_tool()` handles approval and tool execution routing, including subagent delegation via `_execute_subagent_task()`.
 - Multiple tool calls from one model turn execute concurrently via `aiostream.merge`.
 
 ## Subagents
@@ -18,6 +18,7 @@ It intentionally excludes CLI, terminal UI, and longer-lived permission policy l
 - Subagents are invoked through `subagent_task`.
 - `_execute_subagent_task()` creates a nested `Agent` with `enable_subagents=False`.
 - Parent and subagent events share one stream and are separated by `agent_id`.
+- Subagent events keep their own `corr_id` and set `parent_corr_id` to the parent `subagent_task` id.
 - Concurrent subagents are bounded by `max_subagents` via `asyncio.Semaphore`.
 
 ## Configuration

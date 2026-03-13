@@ -303,6 +303,7 @@ class TestSubagentCodeExecution:
             ]
             assert len(subagent_approvals) >= 1
             assert all(a.corr_id != parent_corr_id for a in subagent_approvals)
+            assert all(a.parent_corr_id == parent_corr_id for a in subagent_approvals)
 
     @pytest.mark.asyncio
     async def test_subagent_kernel_is_independent(self):
@@ -518,3 +519,52 @@ class TestParallelTasks:
                 if isinstance(e, CodeExecutionOutput) and e.agent_id != agent.agent_id
             }
             assert len(subagent_ids) == 2
+
+    @pytest.mark.asyncio
+    async def test_parallel_subagent_events_keep_parent_task_corr_ids(self):
+        """Parallel subagent events carry the owning parent task corr_id."""
+
+        async def stream_function(messages: list[ModelMessage], info: AgentInfo) -> AsyncIterator[str | DeltaToolCalls]:
+            tool_names = [t.name for t in info.function_tools]
+            if "subagent_task" in tool_names:
+                if get_tool_return_parts(messages):
+                    yield "Parent done"
+                else:
+                    yield {
+                        0: DeltaToolCall(
+                            name="subagent_task",
+                            json_args=json.dumps({"prompt": "Task A"}),
+                            tool_call_id="call_a",
+                        ),
+                        1: DeltaToolCall(
+                            name="subagent_task",
+                            json_args=json.dumps({"prompt": "Task B"}),
+                            tool_call_id="call_b",
+                        ),
+                    }
+            else:
+                yield {
+                    0: DeltaToolCall(
+                        name="ipybox_execute_ipython_cell",
+                        json_args=json.dumps({"code": "print('parallel task done')"}),
+                        tool_call_id="call_exec",
+                    )
+                }
+
+        async with unpatched_agent(stream_function) as agent:
+            results = await collect_stream(agent, "test")
+
+            parent_task_corr_ids = {
+                approval.corr_id
+                for approval in results.approvals
+                if approval.agent_id == agent.agent_id and approval.tool_call.tool_name == "subagent_task"
+            }
+            assert len(parent_task_corr_ids) == 2
+
+            subagent_code_outputs = [
+                event
+                for event in results.all_events
+                if isinstance(event, CodeExecutionOutput) and event.agent_id != agent.agent_id
+            ]
+            assert len(subagent_code_outputs) >= 2
+            assert {event.parent_corr_id for event in subagent_code_outputs} == parent_task_corr_ids
