@@ -213,6 +213,9 @@ The `.agents/skills/` directory is not managed by freeact and is not auto-create
 
 [Permissions](sdk.md#permissions-api) are stored in `.freeact/permissions.json` as typed entries with glob-style pattern matching. `tool_name` and `command` fields support `*` (any characters) and `?` (single character). Path fields (`path`, `paths`) use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries.
 
+!!! tip "Bypassing permissions"
+    The CLI supports a [`--skip-permissions`](cli.md#options) flag to run tools without prompting for approval, effectively auto-approving all actions.
+
 ```json
 {
   "ask": [

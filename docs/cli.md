@@ -19,6 +19,7 @@ freeact init
 | `--sandbox` | Run code execution in [sandbox mode](sandbox.md). |
 | `--sandbox-config PATH` | Path to sandbox configuration file. |
 | `--session-id UUID` | Resume a previous session by its UUID. |
+| `--skip-permissions` | Run tools without prompting for approval. |
 | `--log-level LEVEL` | Set logging level: `debug`, `info` (default), `warning`, `error`, `critical`. |
 
 ## Examples
@@ -137,3 +138,5 @@ The suggested pattern depends on the action type:
 | Other tool calls | tool name | `github_search_repositories` |
 
 See [Permissions](configuration.md#permissions) for the persisted format and pattern syntax.
+!!! hint "Automatic approval"
+    Use the [`--skip-permissions`](#options) CLI flag to run the agent with automatic approval for all tools and shell commands.
