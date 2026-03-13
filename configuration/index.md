@@ -218,6 +218,10 @@ See [Custom Agent Skills](https://gradion-ai.github.io/freeact/examples/agent-sk
 
 [Permissions](https://gradion-ai.github.io/freeact/sdk/#permissions-api) are stored in `.freeact/permissions.json` as typed entries with glob-style pattern matching. `tool_name` and `command` fields support `*` (any characters) and `?` (single character). Path fields (`path`, `paths`) use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries.
 
+Bypassing permissions
+
+The CLI supports a [`--skip-permissions`](https://gradion-ai.github.io/freeact/cli/#options) flag to run tools without prompting for approval, effectively auto-approving all actions.
+
 ```
 {
   "ask": [

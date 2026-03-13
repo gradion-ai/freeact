@@ -1471,6 +1471,10 @@
 <td>Resume a previous session by its UUID.</td>
 </tr>
 <tr>
+<td><code>--skip-permissions</code></td>
+<td>Run tools without prompting for approval.</td>
+</tr>
+<tr>
 <td><code>--log-level LEVEL</code></td>
 <td>Set logging level: <code>debug</code>, <code>info</code> (default), <code>warning</code>, <code>error</code>, <code>critical</code>.</td>
 </tr>
@@ -1622,6 +1626,10 @@
 </tbody>
 </table>
 <p>See <a href="../configuration/#permissions">Permissions</a> for the persisted format and pattern syntax.</p>
+<div class="admonition hint">
+<p class="admonition-title">Automatic approval</p>
+<p>Use the <a href="#options"><code>--skip-permissions</code></a> CLI flag to run the agent with automatic approval for all tools and shell commands.</p>
+</div>
 
 
 

@@ -2169,6 +2169,10 @@
 </div>
 <h2 id="permissions">Permissions</h2>
 <p><a href="../sdk/#permissions-api">Permissions</a> are stored in <code>.freeact/permissions.json</code> as typed entries with glob-style pattern matching. <code>tool_name</code> and <code>command</code> fields support <code>*</code> (any characters) and <code>?</code> (single character). Path fields (<code>path</code>, <code>paths</code>) use path-aware matching where <code>*</code> matches within a single directory and <code>**</code> matches across directory boundaries.</p>
+<div class="admonition tip">
+<p class="admonition-title">Bypassing permissions</p>
+<p>The CLI supports a <a href="../cli/#options"><code>--skip-permissions</code></a> flag to run tools without prompting for approval, effectively auto-approving all actions.</p>
+</div>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;ask&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">    </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ShellAction&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;tool_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bash&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;rm *&quot;</span><span class="p">}</span>

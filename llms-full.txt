@@ -470,6 +470,10 @@ See [Custom Agent Skills](https://gradion-ai.github.io/freeact/examples/agent-sk
 
 [Permissions](https://gradion-ai.github.io/freeact/sdk/#permissions-api) are stored in `.freeact/permissions.json` as typed entries with glob-style pattern matching. `tool_name` and `command` fields support `*` (any characters) and `?` (single character). Path fields (`path`, `paths`) use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries.
 
+Bypassing permissions
+
+The CLI supports a [`--skip-permissions`](https://gradion-ai.github.io/freeact/cli/#options) flag to run tools without prompting for approval, effectively auto-approving all actions.
+
 ```
 {
   "ask": [
@@ -1346,6 +1350,7 @@ freeact init
 | `--sandbox`             | Run code execution in [sandbox mode](https://gradion-ai.github.io/freeact/sandbox/index.md). |
 | `--sandbox-config PATH` | Path to sandbox configuration file.                                                          |
 | `--session-id UUID`     | Resume a previous session by its UUID.                                                       |
+| `--skip-permissions`    | Run tools without prompting for approval.                                                    |
 | `--log-level LEVEL`     | Set logging level: `debug`, `info` (default), `warning`, `error`, `critical`.                |
 
 ## Examples
@@ -1462,6 +1467,10 @@ The suggested pattern depends on the action type:
 | Other tool calls     | tool name             | `github_search_repositories`        |
 
 See [Permissions](https://gradion-ai.github.io/freeact/configuration/#permissions) for the persisted format and pattern syntax.
+
+Automatic approval
+
+Use the [`--skip-permissions`](#options) CLI flag to run the agent with automatic approval for all tools and shell commands.
 # API Reference
 
 ## freeact.agent.Agent
