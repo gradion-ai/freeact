@@ -1222,7 +1222,7 @@ It intentionally excludes CLI, terminal UI, and longer-lived permission policy l
 <li><code>freeact/agent/core.py</code> contains the <code>Agent</code> class and main orchestration loop.</li>
 <li><code>freeact/agent/_supervisor.py</code> contains <code>_ResourceSupervisor</code>, a generic async lifecycle utility for context managers.</li>
 <li><code>freeact/agent/_subagent.py</code> contains <code>_SubagentRunner</code>, which bridges subagent events via a queue.</li>
-<li><code>_execute_tool()</code> handles approval, <code>_dispatch_tool()</code> routes to the appropriate handler.</li>
+<li><code>_execute_tool()</code> handles approval and tool execution routing, including subagent delegation via <code>_execute_subagent_task()</code>.</li>
 <li>Multiple tool calls from one model turn execute concurrently via <code>aiostream.merge</code>.</li>
 </ul>
 <h2 id="subagents">Subagents</h2>
@@ -1230,6 +1230,7 @@ It intentionally excludes CLI, terminal UI, and longer-lived permission policy l
 <li>Subagents are invoked through <code>subagent_task</code>.</li>
 <li><code>_execute_subagent_task()</code> creates a nested <code>Agent</code> with <code>enable_subagents=False</code>.</li>
 <li>Parent and subagent events share one stream and are separated by <code>agent_id</code>.</li>
+<li>Subagent events keep their own <code>corr_id</code> and set <code>parent_corr_id</code> to the parent <code>subagent_task</code> id.</li>
 <li>Concurrent subagents are bounded by <code>max_subagents</code> via <code>asyncio.Semaphore</code>.</li>
 </ul>
 <h2 id="configuration">Configuration</h2>

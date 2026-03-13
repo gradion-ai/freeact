@@ -114,7 +114,12 @@ Returns:
 ## freeact.agent.AgentEvent
 
 ```
-AgentEvent(*, agent_id: str = '', corr_id: str = '')
+AgentEvent(
+    *,
+    agent_id: str = "",
+    corr_id: str = "",
+    parent_corr_id: str = ""
+)
 ```
 
 Base class for all agent stream events.
@@ -125,7 +130,11 @@ Carries the `agent_id` of the agent that produced the event, allowing callers to
 
 ```
 Response(
-    content: str, *, agent_id: str = "", corr_id: str = ""
+    content: str,
+    *,
+    agent_id: str = "",
+    corr_id: str = "",
+    parent_corr_id: str = ""
 )
 ```
 
@@ -137,7 +146,11 @@ Complete model response at a given step.
 
 ```
 ResponseChunk(
-    content: str, *, agent_id: str = "", corr_id: str = ""
+    content: str,
+    *,
+    agent_id: str = "",
+    corr_id: str = "",
+    parent_corr_id: str = ""
 )
 ```
 
@@ -149,7 +162,11 @@ Partial model response text (content streaming).
 
 ```
 Thoughts(
-    content: str, *, agent_id: str = "", corr_id: str = ""
+    content: str,
+    *,
+    agent_id: str = "",
+    corr_id: str = "",
+    parent_corr_id: str = ""
 )
 ```
 
@@ -161,7 +178,11 @@ Complete model thoughts at a given step.
 
 ```
 ThoughtsChunk(
-    content: str, *, agent_id: str = "", corr_id: str = ""
+    content: str,
+    *,
+    agent_id: str = "",
+    corr_id: str = "",
+    parent_corr_id: str = ""
 )
 ```
 
@@ -178,7 +199,8 @@ CodeExecutionOutput(
     truncated: bool = False,
     *,
     agent_id: str = "",
-    corr_id: str = ""
+    corr_id: str = "",
+    parent_corr_id: str = ""
 )
 ```
 
@@ -190,7 +212,11 @@ Complete code execution output.
 
 ```
 CodeExecutionOutputChunk(
-    text: str, *, agent_id: str = "", corr_id: str = ""
+    text: str,
+    *,
+    agent_id: str = "",
+    corr_id: str = "",
+    parent_corr_id: str = ""
 )
 ```
 
@@ -206,7 +232,8 @@ ApprovalRequest(
     _future: Future[bool] = Future(),
     *,
     agent_id: str = "",
-    corr_id: str = ""
+    corr_id: str = "",
+    parent_corr_id: str = ""
 )
 ```
 
@@ -247,7 +274,8 @@ ToolOutput(
     content: ToolResult,
     *,
     agent_id: str = "",
-    corr_id: str = ""
+    corr_id: str = "",
+    parent_corr_id: str = ""
 )
 ```
 
@@ -262,6 +290,7 @@ Cancelled(
     *,
     agent_id: str = "",
     corr_id: str = "",
+    parent_corr_id: str = "",
     phase: Literal[
         "between_turns", "llm_streaming", "tool_execution"
     ]

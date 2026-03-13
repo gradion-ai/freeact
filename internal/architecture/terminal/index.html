@@ -1235,10 +1235,13 @@ Read this first, then follow code references for details.</p>
 <ul>
 <li>Prompt submit: <code>PromptInput.Submitted</code> -&gt; <code>convert_at_references()</code> -&gt; <code>preprocess_prompt()</code> -&gt; <code>agent_stream(...)</code>.</li>
 <li>Stream events map to UI:</li>
-<li><code>Thoughts*</code> / <code>Response*</code>: markdown stream boxes</li>
+<li>Main-agent <code>Thoughts*</code> / <code>Response*</code>: markdown stream boxes</li>
 <li><code>ApprovalRequest</code>: approval UI + decision gate</li>
 <li><code>CodeExecutionOutput*</code>: execution output box</li>
 <li><code>ToolOutput</code>: normalized output box</li>
+<li>Subagent <code>Thoughts*</code> / <code>Response*</code> are not rendered.</li>
+<li>Subagent child events (<code>parent_corr_id != ""</code>) mount inside the matching root-level <code>subagent_task</code>.</li>
+<li>The parent <code>subagent_task</code> <code>ToolOutput</code> stays at the root level and marks the task complete.</li>
 </ul>
 <h2 id="boundaries">Boundaries</h2>
 <ul>
