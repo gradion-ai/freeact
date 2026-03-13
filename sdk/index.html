@@ -1574,7 +1574,7 @@
 <li><a href="#preprocessing-api">Preprocessing API</a> for transforming user prompts</li>
 </ul>
 <h2 id="configuration-api">Configuration API</h2>
-<p>Use [<code>Config.init()</code>][freeact.agent.config.Config.init] to load persisted config from <code>.freeact/</code> when present, or create and save defaults on first run. Use [<code>save()</code>][freeact.agent.config.Config.save] and [<code>load()</code>][freeact.agent.config.Config.load] when explicit persistence control is needed:</p>
+<p>Use <a class="autorefs autorefs-internal" href="../api/config/#freeact.config.PersistentConfig.init"><code>Config.init()</code></a> to load persisted config from <code>.freeact/</code> when present, or create and save defaults on first run. Use <a class="autorefs autorefs-internal" href="../api/config/#freeact.config.PersistentConfig.save"><code>save()</code></a> and <a class="autorefs autorefs-internal" href="../api/config/#freeact.config.PersistentConfig.load"><code>load()</code></a> when explicit persistence control is needed:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
 
 <span class="n">config</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Config</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>

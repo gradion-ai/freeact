@@ -137,7 +137,19 @@
          <lastmod>2026-03-13</lastmod>
     </url>
     <url>
+         <loc>https://gradion-ai.github.io/freeact/internal/features/completed/web-tools/feat-plan/</loc>
+         <lastmod>2026-03-13</lastmod>
+    </url>
+    <url>
+         <loc>https://gradion-ai.github.io/freeact/internal/features/completed/web-tools/feat-spec/</loc>
+         <lastmod>2026-03-13</lastmod>
+    </url>
+    <url>
          <loc>https://gradion-ai.github.io/freeact/internal/testing/agent/</loc>
+         <lastmod>2026-03-13</lastmod>
+    </url>
+    <url>
+         <loc>https://gradion-ai.github.io/freeact/internal/testing/e2e/</loc>
          <lastmod>2026-03-13</lastmod>
     </url>
     <url>

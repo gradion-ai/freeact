@@ -1994,17 +1994,57 @@
 <h3 id="ptc_servers"><code>ptc_servers</code></h3>
 <p>MCP servers called programmatically via generated Python APIs. This is freeact's implementation of <em>code mode</em><sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup>, where the agent calls MCP tools by writing code against generated APIs rather than through JSON tool calls. This allows composing multiple tool calls, processing intermediate results, and using control flow within a single code action.</p>
 <p>Python APIs must be generated from <code>ptc_servers</code> to <code>.freeact/generated/mcptools/&lt;server-name&gt;/&lt;tool&gt;.py</code> before the agent can use them. The <a href="../cli/">CLI tool</a> handles this automatically. When using the <a href="../sdk/">Agent SDK</a>, call <a class="autorefs autorefs-internal" href="../api/generate/#freeact.tools.pytools.apigen.generate_mcp_sources"><code>generate_mcp_sources()</code></a> explicitly. Code actions can then import and call the generated APIs because <code>.freeact/generated/</code> is on the kernel's <code>PYTHONPATH</code>.</p>
-<p>The default configuration includes the bundled <code>google</code> MCP server (web search via Gemini):</p>
+<p>The default configuration includes the bundled <code>google</code> (web search via Gemini) and <code>fetch</code> (URL content retrieval) MCP servers. Additional bundled servers can be added manually:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;ptc_servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;google&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;python&quot;</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;freeact.tools.gsearch&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--thinking-level&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;medium&quot;</span><span class="p">],</span>
 <span class="w">      </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;GEMINI_API_KEY&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${GEMINI_API_KEY}&quot;</span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;brave&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;python&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;freeact.tools.bsearch&quot;</span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;BRAVE_API_KEY&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${BRAVE_API_KEY}&quot;</span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;fetch&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;python&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;freeact.tools.fetch&quot;</span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Server</th>
+<th>Module</th>
+<th>Required env var</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>google</code></td>
+<td><code>freeact.tools.gsearch</code></td>
+<td><code>GEMINI_API_KEY</code></td>
+<td>Web search via Gemini with Google Search grounding</td>
+</tr>
+<tr>
+<td><code>brave</code></td>
+<td><code>freeact.tools.bsearch</code></td>
+<td><code>BRAVE_API_KEY</code></td>
+<td>Web search via <a href="https://brave.com/search/api/" target="_blank">Brave Search API</a> with "web" and "llm-context" modes</td>
+</tr>
+<tr>
+<td><code>fetch</code></td>
+<td><code>freeact.tools.fetch</code></td>
+<td>--</td>
+<td>Fetch and extract readable content from URLs via <a href="https://trafilatura.readthedocs.io/" target="_blank">trafilatura</a></td>
+</tr>
+</tbody>
+</table>
 <div class="admonition tip">
 <p class="admonition-title">Custom MCP servers</p>
 <p>Application-specific MCP servers can be added as needed to <code>ptc_servers</code> for programmatic tool calling.</p>
