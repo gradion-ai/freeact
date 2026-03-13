@@ -210,6 +210,7 @@ class TerminalInterface:
         agent: Agent,
         console: Console | None = None,
         config: Config | None = None,
+        skip_permissions: bool = False,
     ) -> None:
         """Initialize a terminal session wrapper around an agent.
 
@@ -218,9 +219,11 @@ class TerminalInterface:
             console: Compatibility parameter for legacy interfaces. Textual
                 manages rendering directly, so this value is ignored.
             config: Terminal UI configuration.
+            skip_permissions: Run tools without prompting for approval.
         """
         self._agent = agent
         self._config = config or Config()
+        self._skip_permissions = skip_permissions
         self._permission_manager = PermissionManager(
             agent.config.working_dir,
             agent.config.freeact_dir,
@@ -239,6 +242,7 @@ class TerminalInterface:
                 cancel_fn=self._agent.cancel,
                 permission_manager=self._permission_manager,
                 skills_metadata=self._agent.config.skills_metadata,
+                skip_permissions=self._skip_permissions,
             )
             await app.run_async()
 
@@ -327,12 +331,14 @@ class TerminalApp(App[None]):
         permission_manager: PermissionManager | None = None,
         clipboard_adapter: ClipboardAdapterProtocol | None = None,
         skills_metadata: list[SkillMetadata] | None = None,
+        skip_permissions: bool = False,
     ) -> None:
         super().__init__()
         self._config = config
         self._agent_id = agent_id
         self._agent_stream = agent_stream
         self._cancel_fn = cancel_fn
+        self._skip_permissions = skip_permissions
         self._permission_manager = permission_manager or PermissionManager()
         self._clipboard_adapter = clipboard_adapter or ClipboardAdapter()
         self._skills_metadata = skills_metadata or []
@@ -605,7 +611,7 @@ class TerminalApp(App[None]):
 
         # Check pre-approval
         suggested = suggest_pattern(tc)
-        pre_approved = self._permission_manager.is_allowed(tc)
+        pre_approved = self._skip_permissions or self._permission_manager.is_allowed(tc)
 
         if pre_approved:
             if self._pending_approval_widget_id == id(box):

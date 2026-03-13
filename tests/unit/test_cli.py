@@ -102,113 +102,103 @@ def test_main_init_does_not_overwrite_existing_config(tmp_path: Path, monkeypatc
     assert data["expand_all_toggle_key"] == "ctrl+p"
 
 
+class _RunHarness:
+    """Captures arguments passed to Agent and TerminalInterface during cli.run()."""
+
+    def __init__(self) -> None:
+        self.captured: dict[str, object] = {}
+
+    def install(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, enable_persistence: bool = True) -> None:
+        captured = self.captured
+
+        class FakeAgent:
+            def __init__(self, **kwargs: object):
+                captured["agent_kwargs"] = kwargs
+
+        class FakeTerminal:
+            def __init__(
+                self, agent: object, console: object = None, config: object = None, skip_permissions: bool = False
+            ):
+                captured["terminal_agent"] = agent
+                captured["skip_permissions"] = skip_permissions
+
+            async def run(self) -> None:
+                captured["terminal_run"] = True
+
+        async def fake_create_config() -> tuple[SimpleNamespace, object]:
+            config = SimpleNamespace(
+                enable_persistence=enable_persistence,
+                ptc_servers={},
+                generated_dir=tmp_path / "generated",
+            )
+            return config, object()
+
+        monkeypatch.setattr(cli, "create_config", fake_create_config)
+        monkeypatch.setattr(cli, "Agent", FakeAgent)
+        monkeypatch.setattr(cli, "TerminalInterface", FakeTerminal)
+        monkeypatch.setattr(cli, "generate_mcp_sources", AsyncMock())
+
+    def namespace(self, **overrides: object) -> argparse.Namespace:
+        defaults: dict[str, object] = {
+            "sandbox": False,
+            "sandbox_config": None,
+            "session_id": None,
+            "skip_permissions": False,
+        }
+        defaults.update(overrides)
+        return argparse.Namespace(**defaults)
+
+
+@pytest.fixture
+def run_harness() -> _RunHarness:
+    return _RunHarness()
+
+
 @pytest.mark.asyncio
-async def test_run_passes_provided_session_id_to_agent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+async def test_run_passes_provided_session_id_to_agent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, run_harness: _RunHarness
+):
     provided = uuid.uuid4()
-    captured: dict[str, object] = {}
+    run_harness.install(monkeypatch, tmp_path)
 
-    class FakeAgent:
-        def __init__(self, **kwargs):
-            captured["agent_kwargs"] = kwargs
+    await cli.run(run_harness.namespace(session_id=provided))
 
-    class FakeTerminal:
-        def __init__(self, agent, console=None, config=None):
-            captured["terminal_agent"] = agent
-
-        async def run(self) -> None:
-            captured["terminal_run"] = True
-
-    async def fake_create_config():
-        config = SimpleNamespace(
-            enable_persistence=True,
-            ptc_servers={},
-            generated_dir=tmp_path / "generated",
-        )
-        terminal_config = object()
-        return config, terminal_config
-
-    monkeypatch.setattr(cli, "create_config", fake_create_config)
-    monkeypatch.setattr(cli, "Agent", FakeAgent)
-    monkeypatch.setattr(cli, "TerminalInterface", FakeTerminal)
-    monkeypatch.setattr(cli, "generate_mcp_sources", AsyncMock())
-
-    namespace = argparse.Namespace(
-        sandbox=False,
-        sandbox_config=None,
-        session_id=provided,
-    )
-    await cli.run(namespace)
-
-    agent_kwargs = captured["agent_kwargs"]
+    agent_kwargs = run_harness.captured["agent_kwargs"]
     assert isinstance(agent_kwargs, dict)
     assert agent_kwargs["session_id"] == str(provided)
-    assert captured["terminal_run"] is True
+    assert run_harness.captured["terminal_run"] is True
+    assert run_harness.captured["skip_permissions"] is False
 
 
 @pytest.mark.asyncio
-async def test_run_passes_none_session_id_when_missing(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    captured: dict[str, object] = {}
+async def test_run_passes_skip_permissions_to_terminal(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, run_harness: _RunHarness
+):
+    run_harness.install(monkeypatch, tmp_path)
 
-    class FakeAgent:
-        def __init__(self, **kwargs):
-            captured["agent_kwargs"] = kwargs
+    await cli.run(run_harness.namespace(skip_permissions=True))
 
-    class FakeTerminal:
-        def __init__(self, agent, console=None, config=None):
-            pass
+    assert run_harness.captured["skip_permissions"] is True
 
-        async def run(self) -> None:
-            return None
 
-    async def fake_create_config():
-        config = SimpleNamespace(
-            enable_persistence=True,
-            ptc_servers={},
-            generated_dir=tmp_path / "generated",
-        )
-        terminal_config = object()
-        return config, terminal_config
+@pytest.mark.asyncio
+async def test_run_passes_none_session_id_when_missing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, run_harness: _RunHarness
+):
+    run_harness.install(monkeypatch, tmp_path)
 
-    monkeypatch.setattr(cli, "create_config", fake_create_config)
-    monkeypatch.setattr(cli, "Agent", FakeAgent)
-    monkeypatch.setattr(cli, "TerminalInterface", FakeTerminal)
-    monkeypatch.setattr(cli, "generate_mcp_sources", AsyncMock())
+    await cli.run(run_harness.namespace())
 
-    namespace = argparse.Namespace(
-        sandbox=False,
-        sandbox_config=None,
-        session_id=None,
-    )
-    await cli.run(namespace)
-
-    agent_kwargs = captured["agent_kwargs"]
+    agent_kwargs = run_harness.captured["agent_kwargs"]
     assert isinstance(agent_kwargs, dict)
     assert agent_kwargs["session_id"] is None
 
 
 @pytest.mark.asyncio
-async def test_run_rejects_session_id_when_persistence_disabled(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    provided = uuid.uuid4()
-
-    async def fake_create_config():
-        config = SimpleNamespace(
-            enable_persistence=False,
-            ptc_servers={},
-            generated_dir=tmp_path / "generated",
-        )
-        terminal_config = object()
-        return config, terminal_config
-
-    monkeypatch.setattr(cli, "create_config", fake_create_config)
-    monkeypatch.setattr(cli, "Agent", object)
-    monkeypatch.setattr(cli, "TerminalInterface", object)
-    monkeypatch.setattr(cli, "generate_mcp_sources", AsyncMock())
-
-    namespace = argparse.Namespace(
-        sandbox=False,
-        sandbox_config=None,
-        session_id=provided,
-    )
+async def test_run_rejects_session_id_when_persistence_disabled(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, run_harness: _RunHarness
+):
+    run_harness.install(monkeypatch, tmp_path, enable_persistence=False)
 
     with pytest.raises(SystemExit, match="--session-id requires enable_persistence=true"):
-        await cli.run(namespace)
+        await cli.run(run_harness.namespace(session_id=uuid.uuid4()))

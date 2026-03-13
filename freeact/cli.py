@@ -52,6 +52,11 @@ def create_parser() -> argparse.ArgumentParser:
         metavar="UUID",
         help="Session UUID to resume (default: generate a new UUID)",
     )
+    parser.add_argument(
+        "--skip-permissions",
+        action="store_true",
+        help="Run tools without prompting for approval",
+    )
     return parser
 
 
@@ -110,7 +115,11 @@ async def run(namespace: argparse.Namespace) -> None:
     if agent_config.ptc_servers:
         await generate_mcp_sources(agent_config.ptc_servers, agent_config.generated_dir)
 
-    terminal = TerminalInterface(agent=agent, config=terminal_config)
+    terminal = TerminalInterface(
+        agent=agent,
+        config=terminal_config,
+        skip_permissions=namespace.skip_permissions,
+    )
     await terminal.run()
 
 
