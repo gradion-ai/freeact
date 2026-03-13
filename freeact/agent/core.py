@@ -2,8 +2,10 @@ import asyncio
 import contextlib
 import json
 import logging
+import os
 import uuid
 from collections.abc import Sequence, Set
+from contextlib import asynccontextmanager
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, AsyncIterator
@@ -12,6 +14,7 @@ import ipybox
 from aiostream.stream import merge
 from ipybox.utils import arun
 from mcp import types as mcp_types
+from mcp.client.stdio import StdioServerParameters, stdio_client
 from pydantic_ai.direct import model_request_stream
 from pydantic_ai.mcp import MCPServer, MCPServerStdio, MCPServerStreamableHTTP, ToolResult
 from pydantic_ai.messages import (
@@ -69,6 +72,17 @@ class _MCPServerStdioFiltered(MCPServerStdio):
     async def list_tools(self) -> list[mcp_types.Tool]:
         tools = await super().list_tools()
         return [t for t in tools if t.name not in self._excluded_tools]
+
+
+class _FilesystemMCPServerStdio(_MCPServerStdioFiltered):
+    """Filesystem MCP server client that suppresses server stderr noise."""
+
+    @asynccontextmanager
+    async def client_streams(self) -> AsyncIterator[tuple[Any, Any]]:
+        server = StdioServerParameters(command=self.command, args=list(self.args), env=self.env, cwd=self.cwd)
+        with Path(os.devnull).open("w", encoding="utf-8") as errlog:
+            async with stdio_client(server=server, errlog=errlog) as streams:
+                yield streams
 
 
 class Agent:
@@ -223,7 +237,7 @@ class Agent:
 
         resource_supervisors = [_ResourceSupervisor(self._code_executor, "code-executor")]
         for name, server in self._mcp_server_instances.items():
-            logger.info(f"Starting MCP server: {name}")
+            logger.debug(f"Starting MCP server: {name}")
             server.tool_prefix = name
             resource_supervisors.append(_ResourceSupervisor(server, f"mcp-server-{name}"))
 
@@ -288,7 +302,12 @@ class Agent:
             excluded_tools = cfg.pop("excluded_tools", None)
             match cfg:
                 case {"command": _}:
-                    if excluded_tools:
+                    if name == "filesystem":
+                        servers[name] = _FilesystemMCPServerStdio(
+                            excluded_tools=frozenset(excluded_tools or ()),
+                            **cfg,
+                        )
+                    elif excluded_tools:
                         servers[name] = _MCPServerStdioFiltered(
                             excluded_tools=frozenset(excluded_tools),
                             **cfg,

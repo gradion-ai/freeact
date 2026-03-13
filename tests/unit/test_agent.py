@@ -1,5 +1,6 @@
 import asyncio
 import json
+import sys
 import uuid
 from pathlib import Path
 from typing import Any
@@ -8,6 +9,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pydantic_ai.models.function import DeltaToolCall
 
+import freeact.agent.core as agent_core
 from freeact.agent import Agent, ApprovalRequest, Cancelled, CodeExecutionOutput
 from freeact.agent.call import CodeAction, GenericCall
 from freeact.agent.config import Config
@@ -222,6 +224,54 @@ class TestSessionPersistenceConfig:
             mock_executor.return_value = MagicMock()
             with pytest.raises(ValueError, match="session_id requires config.enable_persistence=True"):
                 Agent(config=create_test_config(enable_persistence=False), session_id="session-1")
+
+
+class TestFilesystemMcpServerStdio:
+    @pytest.mark.asyncio
+    async def test_client_streams_redirects_stderr(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        captured: dict[str, object] = {}
+
+        class _DummyStream:
+            async def __aenter__(self) -> tuple[object, object]:
+                return object(), object()
+
+            async def __aexit__(self, exc_type: object, exc: object, tb: object) -> None:
+                return None
+
+        def fake_stdio_client(*, server: object, errlog: object) -> _DummyStream:
+            captured["server"] = server
+            captured["errlog"] = errlog
+            return _DummyStream()
+
+        monkeypatch.setattr(agent_core, "stdio_client", fake_stdio_client)
+
+        server = agent_core._FilesystemMCPServerStdio(
+            command="npx",
+            args=["-y", "@modelcontextprotocol/server-filesystem", "."],
+            excluded_tools=frozenset({"read_file"}),
+        )
+
+        async with server.client_streams():
+            pass
+
+        assert captured["errlog"] is not sys.stderr
+
+    def test_create_mcp_servers_uses_filesystem_special_case(self) -> None:
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            config = create_test_config(
+                mcp_servers={
+                    "filesystem": {
+                        "command": "npx",
+                        "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
+                        "excluded_tools": ["read_file"],
+                    }
+                }
+            )
+            agent = Agent(config=config)
+
+        servers = agent._create_mcp_servers()
+        assert isinstance(servers["filesystem"], agent_core._FilesystemMCPServerStdio)
 
 
 class TestIpyboxExecution:
