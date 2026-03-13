@@ -1,4 +1,4 @@
-from freeact.shell import extract_shell_commands, split_composite_command, suggest_shell_pattern
+from freeact.agent.shell import extract_shell_commands, split_composite_command, suggest_shell_pattern
 
 
 class TestExtractShellCommands:

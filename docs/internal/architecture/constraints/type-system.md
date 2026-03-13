@@ -45,7 +45,7 @@ Use `match`/`case` for dispatching on domain type hierarchies (ToolCall subtypes
 
 - Runtime type guards that are not domain dispatch (e.g., checking if an `asyncio.gather` result is an `Exception`).
 - JSON/data validation (e.g., checking if parsed JSON is a `dict` in `SessionStore._validate_envelope`).
-- AST node type checking in `freeact/shell.py` (deep nesting makes match/case impractical there).
+- AST node type checking in `freeact/agent/shell.py` (deep nesting makes match/case impractical there).
 
 Known exception: `freeact/agent/config/runtime.py:16` uses `isinstance(model, Model)` instead of match/case. Borderline acceptable (simple guard, not multi-branch dispatch), but could be converted for consistency.
 

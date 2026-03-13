@@ -4,7 +4,7 @@ from fnmatch import fnmatch
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-from freeact.shell import suggest_shell_pattern
+from freeact.agent.shell import suggest_shell_pattern
 
 
 def _path_matches(path: str, pattern: str) -> bool:

@@ -48,8 +48,8 @@ from freeact.agent.events import (
     ThoughtsChunk,
     ToolOutput,
 )
+from freeact.agent.shell import extract_shell_commands, split_composite_command
 from freeact.agent.store import SessionStore, ToolResultMaterializer
-from freeact.shell import extract_shell_commands, split_composite_command
 from freeact.tools.utils import (
     get_tool_definitions,
     load_ipybox_tool_definitions,
