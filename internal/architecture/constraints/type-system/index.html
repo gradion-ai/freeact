@@ -1252,7 +1252,7 @@ The base needs <code>kw_only=True</code> so that subtypes can add positional fie
 <ul>
 <li>Runtime type guards that are not domain dispatch (e.g., checking if an <code>asyncio.gather</code> result is an <code>Exception</code>).</li>
 <li>JSON/data validation (e.g., checking if parsed JSON is a <code>dict</code> in <code>SessionStore._validate_envelope</code>).</li>
-<li>AST node type checking in <code>freeact/shell.py</code> (deep nesting makes match/case impractical there).</li>
+<li>AST node type checking in <code>freeact/agent/shell.py</code> (deep nesting makes match/case impractical there).</li>
 </ul>
 <p>Known exception: <code>freeact/agent/config/runtime.py:16</code> uses <code>isinstance(model, Model)</code> instead of match/case. Borderline acceptable (simple guard, not multi-branch dispatch), but could be converted for consistency.</p>
 <h2 id="modern-type-hint-syntax">Modern type hint syntax</h2>
