@@ -111,7 +111,7 @@ MCP servers called programmatically via generated Python APIs. This is freeact's
 
 Python APIs must be generated from `ptc_servers` to `.freeact/generated/mcptools/<server-name>/<tool>.py` before the agent can use them. The [CLI tool](cli.md) handles this automatically. When using the [Agent SDK](sdk.md), call [`generate_mcp_sources()`][freeact.tools.pytools.apigen.generate_mcp_sources] explicitly. Code actions can then import and call the generated APIs because `.freeact/generated/` is on the kernel's `PYTHONPATH`.
 
-The default configuration includes the bundled `google` MCP server (web search via Gemini):
+The default configuration includes the bundled `google` (web search via Gemini) and `fetch` (URL content retrieval) MCP servers. Additional bundled servers can be added manually:
 
 ```json
 {
@@ -120,10 +120,26 @@ The default configuration includes the bundled `google` MCP server (web search v
       "command": "python",
       "args": ["-m", "freeact.tools.gsearch", "--thinking-level", "medium"],
       "env": {"GEMINI_API_KEY": "${GEMINI_API_KEY}"}
+    },
+    "brave": {
+      "command": "python",
+      "args": ["-m", "freeact.tools.bsearch"],
+      "env": {"BRAVE_API_KEY": "${BRAVE_API_KEY}"}
+    },
+    "fetch": {
+      "command": "python",
+      "args": ["-m", "freeact.tools.fetch"],
+      "env": {}
     }
   }
 }
 ```
+
+| Server | Module | Required env var | Description |
+|--------|--------|-----------------|-------------|
+| `google` | `freeact.tools.gsearch` | `GEMINI_API_KEY` | Web search via Gemini with Google Search grounding |
+| `brave` | `freeact.tools.bsearch` | `BRAVE_API_KEY` | Web search via [Brave Search API](https://brave.com/search/api/){target="_blank"} with "web" and "llm-context" modes |
+| `fetch` | `freeact.tools.fetch` | -- | Fetch and extract readable content from URLs via [trafilatura](https://trafilatura.readthedocs.io/){target="_blank"} |
 
 !!! tip "Custom MCP servers"
     Application-specific MCP servers can be added as needed to `ptc_servers` for programmatic tool calling.

@@ -10,7 +10,7 @@ The Agent SDK provides five main APIs:
 
 ## Configuration API
 
-Use [`Config.init()`][freeact.agent.config.Config.init] to load persisted config from `.freeact/` when present, or create and save defaults on first run. Use [`save()`][freeact.agent.config.Config.save] and [`load()`][freeact.agent.config.Config.load] when explicit persistence control is needed:
+Use [`Config.init()`][freeact.config.PersistentConfig.init] to load persisted config from `.freeact/` when present, or create and save defaults on first run. Use [`save()`][freeact.config.PersistentConfig.save] and [`load()`][freeact.config.PersistentConfig.load] when explicit persistence control is needed:
 
 ```python
 --8<-- "examples/basic_agent.py:config-imports"

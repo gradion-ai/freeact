@@ -78,6 +78,12 @@ GOOGLE_SEARCH_MCP_SERVER_CONFIG: dict[str, Any] = {
     "env": {"GEMINI_API_KEY": "${GEMINI_API_KEY}"},
 }
 
+FETCH_MCP_SERVER_CONFIG: dict[str, Any] = {
+    "command": "python",
+    "args": ["-m", "freeact.tools.fetch"],
+    "env": {},
+}
+
 
 class Config(PersistentConfig):
     """Agent configuration."""
@@ -104,6 +110,7 @@ class Config(PersistentConfig):
     ptc_servers: dict[str, dict[str, Any]] = Field(
         default_factory=lambda: {
             "google": copy.deepcopy(GOOGLE_SEARCH_MCP_SERVER_CONFIG),
+            "fetch": copy.deepcopy(FETCH_MCP_SERVER_CONFIG),
         }
     )
 
