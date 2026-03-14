@@ -1816,11 +1816,11 @@
 <p>Only the main agent's message history (<code>main.jsonl</code>) is loaded on resume. Subagent messages are persisted to separate files (<code>sub-xxxx.jsonl</code>) for auditing but are not rehydrated.</p>
 <p>The <a href="../cli/">CLI tool</a> accepts <code>--session-id</code> to resume a session from the command line when <code>enable_persistence</code> is <code>true</code>.</p>
 <h4 id="tool-results">Tool Results</h4>
-<p>Tool result persistence handles outputs that are too large to keep inline in the message history. Large inline payloads can bloat context and slow down processing. When a result exceeds the inline size threshold, the full content is saved to disk and replaced inline with a short file reference notice that includes preview lines.</p>
+<p>Tool result persistence handles outputs that are too large to keep inline in the message history. Large inline payloads can bloat context and slow down processing. When a result exceeds the inline size threshold, the full content is saved to disk and replaced inline with a short file reference notice that includes a preview.</p>
 <p>Tool result persistence is controlled by two config options:</p>
 <ul>
 <li><code>tool_result_inline_max_bytes</code>: Maximum inline payload size for a tool result.</li>
-<li><code>tool_result_preview_lines</code>: Number of preview lines shown from both the beginning and end of large text results in the file reference notice.</li>
+<li><code>tool_result_preview_chars</code>: Number of preview characters shown from both the beginning and end of large text results in the file reference notice.</li>
 </ul>
 <h2 id="permissions-api">Permissions API</h2>
 <p><a class="autorefs autorefs-internal" href="../api/permissions/#freeact.permissions.PermissionManager"><code>PermissionManager</code></a> provides pattern-based permission gating using typed <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.ToolCall"><code>ToolCall</code></a> instances. Patterns use glob-style matching (<code>*</code>, <code>?</code>). Path fields use path-aware matching where <code>*</code> matches within a single directory and <code>**</code> matches across directory boundaries. Rules are organized into ask/allow tiers with session and always persistence scopes.</p>

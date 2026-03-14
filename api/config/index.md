@@ -61,7 +61,7 @@ Fields:
 - `execution_timeout` (`float | None`)
 - `approval_timeout` (`float | None`)
 - `tool_result_inline_max_bytes` (`int`)
-- `tool_result_preview_lines` (`int`)
+- `tool_result_preview_chars` (`int`)
 - `enable_persistence` (`bool`)
 - `enable_subagents` (`bool`)
 - `max_subagents` (`int`)

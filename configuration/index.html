@@ -1881,7 +1881,7 @@
 <span class="w">  </span><span class="nt">&quot;execution_timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">300</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;approval_timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;tool_result_inline_max_bytes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">32768</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;tool_result_preview_lines&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;tool_result_preview_chars&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2048</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;enable_persistence&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;enable_subagents&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;max_subagents&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
@@ -1935,12 +1935,12 @@
 <tr>
 <td><code>tool_result_inline_max_bytes</code></td>
 <td><code>32768</code></td>
-<td>Inline size threshold in bytes for tool results. Larger results are saved to <code>.freeact/sessions/&lt;session-id&gt;/tool-results/</code> and replaced with a file reference notice plus preview lines.</td>
+<td>Inline size threshold in bytes for tool results. Larger results are saved to <code>.freeact/sessions/&lt;session-id&gt;/tool-results/</code> and replaced with a file reference notice plus preview characters.</td>
 </tr>
 <tr>
-<td><code>tool_result_preview_lines</code></td>
-<td><code>10</code></td>
-<td>Number of preview lines included from both the beginning and end of large text results in the file reference notice.</td>
+<td><code>tool_result_preview_chars</code></td>
+<td><code>2048</code></td>
+<td>Number of preview characters included from both the beginning and end of large text results in the file reference notice.</td>
 </tr>
 <tr>
 <td><code>enable_persistence</code></td>
