@@ -156,7 +156,7 @@ class Agent:
             self._result_materializer = ToolResultMaterializer(
                 session_store=self._session_store,
                 inline_max_bytes=config.tool_result_inline_max_bytes,
-                preview_lines=config.tool_result_preview_lines,
+                preview_chars=config.tool_result_preview_chars,
                 working_dir=config.working_dir,
             )
 

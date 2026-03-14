@@ -23,7 +23,7 @@ def test_config_constructor_is_in_memory_defaults(tmp_path: Path, monkeypatch: p
     assert config.model == "google-gla:gemini-3-flash-preview"
     assert config.model_settings["google_thinking_config"]["thinking_level"] == "high"
     assert config.tool_result_inline_max_bytes == 32768
-    assert config.tool_result_preview_lines == 10
+    assert config.tool_result_preview_chars == 2048
     assert config.enable_persistence is True
     assert "google" in config.ptc_servers
     assert not config.freeact_dir.exists()
@@ -41,7 +41,7 @@ def test_constructor_accepts_custom_scalar_overrides(tmp_path: Path, monkeypatch
         execution_timeout=123,
         approval_timeout=45,
         tool_result_inline_max_bytes=64000,
-        tool_result_preview_lines=7,
+        tool_result_preview_chars=1234,
         enable_subagents=False,
         max_subagents=2,
         enable_persistence=False,
@@ -54,7 +54,7 @@ def test_constructor_accepts_custom_scalar_overrides(tmp_path: Path, monkeypatch
     assert config.execution_timeout == 123
     assert config.approval_timeout == 45
     assert config.tool_result_inline_max_bytes == 64000
-    assert config.tool_result_preview_lines == 7
+    assert config.tool_result_preview_chars == 1234
     assert config.enable_subagents is False
     assert config.max_subagents == 2
     assert config.enable_persistence is False
@@ -160,7 +160,7 @@ async def test_load_save_roundtrip(tmp_path: Path) -> None:
         tool_search="basic",
         execution_timeout=42,
         tool_result_inline_max_bytes=2048,
-        tool_result_preview_lines=3,
+        tool_result_preview_chars=300,
         max_subagents=7,
         ptc_servers={"demo": {"command": "python", "args": ["-m", "demo"]}},
     )
@@ -171,7 +171,7 @@ async def test_load_save_roundtrip(tmp_path: Path) -> None:
     assert loaded.model == "test-model"
     assert loaded.execution_timeout == 42
     assert loaded.tool_result_inline_max_bytes == 2048
-    assert loaded.tool_result_preview_lines == 3
+    assert loaded.tool_result_preview_chars == 300
     assert loaded.max_subagents == 7
     assert "demo" in loaded.ptc_servers
 
@@ -185,7 +185,7 @@ async def test_load_save_roundtrip_preserves_constructor_overrides(tmp_path: Pat
         execution_timeout=77,
         approval_timeout=9,
         tool_result_inline_max_bytes=12345,
-        tool_result_preview_lines=9,
+        tool_result_preview_chars=900,
         enable_subagents=False,
         max_subagents=3,
         enable_persistence=False,
@@ -202,7 +202,7 @@ async def test_load_save_roundtrip_preserves_constructor_overrides(tmp_path: Pat
     assert loaded.execution_timeout == 77
     assert loaded.approval_timeout == 9
     assert loaded.tool_result_inline_max_bytes == 12345
-    assert loaded.tool_result_preview_lines == 9
+    assert loaded.tool_result_preview_chars == 900
     assert loaded.enable_subagents is False
     assert loaded.max_subagents == 3
     assert loaded.enable_persistence is False
@@ -412,4 +412,4 @@ def test_tool_result_limits_must_be_positive(tmp_path: Path) -> None:
         Config(working_dir=tmp_path, tool_result_inline_max_bytes=0)
 
     with pytest.raises(ValidationError):
-        Config(working_dir=tmp_path, tool_result_preview_lines=0)
+        Config(working_dir=tmp_path, tool_result_preview_chars=0)

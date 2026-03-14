@@ -117,7 +117,7 @@ class TestSessionPersistence:
             tmp_dir=tmp_path,
             stream_function=stream_function,
             tool_result_inline_max_bytes=32,
-            tool_result_preview_lines=2,
+            tool_result_preview_chars=100,
         )
         agent = Agent(config=config, session_id="session-1")
 
@@ -142,7 +142,7 @@ class TestSessionPersistence:
         assert isinstance(tool_returns[0].content, str)
         notice = tool_returns[0].content
         assert "configured inline threshold (32 bytes)" in notice
-        assert "Preview (first and last 2 lines):" in notice
+        assert "Preview (~100 characters):" in notice
 
         match = re.search(r"^Full content saved to: (.+)$", notice, flags=re.MULTILINE)
         assert match is not None

@@ -47,7 +47,7 @@ class TestConfigSave:
         assert payload["model_settings"]["google_thinking_config"]["thinking_level"] == "high"
         assert "kernel_env" in payload
         assert "tool_result_inline_max_bytes" in payload
-        assert "tool_result_preview_lines" in payload
+        assert "tool_result_preview_chars" in payload
         assert "enable_persistence" in payload
         assert "ptc_servers" in payload
         assert "google" in payload["ptc_servers"]
