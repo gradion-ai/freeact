@@ -307,7 +307,7 @@ class TestMcpToolException:
             tmp_dir=tmp_path,
             session_id="session-1",
             tool_result_inline_max_bytes=32,
-            tool_result_preview_lines=2,
+            tool_result_preview_chars=100,
         ) as agent:
 
             async def large_call(*args, **kwargs):
@@ -319,10 +319,8 @@ class TestMcpToolException:
             assert len(results.tool_outputs) == 1
             notice = str(results.tool_outputs[0].content)
             assert "configured inline threshold (32 bytes)" in notice
-            assert "Preview (first and last 2 lines):" in notice
+            assert "Preview (~100 characters):" in notice
             assert "line-1" in notice
-            assert "line-2" in notice
-            assert "line-3" in notice
 
             tool_returns = _collect_tool_return_parts(agent._message_history)
             assert len(tool_returns) == 1
@@ -383,7 +381,7 @@ class TestToolResultOverflowInCodeExecution:
             tmp_dir=tmp_path,
             session_id="session-1",
             tool_result_inline_max_bytes=32,
-            tool_result_preview_lines=2,
+            tool_result_preview_chars=100,
         ) as agent:
             results = await collect_stream(agent, "run large output")
 
@@ -391,10 +389,8 @@ class TestToolResultOverflowInCodeExecution:
             output = results.code_outputs[0]
             assert output.text is not None
             assert "configured inline threshold (32 bytes)" in output.text
-            assert "Preview (first and last 2 lines):" in output.text
+            assert "Preview (~100 characters):" in output.text
             assert "alpha" in output.text
-            assert "beta" in output.text
-            assert "gamma" in output.text
             assert output.images == []
 
             tool_returns = _collect_tool_return_parts(agent._message_history)
@@ -426,7 +422,7 @@ class TestToolResultOverflowInCodeExecution:
             tmp_dir=tmp_path,
             session_id="session-1",
             tool_result_inline_max_bytes=32,
-            tool_result_preview_lines=2,
+            tool_result_preview_chars=100,
         ) as agent:
             results = await collect_stream(agent, "run large chunk output")
 

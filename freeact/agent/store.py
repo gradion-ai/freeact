@@ -141,7 +141,7 @@ class SessionStore:
 class _CanonicalToolResult:
     payload: bytes
     extension: str
-    preview_lines: list[str]
+    preview: str | None
 
 
 class ToolResultMaterializer:
@@ -152,12 +152,12 @@ class ToolResultMaterializer:
         *,
         session_store: SessionStore,
         inline_max_bytes: int,
-        preview_lines: int,
+        preview_chars: int,
         working_dir: Path,
     ) -> None:
         self._session_store = session_store
         self._inline_max_bytes = inline_max_bytes
-        self._preview_lines = preview_lines
+        self._preview_chars = preview_chars
         self._working_dir = working_dir
 
     def materialize(self, content: ToolResult) -> ToolResult:
@@ -176,9 +176,9 @@ class ToolResultMaterializer:
             f"Tool result exceeded configured inline threshold ({self._inline_max_bytes} bytes).",
             f"Actual size: {actual_size_bytes} bytes.",
         ]
-        if canonical.preview_lines:
-            lines.append(f"Preview (first and last {self._preview_lines} lines):")
-            lines.extend(canonical.preview_lines)
+        if canonical.preview:
+            lines.append(f"Preview (~{self._preview_chars} characters):")
+            lines.append(canonical.preview)
         lines.append(f"Full content saved to: {stored_path.relative_to(self._working_dir).as_posix()}")
         return "\n".join(lines)
 
@@ -188,13 +188,13 @@ class ToolResultMaterializer:
                 return _CanonicalToolResult(
                     payload=text.encode("utf-8"),
                     extension="txt",
-                    preview_lines=self._take_preview_lines(text),
+                    preview=self._take_preview(text),
                 )
             case BinaryContent(data=data, media_type=media_type):
                 return _CanonicalToolResult(
                     payload=data,
                     extension=self._media_type_to_ext(media_type),
-                    preview_lines=[],
+                    preview=None,
                 )
             case _:
                 normalized = to_jsonable_python(content, bytes_mode="base64")
@@ -207,27 +207,24 @@ class ToolResultMaterializer:
                 return _CanonicalToolResult(
                     payload=rendered.encode("utf-8"),
                     extension="json",
-                    preview_lines=[],
+                    preview=None,
                 )
 
-    def _take_preview_lines(self, text: str) -> list[str]:
-        if self._preview_lines <= 0:
-            return []
+    def _take_preview(self, text: str) -> str | None:
+        if self._preview_chars <= 0:
+            return None
 
-        lines = text.splitlines()
-        if not lines:
-            return ["<empty>"]
+        if not text:
+            return "<empty>"
 
-        boundary = self._preview_lines
-        if len(lines) <= boundary * 2:
-            return lines
+        if len(text) <= self._preview_chars:
+            return text
 
-        omitted = len(lines) - (boundary * 2)
-        return [
-            *lines[:boundary],
-            f"... ({omitted} lines omitted) ...",
-            *lines[-boundary:],
-        ]
+        half_chars = self._preview_chars // 2
+        suffix_chars = self._preview_chars - half_chars
+        prefix = text[:half_chars]
+        suffix = text[-suffix_chars:]
+        return f"{prefix} ... ({len(text) - self._preview_chars} chars omitted) ... {suffix}"
 
     @staticmethod
     def _media_type_to_ext(media_type: str) -> str:

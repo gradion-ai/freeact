@@ -18,7 +18,7 @@ def test_inline_result_under_threshold_is_kept(tmp_path: Path) -> None:
     manager = ToolResultMaterializer(
         session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
         inline_max_bytes=10_000,
-        preview_lines=10,
+        preview_chars=1000,
         working_dir=tmp_path,
     )
     content = {"status": "ok"}
@@ -32,7 +32,7 @@ def test_large_string_result_is_saved_with_preview(tmp_path: Path) -> None:
     manager = ToolResultMaterializer(
         session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
         inline_max_bytes=20,
-        preview_lines=2,
+        preview_chars=40,
         working_dir=tmp_path,
     )
     content = "line-1\nline-2\nline-3\n" + ("x" * 200)
@@ -41,10 +41,8 @@ def test_large_string_result_is_saved_with_preview(tmp_path: Path) -> None:
 
     assert isinstance(result, str)
     assert "configured inline threshold (20 bytes)" in result
-    assert "Preview (first and last 2 lines):" in result
+    assert "Preview (~40 characters):" in result
     assert "line-1" in result
-    assert "line-2" in result
-    assert "line-3" in result
     assert ".freeact/sessions/session-1/tool-results/" in result
 
     stored_path = _stored_path_from_notice(result, tmp_path)
@@ -56,7 +54,7 @@ def test_structured_result_is_saved_as_json(tmp_path: Path) -> None:
     manager = ToolResultMaterializer(
         session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
         inline_max_bytes=40,
-        preview_lines=3,
+        preview_chars=1000,
         working_dir=tmp_path,
     )
     content = [{"index": i, "value": "x" * 20} for i in range(5)]
@@ -69,11 +67,11 @@ def test_structured_result_is_saved_as_json(tmp_path: Path) -> None:
     assert '"index": 0' in stored_path.read_text(encoding="utf-8")
 
 
-def test_text_binary_result_has_no_preview_lines(tmp_path: Path) -> None:
+def test_text_binary_result_has_no_preview(tmp_path: Path) -> None:
     manager = ToolResultMaterializer(
         session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
         inline_max_bytes=8,
-        preview_lines=2,
+        preview_chars=1000,
         working_dir=tmp_path,
     )
     content = BinaryContent(data=b"alpha\nbeta\ngamma\n", media_type="text/plain")
@@ -88,11 +86,50 @@ def test_text_binary_result_has_no_preview_lines(tmp_path: Path) -> None:
     assert stored_path.read_bytes() == b"alpha\nbeta\ngamma\n"
 
 
-def test_non_text_binary_result_has_no_preview_lines(tmp_path: Path) -> None:
+def test_preview_respects_character_limit(tmp_path: Path) -> None:
+    manager = ToolResultMaterializer(
+        session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
+        inline_max_bytes=10,
+        preview_chars=20,
+        working_dir=tmp_path,
+    )
+    # Long line that stays within preview_lines but exceeds preview_chars
+    content = "X" * 100
+
+    result = manager.materialize(content)
+
+    assert isinstance(result, str)
+    assert "Preview (~20 characters):" in result
+    # It should show character-based truncation message
+    assert "chars omitted" in result
+    # Total chars in preview should be 20
+    assert result.count("X") == 20
+
+
+def test_preview_respects_odd_character_limit(tmp_path: Path) -> None:
+    manager = ToolResultMaterializer(
+        session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
+        inline_max_bytes=10,
+        preview_chars=21,
+        working_dir=tmp_path,
+    )
+    # 100 characters total
+    content = "X" * 100
+
+    result = manager.materialize(content)
+
+    assert isinstance(result, str)
+    assert "Preview (~21 characters):" in result
+    # Should show exactly 21 'X' characters (10 prefix, 11 suffix)
+    assert result.count("X") == 21
+    assert "79 chars omitted" in result
+
+
+def test_non_text_binary_result_has_no_preview(tmp_path: Path) -> None:
     manager = ToolResultMaterializer(
         session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
         inline_max_bytes=4,
-        preview_lines=10,
+        preview_chars=1000,
         working_dir=tmp_path,
     )
     payload = b"\x89PNG\r\n\x1a\n" + (b"\x00" * 16)
@@ -113,7 +150,7 @@ def test_large_result_stays_inline_when_store_write_fails(tmp_path: Path, monkey
     manager = ToolResultMaterializer(
         session_store=store,
         inline_max_bytes=1,
-        preview_lines=10,
+        preview_chars=1000,
         working_dir=tmp_path,
     )
     content = "too-large"
@@ -129,11 +166,11 @@ def test_large_result_stays_inline_when_store_write_fails(tmp_path: Path, monkey
     assert result == content
 
 
-def test_structured_result_has_no_preview_lines(tmp_path: Path) -> None:
+def test_structured_result_has_no_preview(tmp_path: Path) -> None:
     manager = ToolResultMaterializer(
         session_store=SessionStore(tmp_path / ".freeact" / "sessions", "session-1"),
         inline_max_bytes=20,
-        preview_lines=2,
+        preview_chars=1000,
         working_dir=tmp_path,
     )
     content = {"content": "x" * 5000, "status": "ok"}

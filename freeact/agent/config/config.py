@@ -100,7 +100,7 @@ class Config(PersistentConfig):
     execution_timeout: float | None = 300
     approval_timeout: float | None = None
     tool_result_inline_max_bytes: int = Field(default=32768, ge=1)
-    tool_result_preview_lines: int = Field(default=10, ge=1)
+    tool_result_preview_chars: int = Field(default=2048, ge=1)
     enable_persistence: bool = True
     enable_subagents: bool = True
     max_subagents: int = 5

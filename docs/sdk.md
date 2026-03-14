@@ -217,12 +217,12 @@ The [CLI tool](cli.md) accepts `--session-id` to resume a session from the comma
 
 #### Tool Results
 
-Tool result persistence handles outputs that are too large to keep inline in the message history. Large inline payloads can bloat context and slow down processing. When a result exceeds the inline size threshold, the full content is saved to disk and replaced inline with a short file reference notice that includes preview lines.
+Tool result persistence handles outputs that are too large to keep inline in the message history. Large inline payloads can bloat context and slow down processing. When a result exceeds the inline size threshold, the full content is saved to disk and replaced inline with a short file reference notice that includes a preview.
 
 Tool result persistence is controlled by two config options:
 
 - `tool_result_inline_max_bytes`: Maximum inline payload size for a tool result.
-- `tool_result_preview_lines`: Number of preview lines shown from both the beginning and end of large text results in the file reference notice.
+- `tool_result_preview_chars`: Number of preview characters shown from both the beginning and end of large text results in the file reference notice.
 
 ## Permissions API
 
