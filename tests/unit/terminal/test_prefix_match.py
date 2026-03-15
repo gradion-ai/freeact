@@ -1,4 +1,4 @@
-from freeact.terminal.prefix_match import find_prefix_match
+from freeact.terminal.screens import _find_prefix_match as find_prefix_match
 
 
 def test_find_prefix_match_single_char() -> None:

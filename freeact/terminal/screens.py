@@ -8,7 +8,34 @@ from textual.widgets import DirectoryTree, Label, OptionList
 from textual.widgets.option_list import Option
 
 from freeact.agent.config.skills import SkillMetadata
-from freeact.terminal.prefix_match import find_prefix_match
+
+
+def _find_prefix_match(items: list[str], prefix: str) -> tuple[int, str] | None:
+    """Find the first item starting with `prefix` (case-insensitive).
+
+    If no item matches the full prefix, progressively shorter prefixes are
+    tried so that a non-matching keystroke does not lose the current position.
+
+    Args:
+        items: List of strings to search.
+        prefix: Current prefix buffer to match against.
+
+    Returns:
+        `(index, effective_prefix)` of the first match, or `None` when
+            nothing matches even at length 1.
+    """
+    if not prefix:
+        return None
+
+    lower_items = [item.lower() for item in items]
+
+    for length in range(len(prefix), 0, -1):
+        candidate = prefix[:length].lower()
+        for i, item in enumerate(lower_items):
+            if item.startswith(candidate):
+                return (i, prefix[:length])
+
+    return None
 
 
 def _filesystem_root(path: Path) -> Path:
@@ -140,7 +167,7 @@ class FilePickerScreen(ModalScreen[Path | None]):
             siblings = parent.children
 
         labels = [str(node.label) for node in siblings]
-        result = find_prefix_match(labels, self._prefix)
+        result = _find_prefix_match(labels, self._prefix)
         if result is not None:
             index, effective = result
             self._prefix = effective
@@ -280,7 +307,7 @@ class SkillPickerScreen(ModalScreen[str | None]):
             return
 
         names = [s.name for s in self._skills]
-        result = find_prefix_match(names, self._prefix)
+        result = _find_prefix_match(names, self._prefix)
         if result is not None:
             index, effective = result
             self._prefix = effective

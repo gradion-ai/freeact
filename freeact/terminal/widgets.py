@@ -212,6 +212,20 @@ def _titled(label: str, agent_id: str) -> str:
     return " ".join(parts)
 
 
+def _wrap_with_trace_container(*children: "textual.widget.Widget") -> tuple[Vertical, Vertical]:  # type: ignore[name-defined]  # noqa: F821
+    """Wrap content widgets with an appended trace container for nested tool results.
+
+    Args:
+        *children: Widgets to display before the trace container.
+
+    Returns:
+        Tuple of the outer content Vertical and the trace container Vertical.
+    """
+    trace_container = Vertical(classes="tool-trace-container")
+    content = Vertical(*children, trace_container, classes="tool-call-content")
+    return content, trace_container
+
+
 def create_user_input_box(content: str, agent_id: str = "") -> Collapsible:
     """Create an expanded collapsible box displaying the submitted user input.
 
@@ -273,8 +287,7 @@ def create_code_action_box(code: str, agent_id: str = "") -> tuple[Collapsible, 
         Tuple of the Collapsible widget and the nested trace container.
     """
     syntax = Syntax(code, "python", theme="monokai", line_numbers=True)
-    trace_container = Vertical(classes="tool-trace-container")
-    content = Vertical(Static(syntax), trace_container, classes="tool-call-content")
+    content, trace_container = _wrap_with_trace_container(Static(syntax))
     box = Collapsible(
         content,
         title=_titled("Code Action", agent_id),
@@ -304,8 +317,7 @@ def create_tool_call_box(
     args_json = json.dumps(tool_args, indent=2)
     syntax = Syntax(args_json, "json", theme="monokai")
     title_prefix = "PTC" if ptc else "Tool Call"
-    trace_container = Vertical(classes="tool-trace-container")
-    content = Vertical(Static(syntax), trace_container, classes="tool-call-content")
+    content, trace_container = _wrap_with_trace_container(Static(syntax))
     box = Collapsible(
         content,
         title=_titled(f"{title_prefix}: {tool_name}", agent_id),
@@ -330,12 +342,7 @@ def create_subagent_task_box(
     """
     args_json = json.dumps(tool_args, indent=2)
     syntax = Syntax(args_json, "json", theme="monokai")
-    trace_container = Vertical(classes="tool-trace-container")
-    content = Vertical(
-        Static(syntax),
-        trace_container,
-        classes="tool-call-content",
-    )
+    content, trace_container = _wrap_with_trace_container(Static(syntax))
     box = Collapsible(
         content,
         title=_titled("Tool Call: subagent_task", agent_id),
@@ -440,8 +447,7 @@ def create_file_read_action_box(
             parts.append(f"head: {head}")
         if tail is not None:
             parts.append(f"tail: {tail}")
-        trace_container = Vertical(classes="tool-trace-container")
-        content = Vertical(Static("\n".join(parts)), trace_container, classes="tool-call-content")
+        content, trace_container = _wrap_with_trace_container(Static("\n".join(parts)))
         box = Collapsible(
             content,
             title=_titled(f"Read Action: {filename}", agent_id),
@@ -451,8 +457,7 @@ def create_file_read_action_box(
         return box, trace_container
 
     path_list = "\n".join(f"  {path}" for path in paths)
-    trace_container = Vertical(classes="tool-trace-container")
-    content = Vertical(Static(path_list), trace_container, classes="tool-call-content")
+    content, trace_container = _wrap_with_trace_container(Static(path_list))
     box = Collapsible(
         content,
         title=_titled(f"Read Action: {len(paths)} files", agent_id),
@@ -475,8 +480,7 @@ def create_file_write_action_box(path: str, content: str, agent_id: str = "") ->
     """
     ext = path.rsplit(".", 1)[-1] if "." in path else "text"
     syntax = Syntax(content, ext, theme="monokai", line_numbers=True)
-    trace_container = Vertical(classes="tool-trace-container")
-    content_widget = Vertical(Static(syntax), trace_container, classes="tool-call-content")
+    content_widget, trace_container = _wrap_with_trace_container(Static(syntax))
     box = Collapsible(
         content_widget,
         title=_titled(f"Write Action: {path}", agent_id),
@@ -516,8 +520,7 @@ def create_file_edit_action_box(
 
     diff_text = "\n".join(diff_lines)
     syntax = Syntax(diff_text, "diff", theme="monokai")
-    trace_container = Vertical(classes="tool-trace-container")
-    content = Vertical(Static(syntax), trace_container, classes="tool-call-content")
+    content, trace_container = _wrap_with_trace_container(Static(syntax))
     box = Collapsible(
         content,
         title=_titled(f"Edit Action: {path}", agent_id),
