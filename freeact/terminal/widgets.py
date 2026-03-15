@@ -11,6 +11,7 @@ from textual.containers import Vertical
 from textual.keys import Keys
 from textual.message import Message
 from textual.strip import Strip
+from textual.widget import Widget
 from textual.widgets import Collapsible, Markdown, RichLog, Static, TextArea
 
 from freeact.agent.call import TextEdit
@@ -212,7 +213,7 @@ def _titled(label: str, agent_id: str) -> str:
     return " ".join(parts)
 
 
-def _wrap_with_trace_container(*children: "textual.widget.Widget") -> tuple[Vertical, Vertical]:  # type: ignore[name-defined]  # noqa: F821
+def _wrap_with_trace_container(*children: Widget) -> tuple[Vertical, Vertical]:
     """Wrap content widgets with an appended trace container for nested tool results.
 
     Args:
