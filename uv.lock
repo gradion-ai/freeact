@@ -1067,7 +1067,7 @@ docs = [
 requires-dist = [
     { name = "aiostream", specifier = ">=0.7.1" },
     { name = "google-genai", specifier = ">=1.56.0" },
-    { name = "ipybox", specifier = ">=0.8.1" },
+    { name = "ipybox", specifier = ">=0.8.2" },
     { name = "mcpygen", specifier = ">=0.1.3" },
     { name = "pillow", specifier = ">=12.0.0" },
     { name = "pydantic-ai", specifier = ">=1.59.0" },
@@ -1537,7 +1537,7 @@ wheels = [
 
 [[package]]
 name = "ipybox"
-version = "0.8.1"
+version = "0.8.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ipykernel" },
@@ -1546,9 +1546,9 @@ dependencies = [
     { name = "psutil" },
     { name = "python-dotenv" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/bd/8a/ed3e70d7526018d7e17250e87d0bc9001c32f85d6fd456a645383700c03a/ipybox-0.8.1.tar.gz", hash = "sha256:bf1f970fc27f03f5c1ba3f8ca5ebe16104b5864d88ebe14eac14689f2a843fe4", size = 18864, upload-time = "2026-03-13T08:35:20.624Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/79/96/daee5977e842fa0a73a6c1dada3b78fe9ba4bada44fc0ed209ccf23e1f77/ipybox-0.8.2.tar.gz", hash = "sha256:042a2c0c57d52d073f314dd4d3305c0eacf451d02f1d80d45ce6c4aebfbdd8b2", size = 19385, upload-time = "2026-03-15T17:21:30.008Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/94/06/72901b60cc2b7e35f29953620a9b5a3f4fe617cc36134a79a75ed350752e/ipybox-0.8.1-py3-none-any.whl", hash = "sha256:26cde3c612aaa4b9eb0bf7b09deed911e795962457f4457d627015f0eb7cce10", size = 22699, upload-time = "2026-03-13T08:35:19.31Z" },
+    { url = "https://files.pythonhosted.org/packages/03/1e/9c68553c384266325fd4d2a9fb473f5860b77e832f20086ed21bb369ca77/ipybox-0.8.2-py3-none-any.whl", hash = "sha256:54945501f6e6495bac32c0fd32b1f2135e43c6bdb6fcd79f79f63dcaba0ce842", size = 23322, upload-time = "2026-03-15T17:21:28.617Z" },
 ]
 
 [[package]]

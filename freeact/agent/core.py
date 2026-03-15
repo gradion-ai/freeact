@@ -171,9 +171,10 @@ class Agent:
         self._code_executor_lock = asyncio.Lock()
         self._code_executor = ipybox.CodeExecutor(
             kernel_env=config.resolved_kernel_env,
+            working_dir=config.working_dir,
+            images_dir=config.images_dir,
             sandbox=sandbox,
             sandbox_config=sandbox_config,
-            images_dir=config.images_dir,
             approval_timeout=config.approval_timeout,
             log_level="ERROR",
         )

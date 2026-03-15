@@ -79,6 +79,44 @@ class TestIpyboxExecution:
             assert "35" in results.code_outputs[0].text
 
     @pytest.mark.asyncio
+    async def test_working_dir_reset_after_chdir(self, tmp_path: Path):
+        """Working directory is restored after code changes it with os.chdir."""
+
+        async def stream_function(messages: list[ModelMessage], info: AgentInfo) -> AsyncIterator[str | DeltaToolCalls]:
+            turn = sum(
+                1
+                for m in messages
+                if isinstance(m, ModelRequest) and all(isinstance(p, ToolReturnPart) for p in m.parts)
+            )
+            if turn == 0:
+                yield {
+                    0: DeltaToolCall(
+                        name="ipybox_execute_ipython_cell",
+                        json_args=json.dumps({"code": "import os; os.chdir('/')"}),
+                        tool_call_id="call_chdir",
+                    )
+                }
+            elif turn == 1:
+                yield {
+                    0: DeltaToolCall(
+                        name="ipybox_execute_ipython_cell",
+                        json_args=json.dumps({"code": "import os; print(os.getcwd())"}),
+                        tool_call_id="call_getcwd",
+                    )
+                }
+            else:
+                yield "Done"
+
+        async with unpatched_agent(stream_function, tmp_dir=tmp_path) as agent:
+            results = await collect_stream(agent, "change and check cwd")
+
+            assert len(results.code_outputs) == 2
+            # First execution: cwd reset message
+            assert results.code_outputs[0].text == f"[ipybox] cwd reset to {tmp_path.resolve()}"
+            # Second execution: cwd is back to working_dir
+            assert results.code_outputs[1].text == str(tmp_path.resolve())
+
+    @pytest.mark.asyncio
     async def test_ptc_approval_accepted(self, mcp_sources_dir):
         """Verify PTC is executed when approval request is accepted."""
         call_code = f"""

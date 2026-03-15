@@ -65,3 +65,7 @@ Python variables can be interpolated into shell commands:
 filename = "report.pdf"
 !cp /tmp/{filename} /output/
 ```
+
+## Working Directory
+
+The kernel starts in the agent's workspace directory. After each cell execution, the working directory is restored to this location. If code changes the directory via `os.chdir()` or `%cd`, the change is undone before the next cell runs and the kernel prints a `[ipybox] cwd reset to <path>` message.
