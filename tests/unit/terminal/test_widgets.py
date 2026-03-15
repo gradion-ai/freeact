@@ -5,6 +5,7 @@ from freeact.agent.call import TextEdit
 from freeact.terminal.widgets import (
     ApprovalBar,
     PromptInput,
+    create_code_action_box,
     create_error_box,
     create_file_edit_action_box,
     create_file_read_action_box,
@@ -16,44 +17,44 @@ from freeact.terminal.widgets import (
 
 
 def test_create_file_read_action_box_single_path_metadata() -> None:
-    box = create_file_read_action_box(
+    box, trace_container = create_file_read_action_box(
         paths=("/tmp/workspace/config.json",),
         head=3,
         tail=1,
         agent_id="agent-1",
-        corr_id="corr-1",
     )
 
     assert "read-file-box" in box.classes
     assert not box.collapsed
-    assert box.title == r"\[agent-1] \[corr-1] Read Action: config.json"
+    assert box.title == r"\[agent-1] Read Action: config.json"
+    assert "tool-trace-container" in trace_container.classes
 
 
 def test_create_file_read_action_box_multiple_paths_metadata() -> None:
-    box = create_file_read_action_box(
+    box, trace_container = create_file_read_action_box(
         paths=("/tmp/workspace/a.py", "/tmp/workspace/b.py"),
         head=None,
         tail=None,
         agent_id="agent-1",
-        corr_id="corr-1",
     )
 
     assert "read-files-box" in box.classes
     assert not box.collapsed
-    assert box.title == r"\[agent-1] \[corr-1] Read Action: 2 files"
+    assert box.title == r"\[agent-1] Read Action: 2 files"
+    assert "tool-trace-container" in trace_container.classes
 
 
 def test_create_file_edit_action_box_has_diff_class_and_is_expanded() -> None:
-    box = create_file_edit_action_box(
+    box, trace_container = create_file_edit_action_box(
         path="src/config.py",
         edits=(TextEdit(old_text="DEBUG = True", new_text="DEBUG = False"),),
         agent_id="agent-1",
-        corr_id="corr-1",
     )
 
     assert "diff-box" in box.classes
     assert not box.collapsed
-    assert box.title == r"\[agent-1] \[corr-1] Edit Action: src/config.py"
+    assert box.title == r"\[agent-1] Edit Action: src/config.py"
+    assert "tool-trace-container" in trace_container.classes
 
 
 def test_create_error_box_has_error_class_and_is_expanded() -> None:
@@ -68,53 +69,63 @@ def test_create_tool_output_box_generic_is_collapsed() -> None:
     box = create_tool_output_box(
         "ok",
         agent_id="agent-1",
-        corr_id="corr-1",
     )
 
     assert "tool-output-box" in box.classes
     assert box.collapsed
-    assert box.title == r"\[agent-1] \[corr-1] Tool Output"
+    assert box.title == r"\[agent-1] Tool Output"
 
 
 def test_create_tool_call_box_uses_tool_call_prefix_by_default() -> None:
-    box = create_tool_call_box(
+    box, trace_container = create_tool_call_box(
         tool_name="filesystem_read",
         tool_args={"path": "README.md"},
         agent_id="agent-1",
-        corr_id="corr-1",
     )
 
     assert "tool-call-box" in box.classes
     assert not box.collapsed
-    assert box.title == r"\[agent-1] \[corr-1] Tool Call: filesystem_read"
+    assert box.title == r"\[agent-1] Tool Call: filesystem_read"
+    assert "tool-trace-container" in trace_container.classes
 
 
 def test_create_tool_call_box_uses_ptc_prefix_when_requested() -> None:
-    box = create_tool_call_box(
+    box, trace_container = create_tool_call_box(
         tool_name="mcp_list_resources",
         tool_args={},
         agent_id="agent-1",
-        corr_id="corr-1",
         ptc=True,
     )
 
     assert "tool-call-box" in box.classes
     assert not box.collapsed
-    assert box.title == r"\[agent-1] \[corr-1] PTC: mcp_list_resources"
+    assert box.title == r"\[agent-1] PTC: mcp_list_resources"
+    assert "tool-trace-container" in trace_container.classes
 
 
 def test_create_subagent_task_box_has_trace_container() -> None:
     box, trace_container = create_subagent_task_box(
         tool_args={"prompt": "delegate work", "max_turns": 3},
         agent_id="agent-1",
-        corr_id="corr-1",
     )
 
     assert "tool-call-box" in box.classes
     assert "subagent-task-box" in box.classes
     assert not box.collapsed
-    assert box.title == r"\[agent-1] \[corr-1] Tool Call: subagent_task"
-    assert "subagent-trace-container" in trace_container.classes
+    assert box.title == r"\[agent-1] Tool Call: subagent_task"
+    assert "tool-trace-container" in trace_container.classes
+
+
+def test_create_code_action_box_has_trace_container() -> None:
+    box, trace_container = create_code_action_box(
+        code="print('hello')",
+        agent_id="agent-1",
+    )
+
+    assert "code-action-box" in box.classes
+    assert not box.collapsed
+    assert box.title == r"\[agent-1] Code Action"
+    assert "tool-trace-container" in trace_container.classes
 
 
 def test_approval_bar_prompt_text_matches_current_ui() -> None:
