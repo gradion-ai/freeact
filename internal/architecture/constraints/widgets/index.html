@@ -1139,23 +1139,25 @@
 
 
 <h1 id="widget-factory-constraints">Widget Factory Constraints</h1>
-<p>Terminal widgets are created via <code>create_*_box()</code> factory functions in <code>freeact/terminal/widgets.py</code>. Each returns a <code>Collapsible</code> or <code>tuple[Collapsible, Widget]</code> (when the inner widget needs further updates, e.g., streaming content into a <code>Markdown</code> or <code>RichLog</code>).</p>
-<p>All factories accept <code>agent_id: str = ""</code> and <code>corr_id: str = ""</code> for uniform title formatting via <code>_titled()</code>:</p>
+<p>Terminal widgets are created via <code>create_*_box()</code> factory functions in <code>freeact/terminal/widgets.py</code>. Each returns a <code>Collapsible</code>, <code>tuple[Collapsible, Widget]</code>, or <code>tuple[Collapsible, Vertical]</code> depending on whether the widget needs streaming updates or a nested trace container for tool results.</p>
+<p>All factories accept <code>agent_id: str = ""</code> for uniform title formatting via <code>_titled()</code>:</p>
 <ul>
-<li><code>create_user_input_box(content, agent_id, corr_id)</code> -&gt; <code>Collapsible</code></li>
-<li><code>create_thoughts_box(agent_id, corr_id)</code> -&gt; <code>tuple[Collapsible, Markdown]</code></li>
-<li><code>create_response_box(agent_id, corr_id)</code> -&gt; <code>tuple[Collapsible, Markdown]</code></li>
-<li><code>create_code_action_box(code, agent_id, corr_id)</code> -&gt; <code>Collapsible</code></li>
-<li><code>create_tool_call_box(tool_name, tool_args, agent_id, corr_id)</code> -&gt; <code>Collapsible</code></li>
-<li><code>create_exec_output_box(agent_id, corr_id)</code> -&gt; <code>tuple[Collapsible, RichLog]</code></li>
-<li><code>create_tool_output_box(content, agent_id, corr_id)</code> -&gt; <code>Collapsible</code></li>
-<li><code>create_error_box(message, agent_id, corr_id)</code> -&gt; <code>Collapsible</code></li>
-<li><code>create_file_read_action_box(paths, head, tail, agent_id, corr_id)</code> -&gt; <code>Collapsible</code></li>
-<li><code>create_file_write_action_box(path, content, agent_id, corr_id)</code> -&gt; <code>Collapsible</code></li>
-<li><code>create_file_edit_action_box(path, edits, agent_id, corr_id)</code> -&gt; <code>Collapsible</code></li>
+<li><code>create_user_input_box(content, agent_id)</code> -&gt; <code>Collapsible</code></li>
+<li><code>create_thoughts_box(agent_id)</code> -&gt; <code>tuple[Collapsible, Markdown]</code></li>
+<li><code>create_response_box(agent_id)</code> -&gt; <code>tuple[Collapsible, Markdown]</code></li>
+<li><code>create_code_action_box(code, agent_id)</code> -&gt; <code>tuple[Collapsible, Vertical]</code></li>
+<li><code>create_tool_call_box(tool_name, tool_args, agent_id, ptc)</code> -&gt; <code>tuple[Collapsible, Vertical]</code></li>
+<li><code>create_subagent_task_box(tool_args, agent_id)</code> -&gt; <code>tuple[Collapsible, Vertical]</code></li>
+<li><code>create_exec_output_box(agent_id)</code> -&gt; <code>tuple[Collapsible, RichLog]</code></li>
+<li><code>create_tool_output_box(content, agent_id)</code> -&gt; <code>Collapsible</code></li>
+<li><code>create_error_box(message, agent_id)</code> -&gt; <code>Collapsible</code></li>
+<li><code>create_file_read_action_box(paths, head, tail, agent_id)</code> -&gt; <code>tuple[Collapsible, Vertical]</code></li>
+<li><code>create_file_write_action_box(path, content, agent_id)</code> -&gt; <code>tuple[Collapsible, Vertical]</code></li>
+<li><code>create_file_edit_action_box(path, edits, agent_id)</code> -&gt; <code>tuple[Collapsible, Vertical]</code></li>
 </ul>
-<p>Title formatting uses <code>_titled(title, agent_id, corr_id)</code> for consistent prefixing.</p>
-<p>When adding a new widget type, follow this pattern: free function (not a method), returns <code>Collapsible</code> or <code>tuple[Collapsible, Widget]</code>, accepts <code>agent_id</code> and <code>corr_id</code> for title formatting.</p>
+<p>Tool-call factories (code action, tool call, file read/write/edit, subagent task) return a <code>Vertical</code> trace container with class <code>tool-trace-container</code> inside a <code>tool-call-content</code> wrapper. Tool results mount into this container, nesting them visually under the tool call widget.</p>
+<p>Title formatting uses <code>_titled(title, agent_id)</code> for consistent prefixing.</p>
+<p>When adding a new widget type, follow this pattern: free function (not a method), returns <code>Collapsible</code> or <code>tuple[Collapsible, Widget]</code>, accepts <code>agent_id</code> for title formatting. For tool-call widgets, include a <code>tool-trace-container</code> for nested results.</p>
 
 
 

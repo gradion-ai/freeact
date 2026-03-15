@@ -1,0 +1,2106 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Freeact code action agent">
+      
+      
+      
+        <link rel="canonical" href="https://gradion-ai.github.io/freeact/internal/examples/rerun/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Rerunning Documentation Examples - freeact</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#rerunning-documentation-examples" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="freeact" class="md-header__button md-logo" aria-label="freeact" data-md-component="logo">
+      
+  <img src="../../../images/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            freeact
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Rerunning Documentation Examples
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/gradion-ai/freeact" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    gradion-ai/freeact
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../.." class="md-tabs__link">
+          
+  
+  
+  Documentation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../api/agent/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="freeact" class="md-nav__button md-logo" aria-label="freeact" data-md-component="logo">
+      
+  <img src="../../../images/logo.png" alt="logo">
+
+    </a>
+    freeact
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/gradion-ai/freeact" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    gradion-ai/freeact
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Documentation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../sandbox/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sandbox Mode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../sdk/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent SDK
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Tool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_1_10" id="__nav_1_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Examples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../examples/output-parser/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Enhancing Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../examples/saving-codeacts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Action Reuse
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../examples/agent-skills/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Agent Skills
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../examples/sandbox-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sandbox Mode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../examples/python-packages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_1_11" id="__nav_1_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM readable
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    LLM readable
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../llms.txt" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    llms.txt
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../llms-full.txt" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    llms-full.txt
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Config
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/generate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/permissions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Permissions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/preproc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Preprocessing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#api-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Keys
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workspace-setup-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workspace Setup Patterns
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tmux-textual-interaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tmux + Textual Interaction
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="tmux + Textual Interaction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#expanding-widgets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expanding Widgets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retrying" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Retrying
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parallel-execution-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parallel Execution Strategy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-quickstart" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Quickstart
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-agent-skills" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Agent Skills
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-data-analysis-python-packages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Data Analysis (Python Packages)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-sandbox-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Sandbox Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-output-parser-enhancing-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Output Parser (Enhancing Tools)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-code-action-reuse-saving-codeacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Code Action Reuse (Saving Codeacts)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Code Action Reuse (Saving Codeacts)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#part-1-compose-and-save" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Part 1: Compose and Save
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#part-2-discover-and-reuse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Part 2: Discover and Reuse
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#after-completion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        After Completion
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="rerunning-documentation-examples">Rerunning Documentation Examples</h1>
+<p>Instructions for a Claude Code session to reproduce all freeact documentation examples as live tmux sessions with widgets expanded to match <code>docs/screenshots/</code>.</p>
+<p>The goal is 6 tmux sessions, each running a freeact instance showing the final state of one example. Use the <code>freeact-interaction</code> skill for tmux/Textual interaction patterns.</p>
+<h2 id="api-keys">API Keys</h2>
+<p>Every workspace needs the project <code>.env</code> file. Copy it from the project root:</p>
+<div class="highlight"><pre><span></span><code>cp<span class="w"> </span>/path/to/freeact/.env<span class="w"> </span>/tmp/workspace-dir/
+</code></pre></div>
+<h2 id="workspace-setup-patterns">Workspace Setup Patterns</h2>
+<p><strong>Minimal</strong> (quickstart, sandbox): just create a directory and copy <code>.env</code>.</p>
+<p><strong>With virtual environment</strong> (agent-skills, python-packages): create a directory, then:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/tmp/workspace-dir
+uv<span class="w"> </span>init<span class="w"> </span>--bare<span class="w"> </span>--python<span class="w"> </span><span class="m">3</span>.13
+uv<span class="w"> </span>add<span class="w"> </span>freeact
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>&lt;extra-packages&gt;
+</code></pre></div>
+<p><strong>Important</strong>: All package installations (<code>uv add</code>, <code>uv pip install</code>) must complete <em>before</em> launching freeact. Freeact's IPython kernel inherits the virtual environment at startup, so packages installed after launch will not be available in code actions. Verify with <code>uv run python -c "import &lt;package&gt;"</code> before proceeding.</p>
+<p><strong>With config init</strong> (output-parser): create a directory, copy <code>.env</code>, then run <code>uvx freeact init</code> to generate <code>.freeact/agent.json</code>.</p>
+<h2 id="tmux-textual-interaction">tmux + Textual Interaction</h2>
+<p>Follow the <code>freeact-interaction</code> skill for all tmux interaction. Key points:</p>
+<ul>
+<li>Session size: 120x50</li>
+<li>Separate tool calls for <code>send-keys</code> and <code>capture-pane</code> (never chain them)</li>
+<li>Wait 12+ seconds after starting freeact for MCP server initialization</li>
+<li>Launch freeact with <code>--skip-permissions</code> to avoid approval prompts</li>
+</ul>
+<h3 id="expanding-widgets">Expanding Widgets</h3>
+<p>After the agent responds, widgets auto-collapse per config. To selectively expand widgets to match a screenshot:</p>
+<ol>
+<li>Disable tmux mouse: <code>tmux set-option -t SESSION mouse off</code></li>
+<li>Capture pane with line numbers: <code>tmux capture-pane -t SESSION -p | cat -n</code></li>
+<li>Click on a collapsed widget row (1-indexed, column 5 hits the toggle):
+   <div class="highlight"><pre><span></span><code>tmux<span class="w"> </span>send-keys<span class="w"> </span>-t<span class="w"> </span>SESSION<span class="w"> </span>Escape<span class="w"> </span><span class="s1">&#39;[&lt;0;5;ROW_NUM_HERE M&#39;</span><span class="w"> </span>Escape<span class="w"> </span><span class="s1">&#39;[&lt;0;5;ROW_NUM_HEREm&#39;</span>
+</code></pre></div>
+   (No space before M -- it is literal <code>M</code> for press, literal <code>m</code> for release.)</li>
+<li>Expand from bottom to top so row numbers of items above do not shift.</li>
+<li>If the target has scrolled off-screen, scroll up first:
+   <div class="highlight"><pre><span></span><code><span class="k">for</span><span class="w"> </span>i<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="k">$(</span>seq<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">20</span><span class="k">)</span><span class="p">;</span><span class="w"> </span><span class="k">do</span><span class="w"> </span>tmux<span class="w"> </span>send-keys<span class="w"> </span>-t<span class="w"> </span>SESSION<span class="w"> </span>Escape<span class="w"> </span><span class="s1">&#39;[&lt;64;60;25M&#39;</span><span class="w"> </span>Escape<span class="w"> </span><span class="s1">&#39;[&lt;64;60;25m&#39;</span><span class="p">;</span><span class="w"> </span><span class="k">done</span>
+</code></pre></div></li>
+<li>Re-capture and verify after each expansion.</li>
+</ol>
+<h3 id="retrying">Retrying</h3>
+<p>If the agent produces unexpected results, quit (<code>ctrl+q</code>), wait 3 seconds, restart freeact, and re-send the query.</p>
+<h2 id="parallel-execution-strategy">Parallel Execution Strategy</h2>
+<p>Five examples are independent and should run as parallel subagents, each in its own temp directory and tmux session. The sixth (saving-codeacts) depends on output-parser and runs after it completes.</p>
+<p><strong>Parallel batch</strong> (launch as 5 simultaneous subagents):</p>
+<table>
+<thead>
+<tr>
+<th>Session</th>
+<th>Workspace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ex-quickstart</code></td>
+<td><code>/tmp/freeact-ex-quickstart</code></td>
+</tr>
+<tr>
+<td><code>ex-agent-skills</code></td>
+<td><code>/tmp/freeact-ex-agent-skills</code></td>
+</tr>
+<tr>
+<td><code>ex-python-packages</code></td>
+<td><code>/tmp/freeact-ex-python-packages</code></td>
+</tr>
+<tr>
+<td><code>ex-sandbox</code></td>
+<td><code>/tmp/freeact-ex-sandbox</code></td>
+</tr>
+<tr>
+<td><code>ex-output-parser</code></td>
+<td><code>/tmp/freeact-ex-output-parser</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Sequential</strong> (after <code>ex-output-parser</code> completes):</p>
+<table>
+<thead>
+<tr>
+<th>Session</th>
+<th>Workspace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ex-saving-codeacts</code></td>
+<td><code>/tmp/freeact-ex-output-parser</code> (reuses workspace)</td>
+</tr>
+</tbody>
+</table>
+<p>Each subagent should: set up the workspace, start the tmux session, launch freeact, send queries, wait for completion, expand widgets to match the screenshot, and leave the session running.</p>
+<h2 id="examples">Examples</h2>
+<h3 id="1-quickstart">1. Quickstart</h3>
+<ul>
+<li><strong>Source</strong>: <code>docs/quickstart.md</code></li>
+<li><strong>Screenshot</strong>: <code>docs/screenshots/quickstart.png</code></li>
+<li><strong>Session</strong>: <code>ex-quickstart</code></li>
+<li><strong>Setup</strong>: minimal (copy <code>.env</code> only)</li>
+<li><strong>Launch</strong>: <code>uvx freeact --skip-permissions</code></li>
+</ul>
+<p><strong>Query</strong>:</p>
+<blockquote>
+<p>who is F1 world champion 2025?</p>
+</blockquote>
+<p><strong>Widget state</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Widget</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>User Input</td>
+<td>expanded</td>
+</tr>
+<tr>
+<td>Thinking</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Tool Call: pytools_list_categories</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Tool Output (list_categories)</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Tool Call: pytools_list_tools</td>
+<td><strong>expanded</strong></td>
+</tr>
+<tr>
+<td>Tool Output (list_tools)</td>
+<td><strong>expanded</strong></td>
+</tr>
+<tr>
+<td>Read Action: web_search.py</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Tool Output (read)</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Code Action</td>
+<td><strong>expanded</strong></td>
+</tr>
+<tr>
+<td>PTC: google_web_search</td>
+<td><strong>expanded</strong></td>
+</tr>
+<tr>
+<td>Execution Output</td>
+<td><strong>expanded</strong></td>
+</tr>
+<tr>
+<td>Response</td>
+<td>expanded</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="2-agent-skills">2. Agent Skills</h3>
+<ul>
+<li><strong>Source</strong>: <code>docs/examples/agent-skills.md</code></li>
+<li><strong>Screenshot</strong>: <code>docs/screenshots/agent-skills.png</code></li>
+<li><strong>Session</strong>: <code>ex-agent-skills</code></li>
+<li><strong>Setup</strong>: virtual environment with <code>reportlab</code>, plus PDF skill</li>
+</ul>
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>-p<span class="w"> </span>/tmp/freeact-ex-agent-skills<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>/tmp/freeact-ex-agent-skills
+cp<span class="w"> </span>/path/to/freeact/.env<span class="w"> </span>.
+uv<span class="w"> </span>init<span class="w"> </span>--bare<span class="w"> </span>--python<span class="w"> </span><span class="m">3</span>.13
+uv<span class="w"> </span>add<span class="w"> </span>freeact
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>reportlab
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/anthropics/skills.git<span class="w"> </span>/tmp/skills-repo<span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">true</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span>.agents/skills
+cp<span class="w"> </span>-r<span class="w"> </span>/tmp/skills-repo/skills/pdf<span class="w"> </span>.agents/skills/
+</code></pre></div>
+<ul>
+<li><strong>Launch</strong>: <code>uv run freeact --skip-permissions</code></li>
+</ul>
+<p><strong>Query</strong>:</p>
+<blockquote>
+<p>calculate compound interest for $10,000 at 5% for 10 years, save result to output/compound_interest.pdf</p>
+</blockquote>
+<p><strong>Widget state</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Widget</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>User Input</td>
+<td>expanded</td>
+</tr>
+<tr>
+<td>Thinking</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Tool Call: pytools_list_categories</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Tool Output</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Read Action: SKILL.md</td>
+<td><strong>expanded</strong> (highlighted/selected)</td>
+</tr>
+<tr>
+<td>Tool Output (path)</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Tool Output (content)</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Thinking</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Code Action (pip install)</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Execution Output</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Code Action / Execution Output (intermediate steps)</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Thinking</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Code Action (<code>ls -l output/...</code>)</td>
+<td><strong>expanded</strong></td>
+</tr>
+<tr>
+<td>Execution Output (ls output)</td>
+<td><strong>expanded</strong></td>
+</tr>
+<tr>
+<td>Response</td>
+<td>expanded</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="3-data-analysis-python-packages">3. Data Analysis (Python Packages)</h3>
+<ul>
+<li><strong>Source</strong>: <code>docs/examples/python-packages.md</code></li>
+<li><strong>Screenshot</strong>: <code>docs/screenshots/python-packages.png</code></li>
+<li><strong>Session</strong>: <code>ex-python-packages</code></li>
+<li><strong>Setup</strong>: virtual environment with <code>scikit-learn matplotlib</code></li>
+</ul>
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>-p<span class="w"> </span>/tmp/freeact-ex-python-packages<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>/tmp/freeact-ex-python-packages
+cp<span class="w"> </span>/path/to/freeact/.env<span class="w"> </span>.
+uv<span class="w"> </span>init<span class="w"> </span>--bare<span class="w"> </span>--python<span class="w"> </span><span class="m">3</span>.13
+uv<span class="w"> </span>add<span class="w"> </span>freeact
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>scikit-learn<span class="w"> </span>matplotlib
+</code></pre></div>
+<ul>
+<li><strong>Launch</strong>: <code>uv run freeact --skip-permissions</code></li>
+</ul>
+<p><strong>Query</strong>:</p>
+<blockquote>
+<p>Generate 30 noisy samples from a sine function and fit a Gaussian process regressor to the data. Save the result as a plot with uncertainty bounds to output/gpr_sine.png.</p>
+</blockquote>
+<p><strong>Widget state</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Widget</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>User Input</td>
+<td>expanded</td>
+</tr>
+<tr>
+<td>Thinking</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Code Action (mkdir -p output)</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Thinking</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Code Action (main GPR code)</td>
+<td><strong>expanded</strong></td>
+</tr>
+<tr>
+<td>Execution Output</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Response</td>
+<td>expanded</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="4-sandbox-mode">4. Sandbox Mode</h3>
+<ul>
+<li><strong>Source</strong>: <code>docs/examples/sandbox-mode.md</code></li>
+<li><strong>Screenshot</strong>: <code>docs/screenshots/sandbox-mode.png</code></li>
+<li><strong>Session</strong>: <code>ex-sandbox</code></li>
+<li><strong>Setup</strong>: minimal, plus <code>sandbox-config.json</code></li>
+</ul>
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>-p<span class="w"> </span>/tmp/freeact-ex-sandbox
+cp<span class="w"> </span>/path/to/freeact/.env<span class="w"> </span>/tmp/freeact-ex-sandbox/
+cp<span class="w"> </span>/path/to/freeact/examples/sandbox-config.json<span class="w"> </span>/tmp/freeact-ex-sandbox/
+</code></pre></div>
+<ul>
+<li><strong>Launch</strong>: <code>uvx freeact --skip-permissions --sandbox --sandbox-config sandbox-config.json</code></li>
+</ul>
+<p><strong>Three sequential queries</strong> (wait for each response before sending the next):</p>
+<ol>
+<li>
+<blockquote>
+<p>use requests to read from example.org, print status code only</p>
+</blockquote>
+</li>
+<li>
+<blockquote>
+<p>now from google.com</p>
+</blockquote>
+</li>
+<li>
+<blockquote>
+<p>print the content of sandbox-config.json in a code action</p>
+</blockquote>
+</li>
+</ol>
+<p><strong>Widget state</strong> (all three query blocks visible):</p>
+<p>Query 1 and 2 blocks:</p>
+<table>
+<thead>
+<tr>
+<th>Widget</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>User Input</td>
+<td>expanded</td>
+</tr>
+<tr>
+<td>Code Action</td>
+<td><strong>expanded</strong></td>
+</tr>
+<tr>
+<td>Execution Output</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Response</td>
+<td>expanded</td>
+</tr>
+</tbody>
+</table>
+<p>Query 3 block:</p>
+<table>
+<thead>
+<tr>
+<th>Widget</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>User Input</td>
+<td>expanded</td>
+</tr>
+<tr>
+<td>Code Action</td>
+<td><strong>expanded</strong></td>
+</tr>
+<tr>
+<td>Execution Output</td>
+<td><strong>expanded</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="5-output-parser-enhancing-tools">5. Output Parser (Enhancing Tools)</h3>
+<ul>
+<li><strong>Source</strong>: <code>docs/examples/output-parser.md</code></li>
+<li><strong>Screenshot</strong>: <code>docs/screenshots/output-parser.png</code></li>
+<li><strong>Session</strong>: <code>ex-output-parser</code></li>
+<li><strong>Setup</strong>: config init, then add GitHub MCP server to <code>ptc_servers</code></li>
+</ul>
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>-p<span class="w"> </span>/tmp/freeact-ex-output-parser<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>/tmp/freeact-ex-output-parser
+cp<span class="w"> </span>/path/to/freeact/.env<span class="w"> </span>.
+uvx<span class="w"> </span>freeact<span class="w"> </span>init
+python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;</span>
+<span class="s2">import json</span>
+<span class="s2">with open(&#39;.freeact/agent.json&#39;) as f:</span>
+<span class="s2">    config = json.load(f)</span>
+<span class="s2">config.setdefault(&#39;ptc_servers&#39;, {})[&#39;github&#39;] = {</span>
+<span class="s2">    &#39;url&#39;: &#39;https://api.githubcopilot.com/mcp/&#39;,</span>
+<span class="s2">    &#39;headers&#39;: {&#39;Authorization&#39;: &#39;Bearer \${GITHUB_API_KEY}&#39;}</span>
+<span class="s2">}</span>
+<span class="s2">with open(&#39;.freeact/agent.json&#39;, &#39;w&#39;) as f:</span>
+<span class="s2">    json.dump(config, f, indent=2)</span>
+<span class="s2">&quot;</span>
+</code></pre></div>
+<ul>
+<li><strong>Launch</strong>: <code>uvx freeact --skip-permissions</code></li>
+</ul>
+<p><strong>Query</strong>:</p>
+<blockquote>
+<p>create an output parser for search_repositories</p>
+</blockquote>
+<p><strong>Widget state</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Widget</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>User Input</td>
+<td>expanded</td>
+</tr>
+<tr>
+<td>Tool Call: pytools_list_categories</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Tool Output</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Tool Call: pytools_list_tools</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Tool Output</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Read Action: SKILL.md</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Tool Output</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Read Action: search_repositories.py</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Tool Output</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Code Action (test with run)</td>
+<td><strong>expanded</strong></td>
+</tr>
+<tr>
+<td>PTC: github_search_repositories (x2)</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Execution Output</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Thinking</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Read Action: search_repositories.py</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Tool Output</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Code Action (mkdir/ls)</td>
+<td><strong>expanded</strong></td>
+</tr>
+<tr>
+<td>Execution Output</td>
+<td><strong>expanded</strong></td>
+</tr>
+<tr>
+<td>Thinking</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Edit/Write Actions + Tool Outputs</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Tool Call: ipybox_reset</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Tool Output</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Code Action (test with run_parsed)</td>
+<td><strong>expanded</strong></td>
+</tr>
+<tr>
+<td>PTC calls</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Execution Output</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Response</td>
+<td>expanded</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="6-code-action-reuse-saving-codeacts">6. Code Action Reuse (Saving Codeacts)</h3>
+<ul>
+<li><strong>Source</strong>: <code>docs/examples/saving-codeacts.md</code></li>
+<li><strong>Screenshots</strong>: <code>docs/screenshots/saving-codeacts-1.png</code>, <code>docs/screenshots/saving-codeacts-2.png</code></li>
+<li><strong>Session</strong>: <code>ex-saving-codeacts</code></li>
+<li><strong>Workspace</strong>: <code>/tmp/freeact-ex-output-parser</code> (same as output-parser, must run after it completes)</li>
+<li><strong>Launch</strong>: <code>uvx freeact --skip-permissions</code></li>
+</ul>
+<p>This example requires two freeact sessions in the same workspace and tmux session.</p>
+<h4 id="part-1-compose-and-save">Part 1: Compose and Save</h4>
+<p><strong>Query 1</strong>:</p>
+<blockquote>
+<p>get the latest 5 commits of the 3 github repos of torvalds with the most stars. For each repo, output name, stars and the first line of commit messages, and the link to the commit</p>
+</blockquote>
+<p>Wait for the response, then send:</p>
+<p><strong>Query 2</strong>:</p>
+<blockquote>
+<p>save this as tool under category github, with username, top_n_repos, top_n_commits as parameter</p>
+</blockquote>
+<p><strong>Widget state for <code>saving-codeacts-1.png</code></strong> (shows query 2 and its response):</p>
+<table>
+<thead>
+<tr>
+<th>Widget</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>User Input (save query)</td>
+<td>expanded</td>
+</tr>
+<tr>
+<td>Thinking</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Read Action: SKILL.md</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Tool Output</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Thinking</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Code Action (mkdir, touch)</td>
+<td><strong>expanded</strong></td>
+</tr>
+<tr>
+<td>Write Actions + Tool Outputs</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Code Action (test run)</td>
+<td><strong>expanded</strong></td>
+</tr>
+<tr>
+<td>PTC calls</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Execution Output</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Response</td>
+<td>expanded</td>
+</tr>
+</tbody>
+</table>
+<h4 id="part-2-discover-and-reuse">Part 2: Discover and Reuse</h4>
+<p>Quit freeact (<code>ctrl+q</code>), wait 3 seconds, start a new freeact session in the same workspace.</p>
+<p><strong>Query</strong>:</p>
+<blockquote>
+<p>get the latest 3 commits of the 2 github repos of torvalds with the most stars. For each repo, output name, stars and the first line of commit messages, and the link to the commit</p>
+</blockquote>
+<p><strong>Widget state for <code>saving-codeacts-2.png</code></strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Widget</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>User Input</td>
+<td>expanded</td>
+</tr>
+<tr>
+<td>Tool Call: pytools_list_categories</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Tool Output</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Tool Call: pytools_list_tools</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Tool Output</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Thinking</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Read Action: 2 files</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Tool Output</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Thinking</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Code Action</td>
+<td><strong>expanded</strong></td>
+</tr>
+<tr>
+<td>PTC calls</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Execution Output</td>
+<td>collapsed</td>
+</tr>
+<tr>
+<td>Response</td>
+<td>expanded</td>
+</tr>
+</tbody>
+</table>
+<h2 id="after-completion">After Completion</h2>
+<p>All 6 tmux sessions should remain running. To list them:</p>
+<div class="highlight"><pre><span></span><code>tmux<span class="w"> </span>list-sessions
+</code></pre></div>
+<p>To attach and visually inspect any session:</p>
+<div class="highlight"><pre><span></span><code>tmux<span class="w"> </span>attach<span class="w"> </span>-t<span class="w"> </span>ex-quickstart<span class="w">  </span><span class="c1"># or any other session name</span>
+</code></pre></div>
+<p>Detach without stopping: <code>ctrl+b d</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025-2026 Gradion AI
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.preview", "navigation.instant.progress", "navigation.top", "navigation.tracking", "search.suggest", "toc.follow", "content.code.copy", "content.code.select", "content.code.annotate"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

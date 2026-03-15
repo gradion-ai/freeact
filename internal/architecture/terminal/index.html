@@ -1240,8 +1240,9 @@ Read this first, then follow code references for details.</p>
 <li><code>CodeExecutionOutput*</code>: execution output box</li>
 <li><code>ToolOutput</code>: normalized output box</li>
 <li>Subagent <code>Thoughts*</code> / <code>Response*</code> are not rendered.</li>
-<li>Subagent child events (<code>parent_corr_id != ""</code>) mount inside the matching root-level <code>subagent_task</code>.</li>
-<li>The parent <code>subagent_task</code> <code>ToolOutput</code> stays at the root level and marks the task complete.</li>
+<li>All tool results nest inside their tool call widget via <code>corr_id</code> lookup against <code>_tool_call_boxes</code>.</li>
+<li>Subagent child events use <code>parent_corr_id</code> to route into the <code>subagent_task</code> container.</li>
+<li>Routing priority: <code>corr_id</code> -&gt; <code>parent_corr_id</code> -&gt; conversation root.</li>
 </ul>
 <h2 id="boundaries">Boundaries</h2>
 <ul>
