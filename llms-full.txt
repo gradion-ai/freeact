@@ -673,6 +673,10 @@ filename = "report.pdf"
 !cp /tmp/{filename} /output/
 ```
 
+## Working Directory
+
+The kernel starts in the agent's workspace directory. After each cell execution, the working directory is restored to this location. If code changes the directory via `os.chdir()` or `%cd`, the change is undone before the next cell runs and the kernel prints a `[ipybox] cwd reset to <path>` message.
+
 # Sandbox Mode
 
 Freeact can restrict filesystem and network access for [code execution](https://gradion-ai.github.io/freeact/execution/index.md) and MCP servers using [ipybox sandbox](https://gradion-ai.github.io/ipybox/sandbox/) and Anthropic's [sandbox-runtime](https://github.com/anthropic-experimental/sandbox-runtime).

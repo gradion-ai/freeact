@@ -548,6 +548,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#working-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Working Directory
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1256,6 +1267,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#working-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Working Directory
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1317,6 +1339,8 @@ tests/integration/test_subagents.py
 <div class="highlight"><pre><span></span><code><span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;report.pdf&quot;</span>
 <span class="err">!</span><span class="n">cp</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="p">{</span><span class="n">filename</span><span class="p">}</span> <span class="o">/</span><span class="n">output</span><span class="o">/</span>
 </code></pre></div>
+<h2 id="working-directory">Working Directory</h2>
+<p>The kernel starts in the agent's workspace directory. After each cell execution, the working directory is restored to this location. If code changes the directory via <code>os.chdir()</code> or <code>%cd</code>, the change is undone before the next cell runs and the kernel prints a <code>[ipybox] cwd reset to &lt;path&gt;</code> message.</p>
 
 
 
