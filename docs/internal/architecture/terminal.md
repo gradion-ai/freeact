@@ -28,8 +28,9 @@ Read this first, then follow code references for details.
   - `CodeExecutionOutput*`: execution output box
   - `ToolOutput`: normalized output box
 - Subagent `Thoughts*` / `Response*` are not rendered.
-- Subagent child events (`parent_corr_id != ""`) mount inside the matching root-level `subagent_task`.
-- The parent `subagent_task` `ToolOutput` stays at the root level and marks the task complete.
+- All tool results nest inside their tool call widget via `corr_id` lookup against `_tool_call_boxes`.
+- Subagent child events use `parent_corr_id` to route into the `subagent_task` container.
+- Routing priority: `corr_id` -> `parent_corr_id` -> conversation root.
 
 ## Boundaries
 

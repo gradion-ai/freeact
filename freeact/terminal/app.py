@@ -88,11 +88,12 @@ class SlashCommandContext:
 
 
 @dataclass(frozen=True)
-class SubagentTaskBoxState:
-    """Mounted container state for a root-level `subagent_task` widget."""
+class ToolCallBoxState:
+    """Mounted container state for a tool-call widget with nested trace container."""
 
     box: Collapsible
     trace_container: Vertical
+    is_subagent_task: bool = False
 
 
 ExecLogKey: TypeAlias = tuple[str, str, str]
@@ -420,10 +421,10 @@ class TerminalApp(App[None]):
     .error-text {
         color: $error;
     }
-    .subagent-task-content {
+    .tool-call-content {
         height: auto;
     }
-    .subagent-trace-container {
+    .tool-trace-container {
         height: auto;
     }
     """
@@ -467,7 +468,7 @@ class TerminalApp(App[None]):
         self._turn_in_progress = False
         self._collapse_state = CollapseState(schedule_scroll=self._schedule_scroll_conversation_to_bottom)
         self._pending_approval_widget_id: int | None = None
-        self._subagent_task_boxes: dict[str, SubagentTaskBoxState] = {}
+        self._tool_call_boxes: dict[str, ToolCallBoxState] = {}
         self._banner = _load_banner()
         self._version = _load_freeact_version()
         self._cwd = _format_display_cwd()
@@ -555,20 +556,24 @@ class TerminalApp(App[None]):
         self._collapse_state.record_manual_toggle(event.collapsible, collapsed=True)
 
     def _event_target(self, event: AgentEvent, conversation: VerticalScroll) -> Vertical | VerticalScroll:
+        if event.corr_id:
+            state = self._tool_call_boxes.get(event.corr_id)
+            if state is not None:
+                return state.trace_container
         if event.parent_corr_id:
-            state = self._subagent_task_boxes.get(event.parent_corr_id)
+            state = self._tool_call_boxes.get(event.parent_corr_id)
             if state is not None:
                 return state.trace_container
         return conversation
 
     def _mark_subagent_task_active(self, corr_id: str) -> None:
-        state = self._subagent_task_boxes.get(corr_id)
+        state = self._tool_call_boxes.get(corr_id)
         if state is None:
             return
         self._collapse_state.set_forced(state.box, enabled=True)
 
     def _mark_subagent_task_completed(self, corr_id: str) -> None:
-        state = self._subagent_task_boxes.get(corr_id)
+        state = self._tool_call_boxes.get(corr_id)
         if state is None:
             return
         self._collapse_state.set_forced(state.box, enabled=False)
@@ -577,10 +582,10 @@ class TerminalApp(App[None]):
             collapsed=self._config.collapse_completed_subagent_tasks,
         )
 
-    def _clear_turn_subagent_task_state(self) -> None:
-        for state in self._subagent_task_boxes.values():
+    def _clear_turn_tool_call_state(self) -> None:
+        for state in self._tool_call_boxes.values():
             self._collapse_state.set_forced(state.box, enabled=False)
-        self._subagent_task_boxes.clear()
+        self._tool_call_boxes.clear()
 
     def on_prompt_input_submitted(self, event: PromptInput.Submitted) -> None:
         raw_text = event.text
@@ -612,7 +617,7 @@ class TerminalApp(App[None]):
             self._collapse_state.register(error_box, configured_collapsed=False)
             await self._mount_and_scroll(conversation, conversation, error_box)
         finally:
-            self._clear_turn_subagent_task_state()
+            self._clear_turn_tool_call_state()
             self._turn_in_progress = False
             self._update_input_hints()
             prompt_input.disabled = False
@@ -719,14 +724,16 @@ class TerminalApp(App[None]):
         if existing is not None:
             return existing, False
 
-        box, exec_log = create_exec_output_box(agent_id, corr_id=corr_id)
+        box, exec_log = create_exec_output_box(agent_id)
         self._collapse_state.register(box, configured_collapsed=False)
-        target = self._subagent_task_boxes.get(parent_corr_id)
-        mount_target = target.trace_container if target is not None else conversation
+        tc_state = self._tool_call_boxes.get(corr_id)
+        if tc_state is None:
+            tc_state = self._tool_call_boxes.get(parent_corr_id)
+        mount_target = tc_state.trace_container if tc_state is not None else conversation
         await self._mount_and_scroll(mount_target, conversation, box)
-        state = ExecOutputState(box=box, log=exec_log)
-        turn_state.exec_logs[exec_key] = state
-        return state, True
+        exec_state = ExecOutputState(box=box, log=exec_log)
+        turn_state.exec_logs[exec_key] = exec_state
+        return exec_state, True
 
     async def _handle_exec_output_chunk(
         self,
@@ -781,66 +788,70 @@ class TerminalApp(App[None]):
         conversation: VerticalScroll,
     ) -> None:
         output_text = extract_tool_output_text(tool_content)
-        box = create_tool_output_box(output_text, agent_id, corr_id=corr_id)
+        box = create_tool_output_box(output_text, agent_id)
         self._collapse_state.register(
             box,
             configured_collapsed=self._config.collapse_tool_outputs,
         )
         await self._mount_and_scroll(self._event_target(event, conversation), conversation, box)
-        if not event.parent_corr_id and corr_id in self._subagent_task_boxes:
+        state = self._tool_call_boxes.get(corr_id)
+        if state is not None and state.is_subagent_task and not event.parent_corr_id:
             self._mark_subagent_task_completed(corr_id)
 
     def _build_approval_box(self, request: ApprovalRequest) -> Collapsible:
         """Create the widget used to present a pending tool approval."""
         match request.tool_call:
             case CodeAction(code=code):
-                return create_code_action_box(code, agent_id=request.agent_id, corr_id=request.corr_id)
+                box, trace_container = create_code_action_box(code, agent_id=request.agent_id)
             case FileEdit(path=path, edits=edits):
-                return create_file_edit_action_box(path, edits, agent_id=request.agent_id, corr_id=request.corr_id)
+                box, trace_container = create_file_edit_action_box(path, edits, agent_id=request.agent_id)
             case FileRead(paths=paths, head=head, tail=tail):
-                return create_file_read_action_box(
+                box, trace_container = create_file_read_action_box(
                     paths,
                     head,
                     tail,
                     agent_id=request.agent_id,
-                    corr_id=request.corr_id,
                 )
             case FileWrite(path=path, content=content):
-                return create_file_write_action_box(
+                box, trace_container = create_file_write_action_box(
                     path,
                     content,
                     agent_id=request.agent_id,
-                    corr_id=request.corr_id,
                 )
             case ShellAction(command=command):
-                return create_tool_call_box(
+                box, trace_container = create_tool_call_box(
                     "bash",
                     {"command": command},
                     agent_id=request.agent_id,
-                    corr_id=request.corr_id,
                 )
             case GenericCall(tool_name="subagent_task", tool_args=tool_args):
                 box, trace_container = create_subagent_task_box(
                     tool_args,
                     agent_id=request.agent_id,
-                    corr_id=request.corr_id,
                 )
-                if request.corr_id:
-                    self._subagent_task_boxes[request.corr_id] = SubagentTaskBoxState(
+                if request.corr_id and request.corr_id not in self._tool_call_boxes:
+                    self._tool_call_boxes[request.corr_id] = ToolCallBoxState(
                         box=box,
                         trace_container=trace_container,
+                        is_subagent_task=True,
                     )
                 return box
             case GenericCall(tool_name=tool_name, tool_args=tool_args, ptc=ptc):
-                return create_tool_call_box(
+                box, trace_container = create_tool_call_box(
                     tool_name,
                     tool_args,
                     agent_id=request.agent_id,
-                    corr_id=request.corr_id,
                     ptc=ptc,
                 )
             case _:
                 raise ValueError(f"Unsupported tool call: {request.tool_call!r}")
+
+        if request.corr_id and request.corr_id not in self._tool_call_boxes:
+            self._tool_call_boxes[request.corr_id] = ToolCallBoxState(
+                box=box,
+                trace_container=trace_container,
+            )
+        return box
 
     async def _handle_approval(
         self,
@@ -869,7 +880,8 @@ class TerminalApp(App[None]):
                 box,
                 collapsed=self._collapse_for_approved_action(tc),
             )
-            if request.corr_id and request.corr_id in self._subagent_task_boxes:
+            state = self._tool_call_boxes.get(request.corr_id) if request.corr_id else None
+            if state is not None and state.is_subagent_task:
                 self._mark_subagent_task_active(request.corr_id)
             request.approve(True)
             return
@@ -899,7 +911,8 @@ class TerminalApp(App[None]):
                 box,
                 collapsed=self._collapse_for_approved_action(tc),
             )
-            if request.corr_id and request.corr_id in self._subagent_task_boxes:
+            state = self._tool_call_boxes.get(request.corr_id) if request.corr_id else None
+            if state is not None and state.is_subagent_task:
                 self._mark_subagent_task_active(request.corr_id)
         else:
             self._collapse_state.set_configured(

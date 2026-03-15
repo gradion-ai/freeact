@@ -16,6 +16,7 @@ from freeact.agent.events import (
     AgentEvent,
     ApprovalRequest,
     Cancelled,
+    CodeExecutionOutput,
     Response,
     ResponseChunk,
     Thoughts,
@@ -453,7 +454,7 @@ async def test_approval_yes_collapses_action_and_mounts_tool_output() -> None:
         assert len(app.query("ApprovalBar")) == 0
         assert app.query(".tool-call-box").last().collapsed
         assert len(app.query(".tool-output-box")) == 1
-        assert app.query(".tool-output-box").last().title == r"\[main-agent] \[call-1] Tool Output"
+        assert app.query(".tool-output-box").last().title == r"\[main-agent] Tool Output"
 
 
 @pytest.mark.asyncio
@@ -622,7 +623,7 @@ async def test_ptc_request_uses_ptc_title_in_default_terminal() -> None:
         await _submit_prompt(app, pilot)
         await app.workers.wait_for_complete()
 
-        assert app.query(".tool-call-box").last().title == r"\[main-agent] \[call-ptc] PTC: database_query"
+        assert app.query(".tool-call-box").last().title == r"\[main-agent] PTC: database_query"
 
 
 @pytest.mark.asyncio
@@ -1474,16 +1475,16 @@ async def test_subagent_widgets_mount_inside_subagent_task_box_and_parent_output
         await app.workers.wait_for_complete()
 
         task_box = app.query(".subagent-task-box").last()
-        nested_call_box = task_box.query(".tool-call-box").last()
-        nested_output_box = task_box.query(".tool-output-box").last()
+        nested_call_boxes = task_box.query(".tool-call-box")
+        nested_output_boxes = task_box.query(".tool-output-box")
         conversation = app.query_one("#conversation")
         root_output_boxes = [box for box in app.query(".tool-output-box") if box.parent is conversation]
 
-        assert task_box.title == r"\[main-agent] \[task-1] Tool Call: subagent_task"
-        assert nested_call_box.title == r"\[sub-abcd] \[child-1] Tool Call: database_query"
-        assert nested_output_box.title == r"\[sub-abcd] \[child-1] Tool Output"
-        assert len(root_output_boxes) == 1
-        assert root_output_boxes[0].title == r"\[main-agent] \[task-1] Tool Output"
+        assert task_box.title == r"\[main-agent] Tool Call: subagent_task"
+        assert len(nested_call_boxes) == 1
+        assert nested_call_boxes.last().title == r"\[sub-abcd] Tool Call: database_query"
+        assert len(nested_output_boxes) == 2
+        assert len(root_output_boxes) == 0
 
 
 @pytest.mark.asyncio
@@ -1540,19 +1541,18 @@ async def test_parallel_subagent_widgets_route_to_matching_task_box() -> None:
         await _submit_prompt(app, pilot)
         await app.workers.wait_for_complete()
 
-        task_boxes = {box.title: box for box in app.query(".subagent-task-box")}
-        task_a_box = task_boxes[r"\[main-agent] \[task-a] Tool Call: subagent_task"]
-        task_b_box = task_boxes[r"\[main-agent] \[task-b] Tool Call: subagent_task"]
+        task_boxes = list(app.query(".subagent-task-box"))
+        assert len(task_boxes) == 2
+        task_a_box = task_boxes[0]
+        task_b_box = task_boxes[1]
 
         assert len(task_a_box.query(".tool-call-box")) == 1
-        assert len(task_a_box.query(".tool-output-box")) == 1
-        assert task_a_box.query(".tool-call-box").last().title == r"\[sub-a] \[call-a] Tool Call: database_query"
-        assert task_a_box.query(".tool-output-box").last().title == r"\[sub-a] \[call-a] Tool Output"
+        assert len(task_a_box.query(".tool-output-box")) == 2
+        assert task_a_box.query(".tool-call-box").last().title == r"\[sub-a] Tool Call: database_query"
 
         assert len(task_b_box.query(".tool-call-box")) == 1
-        assert len(task_b_box.query(".tool-output-box")) == 1
-        assert task_b_box.query(".tool-call-box").last().title == r"\[sub-b] \[call-b] Tool Call: database_query"
-        assert task_b_box.query(".tool-output-box").last().title == r"\[sub-b] \[call-b] Tool Output"
+        assert len(task_b_box.query(".tool-output-box")) == 2
+        assert task_b_box.query(".tool-call-box").last().title == r"\[sub-b] Tool Call: database_query"
 
 
 @pytest.mark.asyncio
@@ -1718,5 +1718,119 @@ async def test_subagent_task_order_stays_stable_during_nested_activity() -> None
 
         task_boxes = list(app.query(".subagent-task-box"))
         assert len(task_boxes) == 2
-        assert task_boxes[0].title == r"\[main-agent] \[task-a] Tool Call: subagent_task"
-        assert task_boxes[1].title == r"\[main-agent] \[task-b] Tool Call: subagent_task"
+        assert task_boxes[0].title == r"\[main-agent] Tool Call: subagent_task"
+        assert task_boxes[1].title == r"\[main-agent] Tool Call: subagent_task"
+
+
+@pytest.mark.asyncio
+async def test_code_action_exec_output_nests_inside_code_action_box() -> None:
+    permission_manager = StubPermissionManager(preapproved=True)
+
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        request = ApprovalRequest(
+            tool_call=CodeAction(tool_name="ipybox_execute_ipython_cell", code="print('hello')"),
+            agent_id=MAIN_AGENT_ID,
+            corr_id="code-1",
+        )
+        yield request
+        if await request.approved():
+            yield CodeExecutionOutput(
+                text="hello\n",
+                images=[],
+                agent_id=MAIN_AGENT_ID,
+                corr_id="code-1",
+            )
+            yield ToolOutput(content="hello\n", agent_id=MAIN_AGENT_ID, corr_id="code-1")
+
+    app = _create_app(
+        agent_stream=MockStreamAgent(scenario).stream,
+        agent_id=MAIN_AGENT_ID,
+        permission_manager=permission_manager,  # type: ignore[arg-type]
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await app.workers.wait_for_complete()
+
+        code_box = app.query(".code-action-box").last()
+        nested_exec_boxes = code_box.query(".exec-output-box")
+        nested_output_boxes = code_box.query(".tool-output-box")
+        conversation = app.query_one("#conversation")
+        root_exec_boxes = [b for b in app.query(".exec-output-box") if b.parent is conversation]
+
+        assert len(nested_exec_boxes) == 1
+        assert len(nested_output_boxes) == 1
+        assert len(root_exec_boxes) == 0
+
+
+@pytest.mark.asyncio
+async def test_shell_sub_approval_nests_inside_code_action_box() -> None:
+    class CodeOnlyPermissionManager(StubPermissionManager):
+        def is_allowed(self, tool_call: ToolCall) -> bool:
+            return isinstance(tool_call, CodeAction)
+
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        code_request = ApprovalRequest(
+            tool_call=CodeAction(tool_name="ipybox_execute_ipython_cell", code="run_shell('ls')"),
+            agent_id=MAIN_AGENT_ID,
+            corr_id="code-1",
+        )
+        yield code_request
+        assert await code_request.approved()
+
+        shell_request = ApprovalRequest(
+            tool_call=ShellAction(tool_name="ipybox_execute_ipython_cell", command="ls"),
+            agent_id=MAIN_AGENT_ID,
+            corr_id="code-1",
+        )
+        yield shell_request
+        await shell_request.approved()
+
+    app = _create_app(
+        agent_stream=MockStreamAgent(scenario).stream,
+        agent_id=MAIN_AGENT_ID,
+        permission_manager=CodeOnlyPermissionManager(),  # type: ignore[arg-type]
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await pilot.pause(0.05)
+        await pilot.press("y")
+        await app.workers.wait_for_complete()
+
+        code_box = app.query(".code-action-box").last()
+        nested_tool_call_boxes = code_box.query(".tool-call-box")
+        assert len(nested_tool_call_boxes) == 1
+
+
+@pytest.mark.asyncio
+async def test_mcp_tool_output_nests_inside_tool_call_box() -> None:
+    permission_manager = StubPermissionManager(preapproved=True)
+
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        request = ApprovalRequest(
+            tool_call=GenericCall(tool_name="mcp_read_file", tool_args={"path": "/tmp/test.txt"}, ptc=False),
+            agent_id=MAIN_AGENT_ID,
+            corr_id="mcp-1",
+        )
+        yield request
+        if await request.approved():
+            yield ToolOutput(content="file contents", agent_id=MAIN_AGENT_ID, corr_id="mcp-1")
+
+    app = _create_app(
+        agent_stream=MockStreamAgent(scenario).stream,
+        agent_id=MAIN_AGENT_ID,
+        permission_manager=permission_manager,  # type: ignore[arg-type]
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await app.workers.wait_for_complete()
+
+        tool_call_box = app.query(".tool-call-box").last()
+        nested_output_boxes = tool_call_box.query(".tool-output-box")
+        conversation = app.query_one("#conversation")
+        root_output_boxes = [b for b in app.query(".tool-output-box") if b.parent is conversation]
+
+        assert len(nested_output_boxes) == 1
+        assert len(root_output_boxes) == 0
