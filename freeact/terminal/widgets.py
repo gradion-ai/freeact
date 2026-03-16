@@ -77,6 +77,13 @@ class PromptInput(TextArea):
         )
 
     async def _on_key(self, event: "textual.events.Key") -> None:  # type: ignore[name-defined]  # noqa: F821
+        if event.key == "escape":
+            if self.text:
+                event.prevent_default()
+                event.stop()
+                self.clear()
+            return
+
         if event.key in ("ctrl+j", "newline"):
             event.prevent_default()
             event.stop()
