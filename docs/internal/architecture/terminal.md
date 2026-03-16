@@ -52,6 +52,13 @@ Read this first, then follow code references for details.
 - Clipboard model: OS clipboard is source of truth; Textual local clipboard is fallback cache.
 - Approval decisions can come from `ApprovalBar` or app-level hotkeys (`enter`, `y`, `n`, `a`, `s`).
 
+## Text Selection
+
+Textual's selection requires widgets to render via `Content` (or `Text`). Two cases need handling:
+
+- Rich `Syntax` produces a `RichVisual`, which bypasses selection. `_syntax_to_content()` converts `Syntax` to `Content`, stripping `bgcolor` from token spans so the `screen--selection` highlight can show through.
+- `RichLog` streams chunks during execution but does not support selection. `finalize_exec_output` replaces the `RichLog` with a plain `Static` after streaming completes.
+
 ## Testing
 
 - Terminal test patterns live in `tests/AGENTS.md`.

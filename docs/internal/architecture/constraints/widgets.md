@@ -22,3 +22,11 @@ Tool-call factories (code action, tool call, file read/write/edit, subagent task
 Title formatting uses `_titled(title, agent_id)` for consistent prefixing.
 
 When adding a new widget type, follow this pattern: free function (not a method), returns `Collapsible` or `tuple[Collapsible, Widget]`, accepts `agent_id` for title formatting. For tool-call widgets, include a `tool-trace-container` for nested results.
+
+## Text Selection
+
+- Never pass `Syntax` directly to `Static`. Use `Static(_syntax_to_content(syntax))` or `Static(text, markup=False)`.
+- `RichLog` does not support selection. `finalize_exec_output` replaces it with a `Static` after streaming completes.
+- Do not set `line_numbers=True` on `Syntax` used with `_syntax_to_content`.
+
+See [terminal.md](../terminal.md#text-selection) for background on why these constraints exist.

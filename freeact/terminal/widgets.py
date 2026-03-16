@@ -4,10 +4,13 @@ from pathlib import Path
 from typing import Any
 
 from rich.segment import Segment
+from rich.style import Style as RichStyle
 from rich.syntax import Syntax
+from rich.text import Span as RichSpan
 from textual._ansi_sequences import ANSI_SEQUENCES_KEYS
 from textual.binding import Binding
 from textual.containers import Vertical
+from textual.content import Content
 from textual.keys import Keys
 from textual.message import Message
 from textual.strip import Strip
@@ -200,6 +203,32 @@ class ApprovalBar(Static):
         return super().check_action(action, parameters)
 
 
+def _syntax_to_content(syntax: Syntax) -> Content:
+    """Convert a Rich Syntax renderable to a Textual Content object.
+
+    Textual's selection API only works with `Text` or `Content` visuals.
+    Rich `Syntax` produces a `RichVisual` that bypasses selection entirely.
+    This converts Syntax to Content, preserving foreground syntax colors
+    while stripping explicit backgrounds from token spans. Without this,
+    Syntax backgrounds override the selection highlight style.
+    """
+    text = syntax.highlight(syntax.code)
+    new_spans = []
+    for span in text._spans:
+        style = span.style
+        if isinstance(style, RichStyle) and style.bgcolor:
+            style = RichStyle(color=style.color, bold=style.bold, italic=style.italic, underline=style.underline)
+            new_spans.append(RichSpan(span.start, span.end, style))
+        else:
+            new_spans.append(span)
+    text._spans = new_spans
+    if isinstance(text.style, RichStyle) and text.style.bgcolor:
+        text.style = RichStyle(
+            color=text.style.color, bold=text.style.bold, italic=text.style.italic, underline=text.style.underline
+        )
+    return Content.from_rich_text(text)
+
+
 # --- Collapsible box factory functions ---
 
 
@@ -245,7 +274,6 @@ def create_user_input_box(content: str, agent_id: str = "") -> Collapsible:
         Collapsible widget with the input text, expanded by default.
     """
     # Use plain text here so Textual's selection API can extract content.
-    # Static.get_selection() does not currently support Rich Syntax renderables.
     text = Static(content, markup=False)
     box = Collapsible(
         text,
@@ -294,8 +322,8 @@ def create_code_action_box(code: str, agent_id: str = "") -> tuple[Collapsible, 
     Returns:
         Tuple of the Collapsible widget and the nested trace container.
     """
-    syntax = Syntax(code, "python", theme="monokai", line_numbers=True)
-    content, trace_container = _wrap_with_trace_container(Static(syntax))
+    syntax = Syntax(code, "python", theme="monokai")
+    content, trace_container = _wrap_with_trace_container(Static(_syntax_to_content(syntax)))
     box = Collapsible(
         content,
         title=_titled("Code Action", agent_id),
@@ -325,7 +353,7 @@ def create_tool_call_box(
     args_json = json.dumps(tool_args, indent=2)
     syntax = Syntax(args_json, "json", theme="monokai")
     title_prefix = "PTC" if ptc else "Tool Call"
-    content, trace_container = _wrap_with_trace_container(Static(syntax))
+    content, trace_container = _wrap_with_trace_container(Static(_syntax_to_content(syntax)))
     box = Collapsible(
         content,
         title=_titled(f"{title_prefix}: {tool_name}", agent_id),
@@ -350,7 +378,7 @@ def create_subagent_task_box(
     """
     args_json = json.dumps(tool_args, indent=2)
     syntax = Syntax(args_json, "json", theme="monokai")
-    content, trace_container = _wrap_with_trace_container(Static(syntax))
+    content, trace_container = _wrap_with_trace_container(Static(_syntax_to_content(syntax)))
     box = Collapsible(
         content,
         title=_titled("Tool Call: subagent_task", agent_id),
@@ -374,19 +402,27 @@ def create_exec_output_box(agent_id: str = "") -> tuple[Collapsible, RichLog]:
     return box, log
 
 
-def finalize_exec_output(log: RichLog, text: str | None, images: list[Path]) -> None:
-    """Finalize a streaming execution log with terminal output and image paths.
+async def finalize_exec_output(log: RichLog, text: str | None, images: list[Path]) -> None:
+    """Replace a streaming RichLog with a selectable Static widget.
+
+    RichLog does not support Textual's native text selection. This swaps
+    it for a plain Static after streaming completes.
 
     Args:
-        log: Target log widget to update.
-        text: Final text output. When present, replaces streamed content.
-        images: Generated image paths to append to the log.
+        log: Streaming log widget to replace.
+        text: Final text output.
+        images: Generated image paths to append.
     """
+    parts: list[str] = []
     if text:
-        log.clear()
-        syntax = Syntax(text.rstrip("\n"), "text", theme="monokai", line_numbers=True)
-        log.write(syntax)
+        parts.append(text.rstrip("\n"))
     if images:
+        parts.append("Produced images:\n" + "\n".join(f"  {path}" for path in images))
+    if parts and log.parent is not None:
+        static = Static("\n".join(parts), markup=False)
+        await log.parent.mount(static, after=log)
+        await log.remove()
+    elif images:
         log.write("Produced images:\n" + "\n".join(f"  {path}" for path in images))
 
 
@@ -401,9 +437,9 @@ def create_tool_output_box(content: str, agent_id: str = "") -> Collapsible:
         Collapsible widget that displays truncated tool output.
     """
     display_content = content
-    syntax = Syntax(display_content, "text", theme="monokai", line_numbers=True)
+    syntax = Syntax(display_content, "text", theme="monokai")
     box = Collapsible(
-        Static(syntax),
+        Static(_syntax_to_content(syntax)),
         title=_titled("Tool Output", agent_id),
         collapsed=True,
         classes="tool-output-box",
@@ -487,8 +523,8 @@ def create_file_write_action_box(path: str, content: str, agent_id: str = "") ->
         Tuple of the Collapsible widget and the nested trace container.
     """
     ext = path.rsplit(".", 1)[-1] if "." in path else "text"
-    syntax = Syntax(content, ext, theme="monokai", line_numbers=True)
-    content_widget, trace_container = _wrap_with_trace_container(Static(syntax))
+    syntax = Syntax(content, ext, theme="monokai")
+    content_widget, trace_container = _wrap_with_trace_container(Static(_syntax_to_content(syntax)))
     box = Collapsible(
         content_widget,
         title=_titled(f"Write Action: {path}", agent_id),
@@ -528,7 +564,7 @@ def create_file_edit_action_box(
 
     diff_text = "\n".join(diff_lines)
     syntax = Syntax(diff_text, "diff", theme="monokai")
-    content, trace_container = _wrap_with_trace_container(Static(syntax))
+    content, trace_container = _wrap_with_trace_container(Static(_syntax_to_content(syntax)))
     box = Collapsible(
         content,
         title=_titled(f"Edit Action: {path}", agent_id),
