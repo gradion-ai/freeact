@@ -498,6 +498,8 @@ class TerminalApp(App[None]):
         hints = results.first(Static)
         if self._turn_in_progress:
             hints.update("ctrl+q: quit  esc: interrupt")
+        elif self.query_one("#prompt-input", PromptInput).text:
+            hints.update("ctrl+q: quit  esc: clear")
         else:
             hints.update("ctrl+q: quit")
 
@@ -985,6 +987,7 @@ class TerminalApp(App[None]):
     def on_text_area_changed(self, event: "textual.widgets.TextArea.Changed") -> None:  # type: ignore[name-defined]  # noqa: F821
         if event.text_area.id != "prompt-input":
             return
+        self._update_input_hints()
         slash_ctx = _find_slash_command_context(event.text_area.text, event.text_area.cursor_location)
         if slash_ctx is not None and self._skills_metadata:
             self._open_skill_picker(slash_ctx)
