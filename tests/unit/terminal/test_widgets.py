@@ -1,10 +1,13 @@
+from rich.syntax import Syntax
 from textual.binding import Binding
+from textual.content import Content
 from textual.widgets import Static
 
 from freeact.agent.call import TextEdit
 from freeact.terminal.widgets import (
     ApprovalBar,
     PromptInput,
+    _syntax_to_content,
     create_code_action_box,
     create_error_box,
     create_file_edit_action_box,
@@ -178,3 +181,11 @@ def test_create_user_input_box_wraps_content() -> None:
     assert isinstance(static, Static)
     assert static.content == "long line"
     assert str(static.styles.text_wrap) == "wrap"
+
+
+def test_syntax_to_content_preserves_text_and_returns_content() -> None:
+    syntax = Syntax("print(42)", "python", theme="monokai")
+    content = _syntax_to_content(syntax)
+
+    assert isinstance(content, Content)
+    assert content.plain == "print(42)\n"

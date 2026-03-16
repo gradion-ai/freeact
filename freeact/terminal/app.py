@@ -777,8 +777,7 @@ class TerminalApp(App[None]):
             conversation,
             turn_state,
         )
-        rewrite_text = text if (truncated or created_now) else None
-        finalize_exec_output(exec_state.log, rewrite_text, images)
+        await finalize_exec_output(exec_state.log, text, images)
         if self._config.collapse_exec_output_on_complete:
             self._collapse_state.set_configured(exec_state.box, collapsed=True)
         self._schedule_scroll_conversation_to_bottom()

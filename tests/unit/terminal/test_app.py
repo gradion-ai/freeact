@@ -10,13 +10,14 @@ from textual.keys import Keys
 from textual.pilot import Pilot
 from textual.widgets import Static
 
-from freeact.agent.call import CodeAction, GenericCall, ShellAction, ToolCall
+from freeact.agent.call import CodeAction, FileEdit, FileWrite, GenericCall, ShellAction, TextEdit, ToolCall
 from freeact.agent.config.skills import SkillMetadata
 from freeact.agent.events import (
     AgentEvent,
     ApprovalRequest,
     Cancelled,
     CodeExecutionOutput,
+    CodeExecutionOutputChunk,
     Response,
     ResponseChunk,
     Thoughts,
@@ -359,6 +360,112 @@ async def test_user_input_box_text_is_selectable_and_copyable() -> None:
         await pilot.press("ctrl+c")
         assert app.clipboard == "copy me from user input"
         assert clipboard_adapter.copy_calls == ["copy me from user input"]
+
+
+@pytest.mark.asyncio
+async def test_mouse_drag_selects_text_in_all_widget_types() -> None:
+    """E2E: mouse drag selection works on all widget types."""
+    permission_manager = StubPermissionManager(preapproved=True)
+
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        # Code action with exec output (streaming chunks then final)
+        code_req = ApprovalRequest(
+            tool_call=CodeAction(tool_name="ipybox_execute_ipython_cell", code="print('hello')"),
+            agent_id=MAIN_AGENT_ID,
+            corr_id="code-1",
+        )
+        yield code_req
+        if await code_req.approved():
+            yield CodeExecutionOutputChunk(text="hello\n", agent_id=MAIN_AGENT_ID, corr_id="code-1")
+            yield CodeExecutionOutput(
+                text="hello\n",
+                images=[],
+                truncated=False,
+                agent_id=MAIN_AGENT_ID,
+                corr_id="code-1",
+            )
+            yield ToolOutput(content="hello\n", agent_id=MAIN_AGENT_ID, corr_id="code-1")
+        # Tool call with output
+        tool_req = ApprovalRequest(
+            tool_call=GenericCall(tool_name="db_query", tool_args={"q": "SELECT 1"}, ptc=False),
+            agent_id=MAIN_AGENT_ID,
+            corr_id="call-1",
+        )
+        yield tool_req
+        if await tool_req.approved():
+            yield ToolOutput(content="result data", agent_id=MAIN_AGENT_ID, corr_id="call-1")
+        # File write
+        write_req = ApprovalRequest(
+            tool_call=FileWrite(tool_name="file_write", path="out.py", content="x = 1"),
+            agent_id=MAIN_AGENT_ID,
+            corr_id="write-1",
+        )
+        yield write_req
+        if await write_req.approved():
+            yield ToolOutput(content="ok", agent_id=MAIN_AGENT_ID, corr_id="write-1")
+        # File edit
+        edit_req = ApprovalRequest(
+            tool_call=FileEdit(
+                tool_name="file_edit",
+                path="out.py",
+                edits=(TextEdit(old_text="x = 1", new_text="x = 2"),),
+            ),
+            agent_id=MAIN_AGENT_ID,
+            corr_id="edit-1",
+        )
+        yield edit_req
+        if await edit_req.approved():
+            yield ToolOutput(content="ok", agent_id=MAIN_AGENT_ID, corr_id="edit-1")
+
+    config = TerminalConfig(
+        collapse_approved_code_actions=False,
+        collapse_exec_output_on_complete=False,
+        collapse_approved_tool_calls=False,
+        collapse_tool_outputs=False,
+    )
+    app = _create_app(
+        agent_stream=MockStreamAgent(scenario).stream,
+        agent_id=MAIN_AGENT_ID,
+        permission_manager=permission_manager,  # type: ignore[arg-type]
+        config=config,
+    )
+
+    async with app.run_test(size=(80, 80)) as pilot:
+        await _submit_prompt(app, pilot)
+        await app.workers.wait_for_complete()
+        await pilot.pause()
+
+        from textual.geometry import Offset
+
+        async def assert_drag(widget: Static, length: int, expected: str, label: str) -> None:
+            await pilot.mouse_down(widget, offset=Offset(0, 0))
+            await pilot.mouse_up(widget, offset=Offset(length, 0))
+            text = app.screen.get_selected_text()
+            assert text is not None and expected in text, f"{label}: {text!r}"
+            app.screen.clear_selection()
+
+        # Code action
+        code_w = app.query(".code-action-box .tool-call-content > Static").first()
+        await assert_drag(code_w, 14, "print", "code action")
+
+        # Exec output (RichLog replaced with Static)
+        exec_w = app.query(".exec-output-box Static").last()
+        assert isinstance(exec_w, Static)
+        await assert_drag(exec_w, 5, "hello", "exec output")
+
+        # Tool output (find the db_query tool call box, then its nested tool output)
+        db_query_boxes = [b for b in app.query(".tool-call-box") if "db_query" in b.title]
+        tool_w = db_query_boxes[0].query(".tool-output-box Contents > Static").first()
+        assert isinstance(tool_w, Static)
+        await assert_drag(tool_w, 11, "result data", "tool output")
+
+        # File write
+        write_w = app.query(".write-file-box .tool-call-content > Static").first()
+        await assert_drag(write_w, 5, "x = 1", "file write")
+
+        # File edit (diff)
+        edit_w = app.query(".diff-box .tool-call-content > Static").first()
+        await assert_drag(edit_w, 14, "--- a/out.py", "file edit")
 
 
 @pytest.mark.asyncio
