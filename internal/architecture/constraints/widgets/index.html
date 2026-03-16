@@ -1120,6 +1120,25 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#text-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Text Selection
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1158,6 +1177,13 @@
 <p>Tool-call factories (code action, tool call, file read/write/edit, subagent task) return a <code>Vertical</code> trace container with class <code>tool-trace-container</code> inside a <code>tool-call-content</code> wrapper. Tool results mount into this container, nesting them visually under the tool call widget.</p>
 <p>Title formatting uses <code>_titled(title, agent_id)</code> for consistent prefixing.</p>
 <p>When adding a new widget type, follow this pattern: free function (not a method), returns <code>Collapsible</code> or <code>tuple[Collapsible, Widget]</code>, accepts <code>agent_id</code> for title formatting. For tool-call widgets, include a <code>tool-trace-container</code> for nested results.</p>
+<h2 id="text-selection">Text Selection</h2>
+<ul>
+<li>Never pass <code>Syntax</code> directly to <code>Static</code>. Use <code>Static(_syntax_to_content(syntax))</code> or <code>Static(text, markup=False)</code>.</li>
+<li><code>RichLog</code> does not support selection. <code>finalize_exec_output</code> replaces it with a <code>Static</code> after streaming completes.</li>
+<li>Do not set <code>line_numbers=True</code> on <code>Syntax</code> used with <code>_syntax_to_content</code>.</li>
+</ul>
+<p>See <a href="../../terminal/#text-selection">terminal.md</a> for background on why these constraints exist.</p>
 
 
 

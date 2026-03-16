@@ -1182,6 +1182,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#text-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Text Selection
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#testing" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1263,6 +1274,12 @@ Read this first, then follow code references for details.</p>
 <li>File picker: typing <code>@</code> at the prompt opens <code>FilePickerScreen</code>; <code>Enter</code> selects, <code>Escape</code> cancels.</li>
 <li>Clipboard model: OS clipboard is source of truth; Textual local clipboard is fallback cache.</li>
 <li>Approval decisions can come from <code>ApprovalBar</code> or app-level hotkeys (<code>enter</code>, <code>y</code>, <code>n</code>, <code>a</code>, <code>s</code>).</li>
+</ul>
+<h2 id="text-selection">Text Selection</h2>
+<p>Textual's selection requires widgets to render via <code>Content</code> (or <code>Text</code>). Two cases need handling:</p>
+<ul>
+<li>Rich <code>Syntax</code> produces a <code>RichVisual</code>, which bypasses selection. <code>_syntax_to_content()</code> converts <code>Syntax</code> to <code>Content</code>, stripping <code>bgcolor</code> from token spans so the <code>screen--selection</code> highlight can show through.</li>
+<li><code>RichLog</code> streams chunks during execution but does not support selection. <code>finalize_exec_output</code> replaces the <code>RichLog</code> with a plain <code>Static</code> after streaming completes.</li>
 </ul>
 <h2 id="testing">Testing</h2>
 <ul>
