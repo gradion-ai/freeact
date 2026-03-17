@@ -111,6 +111,25 @@ def test_load_raises_on_non_tail_malformed_line(tmp_path: Path):
         store.load_messages(agent_id="main")
 
 
+def test_delete_last_messages_truncates_persisted_tail(tmp_path: Path) -> None:
+    store = SessionStore(sessions_root=tmp_path, session_id="session-1")
+    messages = _sample_messages() + _sample_messages()
+
+    store.append_messages(agent_id="main", messages=messages)
+    store.delete_last_messages(agent_id="main", count=2)
+
+    loaded = store.load_messages(agent_id="main")
+    assert _jsonable_messages(loaded) == _jsonable_messages(messages[:2])
+
+
+def test_delete_last_messages_rejects_excess_count(tmp_path: Path) -> None:
+    store = SessionStore(sessions_root=tmp_path, session_id="session-1")
+    store.append_messages(agent_id="main", messages=_sample_messages())
+
+    with pytest.raises(ValueError, match="Cannot delete 3 messages"):
+        store.delete_last_messages(agent_id="main", count=3)
+
+
 def test_flush_after_append_true_calls_flush(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     store = SessionStore(sessions_root=tmp_path, session_id="session-1", flush_after_append=True)
     flush_called = False
