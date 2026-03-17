@@ -85,6 +85,32 @@ class SessionStore:
 
         return ModelMessagesTypeAdapter.validate_python(serialized_messages)
 
+    def delete_last_messages(self, agent_id: str, count: int) -> None:
+        """Delete the last persisted messages for an agent.
+
+        Args:
+            agent_id: Logical agent stream name used to locate the JSONL file.
+            count: Number of trailing messages to remove.
+
+        Raises:
+            ValueError: If `count` is negative or exceeds the persisted line count.
+        """
+        if count < 0:
+            raise ValueError("count must be >= 0")
+        if count == 0:
+            return
+
+        session_file = self._sessions_root / self._session_id / f"{agent_id}.jsonl"
+        if not session_file.exists():
+            return
+
+        lines = session_file.read_text(encoding="utf-8").splitlines()
+        if count > len(lines):
+            raise ValueError(f"Cannot delete {count} messages from {session_file}: only {len(lines)} persisted")
+
+        remaining = lines[:-count]
+        session_file.write_text("".join(f"{line}\n" for line in remaining), encoding="utf-8")
+
     def save_tool_result(self, payload: bytes, extension: str) -> Path:
         """Persist a tool-result payload under the session's `tool-results/` directory."""
         safe_extension = self._sanitize_extension(extension)

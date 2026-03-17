@@ -336,6 +336,25 @@ class Agent:
         if not self.agent_id.startswith("sub-"):
             self._cancel_event.clear()
 
+        turn_history_start = len(self._message_history)
+
+        try:
+            async for event in self._stream_turn(prompt, max_turns):
+                yield event
+        except Exception:
+            rollback_count = len(self._message_history) - turn_history_start
+            if rollback_count > 0:
+                try:
+                    await self._rollback_message_history(rollback_count)
+                except Exception:
+                    logger.exception("Failed to rollback message history after turn error")
+            raise
+
+    async def _stream_turn(
+        self,
+        prompt: str | Sequence[UserContent],
+        max_turns: int | None,
+    ) -> AsyncIterator[AgentEvent]:
         request = self._create_model_request(prompt)
         request_params = ModelRequestParameters(function_tools=self._tool_definitions)
 
@@ -433,7 +452,7 @@ class Agent:
                 content = "Tool call rejected"
                 yield ResponseChunk(content=content, agent_id=self.agent_id)
                 yield Response(content=content, agent_id=self.agent_id)
-                break  # end of agent turn
+                break
 
             turn += 1
 
@@ -690,6 +709,20 @@ class Agent:
                 self._session_store.append_messages,
                 agent_id=self._history_agent_id,
                 messages=messages,
+            )
+
+    async def _rollback_message_history(self, count: int) -> None:
+        if count <= 0:
+            return
+        if count > len(self._message_history):
+            raise ValueError(f"Cannot rollback {count} messages from history of size {len(self._message_history)}")
+
+        del self._message_history[-count:]
+        if self._session_store is not None:
+            await arun(
+                self._session_store.delete_last_messages,
+                agent_id=self._history_agent_id,
+                count=count,
             )
 
     async def _process_tool_result(self, content: ToolResult) -> ToolResult:
