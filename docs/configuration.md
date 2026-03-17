@@ -175,12 +175,7 @@ To use a different embedding provider, change `PYTOOLS_EMBEDDING_MODEL` to a sup
 
 ## System Prompt
 
-The system prompt is an internal resource bundled with the package. The template used depends on the `tool_search` setting in `agent.json`:
-
-| Mode | Template | Description |
-|------|----------|-------------|
-| `basic` | [`system-basic.md`](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-basic.md) | Category browsing with `pytools_list_categories` and `pytools_list_tools` |
-| `hybrid` | [`system-hybrid.md`](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-hybrid.md) | Semantic search with `pytools_search_tools` |
+The system prompt is an internal resource bundled with the package ([`system.md`](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system.md)).
 
 The template supports placeholders:
 

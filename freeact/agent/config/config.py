@@ -209,7 +209,6 @@ class Config(PersistentConfig):
     @property
     def system_prompt(self) -> str:
         return load_system_prompt(
-            tool_search=self.tool_search,
             working_dir=self.working_dir,
             generated_rel_dir=self.generated_rel_dir,
             project_instructions_file=self.project_instructions_file,
