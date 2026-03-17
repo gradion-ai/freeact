@@ -8,6 +8,7 @@ No function or class definitions in `__init__.py`. They contain only imports fro
 - `freeact/agent/config/__init__.py`: re-exports from `config`, `skills`, plus constants.
 - `freeact/terminal/__init__.py`: re-exports from `app`, `config`.
 - `freeact/__init__.py`, `freeact/tools/__init__.py`: empty (no re-exports needed).
+- `freeact/tools/filesystem/__init__.py`: re-exports from `processing`.
 - `freeact/tools/pytools/__init__.py`: directory constants only.
 
 ## Import conventions

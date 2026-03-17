@@ -41,5 +41,3 @@
 ::: freeact.agent.FileWrite
 
 ::: freeact.agent.FileEdit
-
-::: freeact.agent.TextEdit

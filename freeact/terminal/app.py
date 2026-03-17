@@ -70,14 +70,6 @@ _BANNER_PATH = Path(__file__).with_name("banner.txt")
 
 
 @dataclass(frozen=True)
-class AtReferenceContext:
-    """Cursor range that covers the current `@path` token in the prompt."""
-
-    start: Location
-    end: Location
-
-
-@dataclass(frozen=True)
 class SlashCommandContext:
     """Cursor range that covers the `/command` token in the prompt."""
 
@@ -221,8 +213,8 @@ def _find_slash_command_context(text: str, cursor: Location) -> SlashCommandCont
     return SlashCommandContext(start=(0, 1), end=(0, end_col))
 
 
-def _format_attachment_path(path: Path, cwd: Path | None = None) -> str:
-    """Format a selected path for insertion after `@`.
+def _format_picked_path(path: Path, cwd: Path | None = None) -> str:
+    """Format a file picker selection as a path string for prompt insertion.
 
     Args:
         path: Selected filesystem path.
@@ -242,15 +234,17 @@ def _format_attachment_path(path: Path, cwd: Path | None = None) -> str:
     return str(relative)
 
 
-def _find_at_reference_context(text: str, cursor: Location) -> AtReferenceContext | None:
-    """Locate the active `@path` token when cursor is immediately after `@`.
+def _find_at_trigger(text: str, cursor: Location) -> Location | None:
+    """Return the position of `@` when cursor is immediately after it at a word boundary.
+
+    Only triggers when `@` is at the start of the line or preceded by whitespace.
 
     Args:
         text: Prompt text content.
         cursor: Current cursor location as `(row, column)`.
 
     Returns:
-        Token bounds for replacement, or `None` when no token is active.
+        Position of the `@` character, or `None` when no trigger is active.
     """
     row, col = cursor
     lines = text.split("\n")
@@ -262,13 +256,11 @@ def _find_at_reference_context(text: str, cursor: Location) -> AtReferenceContex
     if line[col - 1] != "@":
         return None
 
-    end_col = col
-    while end_col < len(line) and not line[end_col].isspace():
-        end_col += 1
-    return AtReferenceContext(
-        start=(row, col),
-        end=(row, end_col),
-    )
+    at_col = col - 1
+    if at_col > 0 and not line[at_col - 1].isspace():
+        return None
+
+    return (row, at_col)
 
 
 def _load_banner() -> Text | None:
@@ -608,8 +600,7 @@ class TerminalApp(App[None]):
 
         turn_state = TurnRenderState()
 
-        content = convert_at_references(text)
-        content = convert_slash_commands(content, self._skills_metadata)
+        content = convert_slash_commands(text, self._skills_metadata)
 
         self._turn_in_progress = True
         self._update_input_hints()
@@ -988,18 +979,20 @@ class TerminalApp(App[None]):
         if slash_ctx is not None and self._skills_metadata:
             self._open_skill_picker(slash_ctx)
             return
-        at_ctx = _find_at_reference_context(event.text_area.text, event.text_area.cursor_location)
-        if at_ctx is not None:
-            self._open_file_picker(at_ctx)
+        at_pos = _find_at_trigger(event.text_area.text, event.text_area.cursor_location)
+        if at_pos is not None:
+            self._open_file_picker(at_pos)
 
-    def _open_file_picker(self, context: AtReferenceContext) -> None:
+    def _open_file_picker(self, at_pos: Location) -> None:
+        at_end: Location = (at_pos[0], at_pos[1] + 1)
+
         async def handle_result(path: Path | None) -> None:
             if path is not None:
                 prompt_input = self.query_one("#prompt-input", PromptInput)
                 prompt_input.replace(
-                    _format_attachment_path(path),
-                    context.start,
-                    context.end,
+                    _format_picked_path(path),
+                    at_pos,
+                    at_end,
                 )
 
         self.push_screen(
@@ -1021,18 +1014,6 @@ class TerminalApp(App[None]):
             SkillPickerScreen(skills=self._skills_metadata),
             callback=handle_result,
         )
-
-
-def convert_at_references(text: str) -> str:
-    """Strip `@` prefix from `@path` tokens, leaving the bare path.
-
-    Args:
-        text: User prompt text that may contain `@path` tokens.
-
-    Returns:
-        Prompt text with `@` prefixes removed from path tokens.
-    """
-    return re.sub(r"@(\S+)", r"\1", text)
 
 
 def convert_slash_commands(text: str, skills: list[SkillMetadata]) -> str:
@@ -1058,10 +1039,8 @@ def convert_slash_commands(text: str, skills: list[SkillMetadata]) -> str:
 
 
 __all__ = [
-    "AtReferenceContext",
     "SlashCommandContext",
     "TerminalApp",
     "TerminalInterface",
-    "convert_at_references",
     "convert_slash_commands",
 ]

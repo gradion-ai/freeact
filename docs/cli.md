@@ -57,7 +57,7 @@ The interactive mode provides a conversation interface with the agent in a termi
 | `Enter` | Send message |
 | `Ctrl+J` | Insert newline |
 | `Option+Enter` (macOS)<br/>`Alt+Enter` (Linux/Windows) | Insert newline (`Ctrl+J` fallback) |
-| `Escape` | Cancel the current agent turn |
+| `Escape` | Cancel the current agent turn, or clear input when idle |
 | `Ctrl+Q` | Quit |
 
 ### Clipboard
@@ -74,24 +74,17 @@ Use `Ctrl+O` to toggle all collapsible boxes between expanded and configured sta
 
 The shortcut is configured in `.freeact/terminal.json` under `expand_all_toggle_key`.
 
-### Media Attachments
+### File References
 
-Reference media files using `@path` syntax:
+Include file paths directly in the prompt. The model uses built-in [filesystem tools](sdk.md#internal-tools) to read them when needed.
 
 ```
-@screenshot.png What does this show?
-Transcribe this @voice-note.wav
-@images/ Describe these images
+screenshot.png What does this show?
+Transcribe this voice-note.wav
+images/ Describe these images
 ```
 
-- Single file: `@path/to/file.png`
-- Directory: `@path/to/dir/` includes all media files in directory, non-recursive
-- Recognized media types: images, audio, video, and documents. Actual format support depends on the model provider.
-- Non-media file references (e.g. `@script.py`) are passed as bare file paths in the prompt text
-- Type `@` in the prompt to open a file picker
-- Images are automatically downscaled if larger than 1024 pixels in either dimension
-
-See [Prompt tags](sdk.md#prompt-tags) for the underlying tag format used by the SDK.
+Type `@` in the prompt to open a file picker for easier path insertion. The `@` prefix is stripped before sending, so `@screenshot.png` and `screenshot.png` are equivalent.
 
 ### Skill Invocation
 
@@ -136,7 +129,7 @@ The suggested pattern depends on the action type:
 |--------|---------------|---------|
 | Shell command | `command *` heuristic | `git add *` |
 | Code action | tool name | `ipybox_execute_ipython_cell` |
-| File read/write/edit | tool name + path | `filesystem_write_file src/main.py` |
+| File read/write/edit | tool name + path | `filesystem_write_text_file src/main.py` |
 | Other tool calls | tool name | `github_search_repositories` |
 
 See [Permissions](configuration.md#permissions) for the persisted format and pattern syntax.

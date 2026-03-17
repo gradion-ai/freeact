@@ -13,9 +13,9 @@ All factories accept `agent_id: str = ""` for uniform title formatting via `_tit
 - `create_exec_output_box(agent_id)` -> `tuple[Collapsible, RichLog]`
 - `create_tool_output_box(content, agent_id)` -> `Collapsible`
 - `create_error_box(message, agent_id)` -> `Collapsible`
-- `create_file_read_action_box(paths, head, tail, agent_id)` -> `tuple[Collapsible, Vertical]`
+- `create_file_read_action_box(path, offset, limit, agent_id)` -> `tuple[Collapsible, Vertical]`
 - `create_file_write_action_box(path, content, agent_id)` -> `tuple[Collapsible, Vertical]`
-- `create_file_edit_action_box(path, edits, agent_id)` -> `tuple[Collapsible, Vertical]`
+- `create_file_edit_action_box(path, old_text, new_text, agent_id)` -> `tuple[Collapsible, Vertical]`
 
 Tool-call factories (code action, tool call, file read/write/edit, subagent task) return a `Vertical` trace container with class `tool-trace-container` inside a `tool-call-content` wrapper. Tool results mount into this container, nesting them visually under the tool call widget.
 

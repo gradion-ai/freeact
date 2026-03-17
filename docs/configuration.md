@@ -96,7 +96,7 @@ Controls how the agent discovers Python tools:
 | `basic` | Category browsing with `pytools_list_categories` and `pytools_list_tools` |
 | `hybrid` | BM25/vector search with `pytools_search_tools` for natural language queries |
 
-The `tool_search` setting also selects the matching system prompt template (see [System Prompt](#system-prompt)). For hybrid mode environment variables, see [Hybrid Search](#hybrid-search).
+For hybrid mode environment variables, see [Hybrid Search](#hybrid-search).
 
 ### `mcp_servers`
 
@@ -235,7 +235,7 @@ The `.agents/skills/` directory is not managed by freeact and is not auto-create
   "allow": [
     {"type": "GenericCall", "tool_name": "github_*"},
     {"type": "ShellAction", "tool_name": "bash", "command": "git *"},
-    {"type": "FileRead", "tool_name": "filesystem_*", "paths": [".freeact/**"]},
+    {"type": "FileRead", "tool_name": "filesystem_*", "path": ".freeact/**"},
     {"type": "FileWrite", "tool_name": "filesystem_*", "path": "src/**"}
   ]
 }
@@ -248,7 +248,7 @@ Each entry has a `type` field that determines which fields are matched:
 | `GenericCall` | `tool_name` |
 | `ShellAction` | `tool_name`, `command` |
 | `CodeAction` | `tool_name` |
-| `FileRead` | `tool_name`, `paths` (every path must match at least one pattern) |
+| `FileRead` | `tool_name`, `path` |
 | `FileWrite` | `tool_name`, `path` |
 | `FileEdit` | `tool_name`, `path` |
 
@@ -270,6 +270,25 @@ Tool patterns match against MCP tool names (e.g. `github_search_repositories`, `
 ### Shell command patterns
 
 Shell patterns match against individual commands extracted from code actions. Shell commands using `!cmd` syntax or `%%bash` cell magic are extracted before execution and checked against `ShellAction` permission entries. Composite commands joined with `&&`, `||`, `|`, or `;` are decomposed into individual sub-commands, each checked independently. If any sub-command is denied, the entire cell is blocked.
+
+### Path wildcards
+
+Path fields (`path`) in `FileRead`, `FileWrite`, and `FileEdit` entries use path-aware matching. Paths are normalized relative to the working directory before matching: absolute paths under the working directory become relative, paths outside stay absolute.
+
+| Wildcard | Scope |
+|----------|-------|
+| `*` | Matches within a single directory |
+| `**` | Matches across directory boundaries |
+
+The leading `/` determines whether a pattern targets paths inside or outside the working directory:
+
+| Pattern | Inside working dir | Outside working dir |
+|---------|--------------------|---------------------|
+| `**` | Yes | No |
+| `/**` | No | Yes |
+| `src/**` | Yes (under `src/`) | No |
+
+`tool_name` and `command` fields use standard glob matching where `*` matches any characters and `?` matches a single character.
 
 ## Tool Directories
 

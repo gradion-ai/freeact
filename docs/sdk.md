@@ -70,7 +70,7 @@ The agent uses a small set of internal tools for reading and writing files, exec
 
 | Tool | Implementation | Description |
 |------|---------------|-------------|
-| read, write | [`filesystem`][freeact.agent.config.FILESYSTEM_MCP_SERVER_CONFIG] MCP server | Reading and writing files via JSON tool calls |
+| read, write, edit | [`filesystem`][freeact.agent.config.FILESYSTEM_MCP_SERVER_CONFIG] MCP server | Reading, writing, and editing files via JSON tool calls (`read_text_file`, `read_media_file`, `write_text_file`, `edit_text_file`) |
 | execute | `ipybox_execute_ipython_cell` | Execution of Python code and shell commands (via `!` prefix), delegated to ipybox's `CodeExecutor` |
 | subagent | [`subagent_task`](#subagents) | Task delegation to child agents |
 | tool search | `pytools` MCP server for [basic search][freeact.agent.config.BASIC_SEARCH_MCP_SERVER_CONFIG] and [hybrid search][freeact.agent.config.HYBRID_SEARCH_MCP_SERVER_CONFIG] | Tool discovery via category browsing or hybrid search |
@@ -225,17 +225,7 @@ Tool result persistence is controlled by two config options:
 
 ### Prompt tags
 
-Prompts passed to `stream()` may contain XML tags that the agent resolves before sending to the model. The [CLI tool](cli.md#media-attachments) generates these tags from `@path` and `/skill-name` syntax.
-
-**Attachment tags** reference local files or directories. `stream()` resolves media files (images, audio, video, documents) to multimodal content with binary data. Non-media paths are replaced with the bare file path in the prompt text.
-
-```xml
-<attachment path="screenshot.png"/>
-<attachment path="~/recordings/voice-note.wav"/>
-<attachment path="images/"/>
-```
-
-**Skill tags** explicitly invoke a skill by name. The agent reads the skill's `SKILL.md` file and follows its instructions, using the tag content as arguments.
+Prompts passed to `stream()` may contain skill tags that the agent processes. Skill tags explicitly invoke a skill by name. The [CLI tool](cli.md#skill-invocation) generates these from `/skill-name` syntax.
 
 ```xml
 <skill name="review">the auth module</skill>
@@ -247,7 +237,7 @@ Without an explicit tag, the agent can still autonomously select a skill when th
 
 [`PermissionManager`][freeact.permissions.PermissionManager] provides pattern-based permission gating using typed [`ToolCall`][freeact.agent.call.ToolCall] instances. Patterns use glob-style matching (`*`, `?`). Path fields use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries. Rules are organized into ask/allow tiers with session and always persistence scopes.
 
-Each `ApprovalRequest` carries a `tool_call` field that is a `ToolCall` subclass (`GenericCall`, `ShellAction`, `CodeAction`, `FileRead`, `FileWrite`, `FileEdit`). Permission matching is type-specific: shell commands match on `command`, filesystem tools match on `path`/`paths`, and generic tools match on `tool_name` only.
+Each `ApprovalRequest` carries a `tool_call` field that is a `ToolCall` subclass (`GenericCall`, `ShellAction`, `CodeAction`, `FileRead`, `FileWrite`, `FileEdit`). Permission matching is type-specific: shell commands match on `command`, filesystem tools match on `path`, and generic tools match on `tool_name` only.
 
 ```python
 from freeact.permissions import PermissionManager
