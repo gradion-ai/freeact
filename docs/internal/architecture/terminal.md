@@ -21,7 +21,7 @@ Read this first, then follow code references for details.
 
 ## Event Flow
 
-- Prompt submit: `PromptInput.Submitted` -> `convert_at_references()` -> `preprocess_prompt()` -> `agent_stream(...)`.
+- Prompt submit: `PromptInput.Submitted` -> `convert_slash_commands()` -> `agent_stream(...)`.
 - Stream events map to UI:
   - Main-agent `Thoughts*` / `Response*`: markdown stream boxes
   - `ApprovalRequest`: approval UI + decision gate
@@ -43,7 +43,7 @@ Read this first, then follow code references for details.
 
 ## Keyboard Semantics
 
-- `PromptInput`: `Enter` submit, `Ctrl+J` newline, `Alt+Enter` -> `Ctrl+J`.
+- `PromptInput`: `Enter` submit, `Ctrl+J` newline, `Alt+Enter` -> `Ctrl+J`, `Escape` clears input when idle.
 - Quit: `Ctrl+Q`.
 - Expand/collapse override: `toggle_expand_all` (default `Ctrl+O`, configurable via `expand_all_toggle_key` in `terminal.json`).
 - Copy selected text: `Cmd+C` / `Super+C`, `Ctrl+Shift+C`, `Ctrl+Insert`, `Ctrl+C`.

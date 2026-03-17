@@ -59,41 +59,6 @@ This macOS-specific example configuration allows additional network access to `e
 
 MCP servers run as separate processes and are not affected by [code execution sandboxing](#code-execution). Local stdio servers can be sandboxed independently by wrapping the server command with the `srt` tool from sandbox-runtime. This applies to both [`mcp_servers`](configuration.md#mcp_servers) and [`ptc_servers`](configuration.md#ptc_servers) in the [configuration file](configuration.md#configuration-file).
 
-### Filesystem MCP Server
-
-This example shows a sandboxed [filesystem MCP server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem) in the `mcp_servers` section:
-
-```json title=".freeact/agent.json"
-{
-  "mcp_servers": {
-    "filesystem": {
-      "command": "srt",
-      "args": [
-        "--settings", "sandbox-filesystem-mcp.json",
-        "npx", "-y", "@modelcontextprotocol/server-filesystem", "."
-      ]
-    }
-  }
-}
-```
-
-The sandbox configuration blocks `.env` reads and allows network access to the npm registry, which is required for `npx` to download the server package:
-
-```json title="sandbox-filesystem-mcp.json"
-{
-  "filesystem": {
-    "denyRead": [".env"],
-    "allowWrite": [".", "~/.npm"],
-    "denyWrite": []
-  },
-  "network": {
-    "allowedDomains": ["registry.npmjs.org"],
-    "deniedDomains": [],
-    "allowLocalBinding": true
-  }
-}
-```
-
 ### Fetch MCP Server
 
 This example shows a sandboxed [fetch MCP server](https://github.com/modelcontextprotocol/servers/tree/main/src/fetch). First, install it locally with:

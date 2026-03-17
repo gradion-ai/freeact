@@ -1,11 +1,8 @@
 import asyncio
 import contextlib
-import json
 import logging
-import os
 import uuid
 from collections.abc import Sequence, Set
-from contextlib import asynccontextmanager
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, AsyncIterator
@@ -14,7 +11,7 @@ import ipybox
 from aiostream.stream import merge
 from ipybox.utils import arun
 from mcp import types as mcp_types
-from mcp.client.stdio import StdioServerParameters, stdio_client
+from pydantic_ai import BinaryContent
 from pydantic_ai.direct import model_request_stream
 from pydantic_ai.mcp import MCPServer, MCPServerStdio, MCPServerStreamableHTTP, ToolResult
 from pydantic_ai.messages import (
@@ -72,17 +69,6 @@ class _MCPServerStdioFiltered(MCPServerStdio):
     async def list_tools(self) -> list[mcp_types.Tool]:
         tools = await super().list_tools()
         return [t for t in tools if t.name not in self._excluded_tools]
-
-
-class _FilesystemMCPServerStdio(_MCPServerStdioFiltered):
-    """Filesystem MCP server client that suppresses server stderr noise."""
-
-    @asynccontextmanager
-    async def client_streams(self) -> AsyncIterator[tuple[Any, Any]]:
-        server = StdioServerParameters(command=self.command, args=list(self.args), env=self.env, cwd=self.cwd)
-        with Path(os.devnull).open("w", encoding="utf-8") as errlog:
-            async with stdio_client(server=server, errlog=errlog) as streams:
-                yield streams
 
 
 class Agent:
@@ -303,12 +289,7 @@ class Agent:
             excluded_tools = cfg.pop("excluded_tools", None)
             match cfg:
                 case {"command": _}:
-                    if name == "filesystem":
-                        servers[name] = _FilesystemMCPServerStdio(
-                            excluded_tools=frozenset(excluded_tools or ()),
-                            **cfg,
-                        )
-                    elif excluded_tools:
+                    if excluded_tools:
                         servers[name] = _MCPServerStdioFiltered(
                             excluded_tools=frozenset(excluded_tools),
                             **cfg,
@@ -417,6 +398,7 @@ class Agent:
                 return
 
             tool_returns: list[ToolReturnPart] = []
+            media_parts: list[UserPromptPart] = []
             tool_streams = [self._execute_tool(call) for call in aggregated.tool_calls]
 
             merged = merge(*tool_streams)
@@ -426,6 +408,8 @@ class Agent:
                     match item:
                         case ToolReturnPart():
                             tool_returns.append(item)
+                        case UserPromptPart():
+                            media_parts.append(item)
                         case _:
                             yield item
                     if self._cancel_event.is_set():
@@ -437,7 +421,9 @@ class Agent:
                 if call.tool_call_id not in returned_ids:
                     tool_returns.append(self._interrupted_tool_return(call))
 
-            await self._append_message_history([ModelRequest(parts=tool_returns)])
+            request_parts: list[ToolReturnPart | UserPromptPart] = list(tool_returns)
+            request_parts.extend(media_parts)
+            await self._append_message_history([ModelRequest(parts=request_parts)])
 
             if self._cancel_event.is_set():
                 yield Cancelled(agent_id=self.agent_id, phase="tool_execution")
@@ -485,7 +471,7 @@ class Agent:
             return None
         return approval_waiter.result()
 
-    async def _execute_tool(self, call: ToolCallPart) -> AsyncIterator[AgentEvent | ToolReturnPart]:
+    async def _execute_tool(self, call: ToolCallPart) -> AsyncIterator[AgentEvent | ToolReturnPart | UserPromptPart]:
         tool_name = call.tool_name
         tool_args = call.args_as_dict()
         corr_id = uuid.uuid4().hex[:8]
@@ -583,9 +569,15 @@ class Agent:
                         case ToolOutput(agent_id=agent_id, content=tool_content) if agent_id == self.agent_id:
                             content = tool_content
             case _:
-                content = await self._call_mcp_tool(tool_name, tool_args)
-                content = await self._process_tool_result(content)
-                yield ToolOutput(content=content, agent_id=self.agent_id, corr_id=corr_id)
+                result = await self._call_mcp_tool(tool_name, tool_args)
+                if isinstance(result, BinaryContent):
+                    path = tool_args.get("path", "unknown")
+                    content = f"Read media: {path}"
+                    yield ToolOutput(content=content, agent_id=self.agent_id, corr_id=corr_id)
+                    yield UserPromptPart(content=[f"Read media: {path}", result])
+                else:
+                    content = await self._process_tool_result(result)
+                    yield ToolOutput(content=content, agent_id=self.agent_id, corr_id=corr_id)
 
         if self._cancel_event.is_set() and not rejected:
             yield self._interrupted_tool_return(call, content)
@@ -681,33 +673,12 @@ class Agent:
         try:
             mcp_server = self._tool_mapping[tool_name]
             resolved_name = tool_name.removeprefix(f"{mcp_server.tool_prefix}_")
-            result = await mcp_server.direct_call_tool(
+            return await mcp_server.direct_call_tool(
                 name=resolved_name,
                 args=tool_args,
             )
-            if tool_name in {"filesystem_read_text_file", "filesystem_read_multiple_files"}:
-                return self._extract_file_content(result)
-            return result
         except Exception as e:
             return f"MCP tool call failed: {str(e)}"
-
-    @staticmethod
-    def _extract_file_content(result: ToolResult) -> ToolResult:
-        match result:
-            case {"content": content} as payload if len(payload) == 1:
-                return content
-            case str() as raw:
-                try:
-                    decoded = json.loads(raw)
-                except json.JSONDecodeError:
-                    return result
-                match decoded:
-                    case {"content": content} as payload if len(payload) == 1:
-                        return content
-                    case _:
-                        return result
-            case _:
-                return result
 
     async def _append_message_history(self, messages: list[ModelMessage]) -> None:
         if not messages:

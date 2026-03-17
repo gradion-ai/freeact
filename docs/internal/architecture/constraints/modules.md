@@ -6,9 +6,9 @@ No function or class definitions in `__init__.py`. They contain only imports fro
 
 - `freeact/agent/__init__.py`: re-exports from `call`, `core`, `events`.
 - `freeact/agent/config/__init__.py`: re-exports from `config`, `skills`, plus constants.
-- `freeact/preproc/__init__.py`: re-exports from `prompt`.
 - `freeact/terminal/__init__.py`: re-exports from `app`, `config`.
 - `freeact/__init__.py`, `freeact/tools/__init__.py`: empty (no re-exports needed).
+- `freeact/tools/filesystem/__init__.py`: re-exports from `processing`.
 - `freeact/tools/pytools/__init__.py`: directory constants only.
 
 ## Import conventions
@@ -48,3 +48,7 @@ permissions.py
 ```
 
 The terminal depends on agent types but the agent does not depend on the terminal. The permission module depends on the `ToolCall` base class but not on agent core. Config classes inherit from `PersistentConfig` in the top-level `freeact/config.py`.
+
+## Terminal package isolation
+
+The `freeact/terminal/` package must not import from `pydantic_ai`. All model-level types (e.g. `UserContent`, `BinaryContent`) stay inside `freeact/agent/`.

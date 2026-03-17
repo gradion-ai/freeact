@@ -25,18 +25,8 @@ DEFAULT_MODEL_SETTINGS: dict[str, Any] = {
 }
 
 FILESYSTEM_MCP_SERVER_CONFIG: dict[str, Any] = {
-    "command": "npx",
-    "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
-    "excluded_tools": [
-        "create_directory",
-        "list_directory",
-        "list_directory_with_sizes",
-        "directory_tree",
-        "move_file",
-        "search_files",
-        "list_allowed_directories",
-        "read_file",
-    ],
+    "command": "python",
+    "args": ["-m", "freeact.tools.filesystem"],
 }
 
 BASIC_SEARCH_MCP_SERVER_CONFIG: dict[str, Any] = {
@@ -219,7 +209,6 @@ class Config(PersistentConfig):
     @property
     def system_prompt(self) -> str:
         return load_system_prompt(
-            tool_search=self.tool_search,
             working_dir=self.working_dir,
             generated_rel_dir=self.generated_rel_dir,
             project_instructions_file=self.project_instructions_file,

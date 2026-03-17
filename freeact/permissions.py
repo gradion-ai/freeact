@@ -9,8 +9,7 @@ from freeact.agent.call import ToolCall
 DEFAULT_ALLOW_RULES: list[dict[str, Any]] = [
     {"type": "GenericCall", "tool_name": "pytools_list_categories"},
     {"type": "GenericCall", "tool_name": "pytools_list_tools"},
-    {"type": "FileRead", "tool_name": "filesystem_read_text_file", "paths": [".freeact/**"]},
-    {"type": "FileRead", "tool_name": "filesystem_read_multiple_files", "paths": [".freeact/**"]},
+    {"type": "FileRead", "tool_name": "filesystem_read_text_file", "path": ".freeact/**"},
 ]
 
 

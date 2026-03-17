@@ -10,7 +10,7 @@ from textual.keys import Keys
 from textual.pilot import Pilot
 from textual.widgets import Static
 
-from freeact.agent.call import CodeAction, FileEdit, FileWrite, GenericCall, ShellAction, TextEdit, ToolCall
+from freeact.agent.call import CodeAction, FileEdit, FileWrite, GenericCall, ShellAction, ToolCall
 from freeact.agent.config.skills import SkillMetadata
 from freeact.agent.events import (
     AgentEvent,
@@ -25,15 +25,13 @@ from freeact.agent.events import (
     ToolOutput,
 )
 from freeact.terminal.app import (
-    AtReferenceContext,
     SlashCommandContext,
     TerminalApp,
-    _find_at_reference_context,
+    _find_at_trigger,
     _find_slash_command_context,
-    _format_attachment_path,
     _format_display_cwd,
+    _format_picked_path,
     _load_freeact_version,
-    convert_at_references,
     convert_slash_commands,
 )
 from freeact.terminal.config import Config as TerminalConfig
@@ -134,37 +132,38 @@ def _create_app(
     )
 
 
-@pytest.mark.parametrize(
-    ("text", "expected"),
-    [
-        ("See @image.png", 'See <attachment path="image.png"/>'),
-        ("@a.png and @b.jpg", '<attachment path="a.png"/> and <attachment path="b.jpg"/>'),
-    ],
-)
-def test_convert_at_references(text: str, expected: str) -> None:
-    assert convert_at_references(text) == expected
-
-
-def test_find_at_reference_context_extracts_token_range() -> None:
+def test_find_at_trigger_returns_at_position() -> None:
     text = "Attach @docs/readme.md now"
-    context = _find_at_reference_context(text, (0, text.index("@") + 1))
+    pos = _find_at_trigger(text, (0, text.index("@") + 1))
 
-    assert context is not None
-    assert context.start == (0, text.index("@") + 1)
-    assert context.end == (0, text.index(" now"))
+    assert pos is not None
+    assert pos == (0, text.index("@"))
 
 
-def test_find_at_reference_context_requires_cursor_after_at() -> None:
+def test_find_at_trigger_requires_cursor_after_at() -> None:
     text = "Attach @docs/readme.md now"
-    assert _find_at_reference_context(text, (0, 0)) is None
-    assert _find_at_reference_context(text, (0, text.index("@") + 2)) is None
+    assert _find_at_trigger(text, (0, 0)) is None
+    assert _find_at_trigger(text, (0, text.index("@") + 2)) is None
 
 
-def test_format_attachment_path_prefers_relative_to_cwd(tmp_path: Path) -> None:
+def test_find_at_trigger_requires_word_boundary() -> None:
+    text = "user@example.com"
+    assert _find_at_trigger(text, (0, text.index("@") + 1)) is None
+
+
+def test_find_at_trigger_at_line_start() -> None:
+    text = "@screenshot.png describe this"
+    pos = _find_at_trigger(text, (0, 1))
+
+    assert pos is not None
+    assert pos == (0, 0)
+
+
+def test_format_picked_path_prefers_relative_to_cwd(tmp_path: Path) -> None:
     nested = tmp_path / "assets" / "images"
     nested.mkdir(parents=True)
 
-    assert _format_attachment_path(nested, cwd=tmp_path) == "assets/images"
+    assert _format_picked_path(nested, cwd=tmp_path) == "assets/images"
 
 
 def test_format_display_cwd_prefers_tilde_relative_home(tmp_path: Path) -> None:
@@ -408,7 +407,8 @@ async def test_mouse_drag_selects_text_in_all_widget_types() -> None:
             tool_call=FileEdit(
                 tool_name="file_edit",
                 path="out.py",
-                edits=(TextEdit(old_text="x = 1", new_text="x = 2"),),
+                old_text="x = 1",
+                new_text="x = 2",
             ),
             agent_id=MAIN_AGENT_ID,
             corr_id="edit-1",
@@ -1079,20 +1079,20 @@ async def test_file_picker_cursor_starts_at_cwd() -> None:
 
 
 @pytest.mark.asyncio
-async def test_file_picker_selection_replaces_existing_at_token() -> None:
+async def test_file_picker_selection_replaces_at_with_path() -> None:
     app = _create_app(agent_stream=MockStreamAgent(_no_events).stream, agent_id=MAIN_AGENT_ID)
 
     async with app.run_test() as pilot:
         prompt = app.query_one("#prompt-input", PromptInput)
-        prompt.insert("See @old value")
-        app._open_file_picker(AtReferenceContext(start=(0, 5), end=(0, 8)))
+        prompt.insert("See @ value")
+        app._open_file_picker((0, 4))
         await pilot.pause(0.05)
 
         picker = next(screen for screen in app.screen_stack if isinstance(screen, FilePickerScreen))
         picker.dismiss(Path.cwd() / "new")
         await pilot.pause(0.05)
 
-        assert prompt.text == "See @new value"
+        assert prompt.text == "See new value"
 
 
 # --- convert_slash_commands tests ---

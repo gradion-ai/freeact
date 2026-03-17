@@ -1,12 +1,11 @@
 # Agent SDK
 
-The Agent SDK provides five main APIs:
+The Agent SDK provides four main APIs:
 
 - [Configuration API](#configuration-api) for initializing and loading configuration from `.freeact/`
 - [Generation API](#generation-api) for generating Python APIs for MCP server tools
 - [Agent API](#agent-api) for running the agentic code action loop
 - [Permissions API](#permissions-api) for managing approval decisions
-- [Preprocessing API](#preprocessing-api) for transforming user prompts
 
 ## Configuration API
 
@@ -71,7 +70,7 @@ The agent uses a small set of internal tools for reading and writing files, exec
 
 | Tool | Implementation | Description |
 |------|---------------|-------------|
-| read, write | [`filesystem`][freeact.agent.config.FILESYSTEM_MCP_SERVER_CONFIG] MCP server | Reading and writing files via JSON tool calls |
+| read, write, edit | [`filesystem`][freeact.agent.config.FILESYSTEM_MCP_SERVER_CONFIG] MCP server | Reading, writing, and editing files via JSON tool calls (`read_text_file`, `read_media_file`, `write_text_file`, `edit_text_file`) |
 | execute | `ipybox_execute_ipython_cell` | Execution of Python code and shell commands (via `!` prefix), delegated to ipybox's `CodeExecutor` |
 | subagent | [`subagent_task`](#subagents) | Task delegation to child agents |
 | tool search | `pytools` MCP server for [basic search][freeact.agent.config.BASIC_SEARCH_MCP_SERVER_CONFIG] and [hybrid search][freeact.agent.config.HYBRID_SEARCH_MCP_SERVER_CONFIG] | Tool discovery via category browsing or hybrid search |
@@ -224,11 +223,21 @@ Tool result persistence is controlled by two config options:
 - `tool_result_inline_max_bytes`: Maximum inline payload size for a tool result.
 - `tool_result_preview_chars`: Number of preview characters shown from both the beginning and end of large text results in the file reference notice.
 
+### Prompt tags
+
+Prompts passed to `stream()` may contain skill tags that the agent processes. Skill tags explicitly invoke a skill by name. The [CLI tool](cli.md#skill-invocation) generates these from `/skill-name` syntax.
+
+```xml
+<skill name="review">the auth module</skill>
+```
+
+Without an explicit tag, the agent can still autonomously select a skill when the request matches a skill's description. Skills are discovered from `.freeact/skills/` and `.agents/skills/` directories.
+
 ## Permissions API
 
 [`PermissionManager`][freeact.permissions.PermissionManager] provides pattern-based permission gating using typed [`ToolCall`][freeact.agent.call.ToolCall] instances. Patterns use glob-style matching (`*`, `?`). Path fields use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries. Rules are organized into ask/allow tiers with session and always persistence scopes.
 
-Each `ApprovalRequest` carries a `tool_call` field that is a `ToolCall` subclass (`GenericCall`, `ShellAction`, `CodeAction`, `FileRead`, `FileWrite`, `FileEdit`). Permission matching is type-specific: shell commands match on `command`, filesystem tools match on `path`/`paths`, and generic tools match on `tool_name` only.
+Each `ApprovalRequest` carries a `tool_call` field that is a `ToolCall` subclass (`GenericCall`, `ShellAction`, `CodeAction`, `FileRead`, `FileWrite`, `FileEdit`). Permission matching is type-specific: shell commands match on `command`, filesystem tools match on `path`, and generic tools match on `tool_name` only.
 
 ```python
 from freeact.permissions import PermissionManager
@@ -259,25 +268,3 @@ async for event in agent.stream(prompt):
 ```
 
 See [Permissions](configuration.md#permissions) for the persisted file format and pattern syntax.
-
-## Preprocessing API
-
-The terminal UI converts user-facing syntax (`/skill-name` and `@path`) into XML tags, then [`preprocess_prompt`][freeact.preproc.preprocess_prompt] transforms the tagged text into agent-ready content. Attachment tags are resolved to multimodal content with image data. Skill tags pass through to the agent unchanged.
-
-A `/skill-name` command becomes a `<skill>` tag that the agent handles via skill metadata in its system prompt:
-
-```python
---8<-- "examples/prompt_preproc.py:skill"
-```
-
-An `@path` reference becomes an `<attachment path="..."/>` tag. [`preprocess_prompt`][freeact.preproc.preprocess_prompt] resolves image paths to binary content:
-
-```python
---8<-- "examples/prompt_preproc.py:attachment"
-```
-
-Plain text passes through unchanged:
-
-```python
---8<-- "examples/prompt_preproc.py:plain"
-```

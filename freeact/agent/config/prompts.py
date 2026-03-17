@@ -1,13 +1,11 @@
 from importlib.resources import as_file, files
 from pathlib import Path
-from typing import Literal
 
 from freeact.agent.config.skills import SkillMetadata
 
 
 def load_system_prompt(
     *,
-    tool_search: Literal["basic", "hybrid"],
     working_dir: Path,
     generated_rel_dir: Path,
     project_instructions_file: Path,
@@ -15,8 +13,7 @@ def load_system_prompt(
 ) -> str:
     prompts = files("freeact.agent.config").joinpath("prompts")
     with as_file(prompts) as prompts_dir:
-        template_name = "system-hybrid.md" if tool_search == "hybrid" else "system-basic.md"
-        template = (prompts_dir / template_name).read_text()
+        template = (prompts_dir / "system.md").read_text()
 
     return template.format(
         working_dir=working_dir,

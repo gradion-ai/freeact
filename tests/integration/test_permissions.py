@@ -10,7 +10,6 @@ from freeact.agent.call import (
     FileWrite,
     GenericCall,
     ShellAction,
-    TextEdit,
 )
 from freeact.permissions import DEFAULT_ALLOW_RULES, PermissionManager
 
@@ -47,7 +46,7 @@ class TestTypeSpecificMatching:
 
     def test_generic_call_no_match(self, permission_manager: PermissionManager) -> None:
         permission_manager.allow_session(GenericCall(tool_name="github_*", tool_args={}, ptc=False))
-        tc = GenericCall(tool_name="filesystem_read_file", tool_args={}, ptc=False)
+        tc = GenericCall(tool_name="filesystem_read_text_file", tool_args={}, ptc=False)
         assert not permission_manager.is_allowed(tc)
 
     def test_shell_action_tool_name_and_command(self, permission_manager: PermissionManager) -> None:
@@ -65,51 +64,30 @@ class TestTypeSpecificMatching:
         tc = CodeAction(tool_name="ipybox_execute_ipython_cell", code="print(1)")
         assert permission_manager.is_allowed(tc)
 
-    def test_file_read_all_paths_must_match(self, permission_manager: PermissionManager) -> None:
-        permission_manager.allow_session(FileRead(tool_name="filesystem_*", paths=("src/**",), head=None, tail=None))
+    def test_file_read_path_must_match(self, permission_manager: PermissionManager) -> None:
+        permission_manager.allow_session(FileRead(tool_name="filesystem_*", path="src/**", offset=None, limit=None))
         tc = FileRead(
-            tool_name="filesystem_read_file",
-            paths=("src/main.py",),
-            head=None,
-            tail=None,
+            tool_name="filesystem_read_text_file",
+            path="src/main.py",
+            offset=None,
+            limit=None,
         )
         assert permission_manager.is_allowed(tc)
 
     def test_file_read_path_mismatch(self, permission_manager: PermissionManager) -> None:
-        permission_manager.allow_session(FileRead(tool_name="filesystem_*", paths=("src/**",), head=None, tail=None))
+        permission_manager.allow_session(FileRead(tool_name="filesystem_*", path="src/**", offset=None, limit=None))
         tc = FileRead(
-            tool_name="filesystem_read_file",
-            paths=("tests/test_foo.py",),
-            head=None,
-            tail=None,
+            tool_name="filesystem_read_text_file",
+            path="tests/test_foo.py",
+            offset=None,
+            limit=None,
         )
         assert not permission_manager.is_allowed(tc)
-
-    def test_file_read_multiple_paths_all_must_match(self, permission_manager: PermissionManager) -> None:
-        permission_manager.allow_session(FileRead(tool_name="filesystem_*", paths=("src/**",), head=None, tail=None))
-        # One path matches, one doesn't
-        tc = FileRead(
-            tool_name="filesystem_read_multiple_files",
-            paths=("src/main.py", "tests/test_foo.py"),
-            head=None,
-            tail=None,
-        )
-        assert not permission_manager.is_allowed(tc)
-
-    def test_file_read_multiple_paths_all_match(self, permission_manager: PermissionManager) -> None:
-        permission_manager.allow_session(FileRead(tool_name="filesystem_*", paths=("src/**",), head=None, tail=None))
-        tc = FileRead(
-            tool_name="filesystem_read_multiple_files",
-            paths=("src/main.py", "src/config.py"),
-            head=None,
-            tail=None,
-        )
-        assert permission_manager.is_allowed(tc)
 
     def test_file_write_path_match(self, permission_manager: PermissionManager) -> None:
         permission_manager.allow_session(FileWrite(tool_name="filesystem_*", path="src/**", content=""))
         tc = FileWrite(
-            tool_name="filesystem_write_file",
+            tool_name="filesystem_write_text_file",
             path="src/main.py",
             content="print(1)",
         )
@@ -118,27 +96,29 @@ class TestTypeSpecificMatching:
     def test_file_write_path_mismatch(self, permission_manager: PermissionManager) -> None:
         permission_manager.allow_session(FileWrite(tool_name="filesystem_*", path="src/**", content=""))
         tc = FileWrite(
-            tool_name="filesystem_write_file",
+            tool_name="filesystem_write_text_file",
             path="tests/test.py",
             content="pass",
         )
         assert not permission_manager.is_allowed(tc)
 
     def test_file_edit_path_match(self, permission_manager: PermissionManager) -> None:
-        permission_manager.allow_session(FileEdit(tool_name="filesystem_*", path="src/**", edits=()))
+        permission_manager.allow_session(FileEdit(tool_name="filesystem_*", path="src/**", old_text="", new_text=""))
         tc = FileEdit(
-            tool_name="filesystem_edit_file",
+            tool_name="filesystem_edit_text_file",
             path="src/main.py",
-            edits=(TextEdit(old_text="a", new_text="b"),),
+            old_text="a",
+            new_text="b",
         )
         assert permission_manager.is_allowed(tc)
 
     def test_file_edit_path_mismatch(self, permission_manager: PermissionManager) -> None:
-        permission_manager.allow_session(FileEdit(tool_name="filesystem_*", path="src/**", edits=()))
+        permission_manager.allow_session(FileEdit(tool_name="filesystem_*", path="src/**", old_text="", new_text=""))
         tc = FileEdit(
-            tool_name="filesystem_edit_file",
+            tool_name="filesystem_edit_text_file",
             path="tests/test.py",
-            edits=(TextEdit(old_text="a", new_text="b"),),
+            old_text="a",
+            new_text="b",
         )
         assert not permission_manager.is_allowed(tc)
 
@@ -174,23 +154,23 @@ class TestPathNormalization:
     def test_absolute_path_normalized_to_relative(
         self, working_dir: Path, permission_manager: PermissionManager
     ) -> None:
-        permission_manager.allow_session(FileRead(tool_name="filesystem_*", paths=("src/**",), head=None, tail=None))
+        permission_manager.allow_session(FileRead(tool_name="filesystem_*", path="src/**", offset=None, limit=None))
         absolute_path = str(working_dir / "src" / "main.py")
         tc = FileRead(
-            tool_name="filesystem_read_file",
-            paths=(absolute_path,),
-            head=None,
-            tail=None,
+            tool_name="filesystem_read_text_file",
+            path=absolute_path,
+            offset=None,
+            limit=None,
         )
         assert permission_manager.is_allowed(tc)
 
     def test_path_outside_workspace_stays_absolute(self, permission_manager: PermissionManager) -> None:
-        permission_manager.allow_session(FileRead(tool_name="filesystem_*", paths=("/etc/**",), head=None, tail=None))
+        permission_manager.allow_session(FileRead(tool_name="filesystem_*", path="/etc/**", offset=None, limit=None))
         tc = FileRead(
-            tool_name="filesystem_read_file",
-            paths=("/etc/hosts",),
-            head=None,
-            tail=None,
+            tool_name="filesystem_read_text_file",
+            path="/etc/hosts",
+            offset=None,
+            limit=None,
         )
         assert permission_manager.is_allowed(tc)
 
@@ -335,49 +315,51 @@ class TestPathPatternSemantics:
     """Tests for path pattern matching with PurePosixPath.full_match."""
 
     def test_single_star_matches_direct_child(self, permission_manager: PermissionManager) -> None:
-        permission_manager.allow_session(FileRead(tool_name="filesystem_*", paths=("src/*",), head=None, tail=None))
-        tc = FileRead(tool_name="filesystem_read_file", paths=("src/main.py",), head=None, tail=None)
+        permission_manager.allow_session(FileRead(tool_name="filesystem_*", path="src/*", offset=None, limit=None))
+        tc = FileRead(tool_name="filesystem_read_text_file", path="src/main.py", offset=None, limit=None)
         assert permission_manager.is_allowed(tc)
 
     def test_single_star_does_not_cross_slash(self, permission_manager: PermissionManager) -> None:
-        permission_manager.allow_session(FileRead(tool_name="filesystem_*", paths=("src/*",), head=None, tail=None))
-        tc = FileRead(tool_name="filesystem_read_file", paths=("src/sub/main.py",), head=None, tail=None)
+        permission_manager.allow_session(FileRead(tool_name="filesystem_*", path="src/*", offset=None, limit=None))
+        tc = FileRead(tool_name="filesystem_read_text_file", path="src/sub/main.py", offset=None, limit=None)
         assert not permission_manager.is_allowed(tc)
 
     def test_double_star_matches_any_depth(self, permission_manager: PermissionManager) -> None:
-        permission_manager.allow_session(FileRead(tool_name="filesystem_*", paths=("src/**",), head=None, tail=None))
+        permission_manager.allow_session(FileRead(tool_name="filesystem_*", path="src/**", offset=None, limit=None))
         assert permission_manager.is_allowed(
-            FileRead(tool_name="filesystem_read_file", paths=("src/main.py",), head=None, tail=None)
+            FileRead(tool_name="filesystem_read_text_file", path="src/main.py", offset=None, limit=None)
         )
         assert permission_manager.is_allowed(
-            FileRead(tool_name="filesystem_read_file", paths=("src/sub/main.py",), head=None, tail=None)
+            FileRead(tool_name="filesystem_read_text_file", path="src/sub/main.py", offset=None, limit=None)
         )
         assert permission_manager.is_allowed(
-            FileRead(tool_name="filesystem_read_file", paths=("src/a/b/c.py",), head=None, tail=None)
+            FileRead(tool_name="filesystem_read_text_file", path="src/a/b/c.py", offset=None, limit=None)
         )
 
     def test_freeact_double_star_matches_nested(self, permission_manager: PermissionManager) -> None:
         permission_manager.allow_session(FileWrite(tool_name="filesystem_*", path=".freeact/**", content=""))
         tc = FileWrite(
-            tool_name="filesystem_write_file",
+            tool_name="filesystem_write_text_file",
             path=".freeact/sessions/abc/main.jsonl",
             content="data",
         )
         assert permission_manager.is_allowed(tc)
 
     def test_double_star_slash_star_dot_py_matches_any_depth(self, permission_manager: PermissionManager) -> None:
-        permission_manager.allow_session(FileEdit(tool_name="filesystem_*", path="**/*.py", edits=()))
+        permission_manager.allow_session(FileEdit(tool_name="filesystem_*", path="**/*.py", old_text="", new_text=""))
         assert permission_manager.is_allowed(
             FileEdit(
-                tool_name="filesystem_edit_file",
+                tool_name="filesystem_edit_text_file",
                 path="main.py",
-                edits=(TextEdit(old_text="a", new_text="b"),),
+                old_text="a",
+                new_text="b",
             )
         )
         assert permission_manager.is_allowed(
             FileEdit(
-                tool_name="filesystem_edit_file",
+                tool_name="filesystem_edit_text_file",
                 path="src/deep/nested/file.py",
-                edits=(TextEdit(old_text="a", new_text="b"),),
+                old_text="a",
+                new_text="b",
             )
         )

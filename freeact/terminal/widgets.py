@@ -1,6 +1,6 @@
 import json
 from collections.abc import Callable
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from rich.segment import Segment
@@ -16,8 +16,6 @@ from textual.message import Message
 from textual.strip import Strip
 from textual.widget import Widget
 from textual.widgets import Collapsible, Markdown, RichLog, Static, TextArea
-
-from freeact.agent.call import TextEdit
 
 # Register Alt+Enter (ESC + CR) to produce the same key event as Ctrl+J,
 # which PromptInput handles as newline insertion. Without this, the xterm
@@ -176,7 +174,7 @@ class ApprovalBar(Static):
         self._editing = True
         self._pending_decision = scope
         self.update("")
-        input_widget = Input(value=self._pattern, id="approval-pattern-input")
+        input_widget = Input(value=self._pattern, id="approval-pattern-input", select_on_focus=False)
         self.mount(input_widget)
         input_widget.focus()
 
@@ -467,46 +465,34 @@ def create_error_box(message: str, agent_id: str = "") -> Collapsible:
 
 
 def create_file_read_action_box(
-    paths: tuple[str, ...],
-    head: int | None,
-    tail: int | None,
+    path: str,
+    offset: int | None,
+    limit: int | None,
     agent_id: str = "",
 ) -> tuple[Collapsible, Vertical]:
     """Create a collapsible box for a file read action.
 
     Args:
-        paths: Target file paths.
-        head: Optional head-line count for single-file reads.
-        tail: Optional tail-line count for single-file reads.
+        path: Target file path.
+        offset: Optional 1-indexed line offset.
+        limit: Optional line count limit.
         agent_id: Agent identifier for the title prefix.
 
     Returns:
         Tuple of the Collapsible widget and the nested trace container.
     """
-    if len(paths) == 1:
-        path = paths[0]
-        filename = path.rsplit("/", 1)[-1] if "/" in path else path
-        parts: list[str] = [path]
-        if head is not None:
-            parts.append(f"head: {head}")
-        if tail is not None:
-            parts.append(f"tail: {tail}")
-        content, trace_container = _wrap_with_trace_container(Static("\n".join(parts)))
-        box = Collapsible(
-            content,
-            title=_titled(f"Read Action: {filename}", agent_id),
-            collapsed=False,
-            classes="read-file-box",
-        )
-        return box, trace_container
-
-    path_list = "\n".join(f"  {path}" for path in paths)
-    content, trace_container = _wrap_with_trace_container(Static(path_list))
+    filename = PurePosixPath(path).name
+    parts: list[str] = [path]
+    if offset is not None:
+        parts.append(f"offset: {offset}")
+    if limit is not None:
+        parts.append(f"limit: {limit}")
+    content, trace_container = _wrap_with_trace_container(Static("\n".join(parts)))
     box = Collapsible(
         content,
-        title=_titled(f"Read Action: {len(paths)} files", agent_id),
+        title=_titled(f"Read Action: {filename}", agent_id),
         collapsed=False,
-        classes="read-files-box",
+        classes="read-file-box",
     )
     return box, trace_container
 
@@ -536,14 +522,16 @@ def create_file_write_action_box(path: str, content: str, agent_id: str = "") ->
 
 def create_file_edit_action_box(
     path: str,
-    edits: tuple[TextEdit, ...],
+    old_text: str,
+    new_text: str,
     agent_id: str = "",
 ) -> tuple[Collapsible, Vertical]:
-    """Create a box that renders file edits as a unified diff preview.
+    """Create a box that renders a file edit as a unified diff preview.
 
     Args:
         path: Target file path for the edit action.
-        edits: Canonical text edits to apply.
+        old_text: Text to find and replace.
+        new_text: Replacement text.
         agent_id: Agent identifier for the title prefix.
 
     Returns:
@@ -552,15 +540,12 @@ def create_file_edit_action_box(
     diff_lines = [
         f"--- a/{path}",
         f"+++ b/{path}",
+        "@@ edit @@",
     ]
-    for edit in edits:
-        old_text = edit.old_text
-        new_text = edit.new_text
-        diff_lines.append("@@ edit @@")
-        for line in old_text.splitlines():
-            diff_lines.append(f"-{line}")
-        for line in new_text.splitlines():
-            diff_lines.append(f"+{line}")
+    for line in old_text.splitlines():
+        diff_lines.append(f"-{line}")
+    for line in new_text.splitlines():
+        diff_lines.append(f"+{line}")
 
     diff_text = "\n".join(diff_lines)
     syntax = Syntax(diff_text, "diff", theme="monokai")

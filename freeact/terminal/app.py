@@ -1,6 +1,6 @@
 import asyncio
 import re
-from collections.abc import AsyncIterator, Callable, Sequence
+from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass, field
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as package_version
@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import TypeAlias
 
 from ipybox.utils import arun
-from pydantic_ai import UserContent
 from rich.console import Console
 from rich.text import Text
 from textual import work
@@ -44,7 +43,6 @@ from freeact.agent.events import (
     ToolOutput,
 )
 from freeact.permissions import PermissionManager
-from freeact.preproc import preprocess_prompt
 from freeact.terminal.clipboard import ClipboardAdapter, ClipboardAdapterProtocol
 from freeact.terminal.config import Config
 from freeact.terminal.screens import FilePickerScreen, SkillPickerScreen
@@ -66,17 +64,9 @@ from freeact.terminal.widgets import (
     finalize_exec_output,
 )
 
-AgentStreamFn: TypeAlias = Callable[[str | Sequence[UserContent]], AsyncIterator[AgentEvent]]
+AgentStreamFn: TypeAlias = Callable[[str], AsyncIterator[AgentEvent]]
 Location: TypeAlias = tuple[int, int]
 _BANNER_PATH = Path(__file__).with_name("banner.txt")
-
-
-@dataclass(frozen=True)
-class AtReferenceContext:
-    """Cursor range that covers the current `@path` token in the prompt."""
-
-    start: Location
-    end: Location
 
 
 @dataclass(frozen=True)
@@ -223,8 +213,8 @@ def _find_slash_command_context(text: str, cursor: Location) -> SlashCommandCont
     return SlashCommandContext(start=(0, 1), end=(0, end_col))
 
 
-def _format_attachment_path(path: Path, cwd: Path | None = None) -> str:
-    """Format a selected path for insertion after `@`.
+def _format_picked_path(path: Path, cwd: Path | None = None) -> str:
+    """Format a file picker selection as a path string for prompt insertion.
 
     Args:
         path: Selected filesystem path.
@@ -244,15 +234,17 @@ def _format_attachment_path(path: Path, cwd: Path | None = None) -> str:
     return str(relative)
 
 
-def _find_at_reference_context(text: str, cursor: Location) -> AtReferenceContext | None:
-    """Locate the active `@path` token when cursor is immediately after `@`.
+def _find_at_trigger(text: str, cursor: Location) -> Location | None:
+    """Return the position of `@` when cursor is immediately after it at a word boundary.
+
+    Only triggers when `@` is at the start of the line or preceded by whitespace.
 
     Args:
         text: Prompt text content.
         cursor: Current cursor location as `(row, column)`.
 
     Returns:
-        Token bounds for replacement, or `None` when no token is active.
+        Position of the `@` character, or `None` when no trigger is active.
     """
     row, col = cursor
     lines = text.split("\n")
@@ -264,13 +256,11 @@ def _find_at_reference_context(text: str, cursor: Location) -> AtReferenceContex
     if line[col - 1] != "@":
         return None
 
-    end_col = col
-    while end_col < len(line) and not line[end_col].isspace():
-        end_col += 1
-    return AtReferenceContext(
-        start=(row, col),
-        end=(row, end_col),
-    )
+    at_col = col - 1
+    if at_col > 0 and not line[at_col - 1].isspace():
+        return None
+
+    return (row, at_col)
 
 
 def _load_banner() -> Text | None:
@@ -595,24 +585,22 @@ class TerminalApp(App[None]):
         self._tool_call_boxes.clear()
 
     def on_prompt_input_submitted(self, event: PromptInput.Submitted) -> None:
-        raw_text = event.text
-        text = convert_at_references(raw_text)
-        text = convert_slash_commands(text, self._skills_metadata)
-        content = preprocess_prompt(text)
-        self._process_turn(raw_text, content)
+        self._process_turn(event.text)
 
     @work(exclusive=True)
-    async def _process_turn(self, raw_text: str, content: str | Sequence[UserContent]) -> None:
+    async def _process_turn(self, text: str) -> None:
         prompt_input = self.query_one("#prompt-input", PromptInput)
         conversation = self.query_one("#conversation", VerticalScroll)
         prompt_input.disabled = True
         conversation.anchor()
 
-        user_box = create_user_input_box(raw_text)
+        user_box = create_user_input_box(text)
         self._collapse_state.register(user_box, configured_collapsed=False)
         await self._mount_and_scroll(conversation, conversation, user_box)
 
         turn_state = TurnRenderState()
+
+        content = convert_slash_commands(text, self._skills_metadata)
 
         self._turn_in_progress = True
         self._update_input_hints()
@@ -808,13 +796,13 @@ class TerminalApp(App[None]):
         match request.tool_call:
             case CodeAction(code=code):
                 box, trace_container = create_code_action_box(code, agent_id=request.agent_id)
-            case FileEdit(path=path, edits=edits):
-                box, trace_container = create_file_edit_action_box(path, edits, agent_id=request.agent_id)
-            case FileRead(paths=paths, head=head, tail=tail):
+            case FileEdit(path=path, old_text=old_text, new_text=new_text):
+                box, trace_container = create_file_edit_action_box(path, old_text, new_text, agent_id=request.agent_id)
+            case FileRead(path=path, offset=offset, limit=limit):
                 box, trace_container = create_file_read_action_box(
-                    paths,
-                    head,
-                    tail,
+                    path,
+                    offset,
+                    limit,
                     agent_id=request.agent_id,
                 )
             case FileWrite(path=path, content=content):
@@ -991,18 +979,20 @@ class TerminalApp(App[None]):
         if slash_ctx is not None and self._skills_metadata:
             self._open_skill_picker(slash_ctx)
             return
-        at_ctx = _find_at_reference_context(event.text_area.text, event.text_area.cursor_location)
-        if at_ctx is not None:
-            self._open_file_picker(at_ctx)
+        at_pos = _find_at_trigger(event.text_area.text, event.text_area.cursor_location)
+        if at_pos is not None:
+            self._open_file_picker(at_pos)
 
-    def _open_file_picker(self, context: AtReferenceContext) -> None:
+    def _open_file_picker(self, at_pos: Location) -> None:
+        at_end: Location = (at_pos[0], at_pos[1] + 1)
+
         async def handle_result(path: Path | None) -> None:
             if path is not None:
                 prompt_input = self.query_one("#prompt-input", PromptInput)
                 prompt_input.replace(
-                    _format_attachment_path(path),
-                    context.start,
-                    context.end,
+                    _format_picked_path(path),
+                    at_pos,
+                    at_end,
                 )
 
         self.push_screen(
@@ -1024,18 +1014,6 @@ class TerminalApp(App[None]):
             SkillPickerScreen(skills=self._skills_metadata),
             callback=handle_result,
         )
-
-
-def convert_at_references(text: str) -> str:
-    """Convert `@path` tokens to `<attachment path="..."/>` tags.
-
-    Args:
-        text: User prompt text that may contain `@path` tokens.
-
-    Returns:
-        Prompt text with `@path` tokens replaced by attachment tags.
-    """
-    return re.sub(r"@(\S+)", r'<attachment path="\1"/>', text)
 
 
 def convert_slash_commands(text: str, skills: list[SkillMetadata]) -> str:
@@ -1061,10 +1039,8 @@ def convert_slash_commands(text: str, skills: list[SkillMetadata]) -> str:
 
 
 __all__ = [
-    "AtReferenceContext",
     "SlashCommandContext",
     "TerminalApp",
     "TerminalInterface",
-    "convert_at_references",
     "convert_slash_commands",
 ]
