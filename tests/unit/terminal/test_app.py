@@ -10,7 +10,7 @@ from textual.keys import Keys
 from textual.pilot import Pilot
 from textual.widgets import Static
 
-from freeact.agent.call import CodeAction, FileEdit, FileWrite, GenericCall, ShellAction, TextEdit, ToolCall
+from freeact.agent.call import CodeAction, FileEdit, FileWrite, GenericCall, ShellAction, ToolCall
 from freeact.agent.config.skills import SkillMetadata
 from freeact.agent.events import (
     AgentEvent,
@@ -408,7 +408,8 @@ async def test_mouse_drag_selects_text_in_all_widget_types() -> None:
             tool_call=FileEdit(
                 tool_name="file_edit",
                 path="out.py",
-                edits=(TextEdit(old_text="x = 1", new_text="x = 2"),),
+                old_text="x = 1",
+                new_text="x = 2",
             ),
             agent_id=MAIN_AGENT_ID,
             corr_id="edit-1",
