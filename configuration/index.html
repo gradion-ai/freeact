@@ -709,6 +709,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#path-wildcards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path wildcards
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1434,34 +1445,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../api/preproc/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Preprocessing
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -1711,6 +1694,17 @@
     <span class="md-ellipsis">
       
         Shell command patterns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-wildcards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path wildcards
       
     </span>
   </a>
@@ -1984,7 +1978,7 @@
 </tr>
 </tbody>
 </table>
-<p>The <code>tool_search</code> setting also selects the matching system prompt template (see <a href="#system-prompt">System Prompt</a>). For hybrid mode environment variables, see <a href="#hybrid-search">Hybrid Search</a>.</p>
+<p>For hybrid mode environment variables, see <a href="#hybrid-search">Hybrid Search</a>.</p>
 <h3 id="mcp_servers"><code>mcp_servers</code></h3>
 <p>MCP servers called directly via JSON tool calls. Internal servers (<code>pytools</code> for <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.BASIC_SEARCH_MCP_SERVER_CONFIG">basic</a> or <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.HYBRID_SEARCH_MCP_SERVER_CONFIG">hybrid</a> tool search and <a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.FILESYSTEM_MCP_SERVER_CONFIG"><code>filesystem</code></a> for file operations) are provided automatically and do not need to be configured. User-defined servers in this section are merged with the internal defaults. If a user entry uses the same key as an internal server, the user entry takes precedence.</p>
 <div class="admonition tip">
@@ -2117,28 +2111,7 @@
 <p>Set <code>PYTOOLS_EMBEDDING_MODEL=test</code> to use a test embedder that generates deterministic embeddings. This is useful for development and testing but produces meaningless search results.</p>
 </div>
 <h2 id="system-prompt">System Prompt</h2>
-<p>The system prompt is an internal resource bundled with the package. The template used depends on the <code>tool_search</code> setting in <code>agent.json</code>:</p>
-<table>
-<thead>
-<tr>
-<th>Mode</th>
-<th>Template</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>basic</code></td>
-<td><a href="https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-basic.md"><code>system-basic.md</code></a></td>
-<td>Category browsing with <code>pytools_list_categories</code> and <code>pytools_list_tools</code></td>
-</tr>
-<tr>
-<td><code>hybrid</code></td>
-<td><a href="https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-hybrid.md"><code>system-hybrid.md</code></a></td>
-<td>Semantic search with <code>pytools_search_tools</code></td>
-</tr>
-</tbody>
-</table>
+<p>The system prompt is an internal resource bundled with the package (<a href="https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system.md"><code>system.md</code></a>).</p>
 <p>The template supports placeholders:</p>
 <table>
 <thead>
@@ -2220,7 +2193,7 @@
 <span class="w">  </span><span class="nt">&quot;allow&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">    </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;GenericCall&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;tool_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;github_*&quot;</span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ShellAction&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;tool_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bash&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;git *&quot;</span><span class="p">},</span>
-<span class="w">    </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FileRead&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;tool_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;filesystem_*&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;paths&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;.freeact/**&quot;</span><span class="p">]},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FileRead&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;tool_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;filesystem_*&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;.freeact/**&quot;</span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FileWrite&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;tool_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;filesystem_*&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;src/**&quot;</span><span class="p">}</span>
 <span class="w">  </span><span class="p">]</span>
 <span class="p">}</span>
@@ -2248,7 +2221,7 @@
 </tr>
 <tr>
 <td><code>FileRead</code></td>
-<td><code>tool_name</code>, <code>paths</code> (every path must match at least one pattern)</td>
+<td><code>tool_name</code>, <code>path</code></td>
 </tr>
 <tr>
 <td><code>FileWrite</code></td>
@@ -2285,6 +2258,54 @@
 <p>Tool patterns match against MCP tool names (e.g. <code>github_search_repositories</code>, <code>filesystem_read_file</code>). Filesystem tools (<code>FileRead</code>, <code>FileWrite</code>, <code>FileEdit</code>) additionally match on path fields, enabling path-specific rules like allowing reads only from <code>src/**</code>.</p>
 <h3 id="shell-command-patterns">Shell command patterns</h3>
 <p>Shell patterns match against individual commands extracted from code actions. Shell commands using <code>!cmd</code> syntax or <code>%%bash</code> cell magic are extracted before execution and checked against <code>ShellAction</code> permission entries. Composite commands joined with <code>&amp;&amp;</code>, <code>||</code>, <code>|</code>, or <code>;</code> are decomposed into individual sub-commands, each checked independently. If any sub-command is denied, the entire cell is blocked.</p>
+<h3 id="path-wildcards">Path wildcards</h3>
+<p>Path fields (<code>path</code>) in <code>FileRead</code>, <code>FileWrite</code>, and <code>FileEdit</code> entries use path-aware matching. Paths are normalized relative to the working directory before matching: absolute paths under the working directory become relative, paths outside stay absolute.</p>
+<table>
+<thead>
+<tr>
+<th>Wildcard</th>
+<th>Scope</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>*</code></td>
+<td>Matches within a single directory</td>
+</tr>
+<tr>
+<td><code>**</code></td>
+<td>Matches across directory boundaries</td>
+</tr>
+</tbody>
+</table>
+<p>The leading <code>/</code> determines whether a pattern targets paths inside or outside the working directory:</p>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Inside working dir</th>
+<th>Outside working dir</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>**</code></td>
+<td>Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>/**</code></td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>src/**</code></td>
+<td>Yes (under <code>src/</code>)</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><code>tool_name</code> and <code>command</code> fields use standard glob matching where <code>*</code> matches any characters and <code>?</code> matches a single character.</p>
 <h2 id="tool-directories">Tool Directories</h2>
 <p>The agent discovers tools from two directories under <code>.freeact/generated/</code>:</p>
 <h3 id="mcptools"><code>mcptools/</code></h3>

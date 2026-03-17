@@ -695,10 +695,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#image-attachments" class="md-nav__link">
+  <a href="#file-references" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Image Attachments
+        File References
       
     </span>
   </a>
@@ -1245,34 +1245,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../api/preproc/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Preprocessing
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -1374,10 +1346,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#image-attachments" class="md-nav__link">
+  <a href="#file-references" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Image Attachments
+        File References
       
     </span>
   </a>
@@ -1517,7 +1489,7 @@
 </tr>
 <tr>
 <td><code>Escape</code></td>
-<td>Cancel the current agent turn</td>
+<td>Cancel the current agent turn, or clear input when idle</td>
 </tr>
 <tr>
 <td><code>Ctrl+Q</code></td>
@@ -1535,19 +1507,13 @@
 <h3 id="expand-and-collapse">Expand and Collapse</h3>
 <p>Use <code>Ctrl+O</code> to toggle all collapsible boxes between expanded and configured state.</p>
 <p>The shortcut is configured in <code>.freeact/terminal.json</code> under <code>expand_all_toggle_key</code>.</p>
-<h3 id="image-attachments">Image Attachments</h3>
-<p>Reference images using <code>@path</code> syntax:</p>
-<div class="highlight"><pre><span></span><code>@screenshot.png What does this show?
-@images/ Describe these images
+<h3 id="file-references">File References</h3>
+<p>Include file paths directly in the prompt. The model uses built-in <a href="../sdk/#internal-tools">filesystem tools</a> to read them when needed.</p>
+<div class="highlight"><pre><span></span><code>screenshot.png What does this show?
+Transcribe this voice-note.wav
+images/ Describe these images
 </code></pre></div>
-<ul>
-<li>Single file: <code>@path/to/image.png</code></li>
-<li>Directory: <code>@path/to/dir/</code> includes all images in directory, non-recursive</li>
-<li>Supported formats: PNG, JPG, JPEG, GIF, WEBP</li>
-<li>Type <code>@</code> in the prompt to open a file picker.</li>
-<li>Select a file or directory to insert its path after <code>@</code>.</li>
-</ul>
-<p>Images are automatically downscaled if larger than 1024 pixels in either dimension.</p>
+<p>Type <code>@</code> in the prompt to open a file picker for easier path insertion. The <code>@</code> prefix is stripped before sending, so <code>@screenshot.png</code> and <code>screenshot.png</code> are equivalent.</p>
 <h3 id="skill-invocation">Skill Invocation</h3>
 <p>The agent automatically uses skills when a request matches a skill's description. The <code>/skill-name</code> syntax is a shortcut to invoke a specific skill explicitly:</p>
 <div class="highlight"><pre><span></span><code>/plan my project requirements
@@ -1616,7 +1582,7 @@
 <tr>
 <td>File read/write/edit</td>
 <td>tool name + path</td>
-<td><code>filesystem_write_file src/main.py</code></td>
+<td><code>filesystem_write_text_file src/main.py</code></td>
 </tr>
 <tr>
 <td>Other tool calls</td>

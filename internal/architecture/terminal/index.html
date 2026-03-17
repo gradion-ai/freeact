@@ -1065,34 +1065,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../../api/preproc/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Preprocessing
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -1244,7 +1216,7 @@ Read this first, then follow code references for details.</p>
 </ul>
 <h2 id="event-flow">Event Flow</h2>
 <ul>
-<li>Prompt submit: <code>PromptInput.Submitted</code> -&gt; <code>convert_at_references()</code> -&gt; <code>preprocess_prompt()</code> -&gt; <code>agent_stream(...)</code>.</li>
+<li>Prompt submit: <code>PromptInput.Submitted</code> -&gt; <code>convert_slash_commands()</code> -&gt; <code>agent_stream(...)</code>.</li>
 <li>Stream events map to UI:</li>
 <li>Main-agent <code>Thoughts*</code> / <code>Response*</code>: markdown stream boxes</li>
 <li><code>ApprovalRequest</code>: approval UI + decision gate</li>
@@ -1266,7 +1238,7 @@ Read this first, then follow code references for details.</p>
 </ul>
 <h2 id="keyboard-semantics">Keyboard Semantics</h2>
 <ul>
-<li><code>PromptInput</code>: <code>Enter</code> submit, <code>Ctrl+J</code> newline, <code>Alt+Enter</code> -&gt; <code>Ctrl+J</code>.</li>
+<li><code>PromptInput</code>: <code>Enter</code> submit, <code>Ctrl+J</code> newline, <code>Alt+Enter</code> -&gt; <code>Ctrl+J</code>, <code>Escape</code> clears input when idle.</li>
 <li>Quit: <code>Ctrl+Q</code>.</li>
 <li>Expand/collapse override: <code>toggle_expand_all</code> (default <code>Ctrl+O</code>, configurable via <code>expand_all_toggle_key</code> in <code>terminal.json</code>).</li>
 <li>Copy selected text: <code>Cmd+C</code> / <code>Super+C</code>, <code>Ctrl+Shift+C</code>, <code>Ctrl+Insert</code>, <code>Ctrl+C</code>.</li>

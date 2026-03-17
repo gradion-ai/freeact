@@ -348,7 +348,7 @@ Controls how the agent discovers Python tools:
 | `basic`  | Category browsing with `pytools_list_categories` and `pytools_list_tools`   |
 | `hybrid` | BM25/vector search with `pytools_search_tools` for natural language queries |
 
-The `tool_search` setting also selects the matching system prompt template (see [System Prompt](#system-prompt)). For hybrid mode environment variables, see [Hybrid Search](#hybrid-search).
+For hybrid mode environment variables, see [Hybrid Search](#hybrid-search).
 
 ### `mcp_servers`
 
@@ -430,12 +430,7 @@ Set `PYTOOLS_EMBEDDING_MODEL=test` to use a test embedder that generates determi
 
 ## System Prompt
 
-The system prompt is an internal resource bundled with the package. The template used depends on the `tool_search` setting in `agent.json`:
-
-| Mode     | Template                                                                                                            | Description                                                               |
-| -------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `basic`  | [`system-basic.md`](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-basic.md)   | Category browsing with `pytools_list_categories` and `pytools_list_tools` |
-| `hybrid` | [`system-hybrid.md`](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system-hybrid.md) | Semantic search with `pytools_search_tools`                               |
+The system prompt is an internal resource bundled with the package ([`system.md`](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system.md)).
 
 The template supports placeholders:
 
@@ -498,7 +493,7 @@ The CLI supports a [`--skip-permissions`](https://gradion-ai.github.io/freeact/c
   "allow": [
     {"type": "GenericCall", "tool_name": "github_*"},
     {"type": "ShellAction", "tool_name": "bash", "command": "git *"},
-    {"type": "FileRead", "tool_name": "filesystem_*", "paths": [".freeact/**"]},
+    {"type": "FileRead", "tool_name": "filesystem_*", "path": ".freeact/**"},
     {"type": "FileWrite", "tool_name": "filesystem_*", "path": "src/**"}
   ]
 }
@@ -506,14 +501,14 @@ The CLI supports a [`--skip-permissions`](https://gradion-ai.github.io/freeact/c
 
 Each entry has a `type` field that determines which fields are matched:
 
-| Type          | Matched fields                                                    |
-| ------------- | ----------------------------------------------------------------- |
-| `GenericCall` | `tool_name`                                                       |
-| `ShellAction` | `tool_name`, `command`                                            |
-| `CodeAction`  | `tool_name`                                                       |
-| `FileRead`    | `tool_name`, `paths` (every path must match at least one pattern) |
-| `FileWrite`   | `tool_name`, `path`                                               |
-| `FileEdit`    | `tool_name`, `path`                                               |
+| Type          | Matched fields         |
+| ------------- | ---------------------- |
+| `GenericCall` | `tool_name`            |
+| `ShellAction` | `tool_name`, `command` |
+| `CodeAction`  | `tool_name`            |
+| `FileRead`    | `tool_name`, `path`    |
+| `FileWrite`   | `tool_name`, `path`    |
+| `FileEdit`    | `tool_name`, `path`    |
 
 ### Tiers
 
@@ -533,6 +528,25 @@ Tool patterns match against MCP tool names (e.g. `github_search_repositories`, `
 ### Shell command patterns
 
 Shell patterns match against individual commands extracted from code actions. Shell commands using `!cmd` syntax or `%%bash` cell magic are extracted before execution and checked against `ShellAction` permission entries. Composite commands joined with `&&`, `||`, `|`, or `;` are decomposed into individual sub-commands, each checked independently. If any sub-command is denied, the entire cell is blocked.
+
+### Path wildcards
+
+Path fields (`path`) in `FileRead`, `FileWrite`, and `FileEdit` entries use path-aware matching. Paths are normalized relative to the working directory before matching: absolute paths under the working directory become relative, paths outside stay absolute.
+
+| Wildcard | Scope                               |
+| -------- | ----------------------------------- |
+| `*`      | Matches within a single directory   |
+| `**`     | Matches across directory boundaries |
+
+The leading `/` determines whether a pattern targets paths inside or outside the working directory:
+
+| Pattern  | Inside working dir | Outside working dir |
+| -------- | ------------------ | ------------------- |
+| `**`     | Yes                | No                  |
+| `/**`    | No                 | Yes                 |
+| `src/**` | Yes (under `src/`) | No                  |
+
+`tool_name` and `command` fields use standard glob matching where `*` matches any characters and `?` matches a single character.
 
 ## Tool Directories
 
@@ -752,45 +766,6 @@ This macOS-specific example configuration allows additional network access to `e
 
 MCP servers run as separate processes and are not affected by [code execution sandboxing](#code-execution). Local stdio servers can be sandboxed independently by wrapping the server command with the `srt` tool from sandbox-runtime. This applies to both [`mcp_servers`](https://gradion-ai.github.io/freeact/configuration/#mcp_servers) and [`ptc_servers`](https://gradion-ai.github.io/freeact/configuration/#ptc_servers) in the [configuration file](https://gradion-ai.github.io/freeact/configuration/#configuration-file).
 
-### Filesystem MCP Server
-
-This example shows a sandboxed [filesystem MCP server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem) in the `mcp_servers` section:
-
-.freeact/agent.json
-
-```
-{
-  "mcp_servers": {
-    "filesystem": {
-      "command": "srt",
-      "args": [
-        "--settings", "sandbox-filesystem-mcp.json",
-        "npx", "-y", "@modelcontextprotocol/server-filesystem", "."
-      ]
-    }
-  }
-}
-```
-
-The sandbox configuration blocks `.env` reads and allows network access to the npm registry, which is required for `npx` to download the server package:
-
-sandbox-filesystem-mcp.json
-
-```
-{
-  "filesystem": {
-    "denyRead": [".env"],
-    "allowWrite": [".", "~/.npm"],
-    "denyWrite": []
-  },
-  "network": {
-    "allowedDomains": ["registry.npmjs.org"],
-    "deniedDomains": [],
-    "allowLocalBinding": true
-  }
-}
-```
-
 ### Fetch MCP Server
 
 This example shows a sandboxed [fetch MCP server](https://github.com/modelcontextprotocol/servers/tree/main/src/fetch). First, install it locally with:
@@ -1005,13 +980,12 @@ Use `provider_settings` for provider-specific options such as `api_key`, `base_u
 
 # Agent SDK
 
-The Agent SDK provides five main APIs:
+The Agent SDK provides four main APIs:
 
 - [Configuration API](#configuration-api) for initializing and loading configuration from `.freeact/`
 - [Generation API](#generation-api) for generating Python APIs for MCP server tools
 - [Agent API](#agent-api) for running the agentic code action loop
 - [Permissions API](#permissions-api) for managing approval decisions
-- [Preprocessing API](#preprocessing-api) for transforming user prompts
 
 ## Configuration API
 
@@ -1106,12 +1080,12 @@ All yielded events inherit from AgentEvent and carry `agent_id`.
 
 The agent uses a small set of internal tools for reading and writing files, executing code and commands, spawning subagents, and discovering tools:
 
-| Tool        | Implementation                                          | Description                                                                                        |
-| ----------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| read, write | filesystem MCP server                                   | Reading and writing files via JSON tool calls                                                      |
-| execute     | `ipybox_execute_ipython_cell`                           | Execution of Python code and shell commands (via `!` prefix), delegated to ipybox's `CodeExecutor` |
-| subagent    | [`subagent_task`](#subagents)                           | Task delegation to child agents                                                                    |
-| tool search | `pytools` MCP server for basic search and hybrid search | Tool discovery via category browsing or hybrid search                                              |
+| Tool              | Implementation                                          | Description                                                                                                                        |
+| ----------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| read, write, edit | filesystem MCP server                                   | Reading, writing, and editing files via JSON tool calls (`read_text_file`, `read_media_file`, `write_text_file`, `edit_text_file`) |
+| execute           | `ipybox_execute_ipython_cell`                           | Execution of Python code and shell commands (via `!` prefix), delegated to ipybox's `CodeExecutor`                                 |
+| subagent          | [`subagent_task`](#subagents)                           | Task delegation to child agents                                                                                                    |
+| tool search       | `pytools` MCP server for basic search and hybrid search | Tool discovery via category browsing or hybrid search                                                                              |
 
 ### Turn limits
 
@@ -1271,11 +1245,21 @@ Tool result persistence is controlled by two config options:
 - `tool_result_inline_max_bytes`: Maximum inline payload size for a tool result.
 - `tool_result_preview_chars`: Number of preview characters shown from both the beginning and end of large text results in the file reference notice.
 
+### Prompt tags
+
+Prompts passed to `stream()` may contain skill tags that the agent processes. Skill tags explicitly invoke a skill by name. The [CLI tool](https://gradion-ai.github.io/freeact/cli/#skill-invocation) generates these from `/skill-name` syntax.
+
+```
+<skill name="review">the auth module</skill>
+```
+
+Without an explicit tag, the agent can still autonomously select a skill when the request matches a skill's description. Skills are discovered from `.freeact/skills/` and `.agents/skills/` directories.
+
 ## Permissions API
 
 PermissionManager provides pattern-based permission gating using typed ToolCall instances. Patterns use glob-style matching (`*`, `?`). Path fields use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries. Rules are organized into ask/allow tiers with session and always persistence scopes.
 
-Each `ApprovalRequest` carries a `tool_call` field that is a `ToolCall` subclass (`GenericCall`, `ShellAction`, `CodeAction`, `FileRead`, `FileWrite`, `FileEdit`). Permission matching is type-specific: shell commands match on `command`, filesystem tools match on `path`/`paths`, and generic tools match on `tool_name` only.
+Each `ApprovalRequest` carries a `tool_call` field that is a `ToolCall` subclass (`GenericCall`, `ShellAction`, `CodeAction`, `FileRead`, `FileWrite`, `FileEdit`). Permission matching is type-specific: shell commands match on `command`, filesystem tools match on `path`, and generic tools match on `tool_name` only.
 
 ```
 from freeact.permissions import PermissionManager
@@ -1306,50 +1290,6 @@ async for event in agent.stream(prompt):
 ```
 
 See [Permissions](https://gradion-ai.github.io/freeact/configuration/#permissions) for the persisted file format and pattern syntax.
-
-## Preprocessing API
-
-The terminal UI converts user-facing syntax (`/skill-name` and `@path`) into XML tags, then preprocess_prompt transforms the tagged text into agent-ready content. Attachment tags are resolved to multimodal content with image data. Skill tags pass through to the agent unchanged.
-
-A `/skill-name` command becomes a `<skill>` tag that the agent handles via skill metadata in its system prompt:
-
-```
-raw = "/review the auth module"
-
-text = convert_at_references(raw)
-text = convert_slash_commands(text, skills)
-content = preprocess_prompt(text)
-
-print(content)
-# <skill name="review">the auth module</skill>
-```
-
-An `@path` reference becomes an `<attachment path="..."/>` tag. preprocess_prompt resolves image paths to binary content:
-
-```
-raw = "Describe @screenshot.png"
-
-text = convert_at_references(raw)
-text = convert_slash_commands(text, skills)
-content = preprocess_prompt(text)
-
-print(type(content))
-# <class 'list'>
-# [BinaryContent(...), 'Describe <attachment path="screenshot.png"/>']
-```
-
-Plain text passes through unchanged:
-
-```
-raw = "Explain how async works"
-
-text = convert_at_references(raw)
-text = convert_slash_commands(text, skills)
-content = preprocess_prompt(text)
-
-print(content)
-# Explain how async works
-```
 
 # CLI tool
 
@@ -1403,13 +1343,13 @@ The interactive mode provides a conversation interface with the agent in a termi
 
 ### User messages
 
-| Key                                                | Action                             |
-| -------------------------------------------------- | ---------------------------------- |
-| `Enter`                                            | Send message                       |
-| `Ctrl+J`                                           | Insert newline                     |
-| `Option+Enter` (macOS) `Alt+Enter` (Linux/Windows) | Insert newline (`Ctrl+J` fallback) |
-| `Escape`                                           | Cancel the current agent turn      |
-| `Ctrl+Q`                                           | Quit                               |
+| Key                                                | Action                                                  |
+| -------------------------------------------------- | ------------------------------------------------------- |
+| `Enter`                                            | Send message                                            |
+| `Ctrl+J`                                           | Insert newline                                          |
+| `Option+Enter` (macOS) `Alt+Enter` (Linux/Windows) | Insert newline (`Ctrl+J` fallback)                      |
+| `Escape`                                           | Cancel the current agent turn, or clear input when idle |
+| `Ctrl+Q`                                           | Quit                                                    |
 
 ### Clipboard
 
@@ -1425,22 +1365,17 @@ Use `Ctrl+O` to toggle all collapsible boxes between expanded and configured sta
 
 The shortcut is configured in `.freeact/terminal.json` under `expand_all_toggle_key`.
 
-### Image Attachments
+### File References
 
-Reference images using `@path` syntax:
+Include file paths directly in the prompt. The model uses built-in [filesystem tools](https://gradion-ai.github.io/freeact/sdk/#internal-tools) to read them when needed.
 
 ```
-@screenshot.png What does this show?
-@images/ Describe these images
+screenshot.png What does this show?
+Transcribe this voice-note.wav
+images/ Describe these images
 ```
 
-- Single file: `@path/to/image.png`
-- Directory: `@path/to/dir/` includes all images in directory, non-recursive
-- Supported formats: PNG, JPG, JPEG, GIF, WEBP
-- Type `@` in the prompt to open a file picker.
-- Select a file or directory to insert its path after `@`.
-
-Images are automatically downscaled if larger than 1024 pixels in either dimension.
+Type `@` in the prompt to open a file picker for easier path insertion. The `@` prefix is stripped before sending, so `@screenshot.png` and `screenshot.png` are equivalent.
 
 ### Skill Invocation
 
@@ -1481,12 +1416,12 @@ Always-allow rules persist to `.freeact/permissions.json` across sessions. Sessi
 
 The suggested pattern depends on the action type:
 
-| Action               | Pattern format        | Example                             |
-| -------------------- | --------------------- | ----------------------------------- |
-| Shell command        | `command *` heuristic | `git add *`                         |
-| Code action          | tool name             | `ipybox_execute_ipython_cell`       |
-| File read/write/edit | tool name + path      | `filesystem_write_file src/main.py` |
-| Other tool calls     | tool name             | `github_search_repositories`        |
+| Action               | Pattern format        | Example                                  |
+| -------------------- | --------------------- | ---------------------------------------- |
+| Shell command        | `command *` heuristic | `git add *`                              |
+| Code action          | tool name             | `ipybox_execute_ipython_cell`            |
+| File read/write/edit | tool name + path      | `filesystem_write_text_file src/main.py` |
+| Other tool calls     | tool name             | `github_search_repositories`             |
 
 See [Permissions](https://gradion-ai.github.io/freeact/configuration/#permissions) for the persisted format and pattern syntax.
 
@@ -1902,15 +1837,15 @@ Code execution action.
 ```
 FileRead(
     tool_name: str,
-    paths: tuple[str, ...],
-    head: int | None,
-    tail: int | None,
+    path: str,
+    offset: int | None,
+    limit: int | None,
 )
 ```
 
 Bases: `ToolCall`
 
-File read action (single or multiple files).
+File read action.
 
 ## freeact.agent.FileWrite
 
@@ -1926,21 +1861,13 @@ File write action.
 
 ```
 FileEdit(
-    tool_name: str, path: str, edits: tuple[TextEdit, ...]
+    tool_name: str, path: str, old_text: str, new_text: str
 )
 ```
 
 Bases: `ToolCall`
 
-File edit action with one or more text replacements.
-
-## freeact.agent.TextEdit
-
-```
-TextEdit(old_text: str, new_text: str)
-```
-
-A single text replacement within a file edit.
+File edit action.
 
 ## freeact.config.PersistentConfig
 
@@ -2095,22 +2022,8 @@ GOOGLE_SEARCH_MCP_SERVER_CONFIG: dict[str, Any] = {
 
 ```
 FILESYSTEM_MCP_SERVER_CONFIG: dict[str, Any] = {
-    "command": "npx",
-    "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        ".",
-    ],
-    "excluded_tools": [
-        "create_directory",
-        "list_directory",
-        "list_directory_with_sizes",
-        "directory_tree",
-        "move_file",
-        "search_files",
-        "list_allowed_directories",
-        "read_file",
-    ],
+    "command": "python",
+    "args": ["-m", "freeact.tools.filesystem"],
 }
 ```
 
@@ -2216,59 +2129,3 @@ save() -> None
 ```
 
 Persist always-tier permissions to `.freeact/permissions.json`.
-
-## freeact.preproc.preprocess_prompt
-
-```
-preprocess_prompt(
-    text: str, max_image_size: int = 1024
-) -> str | Sequence[UserContent]
-```
-
-Main preprocessing entry point. Transforms prompt text into agent-ready content.
-
-Currently delegates to preprocess_attachment_tags to resolve image attachments. Other tag types (e.g. `<skill>`) pass through unchanged for the agent to handle.
-
-Parameters:
-
-| Name             | Type  | Description                                                        | Default    |
-| ---------------- | ----- | ------------------------------------------------------------------ | ---------- |
-| `text`           | `str` | Prompt text, potentially containing <attachment> and <skill> tags. | *required* |
-| `max_image_size` | `int` | Maximum dimension for images (downscaled if larger).               | `1024`     |
-
-Returns:
-
-| Type  | Description             |
-| ----- | ----------------------- |
-| \`str | Sequence[UserContent]\` |
-
-## freeact.preproc.preprocess_attachment_tags
-
-```
-preprocess_attachment_tags(
-    text: str, max_image_size: int = 1024
-) -> str | Sequence[UserContent]
-```
-
-Resolve `<attachment path="..."/>` tags to multimodal content.
-
-Scans `text` for attachment tags, collects image files from the referenced paths (a path may point to a single file or a directory), and loads each image as binary content. The original text is preserved as the last element of the returned list.
-
-When no attachment tags are found, or none of the referenced paths contain images, the original text is returned unchanged as a plain string.
-
-Parameters:
-
-| Name             | Type  | Description                                                                                      | Default    |
-| ---------------- | ----- | ------------------------------------------------------------------------------------------------ | ---------- |
-| `text`           | `str` | Prompt text potentially containing <attachment path="..."/> tags.                                | *required* |
-| `max_image_size` | `int` | Maximum dimension in pixels. Images exceeding this are downscaled while preserving aspect ratio. | `1024`     |
-
-Returns:
-
-| Type  | Description             |
-| ----- | ----------------------- |
-| \`str | Sequence[UserContent]\` |
-
-Note
-
-Directory paths include all images in that directory (non-recursive).

@@ -617,17 +617,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#filesystem-mcp-server" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Filesystem MCP Server
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#fetch-mcp-server" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1229,34 +1218,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../api/preproc/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Preprocessing
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -1364,17 +1325,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#filesystem-mcp-server" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Filesystem MCP Server
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#fetch-mcp-server" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1462,34 +1412,6 @@
 <p>This macOS-specific example configuration allows additional network access to <code>example.org</code>. Filesystem settings permit writes to <code>~/Library/Jupyter/</code> and <code>~/.ipython/</code>, which is required for running a sandboxed IPython kernel. The sandbox configuration file itself is protected from reads and writes.</p>
 <h2 id="mcp-servers">MCP Servers</h2>
 <p>MCP servers run as separate processes and are not affected by <a href="#code-execution">code execution sandboxing</a>. Local stdio servers can be sandboxed independently by wrapping the server command with the <code>srt</code> tool from sandbox-runtime. This applies to both <a href="../configuration/#mcp_servers"><code>mcp_servers</code></a> and <a href="../configuration/#ptc_servers"><code>ptc_servers</code></a> in the <a href="../configuration/#configuration-file">configuration file</a>.</p>
-<h3 id="filesystem-mcp-server">Filesystem MCP Server</h3>
-<p>This example shows a sandboxed <a href="https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem">filesystem MCP server</a> in the <code>mcp_servers</code> section:</p>
-<div class="highlight"><span class="filename">.freeact/agent.json</span><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;mcp_servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;filesystem&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;srt&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">        </span><span class="s2">&quot;--settings&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;sandbox-filesystem-mcp.json&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="s2">&quot;npx&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;-y&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;@modelcontextprotocol/server-filesystem&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;.&quot;</span>
-<span class="w">      </span><span class="p">]</span>
-<span class="w">    </span><span class="p">}</span>
-<span class="w">  </span><span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div>
-<p>The sandbox configuration blocks <code>.env</code> reads and allows network access to the npm registry, which is required for <code>npx</code> to download the server package:</p>
-<div class="highlight"><span class="filename">sandbox-filesystem-mcp.json</span><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;filesystem&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;denyRead&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;.env&quot;</span><span class="p">],</span>
-<span class="w">    </span><span class="nt">&quot;allowWrite&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;.&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;~/.npm&quot;</span><span class="p">],</span>
-<span class="w">    </span><span class="nt">&quot;denyWrite&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
-<span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;network&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;allowedDomains&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;registry.npmjs.org&quot;</span><span class="p">],</span>
-<span class="w">    </span><span class="nt">&quot;deniedDomains&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
-<span class="w">    </span><span class="nt">&quot;allowLocalBinding&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
-<span class="w">  </span><span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div>
 <h3 id="fetch-mcp-server">Fetch MCP Server</h3>
 <p>This example shows a sandboxed <a href="https://github.com/modelcontextprotocol/servers/tree/main/src/fetch">fetch MCP server</a>. First, install it locally with:</p>
 <div class="highlight"><pre><span></span><code>uv<span class="w"> </span>add<span class="w"> </span>mcp-server-fetch

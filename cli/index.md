@@ -50,13 +50,13 @@ The interactive mode provides a conversation interface with the agent in a termi
 
 ### User messages
 
-| Key                                                | Action                             |
-| -------------------------------------------------- | ---------------------------------- |
-| `Enter`                                            | Send message                       |
-| `Ctrl+J`                                           | Insert newline                     |
-| `Option+Enter` (macOS) `Alt+Enter` (Linux/Windows) | Insert newline (`Ctrl+J` fallback) |
-| `Escape`                                           | Cancel the current agent turn      |
-| `Ctrl+Q`                                           | Quit                               |
+| Key                                                | Action                                                  |
+| -------------------------------------------------- | ------------------------------------------------------- |
+| `Enter`                                            | Send message                                            |
+| `Ctrl+J`                                           | Insert newline                                          |
+| `Option+Enter` (macOS) `Alt+Enter` (Linux/Windows) | Insert newline (`Ctrl+J` fallback)                      |
+| `Escape`                                           | Cancel the current agent turn, or clear input when idle |
+| `Ctrl+Q`                                           | Quit                                                    |
 
 ### Clipboard
 
@@ -72,22 +72,17 @@ Use `Ctrl+O` to toggle all collapsible boxes between expanded and configured sta
 
 The shortcut is configured in `.freeact/terminal.json` under `expand_all_toggle_key`.
 
-### Image Attachments
+### File References
 
-Reference images using `@path` syntax:
+Include file paths directly in the prompt. The model uses built-in [filesystem tools](https://gradion-ai.github.io/freeact/sdk/#internal-tools) to read them when needed.
 
 ```
-@screenshot.png What does this show?
-@images/ Describe these images
+screenshot.png What does this show?
+Transcribe this voice-note.wav
+images/ Describe these images
 ```
 
-- Single file: `@path/to/image.png`
-- Directory: `@path/to/dir/` includes all images in directory, non-recursive
-- Supported formats: PNG, JPG, JPEG, GIF, WEBP
-- Type `@` in the prompt to open a file picker.
-- Select a file or directory to insert its path after `@`.
-
-Images are automatically downscaled if larger than 1024 pixels in either dimension.
+Type `@` in the prompt to open a file picker for easier path insertion. The `@` prefix is stripped before sending, so `@screenshot.png` and `screenshot.png` are equivalent.
 
 ### Skill Invocation
 
@@ -128,12 +123,12 @@ Always-allow rules persist to `.freeact/permissions.json` across sessions. Sessi
 
 The suggested pattern depends on the action type:
 
-| Action               | Pattern format        | Example                             |
-| -------------------- | --------------------- | ----------------------------------- |
-| Shell command        | `command *` heuristic | `git add *`                         |
-| Code action          | tool name             | `ipybox_execute_ipython_cell`       |
-| File read/write/edit | tool name + path      | `filesystem_write_file src/main.py` |
-| Other tool calls     | tool name             | `github_search_repositories`        |
+| Action               | Pattern format        | Example                                  |
+| -------------------- | --------------------- | ---------------------------------------- |
+| Shell command        | `command *` heuristic | `git add *`                              |
+| Code action          | tool name             | `ipybox_execute_ipython_cell`            |
+| File read/write/edit | tool name + path      | `filesystem_write_text_file src/main.py` |
+| Other tool calls     | tool name             | `github_search_repositories`             |
 
 See [Permissions](https://gradion-ai.github.io/freeact/configuration/#permissions) for the persisted format and pattern syntax.
 

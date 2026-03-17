@@ -405,15 +405,15 @@ Code execution action.
 ```
 FileRead(
     tool_name: str,
-    paths: tuple[str, ...],
-    head: int | None,
-    tail: int | None,
+    path: str,
+    offset: int | None,
+    limit: int | None,
 )
 ```
 
 Bases: `ToolCall`
 
-File read action (single or multiple files).
+File read action.
 
 ## freeact.agent.FileWrite
 
@@ -429,18 +429,10 @@ File write action.
 
 ```
 FileEdit(
-    tool_name: str, path: str, edits: tuple[TextEdit, ...]
+    tool_name: str, path: str, old_text: str, new_text: str
 )
 ```
 
 Bases: `ToolCall`
 
-File edit action with one or more text replacements.
-
-## freeact.agent.TextEdit
-
-```
-TextEdit(old_text: str, new_text: str)
-```
-
-A single text replacement within a file edit.
+File edit action.

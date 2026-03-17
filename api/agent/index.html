@@ -1385,17 +1385,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#freeact.agent.TextEdit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        TextEdit
-      
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1476,34 +1465,6 @@
     
   
     Permissions
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../preproc/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Preprocessing
   
 
     
@@ -1901,17 +1862,6 @@
     <span class="md-ellipsis">
       
         FileEdit
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#freeact.agent.TextEdit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        TextEdit
       
     </span>
   </a>
@@ -3439,9 +3389,9 @@ the current agent turn.</p>
 </h2>
 <div class="doc-signature highlight"><pre><span></span><code><span class="nf">FileRead</span><span class="p">(</span>
     <span class="n">tool_name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
-    <span class="n">paths</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
-    <span class="n">head</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">tail</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
+    <span class="n">offset</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">limit</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
 
@@ -3451,7 +3401,7 @@ the current agent turn.</p>
 
 
 
-        <p>File read action (single or multiple files).</p>
+        <p>File read action.</p>
 
 
 
@@ -3549,7 +3499,7 @@ the current agent turn.</p>
 
 </h2>
 <div class="doc-signature highlight"><pre><span></span><code><span class="nf">FileEdit</span><span class="p">(</span>
-    <span class="n">tool_name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n">edits</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" href="#freeact.agent.TextEdit">TextEdit</a></span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">tool_name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n">old_text</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n">new_text</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span>
 <span class="p">)</span>
 </code></pre></div>
 
@@ -3559,58 +3509,7 @@ the current agent turn.</p>
 
 
 
-        <p>File edit action with one or more text replacements.</p>
-
-
-
-
-
-
-
-
-
-
-
-  <div class="doc doc-children">
-
-
-
-
-
-
-
-
-
-
-
-
-  </div>
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-class">
-
-
-
-<h2 id="freeact.agent.TextEdit" class="doc doc-heading">
-            <span class="doc doc-object-name doc-class-name">freeact.agent.TextEdit</span>
-
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
-  </span>
-
-</h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">TextEdit</span><span class="p">(</span><span class="n">old_text</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n">new_text</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">)</span>
-</code></pre></div>
-
-    <div class="doc doc-contents first">
-
-
-
-        <p>A single text replacement within a file edit.</p>
+        <p>File edit action.</p>
 
 
 

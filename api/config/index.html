@@ -1257,34 +1257,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../preproc/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Preprocessing
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -1949,22 +1921,8 @@ override <code>model_post_init</code> / <code>_save_sync</code> for domain-speci
 
 </h2>
 <div class="doc-signature highlight"><pre><span></span><code><span class="n">FILESYSTEM_MCP_SERVER_CONFIG</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/reference/expressions.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;npx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="s2">&quot;-y&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;@modelcontextprotocol/server-filesystem&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;.&quot;</span><span class="p">,</span>
-    <span class="p">],</span>
-    <span class="s2">&quot;excluded_tools&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="s2">&quot;create_directory&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;list_directory&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;list_directory_with_sizes&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;directory_tree&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;move_file&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;search_files&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;list_allowed_directories&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;read_file&quot;</span><span class="p">,</span>
-    <span class="p">],</span>
+    <span class="s2">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;python&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="s2">&quot;freeact.tools.filesystem&quot;</span><span class="p">],</span>
 <span class="p">}</span>
 </code></pre></div>
 

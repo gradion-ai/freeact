@@ -1065,34 +1065,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../../../api/preproc/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Preprocessing
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -1170,9 +1142,9 @@
 <li><code>create_exec_output_box(agent_id)</code> -&gt; <code>tuple[Collapsible, RichLog]</code></li>
 <li><code>create_tool_output_box(content, agent_id)</code> -&gt; <code>Collapsible</code></li>
 <li><code>create_error_box(message, agent_id)</code> -&gt; <code>Collapsible</code></li>
-<li><code>create_file_read_action_box(paths, head, tail, agent_id)</code> -&gt; <code>tuple[Collapsible, Vertical]</code></li>
+<li><code>create_file_read_action_box(path, offset, limit, agent_id)</code> -&gt; <code>tuple[Collapsible, Vertical]</code></li>
 <li><code>create_file_write_action_box(path, content, agent_id)</code> -&gt; <code>tuple[Collapsible, Vertical]</code></li>
-<li><code>create_file_edit_action_box(path, edits, agent_id)</code> -&gt; <code>tuple[Collapsible, Vertical]</code></li>
+<li><code>create_file_edit_action_box(path, old_text, new_text, agent_id)</code> -&gt; <code>tuple[Collapsible, Vertical]</code></li>
 </ul>
 <p>Tool-call factories (code action, tool call, file read/write/edit, subagent task) return a <code>Vertical</code> trace container with class <code>tool-trace-container</code> inside a <code>tool-call-content</code> wrapper. Tool results mount into this container, nesting them visually under the tool call widget.</p>
 <p>Title formatting uses <code>_titled(title, agent_id)</code> for consistent prefixing.</p>

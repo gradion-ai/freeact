@@ -1065,34 +1065,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../../../api/preproc/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Preprocessing
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -1159,6 +1131,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#terminal-package-isolation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Terminal package isolation
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1185,9 +1168,9 @@
 <ul>
 <li><code>freeact/agent/__init__.py</code>: re-exports from <code>call</code>, <code>core</code>, <code>events</code>.</li>
 <li><code>freeact/agent/config/__init__.py</code>: re-exports from <code>config</code>, <code>skills</code>, plus constants.</li>
-<li><code>freeact/preproc/__init__.py</code>: re-exports from <code>prompt</code>.</li>
 <li><code>freeact/terminal/__init__.py</code>: re-exports from <code>app</code>, <code>config</code>.</li>
 <li><code>freeact/__init__.py</code>, <code>freeact/tools/__init__.py</code>: empty (no re-exports needed).</li>
+<li><code>freeact/tools/filesystem/__init__.py</code>: re-exports from <code>processing</code>.</li>
 <li><code>freeact/tools/pytools/__init__.py</code>: directory constants only.</li>
 </ul>
 <h2 id="import-conventions">Import conventions</h2>
@@ -1223,6 +1206,8 @@ permissions.py
   -&gt; agent/call.py (ToolCall base only)
 </code></pre></div>
 <p>The terminal depends on agent types but the agent does not depend on the terminal. The permission module depends on the <code>ToolCall</code> base class but not on agent core. Config classes inherit from <code>PersistentConfig</code> in the top-level <code>freeact/config.py</code>.</p>
+<h2 id="terminal-package-isolation">Terminal package isolation</h2>
+<p>The <code>freeact/terminal/</code> package must not import from <code>pydantic_ai</code>. All model-level types (e.g. <code>UserContent</code>, <code>BinaryContent</code>) stay inside <code>freeact/agent/</code>.</p>
 
 
 
