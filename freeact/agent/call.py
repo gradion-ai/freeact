@@ -45,31 +45,25 @@ class ToolCall:
                     tool_name=tool_name,
                     code=_to_str(tool_args.get("code", "")),
                 )
-            case "filesystem_read_file" | "filesystem_read_text_file":
+            case "filesystem_read_text_file" | "filesystem_read_media_file":
                 return FileRead(
                     tool_name=tool_name,
-                    paths=(_to_str(tool_args.get("path", "unknown")),),
-                    head=_to_int_or_none(tool_args.get("head")),
-                    tail=_to_int_or_none(tool_args.get("tail")),
+                    path=_to_str(tool_args.get("path", "unknown")),
+                    offset=_to_int_or_none(tool_args.get("offset")),
+                    limit=_to_int_or_none(tool_args.get("limit")),
                 )
-            case "filesystem_read_multiple_files":
-                return FileRead(
-                    tool_name=tool_name,
-                    paths=_to_paths(tool_args.get("paths")),
-                    head=None,
-                    tail=None,
-                )
-            case "filesystem_write_file":
+            case "filesystem_write_text_file":
                 return FileWrite(
                     tool_name=tool_name,
                     path=_to_str(tool_args.get("path", "unknown")),
                     content=_to_str(tool_args.get("content", "")),
                 )
-            case "filesystem_edit_file":
+            case "filesystem_edit_text_file":
                 return FileEdit(
                     tool_name=tool_name,
                     path=_to_str(tool_args.get("path", "unknown")),
-                    edits=_to_edits(tool_args.get("edits")),
+                    old_text=_to_str(tool_args.get("old_text", "")),
+                    new_text=_to_str(tool_args.get("new_text", "")),
                 )
             case _:
                 return GenericCall(
@@ -152,34 +146,34 @@ class CodeAction(ToolCall):
 
 @dataclass(frozen=True)
 class FileRead(ToolCall):
-    """File read action (single or multiple files)."""
+    """File read action."""
 
-    paths: tuple[str, ...]
-    head: int | None
-    tail: int | None
+    path: str
+    offset: int | None
+    limit: int | None
 
     def to_pattern(self) -> str:
-        return f"{self.tool_name} {' '.join(self.paths)}"
+        return f"{self.tool_name} {self.path}"
 
     def from_pattern(self, pattern: str) -> "ToolCall":
         parts = pattern.split(None, 1)
         name = parts[0] if parts else self.tool_name
-        paths = tuple(parts[1].split()) if len(parts) > 1 else self.paths
-        return FileRead(tool_name=name, paths=paths, head=None, tail=None)
+        path = parts[1] if len(parts) > 1 else self.path
+        return FileRead(tool_name=name, path=path, offset=None, limit=None)
 
     def to_entry(self) -> dict[str, Any]:
-        return {"type": "FileRead", "tool_name": self.tool_name, "paths": list(self.paths)}
+        return {"type": "FileRead", "tool_name": self.tool_name, "path": self.path}
 
     def matches_entry(self, entry: dict[str, Any], working_dir: Path) -> bool:
         if entry.get("type") != "FileRead":
             return False
         if not fnmatch(self.tool_name, entry.get("tool_name", "")):
             return False
-        entry_patterns = entry.get("paths", [])
-        if not entry_patterns:
+        entry_pattern = entry.get("path", "")
+        if not entry_pattern:
             return False
-        normalized_paths = [_normalize_path(p, working_dir) for p in self.paths]
-        return all(any(_path_matches(np, pat) for pat in entry_patterns) for np in normalized_paths)
+        normalized = _normalize_path(self.path, working_dir)
+        return _path_matches(normalized, entry_pattern)
 
 
 @dataclass(frozen=True)
@@ -211,19 +205,12 @@ class FileWrite(ToolCall):
 
 
 @dataclass(frozen=True)
-class TextEdit:
-    """A single text replacement within a file edit."""
-
-    old_text: str
-    new_text: str
-
-
-@dataclass(frozen=True)
 class FileEdit(ToolCall):
-    """File edit action with one or more text replacements."""
+    """File edit action."""
 
     path: str
-    edits: tuple[TextEdit, ...]
+    old_text: str
+    new_text: str
 
     def to_pattern(self) -> str:
         return f"{self.tool_name} {self.path}"
@@ -232,7 +219,7 @@ class FileEdit(ToolCall):
         parts = pattern.split(None, 1)
         name = parts[0] if parts else self.tool_name
         path = parts[1] if len(parts) > 1 else self.path
-        return FileEdit(tool_name=name, path=path, edits=())
+        return FileEdit(tool_name=name, path=path, old_text="", new_text="")
 
     def to_entry(self) -> dict[str, Any]:
         return {"type": "FileEdit", "tool_name": self.tool_name, "path": self.path}
@@ -309,32 +296,3 @@ def _to_int_or_none(value: object) -> int | None:
             return value
         case _:
             return None
-
-
-def _to_paths(value: object) -> tuple[str, ...]:
-    match value:
-        case list() | tuple():
-            return tuple(_to_str(item) for item in value)
-        case _:
-            return ()
-
-
-def _to_edits(value: object) -> tuple[TextEdit, ...]:
-    match value:
-        case list() | tuple():
-            edits: list[TextEdit] = []
-            for raw_edit in value:
-                match raw_edit:
-                    case {"oldText": old_text, "newText": new_text}:
-                        edits.append(TextEdit(old_text=_to_str(old_text), new_text=_to_str(new_text)))
-                    case {"old_text": old_text, "new_text": new_text}:
-                        edits.append(TextEdit(old_text=_to_str(old_text), new_text=_to_str(new_text)))
-                    case {"oldText": old_text, "new_text": new_text}:
-                        edits.append(TextEdit(old_text=_to_str(old_text), new_text=_to_str(new_text)))
-                    case {"old_text": old_text, "newText": new_text}:
-                        edits.append(TextEdit(old_text=_to_str(old_text), new_text=_to_str(new_text)))
-                    case _:
-                        continue
-            return tuple(edits)
-        case _:
-            return ()

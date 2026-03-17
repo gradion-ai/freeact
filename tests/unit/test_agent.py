@@ -1,6 +1,5 @@
 import asyncio
 import json
-import sys
 import uuid
 from pathlib import Path
 from typing import Any
@@ -9,7 +8,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pydantic_ai.models.function import DeltaToolCall
 
-import freeact.agent.core as agent_core
 from freeact.agent import Agent, ApprovalRequest, Cancelled, CodeExecutionOutput
 from freeact.agent.call import CodeAction, GenericCall
 from freeact.agent.config import Config
@@ -128,16 +126,16 @@ class _FakeMcpServer:
         return self._result
 
 
-class TestMcpFilesystemResultExtraction:
+class TestMcpToolCall:
     @pytest.mark.asyncio
-    async def test_filesystem_read_text_file_extracts_content_from_json_string(self) -> None:
+    async def test_call_mcp_tool_returns_result_directly(self) -> None:
         with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
             mock_executor.return_value = MagicMock()
             agent = Agent(config=create_test_config())
 
         server = _FakeMcpServer(
             tool_prefix="filesystem",
-            result=json.dumps({"content": "file text"}),
+            result="file text",
         )
         agent._tool_mapping["filesystem_read_text_file"] = server  # type: ignore[assignment]
 
@@ -147,39 +145,22 @@ class TestMcpFilesystemResultExtraction:
         assert server.calls == [("read_text_file", {"path": "README.md"})]
 
     @pytest.mark.asyncio
-    async def test_filesystem_read_multiple_files_extracts_content_from_dict(self) -> None:
+    async def test_call_mcp_tool_returns_error_on_exception(self) -> None:
         with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
             mock_executor.return_value = MagicMock()
             agent = Agent(config=create_test_config())
 
-        server = _FakeMcpServer(
-            tool_prefix="filesystem",
-            result={"content": "merged file text"},
-        )
-        agent._tool_mapping["filesystem_read_multiple_files"] = server  # type: ignore[assignment]
-
-        result = await agent._call_mcp_tool(
-            "filesystem_read_multiple_files",
-            {"paths": ["a.txt", "b.txt"]},
-        )
-
-        assert result == "merged file text"
-        assert server.calls == [("read_multiple_files", {"paths": ["a.txt", "b.txt"]})]
-
-    @pytest.mark.asyncio
-    async def test_non_filesystem_tools_are_not_special_cased(self) -> None:
-        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
-            mock_executor.return_value = MagicMock()
-            agent = Agent(config=create_test_config())
-
-        raw = json.dumps({"content": "should-stay-raw"})
-        server = _FakeMcpServer(tool_prefix="test", result=raw)
+        server = _FakeMcpServer(tool_prefix="test", result="ok")
         agent._tool_mapping["test_tool_2"] = server  # type: ignore[assignment]
 
-        result = await agent._call_mcp_tool("test_tool_2", {"s": "x"})
+        # Make the server raise
+        async def raise_error(name: str, args: dict[str, object]) -> object:
+            raise RuntimeError("connection failed")
 
-        assert result == raw
-        assert server.calls == [("tool_2", {"s": "x"})]
+        server.direct_call_tool = raise_error  # type: ignore[assignment]
+
+        result = await agent._call_mcp_tool("test_tool_2", {"s": "x"})
+        assert "MCP tool call failed" in str(result)
 
 
 class TestSessionPersistenceConfig:
@@ -224,54 +205,6 @@ class TestSessionPersistenceConfig:
             mock_executor.return_value = MagicMock()
             with pytest.raises(ValueError, match="session_id requires config.enable_persistence=True"):
                 Agent(config=create_test_config(enable_persistence=False), session_id="session-1")
-
-
-class TestFilesystemMcpServerStdio:
-    @pytest.mark.asyncio
-    async def test_client_streams_redirects_stderr(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        captured: dict[str, object] = {}
-
-        class _DummyStream:
-            async def __aenter__(self) -> tuple[object, object]:
-                return object(), object()
-
-            async def __aexit__(self, exc_type: object, exc: object, tb: object) -> None:
-                return None
-
-        def fake_stdio_client(*, server: object, errlog: object) -> _DummyStream:
-            captured["server"] = server
-            captured["errlog"] = errlog
-            return _DummyStream()
-
-        monkeypatch.setattr(agent_core, "stdio_client", fake_stdio_client)
-
-        server = agent_core._FilesystemMCPServerStdio(
-            command="npx",
-            args=["-y", "@modelcontextprotocol/server-filesystem", "."],
-            excluded_tools=frozenset({"read_file"}),
-        )
-
-        async with server.client_streams():
-            pass
-
-        assert captured["errlog"] is not sys.stderr
-
-    def test_create_mcp_servers_uses_filesystem_special_case(self) -> None:
-        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
-            mock_executor.return_value = MagicMock()
-            config = create_test_config(
-                mcp_servers={
-                    "filesystem": {
-                        "command": "npx",
-                        "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
-                        "excluded_tools": ["read_file"],
-                    }
-                }
-            )
-            agent = Agent(config=config)
-
-        servers = agent._create_mcp_servers()
-        assert isinstance(servers["filesystem"], agent_core._FilesystemMCPServerStdio)
 
 
 class TestIpyboxExecution:

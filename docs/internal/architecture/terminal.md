@@ -21,7 +21,7 @@ Read this first, then follow code references for details.
 
 ## Event Flow
 
-- Prompt submit: `PromptInput.Submitted` -> `convert_at_references()` -> `preprocess_prompt()` -> `agent_stream(...)`.
+- Prompt submit: `PromptInput.Submitted` -> `convert_at_references()` -> `convert_slash_commands()` -> `agent_stream(...)`.
 - Stream events map to UI:
   - Main-agent `Thoughts*` / `Response*`: markdown stream boxes
   - `ApprovalRequest`: approval UI + decision gate

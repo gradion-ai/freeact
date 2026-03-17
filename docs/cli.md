@@ -74,22 +74,24 @@ Use `Ctrl+O` to toggle all collapsible boxes between expanded and configured sta
 
 The shortcut is configured in `.freeact/terminal.json` under `expand_all_toggle_key`.
 
-### Image Attachments
+### Media Attachments
 
-Reference images using `@path` syntax:
+Reference media files using `@path` syntax:
 
 ```
 @screenshot.png What does this show?
+Transcribe this @voice-note.wav
 @images/ Describe these images
 ```
 
-- Single file: `@path/to/image.png`
-- Directory: `@path/to/dir/` includes all images in directory, non-recursive
-- Supported formats: PNG, JPG, JPEG, GIF, WEBP
-- Type `@` in the prompt to open a file picker.
-- Select a file or directory to insert its path after `@`.
+- Single file: `@path/to/file.png`
+- Directory: `@path/to/dir/` includes all media files in directory, non-recursive
+- Recognized media types: images, audio, video, and documents. Actual format support depends on the model provider.
+- Non-media file references (e.g. `@script.py`) are passed as bare file paths in the prompt text
+- Type `@` in the prompt to open a file picker
+- Images are automatically downscaled if larger than 1024 pixels in either dimension
 
-Images are automatically downscaled if larger than 1024 pixels in either dimension.
+See [Prompt tags](sdk.md#prompt-tags) for the underlying tag format used by the SDK.
 
 ### Skill Invocation
 

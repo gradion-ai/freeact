@@ -7,7 +7,6 @@ from freeact.agent.call import (
     FileWrite,
     GenericCall,
     ShellAction,
-    TextEdit,
     ToolCall,
     extract_tool_output_text,
     parse_pattern,
@@ -24,85 +23,45 @@ class TestFromRaw:
         assert tc.tool_name == "ipybox_execute_ipython_cell"
         assert tc.code == "print('x')"
 
-    def test_read_single_file(self) -> None:
+    def test_read_file(self) -> None:
         tc = ToolCall.from_raw(
             "filesystem_read_text_file",
-            {"path": "/tmp/config.json", "head": 3, "tail": 1},
+            {"path": "/tmp/config.json", "offset": 3, "limit": 10},
         )
         assert isinstance(tc, FileRead)
-        assert tc.paths == ("/tmp/config.json",)
-        assert tc.head == 3
-        assert tc.tail == 1
+        assert tc.path == "/tmp/config.json"
+        assert tc.offset == 3
+        assert tc.limit == 10
 
-    def test_read_file_alias(self) -> None:
-        tc = ToolCall.from_raw("filesystem_read_file", {"path": "/tmp/README.md"})
+    def test_read_file_no_offset_limit(self) -> None:
+        tc = ToolCall.from_raw("filesystem_read_text_file", {"path": "/tmp/README.md"})
         assert isinstance(tc, FileRead)
-        assert tc.paths == ("/tmp/README.md",)
-        assert tc.head is None
-        assert tc.tail is None
-
-    def test_read_multiple_files(self) -> None:
-        tc = ToolCall.from_raw(
-            "filesystem_read_multiple_files",
-            {"paths": ["/tmp/a.py", "/tmp/b.py"]},
-        )
-        assert isinstance(tc, FileRead)
-        assert tc.paths == ("/tmp/a.py", "/tmp/b.py")
-        assert tc.head is None
-        assert tc.tail is None
+        assert tc.path == "/tmp/README.md"
+        assert tc.offset is None
+        assert tc.limit is None
 
     def test_write_file(self) -> None:
         tc = ToolCall.from_raw(
-            "filesystem_write_file",
+            "filesystem_write_text_file",
             {"path": "src/main.py", "content": "print(1)"},
         )
         assert isinstance(tc, FileWrite)
         assert tc.path == "src/main.py"
         assert tc.content == "print(1)"
 
-    def test_edit_file_camel_case(self) -> None:
+    def test_edit_file(self) -> None:
         tc = ToolCall.from_raw(
-            "filesystem_edit_file",
+            "filesystem_edit_text_file",
             {
                 "path": "src/config.py",
-                "edits": [
-                    {"oldText": "DEBUG = True", "newText": "DEBUG = False"},
-                ],
+                "old_text": "DEBUG = True",
+                "new_text": "DEBUG = False",
             },
         )
         assert isinstance(tc, FileEdit)
         assert tc.path == "src/config.py"
-        assert tc.edits == (TextEdit(old_text="DEBUG = True", new_text="DEBUG = False"),)
-
-    def test_edit_file_snake_case(self) -> None:
-        tc = ToolCall.from_raw(
-            "filesystem_edit_file",
-            {
-                "path": "src/config.py",
-                "edits": [
-                    {"old_text": "A = 1", "new_text": "A = 2"},
-                ],
-            },
-        )
-        assert isinstance(tc, FileEdit)
-        assert tc.edits == (TextEdit(old_text="A = 1", new_text="A = 2"),)
-
-    def test_edit_file_mixed_case(self) -> None:
-        tc = ToolCall.from_raw(
-            "filesystem_edit_file",
-            {
-                "path": "src/config.py",
-                "edits": [
-                    {"oldText": "B = 1", "new_text": "B = 2"},
-                    {"old_text": "C = 1", "newText": "C = 2"},
-                ],
-            },
-        )
-        assert isinstance(tc, FileEdit)
-        assert tc.edits == (
-            TextEdit(old_text="B = 1", new_text="B = 2"),
-            TextEdit(old_text="C = 1", new_text="C = 2"),
-        )
+        assert tc.old_text == "DEBUG = True"
+        assert tc.new_text == "DEBUG = False"
 
     def test_unknown_tool_returns_generic_call(self) -> None:
         tc = ToolCall.from_raw("database_query", {"sql": "SELECT 1"})
@@ -117,19 +76,15 @@ class TestFromRaw:
         assert tc.code == ""
 
     def test_missing_path_key(self) -> None:
-        tc = ToolCall.from_raw("filesystem_read_file", {})
+        tc = ToolCall.from_raw("filesystem_read_text_file", {})
         assert isinstance(tc, FileRead)
-        assert tc.paths == ("unknown",)
+        assert tc.path == "unknown"
 
-    def test_missing_edits_key(self) -> None:
-        tc = ToolCall.from_raw("filesystem_edit_file", {"path": "f.py"})
+    def test_missing_edit_keys(self) -> None:
+        tc = ToolCall.from_raw("filesystem_edit_text_file", {"path": "f.py"})
         assert isinstance(tc, FileEdit)
-        assert tc.edits == ()
-
-    def test_non_list_paths(self) -> None:
-        tc = ToolCall.from_raw("filesystem_read_multiple_files", {"paths": "not-a-list"})
-        assert isinstance(tc, FileRead)
-        assert tc.paths == ()
+        assert tc.old_text == ""
+        assert tc.new_text == ""
 
 
 class TestFrozenImmutability:
@@ -151,17 +106,17 @@ class TestFrozenImmutability:
             tc.code = "y=2"  # type: ignore[misc]
 
     def test_file_read_is_frozen(self) -> None:
-        tc = FileRead(tool_name="filesystem_read_file", paths=("a",), head=None, tail=None)
+        tc = FileRead(tool_name="filesystem_read_text_file", path="a", offset=None, limit=None)
         with pytest.raises(AttributeError):
-            tc.paths = ("b",)  # type: ignore[misc]
+            tc.path = "b"  # type: ignore[misc]
 
     def test_file_write_is_frozen(self) -> None:
-        tc = FileWrite(tool_name="filesystem_write_file", path="a", content="c")
+        tc = FileWrite(tool_name="filesystem_write_text_file", path="a", content="c")
         with pytest.raises(AttributeError):
             tc.path = "b"  # type: ignore[misc]
 
     def test_file_edit_is_frozen(self) -> None:
-        tc = FileEdit(tool_name="filesystem_edit_file", path="a", edits=())
+        tc = FileEdit(tool_name="filesystem_edit_text_file", path="a", old_text="x", new_text="y")
         with pytest.raises(AttributeError):
             tc.path = "b"  # type: ignore[misc]
 
@@ -185,23 +140,17 @@ class TestSuggestPattern:
         tc = ShellAction(tool_name="bash", command="ls")
         assert suggest_pattern(tc) == "ls *"
 
-    def test_file_read_single_path(self) -> None:
-        tc = FileRead(tool_name="filesystem_read_file", paths=("/tmp/a.txt",), head=None, tail=None)
-        assert suggest_pattern(tc) == "filesystem_read_file /tmp/a.txt"
-
-    def test_file_read_multiple_paths(self) -> None:
-        tc = FileRead(
-            tool_name="filesystem_read_multiple_files", paths=("/tmp/a.txt", "/tmp/b.txt"), head=None, tail=None
-        )
-        assert suggest_pattern(tc) == "filesystem_read_multiple_files /tmp/a.txt /tmp/b.txt"
+    def test_file_read(self) -> None:
+        tc = FileRead(tool_name="filesystem_read_text_file", path="/tmp/a.txt", offset=None, limit=None)
+        assert suggest_pattern(tc) == "filesystem_read_text_file /tmp/a.txt"
 
     def test_file_write(self) -> None:
-        tc = FileWrite(tool_name="filesystem_write_file", path="src/main.py", content="x")
-        assert suggest_pattern(tc) == "filesystem_write_file src/main.py"
+        tc = FileWrite(tool_name="filesystem_write_text_file", path="src/main.py", content="x")
+        assert suggest_pattern(tc) == "filesystem_write_text_file src/main.py"
 
     def test_file_edit(self) -> None:
-        tc = FileEdit(tool_name="filesystem_edit_file", path="src/main.py", edits=())
-        assert suggest_pattern(tc) == "filesystem_edit_file src/main.py"
+        tc = FileEdit(tool_name="filesystem_edit_text_file", path="src/main.py", old_text="a", new_text="b")
+        assert suggest_pattern(tc) == "filesystem_edit_text_file src/main.py"
 
 
 class TestExtractToolOutputText:
@@ -251,15 +200,15 @@ class TestParsePattern:
         assert isinstance(result, CodeAction)
         assert result.tool_name == tc.tool_name
 
-    def test_file_read_with_tool_name_and_paths(self) -> None:
-        template = FileRead(tool_name="filesystem_read_file", paths=("src/main.py",), head=None, tail=None)
+    def test_file_read_with_tool_name_and_path(self) -> None:
+        template = FileRead(tool_name="filesystem_read_text_file", path="src/main.py", offset=None, limit=None)
         result = parse_pattern("filesystem_* src/**", template)
         assert isinstance(result, FileRead)
         assert result.tool_name == "filesystem_*"
-        assert result.paths == ("src/**",)
+        assert result.path == "src/**"
 
     def test_file_write_roundtrip(self) -> None:
-        tc = FileWrite(tool_name="filesystem_write_file", path="src/main.py", content="x")
+        tc = FileWrite(tool_name="filesystem_write_text_file", path="src/main.py", content="x")
         pattern = suggest_pattern(tc)
         result = parse_pattern(pattern, tc)
         assert isinstance(result, FileWrite)
@@ -267,7 +216,7 @@ class TestParsePattern:
         assert result.path == tc.path
 
     def test_file_edit_roundtrip(self) -> None:
-        tc = FileEdit(tool_name="filesystem_edit_file", path="src/config.py", edits=())
+        tc = FileEdit(tool_name="filesystem_edit_text_file", path="src/config.py", old_text="a", new_text="b")
         pattern = suggest_pattern(tc)
         result = parse_pattern(pattern, tc)
         assert isinstance(result, FileEdit)
@@ -287,8 +236,8 @@ class TestParsePattern:
         assert result.tool_name == "bash"
 
     def test_roundtrip_file_read(self) -> None:
-        tc = FileRead(tool_name="filesystem_read_file", paths=("/tmp/a.txt",), head=3, tail=None)
+        tc = FileRead(tool_name="filesystem_read_text_file", path="/tmp/a.txt", offset=3, limit=None)
         result = parse_pattern(suggest_pattern(tc), tc)
         assert isinstance(result, FileRead)
         assert result.tool_name == tc.tool_name
-        assert result.paths == tc.paths
+        assert result.path == tc.path

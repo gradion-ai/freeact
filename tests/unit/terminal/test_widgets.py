@@ -3,7 +3,6 @@ from textual.binding import Binding
 from textual.content import Content
 from textual.widgets import Static
 
-from freeact.agent.call import TextEdit
 from freeact.terminal.widgets import (
     ApprovalBar,
     PromptInput,
@@ -19,11 +18,11 @@ from freeact.terminal.widgets import (
 )
 
 
-def test_create_file_read_action_box_single_path_metadata() -> None:
+def test_create_file_read_action_box_metadata() -> None:
     box, trace_container = create_file_read_action_box(
-        paths=("/tmp/workspace/config.json",),
-        head=3,
-        tail=1,
+        path="/tmp/workspace/config.json",
+        offset=3,
+        limit=10,
         agent_id="agent-1",
     )
 
@@ -33,24 +32,11 @@ def test_create_file_read_action_box_single_path_metadata() -> None:
     assert "tool-trace-container" in trace_container.classes
 
 
-def test_create_file_read_action_box_multiple_paths_metadata() -> None:
-    box, trace_container = create_file_read_action_box(
-        paths=("/tmp/workspace/a.py", "/tmp/workspace/b.py"),
-        head=None,
-        tail=None,
-        agent_id="agent-1",
-    )
-
-    assert "read-files-box" in box.classes
-    assert not box.collapsed
-    assert box.title == r"\[agent-1] Read Action: 2 files"
-    assert "tool-trace-container" in trace_container.classes
-
-
 def test_create_file_edit_action_box_has_diff_class_and_is_expanded() -> None:
     box, trace_container = create_file_edit_action_box(
         path="src/config.py",
-        edits=(TextEdit(old_text="DEBUG = True", new_text="DEBUG = False"),),
+        old_text="DEBUG = True",
+        new_text="DEBUG = False",
         agent_id="agent-1",
     )
 

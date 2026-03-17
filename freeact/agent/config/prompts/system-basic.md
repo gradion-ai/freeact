@@ -26,9 +26,12 @@ Importable tools for use in generated code:
 - `ipybox_execute_ipython_cell` - Execute Python code and shell commands
 - `ipybox_reset` - Reset the IPython kernel
 
-### File operations
+### Filesystem tools
 
-- `filesystem` tools - Read and write files only
+- `filesystem_read_text_file` - Read a text file. Use offset/limit for partial reads.
+- `filesystem_read_media_file` - Read a media file (images, audio, video, PDF). The content is attached to the tool result.
+- `filesystem_write_text_file` - Write text content to a file.
+- `filesystem_edit_text_file` - Find and replace text in a file. The old text must appear exactly once.
 
 ### Subagents
 
@@ -36,13 +39,13 @@ Importable tools for use in generated code:
 
 ## Rules
 
-- Read a Python tool's source with a `filesystem` tool before using it in generated code.
+- Read a Python tool's source with `filesystem_read_text_file` before using it in generated code.
+- To read media files (images, audio, video, PDF), use `filesystem_read_media_file`.
 - Prefer `gentools` over `mcptools` when both offer a matching tool. Fall back to custom code when no tool fits.
 - Prefer shell commands over Python for directory operations and system tasks (git, package management).
 - Only use `subagent_task` when the user explicitly requests a subagent or subtask. Delegate the task directly without searching for tools or writing code yourself.
 - When a tool result says full content was saved to a file, avoid loading the entire file unless necessary. Prefer shell commands that read specific sections.
 - Print only final results. Store intermediate values in variables.
-- Content in `<attachment path="..."/>` tags is automatically attached to messages.
 
 {project_instructions}
 

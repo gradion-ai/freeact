@@ -1,6 +1,6 @@
 import asyncio
 import re
-from collections.abc import AsyncIterator, Callable, Sequence
+from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass, field
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as package_version
@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import TypeAlias
 
 from ipybox.utils import arun
-from pydantic_ai import UserContent
 from rich.console import Console
 from rich.text import Text
 from textual import work
@@ -44,7 +43,6 @@ from freeact.agent.events import (
     ToolOutput,
 )
 from freeact.permissions import PermissionManager
-from freeact.preproc import preprocess_prompt
 from freeact.terminal.clipboard import ClipboardAdapter, ClipboardAdapterProtocol
 from freeact.terminal.config import Config
 from freeact.terminal.screens import FilePickerScreen, SkillPickerScreen
@@ -66,7 +64,7 @@ from freeact.terminal.widgets import (
     finalize_exec_output,
 )
 
-AgentStreamFn: TypeAlias = Callable[[str | Sequence[UserContent]], AsyncIterator[AgentEvent]]
+AgentStreamFn: TypeAlias = Callable[[str], AsyncIterator[AgentEvent]]
 Location: TypeAlias = tuple[int, int]
 _BANNER_PATH = Path(__file__).with_name("banner.txt")
 
@@ -595,24 +593,23 @@ class TerminalApp(App[None]):
         self._tool_call_boxes.clear()
 
     def on_prompt_input_submitted(self, event: PromptInput.Submitted) -> None:
-        raw_text = event.text
-        text = convert_at_references(raw_text)
-        text = convert_slash_commands(text, self._skills_metadata)
-        content = preprocess_prompt(text)
-        self._process_turn(raw_text, content)
+        self._process_turn(event.text)
 
     @work(exclusive=True)
-    async def _process_turn(self, raw_text: str, content: str | Sequence[UserContent]) -> None:
+    async def _process_turn(self, text: str) -> None:
         prompt_input = self.query_one("#prompt-input", PromptInput)
         conversation = self.query_one("#conversation", VerticalScroll)
         prompt_input.disabled = True
         conversation.anchor()
 
-        user_box = create_user_input_box(raw_text)
+        user_box = create_user_input_box(text)
         self._collapse_state.register(user_box, configured_collapsed=False)
         await self._mount_and_scroll(conversation, conversation, user_box)
 
         turn_state = TurnRenderState()
+
+        content = convert_at_references(text)
+        content = convert_slash_commands(content, self._skills_metadata)
 
         self._turn_in_progress = True
         self._update_input_hints()
@@ -808,13 +805,13 @@ class TerminalApp(App[None]):
         match request.tool_call:
             case CodeAction(code=code):
                 box, trace_container = create_code_action_box(code, agent_id=request.agent_id)
-            case FileEdit(path=path, edits=edits):
-                box, trace_container = create_file_edit_action_box(path, edits, agent_id=request.agent_id)
-            case FileRead(paths=paths, head=head, tail=tail):
+            case FileEdit(path=path, old_text=old_text, new_text=new_text):
+                box, trace_container = create_file_edit_action_box(path, old_text, new_text, agent_id=request.agent_id)
+            case FileRead(path=path, offset=offset, limit=limit):
                 box, trace_container = create_file_read_action_box(
-                    paths,
-                    head,
-                    tail,
+                    path,
+                    offset,
+                    limit,
                     agent_id=request.agent_id,
                 )
             case FileWrite(path=path, content=content):
@@ -1027,15 +1024,15 @@ class TerminalApp(App[None]):
 
 
 def convert_at_references(text: str) -> str:
-    """Convert `@path` tokens to `<attachment path="..."/>` tags.
+    """Strip `@` prefix from `@path` tokens, leaving the bare path.
 
     Args:
         text: User prompt text that may contain `@path` tokens.
 
     Returns:
-        Prompt text with `@path` tokens replaced by attachment tags.
+        Prompt text with `@` prefixes removed from path tokens.
     """
-    return re.sub(r"@(\S+)", r'<attachment path="\1"/>', text)
+    return re.sub(r"@(\S+)", r"\1", text)
 
 
 def convert_slash_commands(text: str, skills: list[SkillMetadata]) -> str:

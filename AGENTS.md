@@ -4,9 +4,8 @@
 - Documentation: `docs/`
 - Project description: `docs/index.md`
 - Source modules:
-  - `freeact/agent/`: core agent, config, session store, shell command extraction
+  - `freeact/agent/`: core agent, config, session store, shell command extraction, media processing
   - `freeact/tools/`: tool definitions, Python tool generation, tool search
-  - `freeact/preproc/`: prompt preprocessing (attachment extraction, image loading)
   - `freeact/terminal/`: terminal UI (app, widgets, screens, clipboard, completion)
   - `freeact/permissions.py`: permission management
   - `freeact/cli.py`: CLI entry point

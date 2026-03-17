@@ -1,12 +1,11 @@
 # Agent SDK
 
-The Agent SDK provides five main APIs:
+The Agent SDK provides four main APIs:
 
 - [Configuration API](#configuration-api) for initializing and loading configuration from `.freeact/`
 - [Generation API](#generation-api) for generating Python APIs for MCP server tools
 - [Agent API](#agent-api) for running the agentic code action loop
 - [Permissions API](#permissions-api) for managing approval decisions
-- [Preprocessing API](#preprocessing-api) for transforming user prompts
 
 ## Configuration API
 
@@ -224,6 +223,26 @@ Tool result persistence is controlled by two config options:
 - `tool_result_inline_max_bytes`: Maximum inline payload size for a tool result.
 - `tool_result_preview_chars`: Number of preview characters shown from both the beginning and end of large text results in the file reference notice.
 
+### Prompt tags
+
+Prompts passed to `stream()` may contain XML tags that the agent resolves before sending to the model. The [CLI tool](cli.md#media-attachments) generates these tags from `@path` and `/skill-name` syntax.
+
+**Attachment tags** reference local files or directories. `stream()` resolves media files (images, audio, video, documents) to multimodal content with binary data. Non-media paths are replaced with the bare file path in the prompt text.
+
+```xml
+<attachment path="screenshot.png"/>
+<attachment path="~/recordings/voice-note.wav"/>
+<attachment path="images/"/>
+```
+
+**Skill tags** explicitly invoke a skill by name. The agent reads the skill's `SKILL.md` file and follows its instructions, using the tag content as arguments.
+
+```xml
+<skill name="review">the auth module</skill>
+```
+
+Without an explicit tag, the agent can still autonomously select a skill when the request matches a skill's description. Skills are discovered from `.freeact/skills/` and `.agents/skills/` directories.
+
 ## Permissions API
 
 [`PermissionManager`][freeact.permissions.PermissionManager] provides pattern-based permission gating using typed [`ToolCall`][freeact.agent.call.ToolCall] instances. Patterns use glob-style matching (`*`, `?`). Path fields use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries. Rules are organized into ask/allow tiers with session and always persistence scopes.
@@ -259,25 +278,3 @@ async for event in agent.stream(prompt):
 ```
 
 See [Permissions](configuration.md#permissions) for the persisted file format and pattern syntax.
-
-## Preprocessing API
-
-The terminal UI converts user-facing syntax (`/skill-name` and `@path`) into XML tags, then [`preprocess_prompt`][freeact.preproc.preprocess_prompt] transforms the tagged text into agent-ready content. Attachment tags are resolved to multimodal content with image data. Skill tags pass through to the agent unchanged.
-
-A `/skill-name` command becomes a `<skill>` tag that the agent handles via skill metadata in its system prompt:
-
-```python
---8<-- "examples/prompt_preproc.py:skill"
-```
-
-An `@path` reference becomes an `<attachment path="..."/>` tag. [`preprocess_prompt`][freeact.preproc.preprocess_prompt] resolves image paths to binary content:
-
-```python
---8<-- "examples/prompt_preproc.py:attachment"
-```
-
-Plain text passes through unchanged:
-
-```python
---8<-- "examples/prompt_preproc.py:plain"
-```

@@ -137,8 +137,8 @@ def _create_app(
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
-        ("See @image.png", 'See <attachment path="image.png"/>'),
-        ("@a.png and @b.jpg", '<attachment path="a.png"/> and <attachment path="b.jpg"/>'),
+        ("See @image.png", "See image.png"),
+        ("@a.png and @b.jpg", "a.png and b.jpg"),
     ],
 )
 def test_convert_at_references(text: str, expected: str) -> None:
