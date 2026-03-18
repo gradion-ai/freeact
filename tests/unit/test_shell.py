@@ -1,34 +1,4 @@
-from freeact.agent.shell import extract_shell_commands, split_composite_command, suggest_shell_pattern
-
-
-class TestExtractShellCommands:
-    """Tests for extracting shell commands from IPython cells."""
-
-    def test_bang_command(self):
-        assert extract_shell_commands("!git status") == ["git status"]
-
-    def test_double_bang_command(self):
-        assert extract_shell_commands("!!git status") == ["git status"]
-
-    def test_bash_cell_magic(self):
-        code = "%%bash\ngit status\necho hello"
-        result = extract_shell_commands(code)
-        assert result == ["git status\necho hello\n"]
-
-    def test_mixed_python_and_shell(self):
-        code = "x = 1\n!git status\ny = 2"
-        result = extract_shell_commands(code)
-        assert result == ["git status"]
-
-    def test_pure_python(self):
-        code = "x = 1\ny = x + 2\nprint(y)"
-        result = extract_shell_commands(code)
-        assert result == []
-
-    def test_multiple_bang_commands(self):
-        code = "!git status\n!pip install pandas"
-        result = extract_shell_commands(code)
-        assert result == ["git status", "pip install pandas"]
+from freeact.agent.shell import split_composite_command, suggest_shell_pattern
 
 
 class TestSplitCompositeCommand:

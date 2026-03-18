@@ -48,7 +48,7 @@ from freeact.agent.events import (
     ThoughtsChunk,
     ToolOutput,
 )
-from freeact.agent.shell import extract_shell_commands, split_composite_command
+from freeact.agent.shell import split_composite_command
 from freeact.agent.store import SessionStore, ToolResultMaterializer
 from freeact.tools.utils import (
     get_tool_definitions,
@@ -163,6 +163,8 @@ class Agent:
             sandbox_config=sandbox_config,
             approval_timeout=config.approval_timeout,
             log_level="ERROR",
+            approve_shell_cmds=True,
+            block_direct_shell=True,
         )
 
         self._cancel_event = asyncio.Event()
@@ -531,29 +533,6 @@ class Agent:
 
         match tool_name:
             case "ipybox_execute_ipython_cell":
-                # Shell command approval (before execution)
-                raw_commands = extract_shell_commands(tool_args["code"])
-                for raw_cmd in raw_commands:
-                    for sub_cmd in split_composite_command(raw_cmd):
-                        shell_approval = ApprovalRequest(
-                            tool_call=ShellAction(tool_name="bash", command=sub_cmd),
-                            agent_id=self.agent_id,
-                            corr_id=corr_id,
-                        )
-                        yield shell_approval
-                        shell_decision = await self._await_approval_or_cancel(shell_approval)
-                        if shell_decision is None:
-                            yield self._interrupted_tool_return(call)
-                            return
-                        if not shell_decision:
-                            yield ToolReturnPart(
-                                tool_call_id=call.tool_call_id,
-                                tool_name=tool_name,
-                                content="Shell command rejected",
-                                metadata={"rejected": True},
-                            )
-                            return
-
                 async for item in self._ipybox_execute_ipython_cell(tool_args["code"]):
                     match item:
                         case ApprovalRequest():
@@ -654,6 +633,26 @@ class Agent:
             async with self._code_executor_lock:
                 async for item in self._code_executor.stream(code, timeout=self._execution_timeout, chunks=True):
                     match item:
+                        case ipybox.ApprovalRequest(
+                            tool_name="shell",
+                            tool_args=tool_args,
+                        ):
+                            cmd = tool_args["cmd"]  # type: ignore[has-type,index]
+                            sub_cmds = split_composite_command(cmd)
+                            all_approved = True
+                            for sub_cmd in sub_cmds:
+                                shell_approval = ApprovalRequest(
+                                    tool_call=ShellAction(tool_name="bash", command=sub_cmd),
+                                    agent_id=self.agent_id,
+                                )
+                                yield shell_approval
+                                if not await shell_approval.approved():
+                                    all_approved = False
+                                    break
+                            if all_approved:
+                                await item.accept()
+                            else:
+                                await item.reject()
                         case ipybox.ApprovalRequest(
                             server_name=server_name,
                             tool_name=tool_name,
