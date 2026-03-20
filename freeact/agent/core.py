@@ -163,8 +163,9 @@ class Agent:
             sandbox_config=sandbox_config,
             approval_timeout=config.approval_timeout,
             log_level="ERROR",
+            approve_tool_calls=True,
             approve_shell_cmds=True,
-            block_direct_shell=True,
+            require_shell_escape=True,
         )
 
         self._cancel_event = asyncio.Event()
