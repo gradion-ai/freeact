@@ -2,6 +2,8 @@
     <img src="docs/images/banner.png" alt="freeact" width="100%">
 </p>
 
+# freeact
+
 <p align="left">
     <a href="https://gradion-ai.github.io/freeact/"><img alt="Website" src="https://img.shields.io/website?url=https%3A%2F%2Fgradion-ai.github.io%2Ffreeact%2F&up_message=online&down_message=offline&label=docs"></a>
     <a href="https://pypi.org/project/freeact/"><img alt="PyPI - Version" src="https://img.shields.io/pypi/v/freeact?color=blue"></a>
@@ -10,14 +12,18 @@
     <a href="https://github.com/gradion-ai/freeact/blob/main/LICENSE"><img alt="GitHub License" src="https://img.shields.io/github/license/gradion-ai/freeact?color=blueviolet"></a>
 </p>
 
-Freeact is a lightweight agent harness and CLI tool that acts by executing code and shell commands in a stateful execution environment. It uses code actions to improve itself and its tool library.
+Freeact is a general-purpose AI agent that acts through a unified execution interface for Python code, shell commands, and programmatic MCP tool calls.
 
-It generates Python APIs for MCP servers and calls their tools programmatically ("code mode") instead of JSON. This enables tool composition in code actions in a single inference pass.
+## Overview
 
-Freeact has a tiny core and uses sandboxed IPython kernels to execute both Python code and shell commands in a uniform way. Execution runs locally with fine-grained approval of actions.
+Freeact is a lightweight, general-purpose agent that acts by executing code and shell commands in a stateful execution environment provided by [ipybox](https://github.com/gradion-ai/ipybox). A unified execution interface enables the agent to combine Python code, shell commands, and programmatic MCP tool calls within a code action, generated in one LLM inference pass, reducing the number of roundtrips.
+
+For programmatic MCP tool calling ("code mode"), freeact generates typed Python APIs from MCP server schemas. The agent inspects generated APIs prior to execution and composes them based on available type information. Successful code actions can be saved as reusable tools, capturing experience as executable knowledge, optionally combined with agent skills.
+
+Freeact supports tool discovery via agentic and semantic search, loading only task-relevant tool information into the context window. It can enforce application-level approval of code actions and each shell command and programmatic tool call within them, originating from both main agents and subagents. Freeact runs locally on your computer and is available as a CLI tool and Python SDK.
 
 > [!NOTE]
-> **Supported models**: Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/), with `gemini-3-flash-preview` as the default. See [Models](https://gradion-ai.github.io/freeact/models/) for provider configuration and examples.
+> **Supported models**: Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/). See [Models](https://gradion-ai.github.io/freeact/models/) for provider configuration and examples.
 
 ## Documentation
 
@@ -30,16 +36,16 @@ Freeact has a tiny core and uses sandboxed IPython kernels to execute both Pytho
 
 | Capability | Description |
 |---|---|
-| **Code actions** | Freeact agents act via Python code and shell commands. This enables tool composition and intermediate result processing in a single LLM inference pass. |
-| **Local execution** | Freeact executes code and shell commands locally in an IPython kernel provided by [ipybox](https://github.com/gradion-ai/ipybox). Data, configuration and generated tools live in local workspaces. |
-| **Sandbox mode** | IPython kernels optionally run in a sandbox environment based on Anthropic's [sandbox-runtime](https://github.com/anthropic-experimental/sandbox-runtime). It enforces filesystem and network restrictions on OS-level. |
-| **MCP code mode** | Freeact calls MCP server tools programmatically<sup>1)</sup> via generated Python APIs. This enables composition of tool calls in code actions with much lower latency. |
+| **Unified execution** | Freeact agents act by executing Python code, shell commands, and programmatic MCP tool calls. These can be combined within a code action, generated in a single inference pass. |
+| **Action approval** | Application-level approval of code actions, shell commands, and programmatic tool calls originating from both main agents and subagents. |
+| **MCP code mode** | Freeact calls MCP server tools programmatically<sup>1)</sup> via generated Python APIs. This enables composition of tool calls and intermediate result processing in code actions, reducing LLM roundtrips. |
+| **Local execution** | Freeact executes code and shell commands locally in an IPython kernel provided by [ipybox](https://github.com/gradion-ai/ipybox). Data, configuration, and generated tools live in local workspaces. |
+| **Sandbox mode** | IPython kernels optionally run in a sandbox environment based on Anthropic's [sandbox-runtime](https://github.com/anthropic-experimental/sandbox-runtime), enforcing filesystem and network restrictions on OS-level. |
 | **Tool discovery** | Tools are discovered via category browsing or hybrid BM25/vector search. On-demand loading frees the context window and scales to larger tool libraries. |
-| **Tool authoring** | Agents can create new tools, enhance existing tools, or save code actions as reusable tools. This captures successful experience as executable knowledge. |
-| **Agent skills** | Skills give agents new capabilities and expertise based on [agentskills.io](https://agentskills.io/). They compose naturally with code actions and agent-authored tools. |
-| **Subagent delegation** | Tasks can be delegated to subagents, each using their own sandbox. It enables specialization and parallelization without cluttering the main agent's context. |
-| **Action approval** | Fine-grained approval of code actions and (programmatic) tool calls from both main agents and subagents. Enables human control over potentially risky actions. |
+| **Subagent delegation** | Tasks can be delegated to subagents, each using their own execution environment. This enables specialization and parallelization without cluttering the main agent's context. |
 | **Session persistence** | Freeact persists agent state incrementally. Persisted sessions can be resumed and serve as a record for debugging, evaluation, and improvement. |
+| **Tool authoring** | Agents can create new tools, enhance existing tools, or save code actions as reusable tools. This captures agent experiences as executable knowledge. |
+| **Agent skills** | Skills give agents new capabilities and expertise based on [agentskills.io](https://agentskills.io/). They compose naturally with code actions and agent-authored tools. |
 
 ## Usage
 

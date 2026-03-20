@@ -51,7 +51,7 @@ class Thoughts(AgentEvent):
 
 @dataclass(frozen=True)
 class ToolOutput(AgentEvent):
-    """Tool or built-in operation output."""
+    """JSON tool call or built-in operation output."""
 
     content: ToolResult
 

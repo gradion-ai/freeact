@@ -59,7 +59,7 @@ The [`Agent.stream()`][freeact.agent.Agent.stream] method yields events as they 
 | [`ApprovalRequest`][freeact.agent.ApprovalRequest] | Pending code action or tool call approval |
 | [`CodeExecutionOutputChunk`][freeact.agent.CodeExecutionOutputChunk] | Partial code execution output (content streaming) |
 | [`CodeExecutionOutput`][freeact.agent.CodeExecutionOutput] | Complete code execution output |
-| [`ToolOutput`][freeact.agent.ToolOutput] | Tool or built-in operation output |
+| [`ToolOutput`][freeact.agent.ToolOutput] | JSON tool call or built-in operation output |
 | [`Cancelled`][freeact.agent.Cancelled] | Agent turn was cancelled |
 
 All yielded events inherit from [`AgentEvent`][freeact.agent.AgentEvent] and carry `agent_id`.
@@ -71,7 +71,7 @@ The agent uses a small set of internal tools for reading and writing files, exec
 | Tool | Implementation | Description |
 |------|---------------|-------------|
 | read, write, edit | [`filesystem`][freeact.agent.config.FILESYSTEM_MCP_SERVER_CONFIG] MCP server | Reading, writing, and editing files via JSON tool calls (`read_text_file`, `read_media_file`, `write_text_file`, `edit_text_file`) |
-| execute | `ipybox_execute_ipython_cell` | Execution of Python code and shell commands (via `!` prefix), delegated to ipybox's `CodeExecutor` |
+| execute | `ipybox_execute_ipython_cell` | Execution of Python code and shell commands (via `!` syntax), delegated to ipybox's `CodeExecutor`, with shell commands and programmatic MCP tools calls intercepted at runtime for approval |
 | subagent | [`subagent_task`](#subagents) | Task delegation to child agents |
 | tool search | `pytools` MCP server for [basic search][freeact.agent.config.BASIC_SEARCH_MCP_SERVER_CONFIG] and [hybrid search][freeact.agent.config.HYBRID_SEARCH_MCP_SERVER_CONFIG] | Tool discovery via category browsing or hybrid search |
 
@@ -111,8 +111,8 @@ The built-in `subagent_task` tool delegates a subtask to a child agent with a fr
 ```python
 async for event in agent.stream(prompt):
     match event:
-        case ApprovalRequest(agent_id=agent_id) as request:
-            print(f"[{agent_id}] Approve {request.tool_name}?")
+        case ApprovalRequest(agent_id=agent_id, tool_call=tool_call) as request:
+            print(f"[{agent_id}] Approve {tool_call}?")
             request.approve(True)
         case Response(content=content, agent_id=agent_id):
             print(f"[{agent_id}] {content}")
@@ -122,26 +122,37 @@ The main agent's `agent_id` is `main`, subagent IDs use the form `sub-xxxx`. Eac
 
 ### Approval
 
-The agent provides a unified approval mechanism. It yields [`ApprovalRequest`][freeact.agent.ApprovalRequest] for all code actions, programmatic tool calls, and JSON tool calls. Execution is suspended until `approve()` is called. Calling `approve(True)` executes the code action or tool call; `approve(False)` rejects it and ends the current agent turn.
+The agent yields [`ApprovalRequest`][freeact.agent.ApprovalRequest] for code actions and each shell command and programmatic tool call within them. Each request carries a [`tool_call`][freeact.agent.call.ToolCall] field identifying the pending action. Execution is suspended until `approve()` is called. Calling `approve(True)` executes the action; `approve(False)` rejects it and ends the current agent turn.
 
 ```python
 async for event in agent.stream(prompt):
     match event:
-        case ApprovalRequest() as request:
-            # Inspect the pending action
-            print(f"Tool: {request.tool_name}")
-            print(f"Args: {request.tool_args}")
-
-            # Approve or reject
+        case ApprovalRequest(tool_call=CodeAction(code=code)) as request:
+            print(f"Code action:\n{code}")
             request.approve(True)
-
+        case ApprovalRequest(tool_call=ShellAction(command=cmd)) as request:
+            print(f"Shell command: {cmd}")
+            request.approve(True)
+        case ApprovalRequest(tool_call=GenericCall(tool_name=name, ptc=True)) as request:
+            print(f"Programmatic tool call: {name}")
+            request.approve(True)
+        case ApprovalRequest(tool_call=GenericCall(tool_name=name)) as request:
+            print(f"JSON tool call: {name}")
+            request.approve(True)
         case Response(content=content):
             print(content)
 ```
 
-!!! note "Code action approval"
+The `tool_call` type determines what is being approved:
 
-    For code actions, `tool_name` is `ipybox_execute_ipython_cell` and `tool_args` contains the `code` to execute.
+| `tool_call` type | Trigger |
+|---|---|
+| [`CodeAction`][freeact.agent.call.CodeAction] | Code action containing Python code and shell commands to execute |
+| [`ShellAction`][freeact.agent.call.ShellAction] | Shell command (`!cmd`) intercepted during code action execution |
+| [`GenericCall`][freeact.agent.call.GenericCall] | Programmatic tool call (intercepted during code action execution) or JSON tool call |
+| [`FileRead`][freeact.agent.call.FileRead], [`FileWrite`][freeact.agent.call.FileWrite], [`FileEdit`][freeact.agent.call.FileEdit] | Filesystem operation via built-in MCP server |
+
+Shell commands and programmatic tool calls within code actions are intercepted during execution and yield separate `ApprovalRequest` events. Composite shell commands (using `&&`, `||`, `|`, `;`) are decomposed into individual sub-commands, each requiring separate approval. Python variables in shell commands are resolved before the approval request.
 
 ### Lifecycle
 
