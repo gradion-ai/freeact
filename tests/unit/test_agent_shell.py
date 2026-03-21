@@ -69,7 +69,12 @@ def _make_ipybox_ptc_approval(
 
 
 class MockCodeExecutor:
-    """Mock code executor that yields configurable items from stream()."""
+    """Mock code executor that yields configurable items from stream().
+
+    When an ipybox.ApprovalRequest is yielded, the executor waits for the
+    decision. If rejected, it raises CodeExecutionError (matching real
+    ipybox behavior where the kernel raises ApprovalRejectedError).
+    """
 
     def __init__(self, items: list[Any], result_text: str = "ok"):
         self._items = items
@@ -83,6 +88,12 @@ class MockCodeExecutor:
     ) -> AsyncIterator[ipybox.ApprovalRequest | ipybox.CodeExecutionChunk | ipybox.CodeExecutionResult]:
         for item in self._items:
             yield item
+            if isinstance(item, ipybox.ApprovalRequest):
+                decision = await item.response()
+                if not decision:
+                    raise ipybox.CodeExecutionError(
+                        f"ApprovalRejectedError: Approval request for {item.tool_name} rejected"
+                    )
         yield ipybox.CodeExecutionResult(text=self._result_text, images=[])
 
 
@@ -137,9 +148,14 @@ async def test_shell_rejection_rejects_ipybox_approval(tmp_path: Path) -> None:
                 return False
             return True
 
-        await collect_stream(agent, "run it", approve_function=deny_shell)
+        results = await collect_stream(agent, "run it", approve_function=deny_shell)
 
     assert decisions == [False]
+    # Agent sees the rejection error in code output
+    assert len(results.code_outputs) == 1
+    assert results.code_outputs[0].approval_rejected()
+    # Agent turn ends with rejection response
+    assert any(r.content == "Tool call rejected" for r in results.responses)
 
 
 @pytest.mark.asyncio
@@ -163,6 +179,11 @@ async def test_composite_partial_rejection_rejects_ipybox_approval(tmp_path: Pat
     # Only the first sub-command approval was yielded before the second was rejected
     shell_approvals = [a for a in results.approvals if isinstance(a.tool_call, ShellAction)]
     assert len(shell_approvals) == 2
+    # Agent sees the rejection error in code output
+    assert len(results.code_outputs) == 1
+    assert results.code_outputs[0].approval_rejected()
+    # Agent turn ends with rejection response
+    assert any(r.content == "Tool call rejected" for r in results.responses)
 
 
 @pytest.mark.asyncio

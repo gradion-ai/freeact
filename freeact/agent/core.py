@@ -541,7 +541,7 @@ class Agent:
                         case CodeExecutionOutputChunk():
                             yield replace(item, corr_id=corr_id)
                         case CodeExecutionOutput(text=text):
-                            if item.ptc_rejected():
+                            if item.approval_rejected():
                                 rejected = True
                                 content = "Tool call rejected"
                                 yield replace(item, corr_id=corr_id)
