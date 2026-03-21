@@ -53,17 +53,17 @@ plugins:
               domains: [py, std]
   - llmstxt:
       markdown_description: |
-        Freeact is a general-purpose AI agent that acts through a unified execution interface for Python code, shell commands, and programmatic MCP tool calls.
+        General-purpose AI agent that acts via code actions through a unified execution interface.
 
-        Freeact acts by executing code and shell commands in a stateful execution environment provided by ipybox.
-        A unified execution interface enables the agent to combine Python code, shell commands, and programmatic MCP tool calls within a code action, generated in one LLM inference pass, reducing the number of roundtrips.
+        Freeact is a lightweight, general-purpose agent that acts via code actions in a stateful execution environment provided by ipybox.
+        A unified execution interface allows code actions to contain any combination of Python code, shell commands, and programmatic MCP tool calls, generated in one LLM inference pass.
 
         For programmatic MCP tool calling ("code mode"), freeact generates typed Python APIs from MCP server schemas.
-        The agent inspects generated APIs prior to execution and composes them based on available type information.
-        Successful code actions can be saved as reusable tools, capturing experience as executable knowledge, optionally combined with agent skills.
+        The agent inspects generated APIs prior to execution and composes them within code actions based on available type information.
+        Successful code actions can be saved as reusable tools, capturing agent experience as executable knowledge, optionally combined with agent skills.
 
         Freeact supports tool discovery via agentic and semantic search, loading only task-relevant tool information into the context window.
-        It can enforce application-level approval of code actions and each shell command and programmatic tool call within them, originating from both main agents and subagents.
+        It can enforce application-level approval of code actions, shell commands, and programmatic tool calls, originating from both main agents and subagents.
         Freeact runs locally on your computer and is available as a CLI tool and Python SDK.
       full_output: llms-full.txt
       sections:
