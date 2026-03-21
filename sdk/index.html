@@ -734,10 +734,21 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#tool-results" class="md-nav__link">
+  <a href="#sessions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tool Results
+        Sessions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results
       
     </span>
   </a>
@@ -1474,10 +1485,21 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#tool-results" class="md-nav__link">
+  <a href="#sessions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tool Results
+        Sessions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results
       
     </span>
   </a>
@@ -1573,6 +1595,7 @@
     <span class="n">CodeAction</span><span class="p">,</span>
     <span class="n">CodeExecutionOutput</span><span class="p">,</span>
     <span class="n">Response</span><span class="p">,</span>
+    <span class="n">ShellAction</span><span class="p">,</span>
     <span class="n">Thoughts</span><span class="p">,</span>
     <span class="n">ToolOutput</span><span class="p">,</span>
 <span class="p">)</span>
@@ -1584,6 +1607,9 @@
         <span class="k">match</span> <span class="n">event</span><span class="p">:</span>
             <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">(</span><span class="n">tool_call</span><span class="o">=</span><span class="n">CodeAction</span><span class="p">(</span><span class="n">code</span><span class="o">=</span><span class="n">code</span><span class="p">))</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Code action:</span><span class="se">\n</span><span class="si">{</span><span class="n">code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">(</span><span class="n">tool_call</span><span class="o">=</span><span class="n">ShellAction</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="n">cmd</span><span class="p">))</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Shell command: </span><span class="si">{</span><span class="n">cmd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">(</span><span class="n">tool_call</span><span class="o">=</span><span class="n">tool_call</span><span class="p">)</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tool: </span><span class="si">{</span><span class="n">tool_call</span><span class="o">.</span><span class="n">tool_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -1638,7 +1664,7 @@
 </tr>
 <tr>
 <td><a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.ToolOutput"><code>ToolOutput</code></a></td>
-<td>Tool or built-in operation output</td>
+<td>JSON tool call or built-in operation output</td>
 </tr>
 <tr>
 <td><a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.Cancelled"><code>Cancelled</code></a></td>
@@ -1661,12 +1687,12 @@
 <tr>
 <td>read, write, edit</td>
 <td><a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.FILESYSTEM_MCP_SERVER_CONFIG"><code>filesystem</code></a> MCP server</td>
-<td>Reading, writing, and editing files via JSON tool calls (<code>read_text_file</code>, <code>read_media_file</code>, <code>write_text_file</code>, <code>edit_text_file</code>)</td>
+<td>Reading, writing, and editing files via JSON tool calls (<code>filesystem_read_text_file</code>, <code>filesystem_read_media_file</code>, <code>filesystem_write_text_file</code>, <code>filesystem_edit_text_file</code>)</td>
 </tr>
 <tr>
 <td>execute</td>
 <td><code>ipybox_execute_ipython_cell</code></td>
-<td>Execution of Python code and shell commands (via <code>!</code> prefix), delegated to ipybox's <code>CodeExecutor</code></td>
+<td>Execution of Python code and shell commands (via <code>!</code> syntax), delegated to ipybox's <code>CodeExecutor</code>, with shell commands and programmatic MCP tools calls intercepted at runtime for approval</td>
 </tr>
 <tr>
 <td>subagent</td>
@@ -1702,32 +1728,60 @@
 <p>The built-in <code>subagent_task</code> tool delegates a subtask to a child agent with a fresh IPython kernel and fresh MCP server connections. The child inherits model, system prompt, and sandbox settings from the parent. Its events flow through the parent's stream using the same <a href="#approval">approval</a> mechanism, with <code>agent_id</code> identifying the source:</p>
 <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">prompt</span><span class="p">):</span>
     <span class="k">match</span> <span class="n">event</span><span class="p">:</span>
-        <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">(</span><span class="n">agent_id</span><span class="o">=</span><span class="n">agent_id</span><span class="p">)</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">agent_id</span><span class="si">}</span><span class="s2">] Approve </span><span class="si">{</span><span class="n">request</span><span class="o">.</span><span class="n">tool_name</span><span class="si">}</span><span class="s2">?&quot;</span><span class="p">)</span>
+        <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">(</span><span class="n">agent_id</span><span class="o">=</span><span class="n">agent_id</span><span class="p">,</span> <span class="n">tool_call</span><span class="o">=</span><span class="n">tool_call</span><span class="p">)</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">agent_id</span><span class="si">}</span><span class="s2">] Approve </span><span class="si">{</span><span class="n">tool_call</span><span class="si">}</span><span class="s2">?&quot;</span><span class="p">)</span>
             <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">case</span> <span class="n">Response</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span> <span class="n">agent_id</span><span class="o">=</span><span class="n">agent_id</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">agent_id</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
 <p>The main agent's <code>agent_id</code> is <code>main</code>, subagent IDs use the form <code>sub-xxxx</code>. Each delegated task defaults to <code>max_turns=100</code>. The <a href="../configuration/#agent-settings"><code>max_subagents</code></a> setting in <code>agent.json</code> limits concurrent subagents (default 5).</p>
 <h3 id="approval">Approval</h3>
-<p>The agent provides a unified approval mechanism. It yields <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.ApprovalRequest"><code>ApprovalRequest</code></a> for all code actions, programmatic tool calls, and JSON tool calls. Execution is suspended until <code>approve()</code> is called. Calling <code>approve(True)</code> executes the code action or tool call; <code>approve(False)</code> rejects it and ends the current agent turn.</p>
+<p>The agent yields <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.ApprovalRequest"><code>ApprovalRequest</code></a> for code actions and each shell command and programmatic tool call within them. Each request carries a <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.ToolCall"><code>tool_call</code></a> field identifying the pending action. Execution is suspended until <code>approve()</code> is called. Calling <code>approve(True)</code> executes the action; <code>approve(False)</code> rejects it and ends the current agent turn.</p>
 <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">prompt</span><span class="p">):</span>
     <span class="k">match</span> <span class="n">event</span><span class="p">:</span>
-        <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">()</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
-            <span class="c1"># Inspect the pending action</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tool: </span><span class="si">{</span><span class="n">request</span><span class="o">.</span><span class="n">tool_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Args: </span><span class="si">{</span><span class="n">request</span><span class="o">.</span><span class="n">tool_args</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-            <span class="c1"># Approve or reject</span>
+        <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">(</span><span class="n">tool_call</span><span class="o">=</span><span class="n">CodeAction</span><span class="p">(</span><span class="n">code</span><span class="o">=</span><span class="n">code</span><span class="p">))</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Code action:</span><span class="se">\n</span><span class="si">{</span><span class="n">code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-
+        <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">(</span><span class="n">tool_call</span><span class="o">=</span><span class="n">ShellAction</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="n">cmd</span><span class="p">))</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Shell command: </span><span class="si">{</span><span class="n">cmd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">(</span><span class="n">tool_call</span><span class="o">=</span><span class="n">GenericCall</span><span class="p">(</span><span class="n">tool_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">ptc</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Programmatic tool call: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">(</span><span class="n">tool_call</span><span class="o">=</span><span class="n">GenericCall</span><span class="p">(</span><span class="n">tool_name</span><span class="o">=</span><span class="n">name</span><span class="p">))</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;JSON tool call: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">case</span> <span class="n">Response</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
 </code></pre></div>
-<div class="admonition note">
-<p class="admonition-title">Code action approval</p>
-<p>For code actions, <code>tool_name</code> is <code>ipybox_execute_ipython_cell</code> and <code>tool_args</code> contains the <code>code</code> to execute.</p>
-</div>
+<p>The <code>tool_call</code> type determines what is being approved:</p>
+<table>
+<thead>
+<tr>
+<th><code>tool_call</code> type</th>
+<th>Trigger</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.CodeAction"><code>CodeAction</code></a></td>
+<td>Code action containing Python code and shell commands to execute</td>
+</tr>
+<tr>
+<td><a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.ShellAction"><code>ShellAction</code></a></td>
+<td>Shell command (<code>!cmd</code>) intercepted during code action execution</td>
+</tr>
+<tr>
+<td><a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.GenericCall"><code>GenericCall</code></a></td>
+<td>Programmatic tool call (intercepted during code action execution) or JSON tool call</td>
+</tr>
+<tr>
+<td><a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.FileRead"><code>FileRead</code></a>, <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.FileWrite"><code>FileWrite</code></a>, <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.FileEdit"><code>FileEdit</code></a></td>
+<td>Filesystem operation via built-in MCP server</td>
+</tr>
+</tbody>
+</table>
+<p>Shell commands and programmatic tool calls within code actions are intercepted during execution and yield separate <code>ApprovalRequest</code> events. Composite shell commands (using <code>&amp;&amp;</code>, <code>||</code>, <code>|</code>, <code>;</code>) are decomposed into individual sub-commands, each requiring separate approval. Python variables in shell commands are resolved before the approval request.</p>
 <h3 id="lifecycle">Lifecycle</h3>
 <p>The agent manages MCP server connections and an IPython kernel via <a href="https://gradion-ai.github.io/ipybox/">ipybox</a>. On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calling connect. MCP servers configured for programmatic tool calling connect lazily on first tool call.</p>
 <div class="highlight"><pre><span></span><code><span class="n">config</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Config</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
@@ -1758,6 +1812,7 @@
 <span class="p">}</span>
 </code></pre></div>
 <h3 id="persistence">Persistence</h3>
+<h4 id="sessions">Sessions</h4>
 <p><a class="autorefs autorefs-internal" href="../api/config/#freeact.agent.config.Config"><code>Config</code></a> controls session persistence via <code>enable_persistence</code>.</p>
 <ul>
 <li>Default: <code>true</code>. The agent persists history to <code>.freeact/sessions/&lt;session-id&gt;/&lt;agent-id&gt;.jsonl</code>.</li>
@@ -1786,12 +1841,12 @@
 </code></pre></div>
 <p>Only the main agent's message history (<code>main.jsonl</code>) is loaded on resume. Subagent messages are persisted to separate files (<code>sub-xxxx.jsonl</code>) for auditing but are not rehydrated.</p>
 <p>The <a href="../cli/">CLI tool</a> accepts <code>--session-id</code> to resume a session from the command line when <code>enable_persistence</code> is <code>true</code>.</p>
-<h4 id="tool-results">Tool Results</h4>
-<p>Tool result persistence handles outputs that are too large to keep inline in the message history. Large inline payloads can bloat context and slow down processing. When a result exceeds the inline size threshold, the full content is saved to disk and replaced inline with a short file reference notice that includes a preview.</p>
-<p>Tool result persistence is controlled by two config options:</p>
+<h4 id="results">Results</h4>
+<p>Tool call results, code execution outputs, and subagent responses are checked against an inline size threshold before being added to the message history. When a result exceeds the threshold, the full content is saved to disk and replaced inline with a file reference notice that includes a preview. This prevents large outputs from bloating context.</p>
+<p>Controlled by two config options:</p>
 <ul>
-<li><code>tool_result_inline_max_bytes</code>: Maximum inline payload size for a tool result.</li>
-<li><code>tool_result_preview_chars</code>: Number of preview characters shown from both the beginning and end of large text results in the file reference notice.</li>
+<li><code>tool_result_inline_max_bytes</code>: Maximum inline payload size in bytes.</li>
+<li><code>tool_result_preview_chars</code>: Number of preview characters from both the beginning and end of large text results included in the file reference notice.</li>
 </ul>
 <h3 id="prompt-tags">Prompt tags</h3>
 <p>Prompts passed to <code>stream()</code> may contain skill tags that the agent processes. Skill tags explicitly invoke a skill by name. The <a href="../cli/#skill-invocation">CLI tool</a> generates these from <code>/skill-name</code> syntax.</p>
@@ -1799,13 +1854,23 @@
 </code></pre></div>
 <p>Without an explicit tag, the agent can still autonomously select a skill when the request matches a skill's description. Skills are discovered from <code>.freeact/skills/</code> and <code>.agents/skills/</code> directories.</p>
 <h2 id="permissions-api">Permissions API</h2>
-<p><a class="autorefs autorefs-internal" href="../api/permissions/#freeact.permissions.PermissionManager"><code>PermissionManager</code></a> provides pattern-based permission gating using typed <a class="autorefs autorefs-internal" href="../api/agent/#freeact.agent.ToolCall"><code>ToolCall</code></a> instances. Patterns use glob-style matching (<code>*</code>, <code>?</code>). Path fields use path-aware matching where <code>*</code> matches within a single directory and <code>**</code> matches across directory boundaries. Rules are organized into ask/allow tiers with session and always persistence scopes.</p>
-<p>Each <code>ApprovalRequest</code> carries a <code>tool_call</code> field that is a <code>ToolCall</code> subclass (<code>GenericCall</code>, <code>ShellAction</code>, <code>CodeAction</code>, <code>FileRead</code>, <code>FileWrite</code>, <code>FileEdit</code>). Permission matching is type-specific: shell commands match on <code>command</code>, filesystem tools match on <code>path</code>, and generic tools match on <code>tool_name</code> only.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">freeact.permissions</span><span class="w"> </span><span class="kn">import</span> <span class="n">PermissionManager</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent</span><span class="w"> </span><span class="kn">import</span> <span class="n">suggest_pattern</span>
+<p>The agent does not enforce permissions itself. It yields <a href="#approval"><code>ApprovalRequest</code></a> events and leaves the decision to the application. <a class="autorefs autorefs-internal" href="../api/permissions/#freeact.permissions.PermissionManager"><code>PermissionManager</code></a> is an optional utility that applications can use to automate those decisions based on stored rules. The <a href="../cli/#approval-prompt">CLI tool</a> uses it internally; SDK applications can use it the same way.</p>
+<p>The manager loads and saves rules from <code>.freeact/permissions.json</code>. Rules are glob-style <a href="../configuration/#permissions">patterns</a> organized into two tiers (allow and ask) and two persistence scopes (always and session). See <a href="../configuration/#permissions">Permissions</a> for the file format, pattern syntax, and matching semantics.</p>
+<p>The core API:</p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="../api/permissions/#freeact.permissions.PermissionManager.init"><code>init()</code></a> loads rules from <code>.freeact/permissions.json</code> if present, otherwise saves defaults.</li>
+<li><a class="autorefs autorefs-internal" href="../api/permissions/#freeact.permissions.PermissionManager.is_allowed"><code>is_allowed(tool_call)</code></a> checks a concrete tool call (literal values, no wildcards) against stored rules.</li>
+<li><a class="autorefs autorefs-internal" href="../api/permissions/#freeact.permissions.PermissionManager.allow_always"><code>allow_always(tool_call)</code></a> adds a rule and persists it to <code>permissions.json</code>. The tool call fields may contain glob wildcards to match broadly (e.g., <code>command="git *"</code>).</li>
+<li><a class="autorefs autorefs-internal" href="../api/permissions/#freeact.permissions.PermissionManager.allow_session"><code>allow_session(tool_call)</code></a> adds an in-memory rule for the current session. Same wildcard support as <code>allow_always</code>.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">freeact.permissions</span><span class="w"> </span><span class="kn">import</span> <span class="n">PermissionManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent</span><span class="w"> </span><span class="kn">import</span> <span class="n">ApprovalRequest</span><span class="p">,</span> <span class="n">suggest_pattern</span>
+
+<span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_running_loop</span><span class="p">()</span>
 
 <span class="n">manager</span> <span class="o">=</span> <span class="n">PermissionManager</span><span class="p">()</span>
-<span class="k">await</span> <span class="n">manager</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+<span class="k">await</span> <span class="n">loop</span><span class="o">.</span><span class="n">run_in_executor</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">.</span><span class="n">init</span><span class="p">)</span>
 
 <span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">prompt</span><span class="p">):</span>
     <span class="k">match</span> <span class="n">event</span><span class="p">:</span>
@@ -1817,7 +1882,11 @@
                 <span class="n">choice</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Allow [</span><span class="si">{</span><span class="n">pattern</span><span class="si">}</span><span class="s2">]? [Y/n/a/s]: &quot;</span><span class="p">)</span>
                 <span class="k">match</span> <span class="n">choice</span><span class="p">:</span>
                     <span class="k">case</span> <span class="s2">&quot;a&quot;</span><span class="p">:</span>
-                        <span class="k">await</span> <span class="n">manager</span><span class="o">.</span><span class="n">allow_always</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">tool_call</span><span class="p">)</span>
+                        <span class="k">await</span> <span class="n">loop</span><span class="o">.</span><span class="n">run_in_executor</span><span class="p">(</span>
+                            <span class="kc">None</span><span class="p">,</span> 
+                            <span class="n">manager</span><span class="o">.</span><span class="n">allow_always</span><span class="p">,</span> 
+                            <span class="n">request</span><span class="o">.</span><span class="n">tool_call</span><span class="p">,</span>
+                        <span class="p">)</span>
                         <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
                     <span class="k">case</span> <span class="s2">&quot;s&quot;</span><span class="p">:</span>
                         <span class="n">manager</span><span class="o">.</span><span class="n">allow_session</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">tool_call</span><span class="p">)</span>
@@ -1827,7 +1896,6 @@
                     <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
                         <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
-<p>See <a href="../configuration/#permissions">Permissions</a> for the persisted file format and pattern syntax.</p>
 
 
 

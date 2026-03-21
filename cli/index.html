@@ -1528,7 +1528,7 @@ images/ Describe these images
 <h3 id="cancellation">Cancellation</h3>
 <p>Press <code>Escape</code> during an active agent turn to cancel it. This interrupts the current operation (LLM streaming, code execution, or approval wait), stops the turn, and re-enables the prompt input.</p>
 <h3 id="approval-prompt">Approval Prompt</h3>
-<p>Before executing code actions or tool calls, the agent requests approval. The prompt displays a suggested pattern that summarizes the pending action:</p>
+<p>Before executing code actions, shell commands, and tool calls, the agent requests approval. Shell commands and programmatic tool calls within code actions are intercepted during execution and approved individually. The prompt displays a suggested pattern that summarizes the pending action:</p>
 <div class="highlight"><pre><span></span><code>Approve? [Y/n/a/s] git add *
 </code></pre></div>
 <table>
@@ -1558,7 +1558,7 @@ images/ Describe these images
 </tbody>
 </table>
 <p>Pressing <code>a</code> or <code>s</code> opens the pattern for inline editing. The input is pre-filled with the suggested pattern. Edit the pattern to broaden or narrow the rule (e.g. change <code>filesystem_read_file src/main.py</code> to <code>filesystem_* src/**</code>), then press <code>Enter</code> to save the rule and approve. While editing, approval hotkeys are disabled so you can type freely.</p>
-<p>Always-allow rules persist to <code>.freeact/permissions.json</code> across sessions. Session-allow rules are in-memory and cleared when the session ends. Future tool calls matching a saved rule are auto-approved without prompting.</p>
+<p>Always-allow rules persist to <code>.freeact/permissions.json</code> across sessions. Session-allow rules are in-memory and cleared when the session ends. Future actions matching a saved rule are auto-approved without prompting.</p>
 <p>The suggested pattern depends on the action type:</p>
 <table>
 <thead>
@@ -1594,7 +1594,7 @@ images/ Describe these images
 <p>See <a href="../configuration/#permissions">Permissions</a> for the persisted format and pattern syntax.</p>
 <div class="admonition hint">
 <p class="admonition-title">Automatic approval</p>
-<p>Use the <a href="#options"><code>--skip-permissions</code></a> CLI flag to run the agent with automatic approval for all tools and shell commands.</p>
+<p>Use the <a href="#options"><code>--skip-permissions</code></a> CLI option to run the agent with full action auto-approval.</p>
 </div>
 
 

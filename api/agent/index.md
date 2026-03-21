@@ -281,7 +281,7 @@ ToolOutput(
 
 Bases: `AgentEvent`
 
-Tool or built-in operation output.
+JSON tool call or built-in operation output.
 
 ## freeact.agent.Cancelled
 

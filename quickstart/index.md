@@ -20,7 +20,7 @@ See [Installation](https://gradion-ai.github.io/freeact/installation/index.md) f
 
 Using a different model
 
-Freeact supports any model compatible with Pydantic AI. To switch providers or configure model settings, see [Models](https://gradion-ai.github.io/freeact/models/index.md).
+The current default model is `google-gla:gemini-3-flash-preview`. Freeact supports any model compatible with Pydantic AI. To switch providers or configure model settings, see [Models](https://gradion-ai.github.io/freeact/models/index.md).
 
 ### Generating MCP Tool APIs
 
@@ -40,22 +40,20 @@ the CLI tool should produce an end result similar to the following screenshot:
 
 The screenshot shows:
 
-- **Progressive tool loading**: The agent progressively loads tool information: lists categories, lists tools in the `google` category, then reads the `web_search` API to understand its parameters.
+- **Progressive tool loading**: The agent progressively loads tool information: lists categories, lists tools in the `google` category, then reads `web_search.py` to understand the generated interface.
 - **Programmatic tool calling**: The agent writes Python code that imports the `web_search` tool from `mcptools.google` and calls it programmatically (PTC) with the user's query.
 
 The code execution output shows the search result with source URLs. The agent response is a summary of it.
 
 ### Approval Prompt
 
-Freeact can prompt for approval before running code actions and tool calls. This also includes MCP tools called programmatically through generated Python APIs.
-
-The screenshot below shows the approval prompt for a programmatic tool call (PTC):
+Freeact can prompt for approval before running code actions. Shell commands and programmatic tool calls within code actions are intercepted during execution and approved individually. The screenshot below shows the approval prompt for a programmatic tool call (PTC):
 
 Code actions and tool calls can also be pre-approved. See [Approval Prompt](https://gradion-ai.github.io/freeact/cli/#approval-prompt) for prompt options and behavior.
 
 ## Agent SDK
 
-The CLI tool is built on the [Agent SDK](https://gradion-ai.github.io/freeact/sdk/index.md) that you can use directly in your applications. The following minimal example shows how to run the same task programmatically, with code actions and tool calls auto-approved:
+The CLI tool is built on the [Agent SDK](https://gradion-ai.github.io/freeact/sdk/index.md) that you can use directly in your applications. The following minimal example shows how to run the same task programmatically, with code actions and tool calls auto-approved by the application:
 
 ```
 import asyncio
@@ -66,6 +64,7 @@ from freeact.agent import (
     CodeAction,
     CodeExecutionOutput,
     Response,
+    ShellAction,
     Thoughts,
     ToolOutput,
 )
@@ -91,6 +90,9 @@ async def main() -> None:
             match event:
                 case ApprovalRequest(tool_call=CodeAction(code=code)) as request:
                     print(f"Code action:\n{code}")
+                    request.approve(True)
+                case ApprovalRequest(tool_call=ShellAction(command=cmd)) as request:
+                    print(f"Shell command: {cmd}")
                     request.approve(True)
                 case ApprovalRequest(tool_call=tool_call) as request:
                     print(f"Tool: {tool_call.tool_name}")

@@ -1339,7 +1339,7 @@ uvx<span class="w"> </span>freeact
 <p>See <a href="../installation/">Installation</a> for alternative setup options and sandbox mode prerequisites.</p>
 <div class="admonition tip">
 <p class="admonition-title">Using a different model</p>
-<p>Freeact supports any model compatible with Pydantic AI. To switch providers or configure model settings, see <a href="../models/">Models</a>.</p>
+<p>The current default model is <code>google-gla:gemini-3-flash-preview</code>. Freeact supports any model compatible with Pydantic AI. To switch providers or configure model settings, see <a href="../models/">Models</a>.</p>
 </div>
 <h3 id="generating-mcp-tool-apis">Generating MCP Tool APIs</h3>
 <p>On first start, the CLI tool auto-generates Python APIs for <a href="../configuration/#ptc_servers">configured</a> MCP servers. For example, it creates <code>.freeact/generated/mcptools/google/web_search.py</code> for the <code>web_search</code> tool of the bundled <code>google</code> MCP server. With the generated Python API, the agent can import and call this tool programmatically.</p>
@@ -1356,18 +1356,16 @@ uvx<span class="w"> </span>freeact
 <p><a href="../screenshots/quickstart.png" rel="noopener" target="_blank"><img alt="Quickstart" src="../screenshots/quickstart.png" /></a></p>
 <p>The screenshot shows:</p>
 <ul>
-<li><strong>Progressive tool loading</strong>: The agent progressively loads tool information: lists categories, lists tools in the <code>google</code> category, then reads the <code>web_search</code> API to understand its parameters.</li>
+<li><strong>Progressive tool loading</strong>: The agent progressively loads tool information: lists categories, lists tools in the <code>google</code> category, then reads <code>web_search.py</code> to understand the generated interface.</li>
 <li><strong>Programmatic tool calling</strong>: The agent writes Python code that imports the <code>web_search</code> tool from <code>mcptools.google</code> and calls it programmatically (PTC) with the user's query.</li>
 </ul>
 <p>The code execution output shows the search result with source URLs. The agent response is a summary of it.</p>
 <h3 id="approval-prompt">Approval Prompt</h3>
-<p>Freeact can prompt for approval before running code actions and tool calls.
-This also includes MCP tools called programmatically through generated Python APIs.</p>
-<p>The screenshot below shows the approval prompt for a programmatic tool call (PTC):</p>
+<p>Freeact can prompt for approval before running code actions. Shell commands and programmatic tool calls within code actions are intercepted during execution and approved individually. The screenshot below shows the approval prompt for a programmatic tool call (PTC):</p>
 <p><a href="../screenshots/quickstart-approve.png" rel="noopener" target="_blank"><img alt="Approval Prompt" src="../screenshots/quickstart-approve.png" /></a></p>
 <p>Code actions and tool calls can also be pre-approved. See <a href="../cli/#approval-prompt">Approval Prompt</a> for prompt options and behavior.</p>
 <h2 id="agent-sdk">Agent SDK</h2>
-<p>The CLI tool is built on the <a href="../sdk/">Agent SDK</a> that you can use directly in your applications. The following minimal example shows how to run the same task programmatically, with code actions and tool calls auto-approved:</p>
+<p>The CLI tool is built on the <a href="../sdk/">Agent SDK</a> that you can use directly in your applications. The following minimal example shows how to run the same task programmatically, with code actions and tool calls auto-approved by the application:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">freeact.agent</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -1376,6 +1374,7 @@ This also includes MCP tools called programmatically through generated Python AP
     <span class="n">CodeAction</span><span class="p">,</span>
     <span class="n">CodeExecutionOutput</span><span class="p">,</span>
     <span class="n">Response</span><span class="p">,</span>
+    <span class="n">ShellAction</span><span class="p">,</span>
     <span class="n">Thoughts</span><span class="p">,</span>
     <span class="n">ToolOutput</span><span class="p">,</span>
 <span class="p">)</span>
@@ -1401,6 +1400,9 @@ This also includes MCP tools called programmatically through generated Python AP
             <span class="k">match</span> <span class="n">event</span><span class="p">:</span>
                 <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">(</span><span class="n">tool_call</span><span class="o">=</span><span class="n">CodeAction</span><span class="p">(</span><span class="n">code</span><span class="o">=</span><span class="n">code</span><span class="p">))</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Code action:</span><span class="se">\n</span><span class="si">{</span><span class="n">code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">(</span><span class="n">tool_call</span><span class="o">=</span><span class="n">ShellAction</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="n">cmd</span><span class="p">))</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Shell command: </span><span class="si">{</span><span class="n">cmd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                     <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
                 <span class="k">case</span> <span class="n">ApprovalRequest</span><span class="p">(</span><span class="n">tool_call</span><span class="o">=</span><span class="n">tool_call</span><span class="p">)</span> <span class="k">as</span> <span class="n">request</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tool: </span><span class="si">{</span><span class="n">tool_call</span><span class="o">.</span><span class="n">tool_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>

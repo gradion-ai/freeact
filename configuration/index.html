@@ -688,10 +688,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#tool-patterns" class="md-nav__link">
+  <a href="#tool-call-patterns" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tool patterns
+        Tool call patterns
       
     </span>
   </a>
@@ -1679,10 +1679,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#tool-patterns" class="md-nav__link">
+  <a href="#tool-call-patterns" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tool patterns
+        Tool call patterns
       
     </span>
   </a>
@@ -1903,7 +1903,7 @@
 </tr>
 <tr>
 <td><code>model_settings</code></td>
-<td><code>{}</code></td>
+<td><a href="../models/#google-default">Google thinking config</a></td>
 <td>Provider-specific <a href="../models/#model-settings">model settings</a> (e.g., thinking config, temperature)</td>
 </tr>
 <tr>
@@ -2181,7 +2181,7 @@
 <p>See <a href="../examples/agent-skills/">Custom Agent Skills</a> for a walkthrough of installing and using a custom skill.</p>
 </div>
 <h2 id="permissions">Permissions</h2>
-<p><a href="../sdk/#permissions-api">Permissions</a> are stored in <code>.freeact/permissions.json</code> as typed entries with glob-style pattern matching. <code>tool_name</code> and <code>command</code> fields support <code>*</code> (any characters) and <code>?</code> (single character). Path fields (<code>path</code>, <code>paths</code>) use path-aware matching where <code>*</code> matches within a single directory and <code>**</code> matches across directory boundaries.</p>
+<p><a href="../sdk/#permissions-api">Permissions</a> control which code actions, shell commands, and tool calls require approval or are auto-approved. They are stored in <code>.freeact/permissions.json</code> as typed entries with glob-style patterns. <code>tool_name</code> and <code>command</code> fields support <code>*</code> (any characters) and <code>?</code> (single character). Path fields (<code>path</code>) use path-aware matching where <code>*</code> matches within a single directory and <code>**</code> matches across directory boundaries.</p>
 <div class="admonition tip">
 <p class="admonition-title">Bypassing permissions</p>
 <p>The CLI supports a <a href="../cli/#options"><code>--skip-permissions</code></a> flag to run tools without prompting for approval, effectively auto-approving all actions.</p>
@@ -2254,10 +2254,38 @@
 </tbody>
 </table>
 <p>Evaluation order is <strong>ask then allow</strong>: if an entry matches both tiers, the user is prompted. Each tier supports two persistence scopes: <strong>always</strong> (persisted to <code>permissions.json</code>) and <strong>session</strong> (in-memory, cleared when the session ends).</p>
-<h3 id="tool-patterns">Tool patterns</h3>
-<p>Tool patterns match against MCP tool names (e.g. <code>github_search_repositories</code>, <code>filesystem_read_file</code>). Filesystem tools (<code>FileRead</code>, <code>FileWrite</code>, <code>FileEdit</code>) additionally match on path fields, enabling path-specific rules like allowing reads only from <code>src/**</code>.</p>
+<h3 id="tool-call-patterns">Tool call patterns</h3>
+<p>Tool call patterns match against MCP tool names (e.g. <code>github_search_repositories</code>, <code>filesystem_read_file</code>). Filesystem tools (<code>FileRead</code>, <code>FileWrite</code>, <code>FileEdit</code>) additionally match on path fields, enabling path-specific rules like allowing reads only from <code>src/**</code>.</p>
 <h3 id="shell-command-patterns">Shell command patterns</h3>
-<p>Shell patterns match against individual commands extracted from code actions. Shell commands using <code>!cmd</code> syntax or <code>%%bash</code> cell magic are extracted before execution and checked against <code>ShellAction</code> permission entries. Composite commands joined with <code>&amp;&amp;</code>, <code>||</code>, <code>|</code>, or <code>;</code> are decomposed into individual sub-commands, each checked independently. If any sub-command is denied, the entire cell is blocked.</p>
+<p><code>ShellAction</code> entries match on <code>tool_name</code> (always <code>bash</code>) and <code>command</code>. The <code>command</code> field supports glob matching with <code>*</code> and <code>?</code>. Shell commands are intercepted during code execution with Python variables fully resolved, so patterns match against the actual command values.</p>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Matches</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>git *</code></td>
+<td>Any <code>git</code> command</td>
+</tr>
+<tr>
+<td><code>git commit *</code></td>
+<td><code>git commit</code> with any arguments</td>
+</tr>
+<tr>
+<td><code>pip install *</code></td>
+<td><code>pip install</code> with any package</td>
+</tr>
+<tr>
+<td><code>rm *</code></td>
+<td>Any <code>rm</code> command (use in <code>ask</code> tier to always prompt)</td>
+</tr>
+</tbody>
+</table>
+<p>When saving a permission rule via the <a href="../cli/#approval-prompt">approval prompt</a>, the CLI pre-fills a suggested pattern. The heuristic uses <code>cmd subcmd *</code> for known multi-word tools (git, pip, docker, kubectl, npm, uv, cargo, etc.) and <code>cmd *</code> for others. The user can edit the pattern before saving.</p>
+<p>Composite shell commands joined with <code>&amp;&amp;</code>, <code>||</code>, <code>|</code>, or <code>;</code> are decomposed into individual sub-commands, each checked independently. If any sub-command is denied, the entire command is blocked.</p>
 <h3 id="path-wildcards">Path wildcards</h3>
 <p>Path fields (<code>path</code>) in <code>FileRead</code>, <code>FileWrite</code>, and <code>FileEdit</code> entries use path-aware matching. Paths are normalized relative to the working directory before matching: absolute paths under the working directory become relative, paths outside stay absolute.</p>
 <table>
@@ -2328,7 +2356,7 @@
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;collapse_thoughts_on_complete&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;collapse_exec_output_on_complete&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;collapse_approved_code_actions&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;collapse_approved_code_actions&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;collapse_approved_tool_calls&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;collapse_completed_subagent_tasks&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;collapse_tool_outputs&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
@@ -2362,7 +2390,7 @@
 </tr>
 <tr>
 <td><code>collapse_approved_code_actions</code></td>
-<td><code>true</code></td>
+<td><code>false</code></td>
 <td>Collapse approved code action previews after approval.</td>
 </tr>
 <tr>

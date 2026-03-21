@@ -72,20 +72,20 @@ The `agent.json` file contains agent settings and MCP server configurations:
 
 ### Agent Settings
 
-| Setting                        | Default                             | Description                                                                                                                                                                                    |
-| ------------------------------ | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `model`                        | `google-gla:gemini-3-flash-preview` | [Model identifier](https://gradion-ai.github.io/freeact/models/#model-identifier) in `provider:model-name` format                                                                              |
-| `model_settings`               | `{}`                                | Provider-specific [model settings](https://gradion-ai.github.io/freeact/models/#model-settings) (e.g., thinking config, temperature)                                                           |
-| `provider_settings`            | `null`                              | Custom API credentials, endpoints, or other [provider-specific options](https://gradion-ai.github.io/freeact/models/#provider-settings)                                                        |
-| `images_dir`                   | `null`                              | Directory for saving generated images to disk. `null` defaults to `images` in the working directory.                                                                                           |
-| `execution_timeout`            | `300`                               | Maximum time in seconds for [code execution](https://gradion-ai.github.io/freeact/execution/index.md). Approval wait time is excluded. `null` means no timeout.                                |
-| `approval_timeout`             | `null`                              | Timeout in seconds for PTC approval requests. `null` means no timeout.                                                                                                                         |
-| `tool_result_inline_max_bytes` | `32768`                             | Inline size threshold in bytes for tool results. Larger results are saved to `.freeact/sessions/<session-id>/tool-results/` and replaced with a file reference notice plus preview characters. |
-| `tool_result_preview_chars`    | `2048`                              | Number of preview characters included from both the beginning and end of large text results in the file reference notice.                                                                      |
-| `enable_persistence`           | `true`                              | Persist message history to `.freeact/sessions/` and allow session resume with `session_id`. If `false`, history stays in memory for the process lifetime only.                                 |
-| `enable_subagents`             | `true`                              | Whether to enable subagent delegation                                                                                                                                                          |
-| `max_subagents`                | `5`                                 | Maximum number of concurrent subagents                                                                                                                                                         |
-| `kernel_env`                   | `{}`                                | Environment variables passed to the IPython kernel. Supports `${VAR}` placeholders resolved against the host environment.                                                                      |
+| Setting                        | Default                                                                               | Description                                                                                                                                                                                    |
+| ------------------------------ | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`                        | `google-gla:gemini-3-flash-preview`                                                   | [Model identifier](https://gradion-ai.github.io/freeact/models/#model-identifier) in `provider:model-name` format                                                                              |
+| `model_settings`               | [Google thinking config](https://gradion-ai.github.io/freeact/models/#google-default) | Provider-specific [model settings](https://gradion-ai.github.io/freeact/models/#model-settings) (e.g., thinking config, temperature)                                                           |
+| `provider_settings`            | `null`                                                                                | Custom API credentials, endpoints, or other [provider-specific options](https://gradion-ai.github.io/freeact/models/#provider-settings)                                                        |
+| `images_dir`                   | `null`                                                                                | Directory for saving generated images to disk. `null` defaults to `images` in the working directory.                                                                                           |
+| `execution_timeout`            | `300`                                                                                 | Maximum time in seconds for [code execution](https://gradion-ai.github.io/freeact/execution/index.md). Approval wait time is excluded. `null` means no timeout.                                |
+| `approval_timeout`             | `null`                                                                                | Timeout in seconds for PTC approval requests. `null` means no timeout.                                                                                                                         |
+| `tool_result_inline_max_bytes` | `32768`                                                                               | Inline size threshold in bytes for tool results. Larger results are saved to `.freeact/sessions/<session-id>/tool-results/` and replaced with a file reference notice plus preview characters. |
+| `tool_result_preview_chars`    | `2048`                                                                                | Number of preview characters included from both the beginning and end of large text results in the file reference notice.                                                                      |
+| `enable_persistence`           | `true`                                                                                | Persist message history to `.freeact/sessions/` and allow session resume with `session_id`. If `false`, history stays in memory for the process lifetime only.                                 |
+| `enable_subagents`             | `true`                                                                                | Whether to enable subagent delegation                                                                                                                                                          |
+| `max_subagents`                | `5`                                                                                   | Maximum number of concurrent subagents                                                                                                                                                         |
+| `kernel_env`                   | `{}`                                                                                  | Environment variables passed to the IPython kernel. Supports `${VAR}` placeholders resolved against the host environment.                                                                      |
 
 ### `tool_search`
 
@@ -227,7 +227,7 @@ See [Custom Agent Skills](https://gradion-ai.github.io/freeact/examples/agent-sk
 
 ## Permissions
 
-[Permissions](https://gradion-ai.github.io/freeact/sdk/#permissions-api) are stored in `.freeact/permissions.json` as typed entries with glob-style pattern matching. `tool_name` and `command` fields support `*` (any characters) and `?` (single character). Path fields (`path`, `paths`) use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries.
+[Permissions](https://gradion-ai.github.io/freeact/sdk/#permissions-api) control which code actions, shell commands, and tool calls require approval or are auto-approved. They are stored in `.freeact/permissions.json` as typed entries with glob-style patterns. `tool_name` and `command` fields support `*` (any characters) and `?` (single character). Path fields (`path`) use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries.
 
 Bypassing permissions
 
@@ -269,13 +269,24 @@ Permissions are organized into two tiers:
 
 Evaluation order is **ask then allow**: if an entry matches both tiers, the user is prompted. Each tier supports two persistence scopes: **always** (persisted to `permissions.json`) and **session** (in-memory, cleared when the session ends).
 
-### Tool patterns
+### Tool call patterns
 
-Tool patterns match against MCP tool names (e.g. `github_search_repositories`, `filesystem_read_file`). Filesystem tools (`FileRead`, `FileWrite`, `FileEdit`) additionally match on path fields, enabling path-specific rules like allowing reads only from `src/**`.
+Tool call patterns match against MCP tool names (e.g. `github_search_repositories`, `filesystem_read_file`). Filesystem tools (`FileRead`, `FileWrite`, `FileEdit`) additionally match on path fields, enabling path-specific rules like allowing reads only from `src/**`.
 
 ### Shell command patterns
 
-Shell patterns match against individual commands extracted from code actions. Shell commands using `!cmd` syntax or `%%bash` cell magic are extracted before execution and checked against `ShellAction` permission entries. Composite commands joined with `&&`, `||`, `|`, or `;` are decomposed into individual sub-commands, each checked independently. If any sub-command is denied, the entire cell is blocked.
+`ShellAction` entries match on `tool_name` (always `bash`) and `command`. The `command` field supports glob matching with `*` and `?`. Shell commands are intercepted during code execution with Python variables fully resolved, so patterns match against the actual command values.
+
+| Pattern         | Matches                                               |
+| --------------- | ----------------------------------------------------- |
+| `git *`         | Any `git` command                                     |
+| `git commit *`  | `git commit` with any arguments                       |
+| `pip install *` | `pip install` with any package                        |
+| `rm *`          | Any `rm` command (use in `ask` tier to always prompt) |
+
+When saving a permission rule via the [approval prompt](https://gradion-ai.github.io/freeact/cli/#approval-prompt), the CLI pre-fills a suggested pattern. The heuristic uses `cmd subcmd *` for known multi-word tools (git, pip, docker, kubectl, npm, uv, cargo, etc.) and `cmd *` for others. The user can edit the pattern before saving.
+
+Composite shell commands joined with `&&`, `||`, `|`, or `;` are decomposed into individual sub-commands, each checked independently. If any sub-command is denied, the entire command is blocked.
 
 ### Path wildcards
 
@@ -331,7 +342,7 @@ The `terminal.json` file configures terminal UI collapse behavior and keybinding
 {
   "collapse_thoughts_on_complete": true,
   "collapse_exec_output_on_complete": true,
-  "collapse_approved_code_actions": true,
+  "collapse_approved_code_actions": false,
   "collapse_approved_tool_calls": true,
   "collapse_completed_subagent_tasks": true,
   "collapse_tool_outputs": true,
@@ -353,7 +364,7 @@ SDK integrations can load or initialize this file by calling `await freeact.term
 | -------------------------------------- | -------- | -------------------------------------------------------------------------------------------------- |
 | `collapse_thoughts_on_complete`        | `true`   | Collapse `Thinking` boxes after a completed `Thoughts` event.                                      |
 | `collapse_exec_output_on_complete`     | `true`   | Collapse `Execution Output` boxes after a completed `CodeExecutionOutput` event.                   |
-| `collapse_approved_code_actions`       | `true`   | Collapse approved code action previews after approval.                                             |
+| `collapse_approved_code_actions`       | `false`  | Collapse approved code action previews after approval.                                             |
 | `collapse_approved_tool_calls`         | `true`   | Collapse approved tool call previews after approval.                                               |
 | `collapse_completed_subagent_tasks`    | `true`   | Collapse completed root-level `subagent_task` widgets after the parent task `Tool Output` arrives. |
 | `collapse_tool_outputs`                | `true`   | Render `Tool Output` boxes collapsed by default.                                                   |

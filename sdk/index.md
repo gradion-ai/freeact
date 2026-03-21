@@ -51,6 +51,7 @@ from freeact.agent import (
     CodeAction,
     CodeExecutionOutput,
     Response,
+    ShellAction,
     Thoughts,
     ToolOutput,
 )
@@ -62,6 +63,9 @@ async with Agent(config=config) as agent:
         match event:
             case ApprovalRequest(tool_call=CodeAction(code=code)) as request:
                 print(f"Code action:\n{code}")
+                request.approve(True)
+            case ApprovalRequest(tool_call=ShellAction(command=cmd)) as request:
+                print(f"Shell command: {cmd}")
                 request.approve(True)
             case ApprovalRequest(tool_call=tool_call) as request:
                 print(f"Tool: {tool_call.tool_name}")
@@ -91,7 +95,7 @@ The Agent.stream() method yields events as they occur:
 | ApprovalRequest          | Pending code action or tool call approval         |
 | CodeExecutionOutputChunk | Partial code execution output (content streaming) |
 | CodeExecutionOutput      | Complete code execution output                    |
-| ToolOutput               | Tool or built-in operation output                 |
+| ToolOutput               | JSON tool call or built-in operation output       |
 | Cancelled                | Agent turn was cancelled                          |
 
 All yielded events inherit from AgentEvent and carry `agent_id`.
@@ -100,12 +104,12 @@ All yielded events inherit from AgentEvent and carry `agent_id`.
 
 The agent uses a small set of internal tools for reading and writing files, executing code and commands, spawning subagents, and discovering tools:
 
-| Tool              | Implementation                                          | Description                                                                                                                        |
-| ----------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| read, write, edit | filesystem MCP server                                   | Reading, writing, and editing files via JSON tool calls (`read_text_file`, `read_media_file`, `write_text_file`, `edit_text_file`) |
-| execute           | `ipybox_execute_ipython_cell`                           | Execution of Python code and shell commands (via `!` prefix), delegated to ipybox's `CodeExecutor`                                 |
-| subagent          | [`subagent_task`](#subagents)                           | Task delegation to child agents                                                                                                    |
-| tool search       | `pytools` MCP server for basic search and hybrid search | Tool discovery via category browsing or hybrid search                                                                              |
+| Tool              | Implementation                                          | Description                                                                                                                                                                                  |
+| ----------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| read, write, edit | filesystem MCP server                                   | Reading, writing, and editing files via JSON tool calls (`filesystem_read_text_file`, `filesystem_read_media_file`, `filesystem_write_text_file`, `filesystem_edit_text_file`)               |
+| execute           | `ipybox_execute_ipython_cell`                           | Execution of Python code and shell commands (via `!` syntax), delegated to ipybox's `CodeExecutor`, with shell commands and programmatic MCP tools calls intercepted at runtime for approval |
+| subagent          | [`subagent_task`](#subagents)                           | Task delegation to child agents                                                                                                                                                              |
+| tool search       | `pytools` MCP server for basic search and hybrid search | Tool discovery via category browsing or hybrid search                                                                                                                                        |
 
 ### Turn limits
 
@@ -143,8 +147,8 @@ The built-in `subagent_task` tool delegates a subtask to a child agent with a fr
 ```
 async for event in agent.stream(prompt):
     match event:
-        case ApprovalRequest(agent_id=agent_id) as request:
-            print(f"[{agent_id}] Approve {request.tool_name}?")
+        case ApprovalRequest(agent_id=agent_id, tool_call=tool_call) as request:
+            print(f"[{agent_id}] Approve {tool_call}?")
             request.approve(True)
         case Response(content=content, agent_id=agent_id):
             print(f"[{agent_id}] {content}")
@@ -154,26 +158,37 @@ The main agent's `agent_id` is `main`, subagent IDs use the form `sub-xxxx`. Eac
 
 ### Approval
 
-The agent provides a unified approval mechanism. It yields ApprovalRequest for all code actions, programmatic tool calls, and JSON tool calls. Execution is suspended until `approve()` is called. Calling `approve(True)` executes the code action or tool call; `approve(False)` rejects it and ends the current agent turn.
+The agent yields ApprovalRequest for code actions and each shell command and programmatic tool call within them. Each request carries a tool_call field identifying the pending action. Execution is suspended until `approve()` is called. Calling `approve(True)` executes the action; `approve(False)` rejects it and ends the current agent turn.
 
 ```
 async for event in agent.stream(prompt):
     match event:
-        case ApprovalRequest() as request:
-            # Inspect the pending action
-            print(f"Tool: {request.tool_name}")
-            print(f"Args: {request.tool_args}")
-
-            # Approve or reject
+        case ApprovalRequest(tool_call=CodeAction(code=code)) as request:
+            print(f"Code action:\n{code}")
             request.approve(True)
-
+        case ApprovalRequest(tool_call=ShellAction(command=cmd)) as request:
+            print(f"Shell command: {cmd}")
+            request.approve(True)
+        case ApprovalRequest(tool_call=GenericCall(tool_name=name, ptc=True)) as request:
+            print(f"Programmatic tool call: {name}")
+            request.approve(True)
+        case ApprovalRequest(tool_call=GenericCall(tool_name=name)) as request:
+            print(f"JSON tool call: {name}")
+            request.approve(True)
         case Response(content=content):
             print(content)
 ```
 
-Code action approval
+The `tool_call` type determines what is being approved:
 
-For code actions, `tool_name` is `ipybox_execute_ipython_cell` and `tool_args` contains the `code` to execute.
+| `tool_call` type              | Trigger                                                                             |
+| ----------------------------- | ----------------------------------------------------------------------------------- |
+| CodeAction                    | Code action containing Python code and shell commands to execute                    |
+| ShellAction                   | Shell command (`!cmd`) intercepted during code action execution                     |
+| GenericCall                   | Programmatic tool call (intercepted during code action execution) or JSON tool call |
+| FileRead, FileWrite, FileEdit | Filesystem operation via built-in MCP server                                        |
+
+Shell commands and programmatic tool calls within code actions are intercepted during execution and yield separate `ApprovalRequest` events. Composite shell commands (using `&&`, `||`, `|`, `;`) are decomposed into individual sub-commands, each requiring separate approval. Python variables in shell commands are resolved before the approval request.
 
 ### Lifecycle
 
@@ -216,6 +231,8 @@ The agent supports two timeout settings in [`agent.json`](https://gradion-ai.git
 
 ### Persistence
 
+#### Sessions
+
 Config controls session persistence via `enable_persistence`.
 
 - Default: `true`. The agent persists history to `.freeact/sessions/<session-id>/<agent-id>.jsonl`.
@@ -256,14 +273,14 @@ Only the main agent's message history (`main.jsonl`) is loaded on resume. Subage
 
 The [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) accepts `--session-id` to resume a session from the command line when `enable_persistence` is `true`.
 
-#### Tool Results
+#### Results
 
-Tool result persistence handles outputs that are too large to keep inline in the message history. Large inline payloads can bloat context and slow down processing. When a result exceeds the inline size threshold, the full content is saved to disk and replaced inline with a short file reference notice that includes a preview.
+Tool call results, code execution outputs, and subagent responses are checked against an inline size threshold before being added to the message history. When a result exceeds the threshold, the full content is saved to disk and replaced inline with a file reference notice that includes a preview. This prevents large outputs from bloating context.
 
-Tool result persistence is controlled by two config options:
+Controlled by two config options:
 
-- `tool_result_inline_max_bytes`: Maximum inline payload size for a tool result.
-- `tool_result_preview_chars`: Number of preview characters shown from both the beginning and end of large text results in the file reference notice.
+- `tool_result_inline_max_bytes`: Maximum inline payload size in bytes.
+- `tool_result_preview_chars`: Number of preview characters from both the beginning and end of large text results included in the file reference notice.
 
 ### Prompt tags
 
@@ -277,16 +294,26 @@ Without an explicit tag, the agent can still autonomously select a skill when th
 
 ## Permissions API
 
-PermissionManager provides pattern-based permission gating using typed ToolCall instances. Patterns use glob-style matching (`*`, `?`). Path fields use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries. Rules are organized into ask/allow tiers with session and always persistence scopes.
+The agent does not enforce permissions itself. It yields [`ApprovalRequest`](#approval) events and leaves the decision to the application. PermissionManager is an optional utility that applications can use to automate those decisions based on stored rules. The [CLI tool](https://gradion-ai.github.io/freeact/cli/#approval-prompt) uses it internally; SDK applications can use it the same way.
 
-Each `ApprovalRequest` carries a `tool_call` field that is a `ToolCall` subclass (`GenericCall`, `ShellAction`, `CodeAction`, `FileRead`, `FileWrite`, `FileEdit`). Permission matching is type-specific: shell commands match on `command`, filesystem tools match on `path`, and generic tools match on `tool_name` only.
+The manager loads and saves rules from `.freeact/permissions.json`. Rules are glob-style [patterns](https://gradion-ai.github.io/freeact/configuration/#permissions) organized into two tiers (allow and ask) and two persistence scopes (always and session). See [Permissions](https://gradion-ai.github.io/freeact/configuration/#permissions) for the file format, pattern syntax, and matching semantics.
+
+The core API:
+
+- init() loads rules from `.freeact/permissions.json` if present, otherwise saves defaults.
+- is_allowed(tool_call) checks a concrete tool call (literal values, no wildcards) against stored rules.
+- allow_always(tool_call) adds a rule and persists it to `permissions.json`. The tool call fields may contain glob wildcards to match broadly (e.g., `command="git *"`).
+- allow_session(tool_call) adds an in-memory rule for the current session. Same wildcard support as `allow_always`.
 
 ```
+import asyncio
 from freeact.permissions import PermissionManager
-from freeact.agent import suggest_pattern
+from freeact.agent import ApprovalRequest, suggest_pattern
+
+loop = asyncio.get_running_loop()
 
 manager = PermissionManager()
-await manager.init()
+await loop.run_in_executor(None, manager.init)
 
 async for event in agent.stream(prompt):
     match event:
@@ -298,7 +325,11 @@ async for event in agent.stream(prompt):
                 choice = input(f"Allow [{pattern}]? [Y/n/a/s]: ")
                 match choice:
                     case "a":
-                        await manager.allow_always(request.tool_call)
+                        await loop.run_in_executor(
+                            None, 
+                            manager.allow_always, 
+                            request.tool_call,
+                        )
                         request.approve(True)
                     case "s":
                         manager.allow_session(request.tool_call)
@@ -308,5 +339,3 @@ async for event in agent.stream(prompt):
                     case _:
                         request.approve(True)
 ```
-
-See [Permissions](https://gradion-ai.github.io/freeact/configuration/#permissions) for the persisted file format and pattern syntax.

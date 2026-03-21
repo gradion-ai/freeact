@@ -155,3 +155,13 @@ FILESYSTEM_MCP_SERVER_CONFIG: dict[str, Any] = {
     "args": ["-m", "freeact.tools.filesystem"],
 }
 ```
+
+## freeact.agent.config.FETCH_MCP_SERVER_CONFIG
+
+```
+FETCH_MCP_SERVER_CONFIG: dict[str, Any] = {
+    "command": "python",
+    "args": ["-m", "freeact.tools.fetch"],
+    "env": {},
+}
+```

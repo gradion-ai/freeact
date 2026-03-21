@@ -538,10 +538,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#mixing-both" class="md-nav__link">
+  <a href="#programmatic-tool-calls" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Mixing Both
+        Programmatic Tool Calls
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#combining-them" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Combining Them
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#action-approval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Action Approval
       
     </span>
   </a>
@@ -1229,10 +1251,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#mixing-both" class="md-nav__link">
+  <a href="#programmatic-tool-calls" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Mixing Both
+        Programmatic Tool Calls
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#combining-them" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Combining Them
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#action-approval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Action Approval
       
     </span>
   </a>
@@ -1271,8 +1315,7 @@
 
 
 <h1 id="code-execution">Code Execution</h1>
-<p>Freeact executes Python code and shell commands through an IPython kernel provided by <a href="https://github.com/gradion-ai/ipybox">ipybox</a>. Both are submitted via the same <code>ipybox_execute_ipython_cell</code> <a href="../sdk/#internal-tools">internal tool</a>. Python code runs inside the kernel process, while shell commands (prefixed with <code>!</code>, e.g., <code>!ls</code>, <code>!git status</code>, <code>!uv pip install</code>) run in subprocesses spawned by the kernel. </p>
-<p>The kernel is stateful: variables, imports, and function definitions persist across executions within a session. The bundled <a href="https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/prompts">system prompts</a> provide initial guidance on when to use shell commands versus Python code. More detailed guidance can be given in custom <a href="../configuration/#skills">agent skills</a>.</p>
+<p>Freeact executes Python code, shell commands, and programmatic MCP tool calls in an IPython kernel provided by <a href="https://github.com/gradion-ai/ipybox">ipybox</a>. A <a href="https://gradion-ai.github.io/ipybox/codeexec/">unified execution interface</a> enables their combination within a single code action. Code actions, shell commands, and programmatic tool calls are subject to <a href="#action-approval">action approval</a> before execution.</p>
 <h2 id="python-code">Python Code</h2>
 <p>Given a prompt like <em>"what is 17 raised to the power of 0.13"</em>, the agent generates and executes Python code directly:</p>
 <p><div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="mi">17</span> <span class="o">**</span> <span class="mf">0.13</span><span class="p">)</span>
@@ -1294,13 +1337,26 @@ tests/integration/test_subagents.py
 <span class="n">echo</span> <span class="s2">&quot;Now in $(pwd)&quot;</span>
 <span class="n">ls</span> <span class="o">-</span><span class="n">la</span>
 </code></pre></div>
-<p>Shell state (working directory, variables) does not persist across <code>!</code> lines but persists within a <code>%%bash</code> block. Neither carries state to the next cell execution.</p>
-<h2 id="mixing-both">Mixing Both</h2>
-<p>Python and shell commands can be freely combined within a single code action. A common pattern is installing a package and using it immediately:</p>
-<div class="highlight"><pre><span></span><code><span class="err">!</span><span class="n">uv</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pandas</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<p>Shell state (working directory, variables) does not persist across <code>!</code> lines but persists within a <code>%%bash</code> block. Neither carries state to the next cell execution. Their results can be stored in variables though.</p>
+<div class="admonition note">
+<p class="admonition-title"><code>%%bash</code> approval</p>
+<p>Approval support for <code>%%bash</code> cell magic is not implemented yet (coming soon).</p>
+</div>
+<h2 id="programmatic-tool-calls">Programmatic Tool Calls</h2>
+<p><a href="../sdk/#generation-api">Generated Python APIs</a> for MCP server tools can be imported and called like regular packages:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mcptools.google.web_search</span><span class="w"> </span><span class="kn">import</span> <span class="n">run</span><span class="p">,</span> <span class="n">Params</span>
 
-<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;data.csv&quot;</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span><span class="n">Params</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">&quot;python async tutorial&quot;</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="combining-them">Combining Them</h2>
+<p>Python code, shell commands, and programmatic tool calls can be freely combined within a single code action:</p>
+<div class="highlight"><pre><span></span><code><span class="err">!</span><span class="n">pip</span> <span class="n">install</span> <span class="n">pandas</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mcptools.fetch.web_fetch</span><span class="w"> </span><span class="kn">import</span> <span class="n">run</span><span class="p">,</span> <span class="n">Params</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span><span class="n">Params</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://example.com/data.csv&quot;</span><span class="p">))</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">describe</span><span class="p">())</span>
 </code></pre></div>
 <p>Shell output can be captured into Python variables:</p>
@@ -1311,8 +1367,12 @@ tests/integration/test_subagents.py
 <div class="highlight"><pre><span></span><code><span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;report.pdf&quot;</span>
 <span class="err">!</span><span class="n">cp</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="p">{</span><span class="n">filename</span><span class="p">}</span> <span class="o">/</span><span class="n">output</span><span class="o">/</span>
 </code></pre></div>
+<h2 id="action-approval">Action Approval</h2>
+<p>Code actions, contained shell commands, and programmatic tool calls require approval before execution. Shell commands and programmatic tool calls are intercepted during code action execution for individual approval. </p>
+<p>Composite shell commands (using <code>&amp;&amp;</code>, <code>||</code>, <code>|</code>, <code>;</code>) are decomposed into individual sub-commands, each approved separately. Python variables in shell commands are resolved before the approval request, so the approval request shows actual values.</p>
+<p>See the Agent SDK for programmatic <a href="../sdk/#approval">approval</a> control, <a href="../configuration/#permissions">permission configuration</a> for action pre-approval, and the CLI tool for the interactive <a href="../cli/#approval-prompt">approval prompt</a>.</p>
 <h2 id="working-directory">Working Directory</h2>
-<p>The kernel starts in the agent's workspace directory. After each cell execution, the working directory is restored to this location. If code changes the directory via <code>os.chdir()</code> or <code>%cd</code>, the change is undone before the next cell runs and the kernel prints a <code>[ipybox] cwd reset to &lt;path&gt;</code> message.</p>
+<p>The kernel starts in the agent's workspace directory. After each code action, the working directory is reset to this location. If code changes the directory via <code>os.chdir()</code> or <code>%cd</code>, the change is undone before the next execution and the kernel prints a <code>[ipybox] cwd reset to &lt;path&gt;</code> message.</p>
 
 
 
