@@ -1067,8 +1067,8 @@ docs = [
 requires-dist = [
     { name = "aiostream", specifier = ">=0.7.1" },
     { name = "google-genai", specifier = ">=1.56.0" },
-    { name = "ipybox", specifier = ">=0.8.2" },
-    { name = "mcpygen", specifier = ">=0.1.3" },
+    { name = "ipybox", specifier = ">=0.9.0" },
+    { name = "mcpygen", specifier = ">=0.1.4" },
     { name = "pillow", specifier = ">=12.0.0" },
     { name = "pydantic-ai", specifier = ">=1.69.0" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
@@ -1536,7 +1536,7 @@ wheels = [
 
 [[package]]
 name = "ipybox"
-version = "0.8.2"
+version = "0.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ipykernel" },
@@ -1545,9 +1545,9 @@ dependencies = [
     { name = "psutil" },
     { name = "python-dotenv" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/79/96/daee5977e842fa0a73a6c1dada3b78fe9ba4bada44fc0ed209ccf23e1f77/ipybox-0.8.2.tar.gz", hash = "sha256:042a2c0c57d52d073f314dd4d3305c0eacf451d02f1d80d45ce6c4aebfbdd8b2", size = 19385, upload-time = "2026-03-15T17:21:30.008Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bd/4f/82a78de347c9ed589265fc7c1b8ae07c48f4b87674ac3bd317fbdac81f62/ipybox-0.9.0.tar.gz", hash = "sha256:ce3949189a8f8fe59f613e02c577e8d6854d796b5deb9a3a174473c9081d0f91", size = 21200, upload-time = "2026-03-21T10:34:16.997Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/03/1e/9c68553c384266325fd4d2a9fb473f5860b77e832f20086ed21bb369ca77/ipybox-0.8.2-py3-none-any.whl", hash = "sha256:54945501f6e6495bac32c0fd32b1f2135e43c6bdb6fcd79f79f63dcaba0ce842", size = 23322, upload-time = "2026-03-15T17:21:28.617Z" },
+    { url = "https://files.pythonhosted.org/packages/f6/40/e12254084b774e01638c05c4629fa3b80da8d078749393a7d36695bb61b2/ipybox-0.9.0-py3-none-any.whl", hash = "sha256:a9b4bfd1e45ba5ffdc7246a58bde9645ed61bd92d99bb9438669733e4e36c711", size = 25550, upload-time = "2026-03-21T10:34:15.671Z" },
 ]
 
 [[package]]
@@ -2275,7 +2275,7 @@ wheels = [
 
 [[package]]
 name = "mcpygen"
-version = "0.1.3"
+version = "0.1.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -2288,9 +2288,9 @@ dependencies = [
     { name = "websockets" },
     { name = "wsproto" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/41/e5/f9e4180bf54adedae404920bbcdb4e1553f017f7634c323668c7f04cf54f/mcpygen-0.1.3.tar.gz", hash = "sha256:dc3e4087bc88a4831707c74d817b157a028d16598eda0f4066c6267932af539f", size = 15980, upload-time = "2026-03-13T08:26:23.305Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bb/42/8e594fac9318099006156a70c20e12fb1b4524a7df163de33ecaa999e152/mcpygen-0.1.4.tar.gz", hash = "sha256:7faffc70a75ced1de830f6ed59acf8cd096c9201bcd9846a999233037c645959", size = 16269, upload-time = "2026-03-21T07:11:17.424Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/be/7c/9dd9efa9c007914b1d3486d756ab77ef7a25e9904f12777d01d9ff4918e4/mcpygen-0.1.3-py3-none-any.whl", hash = "sha256:9b7d013c45b6c9c35b93ce93790681a85bb4698ea15c32671dc72ff4f1102c2f", size = 20756, upload-time = "2026-03-13T08:26:22.177Z" },
+    { url = "https://files.pythonhosted.org/packages/48/61/a9e549af5d1ec01880f08f5779d06a7304d001a6c9c2b7bf7d8a42271fd1/mcpygen-0.1.4-py3-none-any.whl", hash = "sha256:4c13704f1250e1cd314627a5f2bb20c62743e111a9bb16a1091606d2943236cf", size = 21411, upload-time = "2026-03-21T07:11:16.295Z" },
 ]
 
 [[package]]

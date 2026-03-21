@@ -11,7 +11,7 @@ from pydantic_ai.messages import ModelMessage, ModelRequest, ToolReturnPart
 from pydantic_ai.models.function import AgentInfo, DeltaThinkingPart, DeltaToolCall
 
 from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput, Response
-from freeact.agent.call import GenericCall
+from freeact.agent.call import GenericCall, ShellAction
 from freeact.agent.events import CodeExecutionOutputChunk
 from freeact.tools.pytools import MCPTOOLS_DIR
 from tests.helpers import (
@@ -167,6 +167,31 @@ class TestIpyboxExecution:
             assert len(results.approvals) == 2
             assert results.approvals[0].tool_call.tool_name == "ipybox_execute_ipython_cell"
             assert results.approvals[1].tool_call.tool_name == "test_tool_2"
+            # Agent turn ends with rejection response
+            assert any(r.content == "Tool call rejected" for r in results.responses)
+
+    @pytest.mark.asyncio
+    async def test_shell_approval_rejected(self):
+        """Verify shell command rejection ends the agent turn."""
+        test_code = "!echo hello"
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": test_code},
+        )
+
+        # Approve code execution, reject shell command
+        def approve_function(req: ApprovalRequest) -> bool:
+            return not isinstance(req.tool_call, ShellAction)
+
+        async with unpatched_agent(stream_function) as agent:
+            results = await collect_stream(agent, "test prompt", approve_function=approve_function)
+
+            assert len(results.approvals) == 2
+            assert results.approvals[0].tool_call.tool_name == "ipybox_execute_ipython_cell"
+            assert isinstance(results.approvals[1].tool_call, ShellAction)
+            # Agent sees the rejection error in code output
+            assert len(results.code_outputs) == 1
+            assert results.code_outputs[0].approval_rejected()
             # Agent turn ends with rejection response
             assert any(r.content == "Tool call rejected" for r in results.responses)
 

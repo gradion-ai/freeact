@@ -106,7 +106,7 @@ Press `Escape` during an active agent turn to cancel it. This interrupts the cur
 
 ### Approval Prompt
 
-Before executing code actions or tool calls, the agent requests approval. The prompt displays a suggested pattern that summarizes the pending action:
+Before executing code actions, shell commands, and tool calls, the agent requests approval. Shell commands and programmatic tool calls within code actions are intercepted during execution and approved individually. The prompt displays a suggested pattern that summarizes the pending action:
 
 ```
 Approve? [Y/n/a/s] git add *
@@ -121,7 +121,7 @@ Approve? [Y/n/a/s] git add *
 
 Pressing `a` or `s` opens the pattern for inline editing. The input is pre-filled with the suggested pattern. Edit the pattern to broaden or narrow the rule (e.g. change `filesystem_read_file src/main.py` to `filesystem_* src/**`), then press `Enter` to save the rule and approve. While editing, approval hotkeys are disabled so you can type freely.
 
-Always-allow rules persist to `.freeact/permissions.json` across sessions. Session-allow rules are in-memory and cleared when the session ends. Future tool calls matching a saved rule are auto-approved without prompting.
+Always-allow rules persist to `.freeact/permissions.json` across sessions. Session-allow rules are in-memory and cleared when the session ends. Future actions matching a saved rule are auto-approved without prompting.
 
 The suggested pattern depends on the action type:
 
@@ -134,4 +134,4 @@ The suggested pattern depends on the action type:
 
 See [Permissions](configuration.md#permissions) for the persisted format and pattern syntax.
 !!! hint "Automatic approval"
-    Use the [`--skip-permissions`](#options) CLI flag to run the agent with automatic approval for all tools and shell commands.
+    Use the [`--skip-permissions`](#options) CLI option to run the agent with full action auto-approval.

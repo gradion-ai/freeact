@@ -53,14 +53,18 @@ plugins:
               domains: [py, std]
   - llmstxt:
       markdown_description: |
-        Freeact is a lightweight agent harness and CLI tool that acts by executing code and shell commands in a stateful execution environment.
-        It uses code actions to improve itself and its tool library.
+        General-purpose AI agent that acts via code actions through a unified execution interface.
 
-        It generates Python APIs for MCP servers and calls their tools programmatically ("code mode") instead of JSON.
-        This enables tool composition in code actions in a single inference pass.
+        Freeact is a lightweight, general-purpose agent that acts via code actions in a stateful execution environment provided by ipybox.
+        A unified execution interface allows code actions to contain any combination of Python code, shell commands, and programmatic MCP tool calls, generated in one LLM inference pass.
 
-        Freeact has a tiny core and uses sandboxed IPython kernels to execute both Python code and shell commands in a uniform way.
-        Execution runs locally with fine-grained approval of actions.
+        For programmatic MCP tool calling ("code mode"), freeact generates typed Python APIs from MCP server schemas.
+        The agent inspects generated APIs prior to execution and composes them within code actions based on available type information.
+        Successful code actions can be saved as reusable tools, capturing agent experience as executable knowledge, optionally combined with agent skills.
+
+        Freeact supports tool discovery via agentic and semantic search, loading only task-relevant tool information into the context window.
+        It can enforce application-level approval of code actions, shell commands, and programmatic tool calls, originating from both main agents and subagents.
+        Freeact runs locally on your computer and is available as a CLI tool and Python SDK.
       full_output: llms-full.txt
       sections:
         Documentation:

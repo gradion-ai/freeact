@@ -24,23 +24,23 @@ from tests.helpers import (
 class TestCodeExecutionOutput:
     """Tests for CodeExecutionOutput dataclass methods."""
 
-    def test_ptc_rejected_returns_false_when_text_is_none(self):
-        """ptc_rejected() returns False when text is None."""
+    def test_approval_rejected_returns_false_when_text_is_none(self):
+        """approval_rejected() returns False when text is None."""
         output = CodeExecutionOutput(text=None, images=[])
-        assert output.ptc_rejected() is False
+        assert output.approval_rejected() is False
 
-    def test_ptc_rejected_detects_rejection(self):
-        """ptc_rejected() detects ApprovalRejectedError in output."""
+    def test_approval_rejected_detects_rejection(self):
+        """approval_rejected() detects ApprovalRejectedError in output."""
         output = CodeExecutionOutput(
             text="ApprovalRejectedError: Approval request for my_tool rejected",
             images=[],
         )
-        assert output.ptc_rejected() is True
+        assert output.approval_rejected() is True
 
-    def test_ptc_rejected_returns_false_for_normal_output(self):
-        """ptc_rejected() returns False for normal output."""
+    def test_approval_rejected_returns_false_for_normal_output(self):
+        """approval_rejected() returns False for normal output."""
         output = CodeExecutionOutput(text="Normal output", images=[])
-        assert output.ptc_rejected() is False
+        assert output.approval_rejected() is False
 
     def test_format_returns_full_content(self):
         """format() returns full text when no images are present."""
@@ -277,7 +277,7 @@ class TestIpyboxExecution:
             tool_name="ipybox_execute_ipython_cell",
             tool_args={"code": test_code},
         )
-        # rejected_result must contain the class name checked by CodeExecutionOutput.ptc_rejected()
+        # rejected_result must contain the class name checked by CodeExecutionOutput.approval_rejected()
         code_exec_function = create_code_exec_with_approval_function(
             tool_name="test_tool_2",
             tool_args={"s": "ptc_rejected"},

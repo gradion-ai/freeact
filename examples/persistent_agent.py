@@ -6,6 +6,7 @@ from freeact.agent import (
     CodeAction,
     CodeExecutionOutput,
     Response,
+    ShellAction,
     Thoughts,
     ToolOutput,
 )
@@ -18,6 +19,9 @@ async def handle_events(agent: Agent, prompt: str) -> None:
         match event:
             case ApprovalRequest(tool_call=CodeAction(code=code)) as request:
                 print(f"Code action:\n{code}")
+                request.approve(True)
+            case ApprovalRequest(tool_call=ShellAction(command=cmd)) as request:
+                print(f"Shell command: {cmd}")
                 request.approve(True)
             case ApprovalRequest(tool_call=tool_call) as request:
                 print(f"Tool: {tool_call.tool_name}")

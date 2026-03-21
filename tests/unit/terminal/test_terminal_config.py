@@ -108,7 +108,7 @@ async def test_save_creates_file_when_missing(tmp_path: Path) -> None:
     loaded = json.loads(config_path.read_text())
     assert loaded["collapse_completed_subagent_tasks"] is True
     assert loaded["collapse_tool_outputs"] is True
-    assert loaded["collapse_approved_code_actions"] is True
+    assert loaded["collapse_approved_code_actions"] is False
     assert loaded["collapse_approved_tool_calls"] is True
     assert loaded["expand_all_toggle_key"] == "ctrl+o"
 

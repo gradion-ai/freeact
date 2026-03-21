@@ -51,7 +51,7 @@ class Thoughts(AgentEvent):
 
 @dataclass(frozen=True)
 class ToolOutput(AgentEvent):
-    """Tool or built-in operation output."""
+    """JSON tool call or built-in operation output."""
 
     content: ToolResult
 
@@ -71,8 +71,8 @@ class CodeExecutionOutput(AgentEvent):
     images: list[Path]
     truncated: bool = False
 
-    def ptc_rejected(self) -> bool:
-        """Whether the output indicates a rejected programmatic tool call."""
+    def approval_rejected(self) -> bool:
+        """Whether the output indicates a rejected programmatic tool call or shell command."""
         if not self.text:
             return False
 

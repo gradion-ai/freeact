@@ -18,7 +18,7 @@
     options:
       filters:
         - "!^format$"
-        - "!^ptc_rejected$"
+        - "!^approval_rejected$"
 
 ::: freeact.agent.CodeExecutionOutputChunk
 

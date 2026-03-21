@@ -20,7 +20,7 @@ See [Installation](installation.md) for alternative setup options and sandbox mo
 
 !!! tip "Using a different model"
 
-    Freeact supports any model compatible with Pydantic AI. To switch providers or configure model settings, see [Models](models.md).
+    The current default model is `google-gla:gemini-3-flash-preview`. Freeact supports any model compatible with Pydantic AI. To switch providers or configure model settings, see [Models](models.md).
 
 ### Generating MCP Tool APIs
 
@@ -42,17 +42,14 @@ the CLI tool should produce an end result similar to the following screenshot:
 
 The screenshot shows:
 
-- **Progressive tool loading**: The agent progressively loads tool information: lists categories, lists tools in the `google` category, then reads the `web_search` API to understand its parameters.
+- **Progressive tool loading**: The agent progressively loads tool information: lists categories, lists tools in the `google` category, then reads `web_search.py` to understand the generated interface.
 - **Programmatic tool calling**: The agent writes Python code that imports the `web_search` tool from `mcptools.google` and calls it programmatically (PTC) with the user's query.
 
 The code execution output shows the search result with source URLs. The agent response is a summary of it.
 
 ### Approval Prompt
 
-Freeact can prompt for approval before running code actions and tool calls.
-This also includes MCP tools called programmatically through generated Python APIs.
-
-The screenshot below shows the approval prompt for a programmatic tool call (PTC):
+Freeact can prompt for approval before running code actions. Shell commands and programmatic tool calls within code actions are intercepted during execution and approved individually. The screenshot below shows the approval prompt for a programmatic tool call (PTC):
 
 [![Approval Prompt](screenshots/quickstart-approve.png)](screenshots/quickstart-approve.png){ target="_blank" rel="noopener" }
 
@@ -60,7 +57,7 @@ Code actions and tool calls can also be pre-approved. See [Approval Prompt](cli.
 
 ## Agent SDK
 
-The CLI tool is built on the [Agent SDK](sdk.md) that you can use directly in your applications. The following minimal example shows how to run the same task programmatically, with code actions and tool calls auto-approved:
+The CLI tool is built on the [Agent SDK](sdk.md) that you can use directly in your applications. The following minimal example shows how to run the same task programmatically, with code actions and tool calls auto-approved by the application:
 
 ```python
 --8<-- "examples/basic_agent.py"

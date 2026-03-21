@@ -10,7 +10,7 @@ class Config(PersistentConfig):
 
     collapse_thoughts_on_complete: StrictBool = True
     collapse_exec_output_on_complete: StrictBool = True
-    collapse_approved_code_actions: StrictBool = True
+    collapse_approved_code_actions: StrictBool = False
     collapse_approved_tool_calls: StrictBool = True
     collapse_completed_subagent_tasks: StrictBool = True
     collapse_tool_outputs: StrictBool = True
