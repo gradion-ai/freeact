@@ -55,6 +55,16 @@ session_id: str | None
 
 Session ID used by this agent, or `None` when persistence is disabled.
 
+### \_reject_ipybox_approval
+
+```
+_reject_ipybox_approval(item: ApprovalRequest) -> None
+```
+
+Reject an ipybox approval request, suppressing errors.
+
+Called during generator cleanup (GeneratorExit) to ensure the approval channel on the tool server is unblocked before the ApprovalClient disconnects.
+
 ### cancel
 
 ```

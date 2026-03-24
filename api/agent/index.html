@@ -1061,6 +1061,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#freeact.agent.Agent._reject_ipybox_approval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        _reject_ipybox_approval
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#freeact.agent.Agent.cancel" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1537,6 +1548,17 @@
     <span class="md-ellipsis">
       
         session_id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freeact.agent.Agent._reject_ipybox_approval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        _reject_ipybox_approval
       
     </span>
   </a>
@@ -2122,6 +2144,34 @@ present; otherwise a new session starts with that ID.</p>
 
 
 
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="freeact.agent.Agent._reject_ipybox_approval" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">_reject_ipybox_approval</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+</h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">_reject_ipybox_approval</span><span class="p">(</span><span class="n">item</span><span class="p">:</span> <span class="n"><span title="ipybox.ApprovalRequest">ApprovalRequest</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Reject an ipybox approval request, suppressing errors.</p>
+<p>Called during generator cleanup (GeneratorExit) to ensure the
+approval channel on the tool server is unblocked before the
+ApprovalClient disconnects.</p>
+
+
+    </div>
+
+</div>
 
 <div class="doc doc-object doc-function">
 
