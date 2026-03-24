@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
 
+import ipybox
 import pytest
 from pydantic_ai.models.function import DeltaToolCall
 
@@ -660,3 +661,147 @@ class TestCancellation:
         assert len(results.approvals) == 1
         assert len(results.code_outputs) == 1
         assert len(results.responses) >= 1
+
+
+class TestGeneratorExitRejectsIpyboxApproval:
+    """Tests that GeneratorExit during pending ipybox approvals rejects them.
+
+    When the agent generator is closed while a shell or PTC approval is
+    pending, the ipybox ApprovalRequest must be rejected so the tool server's
+    approval channel is properly unblocked.
+    """
+
+    @staticmethod
+    def _make_ipybox_approval(
+        server_name: str,
+        tool_name: str,
+        tool_args: dict[str, Any],
+    ) -> tuple[ipybox.ApprovalRequest, asyncio.Event]:
+        """Create an ipybox ApprovalRequest with a mock respond that tracks rejection."""
+        rejected = asyncio.Event()
+
+        async def mock_respond(decision: bool) -> None:
+            if not decision:
+                rejected.set()
+
+        approval = ipybox.ApprovalRequest(
+            server_name=server_name,
+            tool_name=tool_name,
+            tool_args=tool_args,
+            respond=mock_respond,
+        )
+        return approval, rejected
+
+    @staticmethod
+    def _make_agent_with_mock_stream(
+        mock_stream: Any,
+    ) -> Agent:
+        """Create an agent with a mock code executor stream."""
+        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
+            mock_executor.return_value = MagicMock()
+            agent = Agent(config=create_test_config())
+
+        agent._code_executor = MagicMock()
+        agent._code_executor.stream = mock_stream
+        agent._code_executor_lock = asyncio.Lock()
+        return agent
+
+    @pytest.mark.asyncio
+    async def test_shell_approval_rejected_on_generator_exit(self):
+        """GeneratorExit during shell approval rejects the ipybox ApprovalRequest."""
+        ipybox_approval, rejected = self._make_ipybox_approval(
+            "ipybox",
+            "shell",
+            {"cmd": "ls -la"},
+        )
+
+        async def mock_stream(code: str, timeout: float | None = None, chunks: bool = False):
+            yield ipybox_approval
+            # Simulate kernel blocked on request_sync waiting for approval
+            await asyncio.Event().wait()
+
+        agent = self._make_agent_with_mock_stream(mock_stream)
+
+        gen = agent._ipybox_execute_ipython_cell("!ls -la")
+        event = await gen.__anext__()
+        assert isinstance(event, ApprovalRequest)
+        assert event.tool_call.tool_name == "bash"
+
+        # Close the generator without resolving the freeact approval
+        await gen.aclose()  # type: ignore[attr-defined]
+
+        # The ipybox ApprovalRequest must have been rejected
+        assert rejected.is_set()
+        assert ipybox_approval._decision.done()
+        assert ipybox_approval._decision.result() is False
+
+    @pytest.mark.asyncio
+    async def test_ptc_approval_rejected_on_generator_exit(self):
+        """GeneratorExit during PTC approval rejects the ipybox ApprovalRequest."""
+        ipybox_approval, rejected = self._make_ipybox_approval(
+            "test_server",
+            "my_tool",
+            {"key": "value"},
+        )
+
+        async def mock_stream(code: str, timeout: float | None = None, chunks: bool = False):
+            yield ipybox_approval
+            # Simulate kernel blocked on request_sync waiting for approval
+            await asyncio.Event().wait()
+
+        agent = self._make_agent_with_mock_stream(mock_stream)
+
+        gen = agent._ipybox_execute_ipython_cell("from test.my_tool import run; run()")
+        event = await gen.__anext__()
+        assert isinstance(event, ApprovalRequest)
+        assert event.tool_call.tool_name == "test_server_my_tool"
+
+        # Close the generator without resolving the freeact approval
+        await gen.aclose()  # type: ignore[attr-defined]
+
+        # The ipybox ApprovalRequest must have been rejected
+        assert rejected.is_set()
+        assert ipybox_approval._decision.done()
+        assert ipybox_approval._decision.result() is False
+
+    @pytest.mark.asyncio
+    async def test_shell_approval_not_double_rejected(self):
+        """Normal rejection path still works (no double reject)."""
+        reject_count = 0
+
+        async def counting_respond(decision: bool) -> None:
+            nonlocal reject_count
+            if not decision:
+                reject_count += 1
+
+        ipybox_approval = ipybox.ApprovalRequest(
+            server_name="ipybox",
+            tool_name="shell",
+            tool_args={"cmd": "rm -rf /"},
+            respond=counting_respond,
+        )
+
+        async def mock_stream(code: str, timeout: float | None = None, chunks: bool = False):
+            yield ipybox_approval
+            decision = await ipybox_approval.response()
+            if decision:
+                yield ipybox.CodeExecutionResult(text="output", images=[])
+            else:
+                yield ipybox.CodeExecutionResult(text="rejected", images=[])
+
+        agent = self._make_agent_with_mock_stream(mock_stream)
+
+        gen = agent._ipybox_execute_ipython_cell("!rm -rf /")
+        event = await gen.__anext__()
+        assert isinstance(event, ApprovalRequest)
+
+        # Reject via normal path (simulate user pressing 'n')
+        event.approve(False)
+
+        # Consume remaining events
+        events = [e async for e in gen]
+        assert len(events) == 1  # CodeExecutionOutput
+        assert isinstance(events[0], CodeExecutionOutput)
+
+        # reject() should have been called exactly once (not by GeneratorExit handler)
+        assert reject_count == 1
