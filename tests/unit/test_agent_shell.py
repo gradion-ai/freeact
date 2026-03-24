@@ -198,6 +198,63 @@ async def test_no_shell_commands_no_extra_approvals(tmp_path: Path) -> None:
     assert len(results.code_outputs) == 1
 
 
+def _make_ipybox_shell_magic_approval(
+    cmd: str,
+    decisions: list[bool],
+) -> ipybox.ApprovalRequest:
+    """Create an ipybox.ApprovalRequest for a %%bash/%%sh magic."""
+
+    async def _respond(decision: bool) -> None:
+        decisions.append(decision)
+
+    return ipybox.ApprovalRequest(
+        server_name="ipybox",
+        tool_name="shell_magic",
+        tool_args={"cmd": cmd},
+        respond=_respond,
+    )
+
+
+@pytest.mark.asyncio
+async def test_shell_magic_yields_shell_action(tmp_path: Path) -> None:
+    script = "echo hello\necho world"
+    decisions: list[bool] = []
+    approval = _make_ipybox_shell_magic_approval(script, decisions)
+
+    async with patched_agent(_make_cell_stream("%%bash\necho hello\necho world"), tmp_dir=tmp_path) as agent:
+        agent._code_executor = MockCodeExecutor([approval])
+        results = await collect_stream(agent, "run it")
+
+    shell_approvals = [a for a in results.approvals if isinstance(a.tool_call, ShellAction)]
+    assert len(shell_approvals) == 1
+    tc = shell_approvals[0].tool_call
+    assert isinstance(tc, ShellAction)
+    assert tc.tool_name == "shell_magic"
+    assert tc.command == script
+    assert decisions == [True]
+
+
+@pytest.mark.asyncio
+async def test_shell_magic_rejection(tmp_path: Path) -> None:
+    script = "rm -rf /"
+    decisions: list[bool] = []
+    approval = _make_ipybox_shell_magic_approval(script, decisions)
+
+    async with patched_agent(_make_cell_stream("%%bash\nrm -rf /"), tmp_dir=tmp_path) as agent:
+        agent._code_executor = MockCodeExecutor([approval])
+
+        def deny_shell(req: ApprovalRequest) -> bool:
+            if isinstance(req.tool_call, ShellAction):
+                return False
+            return True
+
+        results = await collect_stream(agent, "run it", approve_function=deny_shell)
+
+    assert decisions == [False]
+    assert len(results.code_outputs) == 1
+    assert results.code_outputs[0].approval_rejected()
+
+
 @pytest.mark.asyncio
 async def test_non_shell_ptc_uses_generic_call(tmp_path: Path) -> None:
     decisions: list[bool] = []

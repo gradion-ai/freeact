@@ -659,6 +659,24 @@ class Agent:
                             else:
                                 await item.reject()
                         case ipybox.ApprovalRequest(
+                            tool_name="shell_magic",
+                            tool_args=tool_args,
+                        ):
+                            cmd = tool_args["cmd"]  # type: ignore[has-type,index]
+                            shell_approval = ApprovalRequest(
+                                tool_call=ShellAction(tool_name="shell_magic", command=cmd),
+                                agent_id=self.agent_id,
+                            )
+                            try:
+                                yield shell_approval
+                            except GeneratorExit:
+                                await self._reject_ipybox_approval(item)
+                                raise
+                            if await shell_approval.approved():
+                                await item.accept()
+                            else:
+                                await item.reject()
+                        case ipybox.ApprovalRequest(
                             server_name=server_name,
                             tool_name=tool_name,
                             tool_args=tool_args,
