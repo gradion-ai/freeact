@@ -666,9 +666,9 @@ class TestCancellation:
 class TestGeneratorExitRejectsIpyboxApproval:
     """Tests that GeneratorExit during pending ipybox approvals rejects them.
 
-    When the agent generator is closed while a shell or PTC approval is
-    pending, the ipybox ApprovalRequest must be rejected so the tool server's
-    approval channel is properly unblocked.
+    When the agent generator is closed while a shell, shell_magic, or PTC
+    approval is pending, the ipybox ApprovalRequest must be rejected so the
+    tool server's approval channel is properly unblocked.
     """
 
     @staticmethod
@@ -755,6 +755,35 @@ class TestGeneratorExitRejectsIpyboxApproval:
         event = await gen.__anext__()
         assert isinstance(event, ApprovalRequest)
         assert event.tool_call.tool_name == "test_server_my_tool"
+
+        # Close the generator without resolving the freeact approval
+        await gen.aclose()  # type: ignore[attr-defined]
+
+        # The ipybox ApprovalRequest must have been rejected
+        assert rejected.is_set()
+        assert ipybox_approval._decision.done()
+        assert ipybox_approval._decision.result() is False
+
+    @pytest.mark.asyncio
+    async def test_shell_magic_approval_rejected_on_generator_exit(self):
+        """GeneratorExit during shell_magic approval rejects the ipybox ApprovalRequest."""
+        ipybox_approval, rejected = self._make_ipybox_approval(
+            "ipybox",
+            "shell_magic",
+            {"cmd": "echo hello\necho world"},
+        )
+
+        async def mock_stream(code: str, timeout: float | None = None, chunks: bool = False):
+            yield ipybox_approval
+            # Simulate kernel blocked on request_sync waiting for approval
+            await asyncio.Event().wait()
+
+        agent = self._make_agent_with_mock_stream(mock_stream)
+
+        gen = agent._ipybox_execute_ipython_cell("%%bash\necho hello\necho world")
+        event = await gen.__anext__()
+        assert isinstance(event, ApprovalRequest)
+        assert event.tool_call.tool_name == "shell_magic"
 
         # Close the generator without resolving the freeact approval
         await gen.aclose()  # type: ignore[attr-defined]
