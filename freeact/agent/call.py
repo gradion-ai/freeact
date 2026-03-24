@@ -112,10 +112,13 @@ class ShellAction(ToolCall):
     command: str
 
     def to_pattern(self) -> str:
+        if self.tool_name == "shell_magic":
+            return self.command.replace("\n", "\\n")
         return suggest_shell_pattern(self.command)
 
     def from_pattern(self, pattern: str) -> "ToolCall":
-        return ShellAction(tool_name="bash", command=pattern)
+        command = pattern.replace("\\n", "\n") if self.tool_name == "shell_magic" else pattern
+        return ShellAction(tool_name=self.tool_name, command=command)
 
     def to_entry(self) -> dict[str, Any]:
         return {"type": "ShellAction", "tool_name": self.tool_name, "command": self.command}

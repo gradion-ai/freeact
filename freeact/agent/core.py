@@ -646,11 +646,33 @@ class Agent:
                                     tool_call=ShellAction(tool_name="bash", command=sub_cmd),
                                     agent_id=self.agent_id,
                                 )
-                                yield shell_approval
+                                try:
+                                    yield shell_approval
+                                except GeneratorExit:
+                                    await self._reject_ipybox_approval(item)
+                                    raise
                                 if not await shell_approval.approved():
                                     all_approved = False
                                     break
                             if all_approved:
+                                await item.accept()
+                            else:
+                                await item.reject()
+                        case ipybox.ApprovalRequest(
+                            tool_name="shell_magic",
+                            tool_args=tool_args,
+                        ):
+                            cmd = tool_args["cmd"]  # type: ignore[has-type,index]
+                            shell_approval = ApprovalRequest(
+                                tool_call=ShellAction(tool_name="shell_magic", command=cmd),
+                                agent_id=self.agent_id,
+                            )
+                            try:
+                                yield shell_approval
+                            except GeneratorExit:
+                                await self._reject_ipybox_approval(item)
+                                raise
+                            if await shell_approval.approved():
                                 await item.accept()
                             else:
                                 await item.reject()
@@ -667,7 +689,11 @@ class Agent:
                                 ),
                                 agent_id=self.agent_id,
                             )
-                            yield ptc_request
+                            try:
+                                yield ptc_request
+                            except GeneratorExit:
+                                await self._reject_ipybox_approval(item)
+                                raise
                             if await ptc_request.approved():
                                 await item.accept()
                             else:
@@ -733,3 +759,16 @@ class Agent:
     async def _process_tool_text(self, text: str) -> str:
         content = await self._process_tool_result(text)
         return str(content)
+
+    @staticmethod
+    async def _reject_ipybox_approval(item: ipybox.ApprovalRequest) -> None:
+        """Reject an ipybox approval request, suppressing errors.
+
+        Called during generator cleanup (GeneratorExit) to ensure the
+        approval channel on the tool server is unblocked before the
+        ApprovalClient disconnects.
+        """
+        try:
+            await item.reject()
+        except Exception:
+            logger.debug("Failed to reject ipybox approval during cleanup", exc_info=True)

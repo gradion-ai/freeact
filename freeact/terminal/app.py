@@ -56,6 +56,8 @@ from freeact.terminal.widgets import (
     create_file_read_action_box,
     create_file_write_action_box,
     create_response_box,
+    create_shell_command_box,
+    create_shell_script_box,
     create_subagent_task_box,
     create_thoughts_box,
     create_tool_call_box,
@@ -811,10 +813,14 @@ class TerminalApp(App[None]):
                     content,
                     agent_id=request.agent_id,
                 )
+            case ShellAction(tool_name="shell_magic", command=command):
+                box, trace_container = create_shell_script_box(
+                    command,
+                    agent_id=request.agent_id,
+                )
             case ShellAction(command=command):
-                box, trace_container = create_tool_call_box(
-                    "bash",
-                    {"command": command},
+                box, trace_container = create_shell_command_box(
+                    command,
                     agent_id=request.agent_id,
                 )
             case GenericCall(tool_name="subagent_task", tool_args=tool_args):

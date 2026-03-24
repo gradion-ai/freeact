@@ -140,6 +140,10 @@ class TestSuggestPattern:
         tc = ShellAction(tool_name="bash", command="ls")
         assert suggest_pattern(tc) == "ls *"
 
+    def test_shell_magic_multiline(self) -> None:
+        tc = ShellAction(tool_name="shell_magic", command="echo hello\necho world")
+        assert suggest_pattern(tc) == "echo hello\\necho world"
+
     def test_file_read(self) -> None:
         tc = FileRead(tool_name="filesystem_read_text_file", path="/tmp/a.txt", offset=None, limit=None)
         assert suggest_pattern(tc) == "filesystem_read_text_file /tmp/a.txt"
@@ -186,6 +190,20 @@ class TestParsePattern:
         assert isinstance(result, ShellAction)
         assert result.tool_name == "bash"
         assert result.command == "git *"
+
+    def test_shell_action_preserves_tool_name(self) -> None:
+        template = ShellAction(tool_name="shell_magic", command="echo test")
+        result = parse_pattern("echo *", template)
+        assert isinstance(result, ShellAction)
+        assert result.tool_name == "shell_magic"
+
+    def test_shell_magic_roundtrip(self) -> None:
+        tc = ShellAction(tool_name="shell_magic", command="echo hello\necho world")
+        pattern = suggest_pattern(tc)
+        result = parse_pattern(pattern, tc)
+        assert isinstance(result, ShellAction)
+        assert result.tool_name == "shell_magic"
+        assert result.command == "echo hello\necho world"
 
     def test_code_action(self) -> None:
         template = CodeAction(tool_name="ipybox_execute_ipython_cell", code="print(1)")

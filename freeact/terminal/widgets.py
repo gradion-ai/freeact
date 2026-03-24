@@ -331,6 +331,48 @@ def create_code_action_box(code: str, agent_id: str = "") -> tuple[Collapsible, 
     return box, trace_container
 
 
+def create_shell_command_box(command: str, agent_id: str = "") -> tuple[Collapsible, Vertical]:
+    """Create a collapsible box displaying a shell command.
+
+    Args:
+        command: Shell command string.
+        agent_id: Agent identifier for the title prefix.
+
+    Returns:
+        Tuple of the Collapsible widget and the nested trace container.
+    """
+    syntax = Syntax(command, "bash", theme="monokai")
+    content, trace_container = _wrap_with_trace_container(Static(_syntax_to_content(syntax)))
+    box = Collapsible(
+        content,
+        title=_titled("Shell Command", agent_id),
+        collapsed=False,
+        classes="tool-call-box",
+    )
+    return box, trace_container
+
+
+def create_shell_script_box(script: str, agent_id: str = "") -> tuple[Collapsible, Vertical]:
+    """Create a collapsible box displaying a shell script.
+
+    Args:
+        script: Multi-line shell script content.
+        agent_id: Agent identifier for the title prefix.
+
+    Returns:
+        Tuple of the Collapsible widget and the nested trace container.
+    """
+    syntax = Syntax(script, "bash", theme="monokai")
+    content, trace_container = _wrap_with_trace_container(Static(_syntax_to_content(syntax)))
+    box = Collapsible(
+        content,
+        title=_titled("Shell Script", agent_id),
+        collapsed=False,
+        classes="tool-call-box",
+    )
+    return box, trace_container
+
+
 def create_tool_call_box(
     tool_name: str,
     tool_args: dict[str, Any],
