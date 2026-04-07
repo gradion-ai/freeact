@@ -27,6 +27,7 @@ from freeact.agent.call import (
     ToolCall,
     extract_tool_output_text,
     parse_pattern,
+    suggest_display,
     suggest_pattern,
 )
 from freeact.agent.config.skills import SkillMetadata
@@ -882,7 +883,7 @@ class TerminalApp(App[None]):
 
         # Prompt user for approval
         self._approval_future = asyncio.get_running_loop().create_future()
-        bar = ApprovalBar(pattern=suggested)
+        bar = ApprovalBar(pattern=suggested, display_text=suggest_display(tc))
         await self._mount_and_scroll(conversation, conversation, bar)
 
         decision, pattern = await self._approval_future

@@ -153,15 +153,17 @@ class ApprovalBar(Static):
         ("s", "save_rule(3)", "Session"),
     ]
 
-    def __init__(self, pattern: str = "", **kwargs: Any) -> None:
+    def __init__(self, pattern: str = "", display_text: str = "", **kwargs: Any) -> None:
         self._pattern = pattern
+        self._display_text = display_text
         self._editing = False
         self._pending_decision: int = 0
         super().__init__(self._render_text(), markup=False, **kwargs)
 
     def _render_text(self) -> str:
-        if self._pattern:
-            return f"Approve? [Y/n/a/s] {self._pattern}"
+        body = self._display_text or self._pattern
+        if body:
+            return f"Approve? [Y/n/a/s] {body}"
         return "Approve? [Y/n/a/s]"
 
     def action_decide(self, decision: int) -> None:
@@ -194,6 +196,15 @@ class ApprovalBar(Static):
     def pattern(self) -> str:
         """Current pattern value."""
         return self._pattern
+
+    @property
+    def display_text(self) -> str:
+        """Current display text override (empty string falls back to pattern).
+
+        Named to avoid clashing with the inherited Textual `Widget.display`
+        reactive (which controls visibility).
+        """
+        return self._display_text
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if self._editing and action in ("decide", "save_rule"):

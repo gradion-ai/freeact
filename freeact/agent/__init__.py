@@ -8,6 +8,7 @@ from freeact.agent.call import (
     ToolCall,
     extract_tool_output_text,
     parse_pattern,
+    suggest_display,
     suggest_pattern,
 )
 from freeact.agent.core import Agent
@@ -45,5 +46,6 @@ __all__ = [
     "ToolOutput",
     "extract_tool_output_text",
     "parse_pattern",
+    "suggest_display",
     "suggest_pattern",
 ]

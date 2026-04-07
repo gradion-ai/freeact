@@ -81,6 +81,15 @@ class ToolCall:
         """Suggest a permission pattern string for this tool call."""
         return self.tool_name
 
+    def to_display(self) -> str:
+        """Return display text for the approval bar.
+
+        Empty string means "fall back to the suggested pattern". Subclasses
+        override this to surface the verbatim action being approved (e.g. a
+        shell command) instead of the permission pattern.
+        """
+        return ""
+
     def from_pattern(self, pattern: str) -> "ToolCall":
         """Reconstruct a ToolCall from a user-edited pattern string."""
         return GenericCall(tool_name=pattern, tool_args={}, ptc=False)
@@ -120,6 +129,11 @@ class ShellAction(ToolCall):
         if self.tool_name == "shell_magic":
             return self.command.replace("\n", "\\n")
         return suggest_shell_pattern(self.command)
+
+    def to_display(self) -> str:
+        if self.tool_name == "shell_magic":
+            return _summarize_shell_script(self.command)
+        return self.command
 
     def from_pattern(self, pattern: str) -> "ToolCall":
         command = pattern.replace("\\n", "\n") if self.tool_name == "shell_magic" else pattern
@@ -251,6 +265,36 @@ def suggest_pattern(tool_call: ToolCall) -> str:
         Pattern string suitable for the approval bar.
     """
     return tool_call.to_pattern()
+
+
+def suggest_display(tool_call: ToolCall) -> str:
+    """Suggest display text for the approval bar for a tool call.
+
+    Args:
+        tool_call: The tool call to render in the approval bar.
+
+    Returns:
+        Display string for the approval bar, or an empty string when the
+        bar should fall back to the suggested permission pattern.
+    """
+    return tool_call.to_display()
+
+
+def _summarize_shell_script(script: str) -> str:
+    """Render a multi-line shell script as a compact single-line summary.
+
+    Returns the first non-empty line, optionally followed by a count of
+    the remaining non-empty lines. Used by the approval bar so the bar
+    stays compact while the full script is shown in the action box above.
+    """
+    lines = [line for line in script.splitlines() if line.strip()]
+    if not lines:
+        return "(empty script)"
+    head = lines[0].strip()
+    extra = len(lines) - 1
+    if extra == 0:
+        return head
+    return f"{head} (+{extra} more lines)"
 
 
 def parse_pattern(pattern: str, template: ToolCall) -> ToolCall:
