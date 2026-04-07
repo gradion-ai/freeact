@@ -1141,6 +1141,8 @@
 <p>The base <code>ToolCall</code> class provides defaults (returns <code>tool_name</code> for pattern, <code>False</code> for matching). Subtypes override with type-specific logic.</p>
 <p>Standalone functions <code>suggest_pattern()</code> and <code>parse_pattern()</code> in <code>freeact/agent/call.py</code> delegate to these methods and are kept for API stability.</p>
 <p><code>PermissionManager</code> in <code>freeact/permissions.py</code> calls <code>tool_call.to_entry()</code> and <code>tool_call.matches_entry()</code> directly, importing only the <code>ToolCall</code> base class.</p>
+<p><code>PermissionsConfig.with_defaults()</code> seeds both <code>ask</code> (from <code>DEFAULT_ASK_RULES</code>) and <code>allow</code> (from <code>DEFAULT_ALLOW_RULES</code>). Ask rules win over allow rules.</p>
+<p><code>_path_matches()</code> in <code>freeact/agent/call.py</code> requires pattern and path to agree on absoluteness; relative patterns cannot match absolute paths.</p>
 <p>When adding a new ToolCall subtype, three places must be updated:</p>
 <table>
 <thead>

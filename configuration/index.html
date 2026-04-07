@@ -720,6 +720,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#default-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Default rules
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1711,6 +1722,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#default-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Default rules
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2334,6 +2356,8 @@
 </tbody>
 </table>
 <p><code>tool_name</code> and <code>command</code> fields use standard glob matching where <code>*</code> matches any characters and <code>?</code> matches a single character.</p>
+<h3 id="default-rules">Default rules</h3>
+<p>On first run, <code>permissions.json</code> is seeded with a generous set of read-only allow rules (file reads inside the working directory, common shell inspection commands like <code>ls</code>, <code>cat</code>, <code>git status</code>, and read-only built-in tools) plus an ask rule that always prompts for <code>.env</code> reads. Inspect <code>.freeact/permissions.json</code> after the first run for the full list, and edit it to tighten or extend the defaults.</p>
 <h2 id="tool-directories">Tool Directories</h2>
 <p>The agent discovers tools from two directories under <code>.freeact/generated/</code>:</p>
 <h3 id="mcptools"><code>mcptools/</code></h3>
