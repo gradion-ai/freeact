@@ -11,7 +11,7 @@ from freeact.agent.call import (
     GenericCall,
     ShellAction,
 )
-from freeact.permissions import DEFAULT_ALLOW_RULES, PermissionManager
+from freeact.permissions import DEFAULT_ALLOW_RULES, DEFAULT_ASK_RULES, PermissionManager, PermissionsConfig
 
 
 @pytest.fixture
@@ -27,8 +27,21 @@ def working_dir(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def permission_manager(working_dir: Path, freeact_dir: Path) -> PermissionManager:
-    """Return a fresh PermissionManager instance."""
+    """Return a fresh PermissionManager instance with default rules loaded."""
     return PermissionManager(working_dir, freeact_dir)
+
+
+@pytest.fixture
+def empty_permission_manager(working_dir: Path, freeact_dir: Path) -> PermissionManager:
+    """Return a PermissionManager with no default rules.
+
+    Use this for tests that exercise matching/evaluation semantics in isolation
+    (e.g. negative-match cases for paths inside the workspace) where the broad
+    default allow rules would otherwise mask the assertion.
+    """
+    manager = PermissionManager(working_dir, freeact_dir)
+    manager._always = PermissionsConfig.empty()
+    return manager
 
 
 class TestTypeSpecificMatching:
@@ -74,15 +87,17 @@ class TestTypeSpecificMatching:
         )
         assert permission_manager.is_allowed(tc)
 
-    def test_file_read_path_mismatch(self, permission_manager: PermissionManager) -> None:
-        permission_manager.allow_session(FileRead(tool_name="filesystem_*", path="src/**", offset=None, limit=None))
+    def test_file_read_path_mismatch(self, empty_permission_manager: PermissionManager) -> None:
+        empty_permission_manager.allow_session(
+            FileRead(tool_name="filesystem_*", path="src/**", offset=None, limit=None)
+        )
         tc = FileRead(
             tool_name="filesystem_read_text_file",
             path="tests/test_foo.py",
             offset=None,
             limit=None,
         )
-        assert not permission_manager.is_allowed(tc)
+        assert not empty_permission_manager.is_allowed(tc)
 
     def test_file_write_path_match(self, permission_manager: PermissionManager) -> None:
         permission_manager.allow_session(FileWrite(tool_name="filesystem_*", path="src/**", content=""))
@@ -185,7 +200,7 @@ class TestPersistenceRoundtrip:
 
         data = json.loads((freeact_dir / "permissions.json").read_text())
         assert data == {
-            "ask": [],
+            "ask": DEFAULT_ASK_RULES,
             "allow": DEFAULT_ALLOW_RULES
             + [
                 {"type": "GenericCall", "tool_name": "github_*"},
@@ -225,7 +240,7 @@ class TestPersistenceRoundtrip:
     def test_load_missing_file_keeps_defaults(self, freeact_dir: Path, working_dir: Path) -> None:
         manager = PermissionManager(working_dir, freeact_dir)
         manager.load()
-        assert manager._always.ask == []
+        assert manager._always.ask == DEFAULT_ASK_RULES
         assert manager._always.allow == DEFAULT_ALLOW_RULES
 
 
@@ -282,7 +297,7 @@ class TestPermissionManagerInit:
         manager.init()
         assert (freeact_dir / "permissions.json").exists()
         data = json.loads((freeact_dir / "permissions.json").read_text())
-        assert data == {"ask": [], "allow": DEFAULT_ALLOW_RULES}
+        assert data == {"ask": DEFAULT_ASK_RULES, "allow": DEFAULT_ALLOW_RULES}
 
     def test_init_loads_from_file_when_exists(self, freeact_dir: Path, working_dir: Path) -> None:
         freeact_dir.mkdir(parents=True)
@@ -303,6 +318,7 @@ class TestPermissionManagerInit:
 
         manager2 = PermissionManager(working_dir, freeact_dir)
         manager2.init()
+        assert manager2._always.ask == DEFAULT_ASK_RULES
         assert manager2._always.allow == DEFAULT_ALLOW_RULES
 
     def test_defaults_active_without_load(self, freeact_dir: Path, working_dir: Path) -> None:
@@ -319,10 +335,12 @@ class TestPathPatternSemantics:
         tc = FileRead(tool_name="filesystem_read_text_file", path="src/main.py", offset=None, limit=None)
         assert permission_manager.is_allowed(tc)
 
-    def test_single_star_does_not_cross_slash(self, permission_manager: PermissionManager) -> None:
-        permission_manager.allow_session(FileRead(tool_name="filesystem_*", path="src/*", offset=None, limit=None))
+    def test_single_star_does_not_cross_slash(self, empty_permission_manager: PermissionManager) -> None:
+        empty_permission_manager.allow_session(
+            FileRead(tool_name="filesystem_*", path="src/*", offset=None, limit=None)
+        )
         tc = FileRead(tool_name="filesystem_read_text_file", path="src/sub/main.py", offset=None, limit=None)
-        assert not permission_manager.is_allowed(tc)
+        assert not empty_permission_manager.is_allowed(tc)
 
     def test_double_star_matches_any_depth(self, permission_manager: PermissionManager) -> None:
         permission_manager.allow_session(FileRead(tool_name="filesystem_*", path="src/**", offset=None, limit=None))
@@ -363,3 +381,183 @@ class TestPathPatternSemantics:
                 new_text="b",
             )
         )
+
+
+class TestDefaultRules:
+    """Tests for the built-in DEFAULT_ALLOW_RULES and DEFAULT_ASK_RULES."""
+
+    def _read(self, path: str, tool_name: str = "filesystem_read_text_file") -> FileRead:
+        return FileRead(tool_name=tool_name, path=path, offset=None, limit=None)
+
+    def _shell(self, command: str) -> ShellAction:
+        return ShellAction(tool_name="bash", command=command)
+
+    # FileRead defaults
+
+    def test_workspace_text_read_allowed(self, permission_manager: PermissionManager) -> None:
+        assert permission_manager.is_allowed(self._read("README.md"))
+        assert permission_manager.is_allowed(self._read("src/main.py"))
+        assert permission_manager.is_allowed(self._read("a/b/c/d.txt"))
+
+    def test_workspace_media_read_allowed(self, permission_manager: PermissionManager) -> None:
+        assert permission_manager.is_allowed(self._read("docs/image.png", tool_name="filesystem_read_media_file"))
+
+    def test_absolute_workspace_path_normalized_and_allowed(
+        self, working_dir: Path, permission_manager: PermissionManager
+    ) -> None:
+        absolute_path = str(working_dir / "src" / "main.py")
+        assert permission_manager.is_allowed(self._read(absolute_path))
+
+    def test_freeact_subtree_still_allowed(self, permission_manager: PermissionManager) -> None:
+        assert permission_manager.is_allowed(self._read(".freeact/permissions.json"))
+        assert permission_manager.is_allowed(self._read(".freeact/sessions/abc/main.jsonl"))
+
+    def test_dotenv_at_root_blocked(self, permission_manager: PermissionManager) -> None:
+        assert not permission_manager.is_allowed(self._read(".env"))
+
+    def test_dotenv_nested_blocked(self, permission_manager: PermissionManager) -> None:
+        assert not permission_manager.is_allowed(self._read("sub/.env"))
+        assert not permission_manager.is_allowed(self._read("a/b/.env"))
+
+    def test_absolute_dotenv_under_workdir_blocked(
+        self, working_dir: Path, permission_manager: PermissionManager
+    ) -> None:
+        assert not permission_manager.is_allowed(self._read(str(working_dir / ".env")))
+        assert not permission_manager.is_allowed(self._read(str(working_dir / "sub" / ".env")))
+
+    def test_absolute_path_outside_workspace_blocked(self, permission_manager: PermissionManager) -> None:
+        # The broad relative `**` allow rule must NOT match absolute paths
+        # outside working_dir. This pins the `_path_matches` guard.
+        assert not permission_manager.is_allowed(self._read("/etc/passwd"))
+        assert not permission_manager.is_allowed(self._read("/etc/hosts"))
+        assert not permission_manager.is_allowed(self._read("/Users/someone/.ssh/id_rsa"))
+
+    # GenericCall defaults
+
+    def test_pytools_introspection_allowed(self, permission_manager: PermissionManager) -> None:
+        for name in ("pytools_list_categories", "pytools_list_tools", "pytools_search_tools"):
+            assert permission_manager.is_allowed(GenericCall(tool_name=name, tool_args={}, ptc=False))
+
+    def test_unrelated_generic_call_blocked(self, permission_manager: PermissionManager) -> None:
+        assert not permission_manager.is_allowed(GenericCall(tool_name="github_create_issue", tool_args={}, ptc=False))
+
+    # ShellAction defaults — bare and with-args coverage
+
+    def test_introspection_commands_allowed(self, permission_manager: PermissionManager) -> None:
+        for cmd in ("pwd", "whoami", "uptime", "hostname", "date", "uname", "uname -a", "id", "id user"):
+            assert permission_manager.is_allowed(self._shell(cmd)), cmd
+
+    def test_listing_and_metadata_commands_allowed(self, permission_manager: PermissionManager) -> None:
+        for cmd in ("ls", "ls -la /tmp", "tree", "tree -L 2", "stat README.md", "file foo", "wc -l README.md"):
+            assert permission_manager.is_allowed(self._shell(cmd)), cmd
+
+    def test_text_reading_commands_allowed(self, permission_manager: PermissionManager) -> None:
+        for cmd in ("cat README.md", "head -n 5 file", "tail -n 20 log.txt"):
+            assert permission_manager.is_allowed(self._shell(cmd)), cmd
+
+    def test_process_info_allowed(self, permission_manager: PermissionManager) -> None:
+        assert permission_manager.is_allowed(self._shell("ps"))
+        assert permission_manager.is_allowed(self._shell("ps aux"))
+
+    def test_git_readonly_bare_and_with_args_allowed(self, permission_manager: PermissionManager) -> None:
+        cases = [
+            "git status",
+            "git status -s",
+            "git log",
+            "git log --oneline -n 5",
+            "git diff",
+            "git diff HEAD~1 HEAD",
+            "git show",
+            "git show HEAD",
+            "git blame README.md",
+            "git ls-files",
+            "git ls-files src/",
+            "git rev-parse HEAD",
+            "git describe",
+            "git describe --tags",
+            "git config --list",
+            "git config --get user.name",
+            "git remote",
+            "git remote -v",
+            "git remote show origin",
+            "git tag",
+            "git branch",
+            "git stash list",
+            "git worktree list",
+        ]
+        for cmd in cases:
+            assert permission_manager.is_allowed(self._shell(cmd)), cmd
+
+    # ShellAction defaults — destructive variants must NOT be allowed
+
+    def test_git_destructive_variants_blocked(self, permission_manager: PermissionManager) -> None:
+        cases = [
+            "git push",
+            "git push origin main",
+            "git pull",
+            "git checkout main",
+            "git reset --hard",
+            "git rm file.txt",
+            "git commit -m msg",
+            "git branch -D feature",
+            "git tag -d v1",
+            "git remote add origin url",
+            "git remote remove origin",
+            "git reflog expire --expire=now --all",
+            "git reflog delete HEAD@{0}",
+            "git stash drop",
+            "git stash pop",
+            "git worktree add ../foo branch",
+            "git config user.name foo",
+        ]
+        for cmd in cases:
+            assert not permission_manager.is_allowed(self._shell(cmd)), cmd
+
+    def test_filesystem_mutation_commands_blocked(self, permission_manager: PermissionManager) -> None:
+        cases = [
+            "rm -rf /",
+            "rm file.txt",
+            "mv a b",
+            "cp a b",
+            "mkdir x",
+            "touch foo",
+            "chmod 777 a",
+            "chown root a",
+            "kill 1",
+            "pkill python",
+        ]
+        for cmd in cases:
+            assert not permission_manager.is_allowed(self._shell(cmd)), cmd
+
+    def test_find_blocked(self, permission_manager: PermissionManager) -> None:
+        # `find` is intentionally excluded from defaults regardless of args.
+        for cmd in ("find", "find .", "find . -name '*.py'", "find . -delete", "find . -exec rm {} ;"):
+            assert not permission_manager.is_allowed(self._shell(cmd)), cmd
+
+    def test_env_executor_form_blocked(self, permission_manager: PermissionManager) -> None:
+        # `env` and `env *` are excluded because `env CMD args` runs arbitrary
+        # commands; e.g. `env -i bash` reseeds and execs bash.
+        for cmd in ("env", "env -i bash", "env FOO=bar python"):
+            assert not permission_manager.is_allowed(self._shell(cmd)), cmd
+
+    def test_shell_magic_not_covered_by_bash_defaults(self, permission_manager: PermissionManager) -> None:
+        # Defaults target tool_name="bash"; shell_magic must still prompt.
+        assert not permission_manager.is_allowed(ShellAction(tool_name="shell_magic", command="ls"))
+        assert not permission_manager.is_allowed(ShellAction(tool_name="shell_magic", command="git status"))
+
+    # Persistence smoke test
+
+    def test_defaults_round_trip_via_init(self, freeact_dir: Path, working_dir: Path) -> None:
+        # First manager writes defaults to disk; second manager reloads them.
+        m1 = PermissionManager(working_dir, freeact_dir)
+        m1.init()
+
+        m2 = PermissionManager(working_dir, freeact_dir)
+        m2.init()
+
+        assert m2.is_allowed(self._shell("git status"))
+        assert m2.is_allowed(self._shell("ls -la"))
+        assert m2.is_allowed(GenericCall(tool_name="pytools_search_tools", tool_args={}, ptc=False))
+        assert m2.is_allowed(self._read("README.md"))
+        assert not m2.is_allowed(self._read(".env"))
+        assert not m2.is_allowed(self._read("/etc/passwd"))
