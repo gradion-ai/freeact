@@ -5,7 +5,7 @@ It intentionally excludes CLI, terminal UI, and longer-lived permission policy l
 
 ## Core Agent
 
-- `freeact/agent/call.py` defines the `ToolCall` type hierarchy (`GenericCall`, `ShellAction`, `CodeAction`, `FileRead`, `FileWrite`, `FileEdit`), pattern functions (`suggest_pattern`, `parse_pattern`), and `extract_tool_output_text`. Filesystem tool names: `filesystem_read_text_file`, `filesystem_read_media_file`, `filesystem_write_text_file`, `filesystem_edit_text_file`.
+- `freeact/agent/call.py` defines the `ToolCall` type hierarchy (`GenericCall`, `ShellAction`, `CodeAction`, `FileRead`, `FileWrite`, `FileEdit`), pattern functions (`suggest_pattern`, `suggest_display`, `parse_pattern`), and `extract_tool_output_text`. Filesystem tool names: `filesystem_read_text_file`, `filesystem_read_media_file`, `filesystem_write_text_file`, `filesystem_edit_text_file`.
 - `freeact/agent/events.py` defines all typed stream events (`ResponseChunk`, `Response`, `Thoughts*`, `ApprovalRequest`, `CodeExecutionOutput*`, `ToolOutput`).
 - `freeact/agent/core.py` contains the `Agent` class and main orchestration loop.
 - `freeact/agent/_supervisor.py` contains `_ResourceSupervisor`, a generic async lifecycle utility for context managers.

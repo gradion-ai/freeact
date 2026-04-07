@@ -36,9 +36,9 @@ Read this first, then follow code references for details.
 
 - `clipboard.py`: platform clipboard adapter (`pbcopy/pbpaste`, `wl-*`, `xclip`/`xsel`, PowerShell) with local fallback.
 - `config.py`: terminal UI collapse behavior and keybinding configuration.
-- `widgets.py`: all prompt/approval widgets and box factories (including `ApprovalBar` with inline pattern editing).
+- `widgets.py`: all prompt/approval widgets and box factories. `ApprovalBar` takes a `pattern` (seeds the inline edit input on `a`/`s`) and an optional `display_text` (the verbatim text shown in the bar; falls back to `pattern` when empty). The attribute is named `display_text` to avoid shadowing Textual's `Widget.display` reactive.
 - `screens.py`: modal file picker for `@` insertion.
-- `freeact/agent/call.py`: `ToolCall` type hierarchy, `suggest_pattern`, `parse_pattern`, `extract_tool_output_text`.
+- `freeact/agent/call.py`: `ToolCall` type hierarchy, `suggest_pattern`, `suggest_display`, `parse_pattern`, `extract_tool_output_text`.
 - `freeact.permissions.PermissionManager`: pre-approval and persisted/session allow-lists.
 
 ## Keyboard Semantics

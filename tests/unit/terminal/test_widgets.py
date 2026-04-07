@@ -140,6 +140,38 @@ def test_approval_bar_default_pattern_is_empty() -> None:
     assert bar.pattern == ""
 
 
+def test_approval_bar_display_text_overrides_pattern() -> None:
+    bar = ApprovalBar(pattern="git *", display_text="git status")
+    content = str(bar.content)
+    assert "git status" in content
+    assert "git *" not in content
+    assert content.startswith("Approve? [Y/n/a/s] ")
+
+
+def test_approval_bar_falls_back_to_pattern_when_no_display_text() -> None:
+    bar = ApprovalBar(pattern="github_*")
+    content = str(bar.content)
+    assert "github_*" in content
+
+
+def test_approval_bar_display_text_property_round_trip() -> None:
+    bar = ApprovalBar(display_text="echo hi")
+    assert bar.display_text == "echo hi"
+    assert bar.pattern == ""
+
+
+def test_approval_bar_does_not_shadow_widget_display_reactive() -> None:
+    """Regression: ApprovalBar must not shadow Textual's `Widget.display`
+    reactive (which is a bool controlling visibility). Shadowing it with a
+    string property hides the bar in the running app even though the unit
+    tests for content/query still pass.
+    """
+    bar = ApprovalBar(pattern="cmd")
+    assert bar.display is True
+    bar_with_text = ApprovalBar(pattern="cmd", display_text="echo hi")
+    assert bar_with_text.display is True
+
+
 def test_prompt_input_css_uses_solid_border_variants() -> None:
     css = PromptInput.DEFAULT_CSS
     assert "border: solid $border-blurred;" in css

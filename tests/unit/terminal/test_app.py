@@ -1475,6 +1475,109 @@ async def test_shell_approval_request_routes_to_shell_domain() -> None:
 
 
 @pytest.mark.asyncio
+async def test_shell_approval_bar_displays_verbatim_command_for_bash() -> None:
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        request = ApprovalRequest(
+            tool_call=ShellAction(tool_name="bash", command="git status"),
+            agent_id=MAIN_AGENT_ID,
+            corr_id="call-1",
+        )
+        yield request
+        await request.approved()
+
+    app = _create_app(
+        agent_stream=MockStreamAgent(scenario).stream,
+        agent_id=MAIN_AGENT_ID,
+        permission_manager=StubPermissionManager(),  # type: ignore[arg-type]
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await pilot.pause(0.05)
+
+        bars = list(app.query("ApprovalBar"))
+        assert len(bars) == 1
+        text = str(bars[0].content)
+        assert "git status" in text
+        assert "git status *" not in text
+
+        await pilot.press("n")
+        await app.workers.wait_for_complete()
+
+
+@pytest.mark.asyncio
+async def test_shell_approval_bar_summarizes_shell_magic_script() -> None:
+    script = "echo first\necho second\necho third"
+
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        request = ApprovalRequest(
+            tool_call=ShellAction(tool_name="shell_magic", command=script),
+            agent_id=MAIN_AGENT_ID,
+            corr_id="call-1",
+        )
+        yield request
+        await request.approved()
+
+    app = _create_app(
+        agent_stream=MockStreamAgent(scenario).stream,
+        agent_id=MAIN_AGENT_ID,
+        permission_manager=StubPermissionManager(),  # type: ignore[arg-type]
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await pilot.pause(0.05)
+
+        bars = list(app.query("ApprovalBar"))
+        text = str(bars[0].content)
+        assert "echo first" in text
+        assert "+2 more" in text
+        assert "\\n" not in text
+        assert "echo first\\necho second" not in text
+
+        await pilot.press("n")
+        await app.workers.wait_for_complete()
+
+
+@pytest.mark.asyncio
+async def test_shell_approval_a_seeds_input_with_suggested_pattern() -> None:
+    from textual.widgets import Input
+
+    permission_manager = StubPermissionManager()
+
+    async def scenario(_: PromptContent) -> AsyncIterator[AgentEvent]:
+        request = ApprovalRequest(
+            tool_call=ShellAction(tool_name="bash", command="git status"),
+            agent_id=MAIN_AGENT_ID,
+            corr_id="call-1",
+        )
+        yield request
+        await request.approved()
+
+    app = _create_app(
+        agent_stream=MockStreamAgent(scenario).stream,
+        agent_id=MAIN_AGENT_ID,
+        permission_manager=permission_manager,  # type: ignore[arg-type]
+    )
+
+    async with app.run_test() as pilot:
+        await _submit_prompt(app, pilot)
+        await pilot.pause(0.05)
+        await pilot.press("a")
+        await pilot.pause(0.05)
+
+        input_widget = app.query_one("#approval-pattern-input", Input)
+        assert input_widget.value == "git status *"
+
+        await pilot.press("enter")
+        await app.workers.wait_for_complete()
+
+    assert len(permission_manager.allow_always_calls) == 1
+    assert isinstance(permission_manager.allow_always_calls[0], ShellAction)
+    assert permission_manager.allow_always_calls[0].command == "git status *"
+
+
+@pytest.mark.asyncio
 async def test_shell_approval_uses_suggest_shell_pattern() -> None:
     permission_manager = StubPermissionManager()
 
