@@ -8,6 +8,11 @@ from freeact.agent.shell import suggest_shell_pattern
 
 
 def _path_matches(path: str, pattern: str) -> bool:
+    # A relative pattern must not match an absolute path. `PurePosixPath.full_match`
+    # treats `**` as matching any path including absolute ones, which would let
+    # broad relative patterns like `**` leak reads of arbitrary host files.
+    if pattern.startswith("/") != path.startswith("/"):
+        return False
     return PurePosixPath(path).full_match(pattern)  # type: ignore[attr-defined]
 
 

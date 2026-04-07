@@ -301,6 +301,10 @@ The leading `/` determines whether a pattern targets paths inside or outside the
 
 `tool_name` and `command` fields use standard glob matching where `*` matches any characters and `?` matches a single character.
 
+### Default rules
+
+On first run, `permissions.json` is seeded with a generous set of read-only allow rules (file reads inside the working directory, common shell inspection commands like `ls`, `cat`, `git status`, and read-only built-in tools) plus an ask rule that always prompts for `.env` reads. Inspect `.freeact/permissions.json` after the first run for the full list, and edit it to tighten or extend the defaults.
+
 ## Tool Directories
 
 The agent discovers tools from two directories under `.freeact/generated/`:

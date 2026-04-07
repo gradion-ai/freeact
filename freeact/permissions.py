@@ -6,10 +6,102 @@ from pydantic import BaseModel, ConfigDict
 
 from freeact.agent.call import ToolCall
 
+
+def _shell(command: str) -> dict[str, Any]:
+    return {"type": "ShellAction", "tool_name": "bash", "command": command}
+
+
+def _generic(tool_name: str) -> dict[str, Any]:
+    return {"type": "GenericCall", "tool_name": tool_name}
+
+
+def _file_read(path: str, tool_name: str = "filesystem_*") -> dict[str, Any]:
+    return {"type": "FileRead", "tool_name": tool_name, "path": path}
+
+
+# Ask rules are evaluated before allow rules; an ask match overrides any allow
+# match. Reads of `.env` files always prompt, even though `**` is allowed.
+DEFAULT_ASK_RULES: list[dict[str, Any]] = [
+    _file_read("**/.env"),
+]
+
 DEFAULT_ALLOW_RULES: list[dict[str, Any]] = [
-    {"type": "GenericCall", "tool_name": "pytools_list_categories"},
-    {"type": "GenericCall", "tool_name": "pytools_list_tools"},
-    {"type": "FileRead", "tool_name": "filesystem_read_text_file", "path": ".freeact/**"},
+    # FileRead: any text/media file inside the working directory. The relative
+    # pattern is intentional; `_path_matches` rejects absolute paths outside
+    # `working_dir`, so reads of e.g. /etc/passwd still prompt.
+    _file_read("**"),
+    # GenericCall: read-only pytools introspection across basic and hybrid modes.
+    _generic("pytools_list_categories"),
+    _generic("pytools_list_tools"),
+    _generic("pytools_search_tools"),
+    # ShellAction: pure introspection commands. No flags can mutate state, and
+    # no shell-redirect-into-write is feasible from the command alone.
+    _shell("pwd"),
+    _shell("whoami"),
+    _shell("id"),
+    _shell("id *"),
+    _shell("hostname"),
+    _shell("uname"),
+    _shell("uname *"),
+    _shell("date"),
+    _shell("uptime"),
+    _shell("which *"),
+    _shell("whereis *"),
+    # ShellAction: file/dir listing and metadata.
+    _shell("ls"),
+    _shell("ls *"),
+    _shell("tree"),
+    _shell("tree *"),
+    _shell("stat *"),
+    _shell("file *"),
+    _shell("du *"),
+    _shell("df"),
+    _shell("df *"),
+    _shell("wc *"),
+    # ShellAction: text reading.
+    _shell("cat *"),
+    _shell("head *"),
+    _shell("tail *"),
+    # ShellAction: process info.
+    _shell("ps"),
+    _shell("ps *"),
+    # ShellAction: git read-only subcommands. Each non-trivial form needs both
+    # the bare and `<cmd> *` entry because fnmatch's `*` requires a literal
+    # space (so `git status *` does NOT match `git status`).
+    _shell("git status"),
+    _shell("git status *"),
+    _shell("git log"),
+    _shell("git log *"),
+    _shell("git diff"),
+    _shell("git diff *"),
+    _shell("git show"),
+    _shell("git show *"),
+    _shell("git blame *"),
+    _shell("git ls-files"),
+    _shell("git ls-files *"),
+    _shell("git ls-tree *"),
+    _shell("git cat-file *"),
+    _shell("git rev-parse *"),
+    _shell("git describe"),
+    _shell("git describe *"),
+    _shell("git shortlog"),
+    _shell("git shortlog *"),
+    _shell("git reflog"),
+    _shell("git reflog *"),
+    _shell("git for-each-ref *"),
+    _shell("git symbolic-ref *"),
+    _shell("git config --get *"),
+    _shell("git config --list"),
+    _shell("git remote"),
+    _shell("git remote -v"),
+    _shell("git remote show *"),
+    # `git tag`/`git branch` no-args list refs; the `*` form is intentionally
+    # excluded because it would match `git tag -d v1` / `git branch -D foo`.
+    _shell("git tag"),
+    _shell("git branch"),
+    _shell("git stash list"),
+    _shell("git stash show *"),
+    _shell("git worktree list"),
 ]
 
 
@@ -23,8 +115,11 @@ class PermissionsConfig(BaseModel):
 
     @classmethod
     def with_defaults(cls) -> "PermissionsConfig":
-        """Create an instance with default allow rules."""
-        return cls(allow=[rule.copy() for rule in DEFAULT_ALLOW_RULES])
+        """Create an instance with default ask and allow rules."""
+        return cls(
+            ask=[rule.copy() for rule in DEFAULT_ASK_RULES],
+            allow=[rule.copy() for rule in DEFAULT_ALLOW_RULES],
+        )
 
     @classmethod
     def empty(cls) -> "PermissionsConfig":

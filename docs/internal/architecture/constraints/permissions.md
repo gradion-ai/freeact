@@ -15,6 +15,10 @@ Standalone functions `suggest_pattern()` and `parse_pattern()` in `freeact/agent
 
 `PermissionManager` in `freeact/permissions.py` calls `tool_call.to_entry()` and `tool_call.matches_entry()` directly, importing only the `ToolCall` base class.
 
+`PermissionsConfig.with_defaults()` seeds both `ask` (from `DEFAULT_ASK_RULES`) and `allow` (from `DEFAULT_ALLOW_RULES`). Ask rules win over allow rules.
+
+`_path_matches()` in `freeact/agent/call.py` requires pattern and path to agree on absoluteness; relative patterns cannot match absolute paths.
+
 When adding a new ToolCall subtype, three places must be updated:
 
 | Location | Purpose |
