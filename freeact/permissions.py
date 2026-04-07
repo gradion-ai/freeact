@@ -86,8 +86,9 @@ DEFAULT_ALLOW_RULES: list[dict[str, Any]] = [
     _shell("git describe *"),
     _shell("git shortlog"),
     _shell("git shortlog *"),
+    # `git reflog` lists the reflog; the `*` form is intentionally excluded
+    # because it would match `git reflog expire ...` / `git reflog delete ...`.
     _shell("git reflog"),
-    _shell("git reflog *"),
     _shell("git for-each-ref *"),
     _shell("git symbolic-ref *"),
     _shell("git config --get *"),

@@ -503,6 +503,8 @@ class TestDefaultRules:
             "git tag -d v1",
             "git remote add origin url",
             "git remote remove origin",
+            "git reflog expire --expire=now --all",
+            "git reflog delete HEAD@{0}",
             "git stash drop",
             "git stash pop",
             "git worktree add ../foo branch",
