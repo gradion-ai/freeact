@@ -1304,6 +1304,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#freeact.agent.ToolCall.to_display" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_display
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#freeact.agent.ToolCall.to_entry" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1791,6 +1802,17 @@
     <span class="md-ellipsis">
       
         matches_entry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freeact.agent.ToolCall.to_display" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_display
       
     </span>
   </a>
@@ -3207,6 +3229,29 @@ the current agent turn.</p>
     <div class="doc doc-contents ">
 
         <p>Check if a permission entry matches this tool call.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="freeact.agent.ToolCall.to_display" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">to_display</span>
+
+
+</h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">to_display</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return display text for the approval bar.</p>
+<p>Empty string means "fall back to the suggested pattern". Subclasses
+override this to surface the verbatim action being approved (e.g. a
+shell command) instead of the permission pattern.</p>
 
 
     </div>

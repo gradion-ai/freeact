@@ -1896,6 +1896,7 @@
                     <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
                         <span class="n">request</span><span class="o">.</span><span class="n">approve</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
+<p>For shell commands, [<code>suggest_display(tool_call)</code>][freeact.agent.suggest_display] returns the verbatim command (or a first-line summary for <code>%%bash</code> shell magic) and is suitable for displaying in the prompt instead of the permission pattern. It returns an empty string for non-shell tool calls, so applications can fall back to <code>suggest_pattern()</code> in that case.</p>
 
 
 

@@ -1111,7 +1111,7 @@
 
 
 <h1 id="permission-system-constraints">Permission System Constraints</h1>
-<p>The permission system uses methods on <code>ToolCall</code> subtypes for self-description. Each subtype implements four methods:</p>
+<p>The permission system uses methods on <code>ToolCall</code> subtypes for self-description. Each subtype implements five methods:</p>
 <table>
 <thead>
 <tr>
@@ -1123,6 +1123,10 @@
 <tr>
 <td><code>to_pattern()</code></td>
 <td>Suggest editable pattern from ToolCall</td>
+</tr>
+<tr>
+<td><code>to_display()</code></td>
+<td>Return verbatim text for the approval bar (empty string falls back to the pattern)</td>
 </tr>
 <tr>
 <td><code>from_pattern(pattern)</code></td>
@@ -1138,8 +1142,8 @@
 </tr>
 </tbody>
 </table>
-<p>The base <code>ToolCall</code> class provides defaults (returns <code>tool_name</code> for pattern, <code>False</code> for matching). Subtypes override with type-specific logic.</p>
-<p>Standalone functions <code>suggest_pattern()</code> and <code>parse_pattern()</code> in <code>freeact/agent/call.py</code> delegate to these methods and are kept for API stability.</p>
+<p>The base <code>ToolCall</code> class provides defaults (returns <code>tool_name</code> for pattern, <code>""</code> for display, <code>False</code> for matching). Subtypes override with type-specific logic. <code>ShellAction</code> overrides <code>to_display()</code> to surface the verbatim command (<code>bash</code>) or a first-line summary (<code>shell_magic</code>); other subtypes inherit the empty default so the bar shows the suggested pattern.</p>
+<p>Standalone functions <code>suggest_pattern()</code>, <code>suggest_display()</code>, and <code>parse_pattern()</code> in <code>freeact/agent/call.py</code> delegate to these methods and are kept for API stability.</p>
 <p><code>PermissionManager</code> in <code>freeact/permissions.py</code> calls <code>tool_call.to_entry()</code> and <code>tool_call.matches_entry()</code> directly, importing only the <code>ToolCall</code> base class.</p>
 <p><code>PermissionsConfig.with_defaults()</code> seeds both <code>ask</code> (from <code>DEFAULT_ASK_RULES</code>) and <code>allow</code> (from <code>DEFAULT_ALLOW_RULES</code>). Ask rules win over allow rules.</p>
 <p><code>_path_matches()</code> in <code>freeact/agent/call.py</code> requires pattern and path to agree on absoluteness; relative patterns cannot match absolute paths.</p>
@@ -1158,7 +1162,7 @@
 </tr>
 <tr>
 <td>Methods on the new subtype in <code>freeact/agent/call.py</code></td>
-<td><code>to_pattern</code>, <code>from_pattern</code>, <code>to_entry</code>, <code>matches_entry</code></td>
+<td><code>to_pattern</code>, <code>to_display</code> (optional override), <code>from_pattern</code>, <code>to_entry</code>, <code>matches_entry</code></td>
 </tr>
 <tr>
 <td>Widget dispatch in <code>freeact/terminal/app.py</code></td>

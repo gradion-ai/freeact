@@ -1528,8 +1528,8 @@ images/ Describe these images
 <h3 id="cancellation">Cancellation</h3>
 <p>Press <code>Escape</code> during an active agent turn to cancel it. This interrupts the current operation (LLM streaming, code execution, or approval wait), stops the turn, and re-enables the prompt input.</p>
 <h3 id="approval-prompt">Approval Prompt</h3>
-<p>Before executing code actions, shell commands, and tool calls, the agent requests approval. Shell commands and programmatic tool calls within code actions are intercepted during execution and approved individually. The prompt displays a suggested pattern that summarizes the pending action:</p>
-<div class="highlight"><pre><span></span><code>Approve? [Y/n/a/s] git add *
+<p>Before executing code actions, shell commands, and tool calls, the agent requests approval. Shell commands and programmatic tool calls within code actions are intercepted during execution and approved individually. For shell commands the prompt displays the verbatim command being executed; for other action types it displays a suggested permission pattern that summarizes the action:</p>
+<div class="highlight"><pre><span></span><code>Approve? [Y/n/a/s] git add src/main.py
 </code></pre></div>
 <table>
 <thead>
@@ -1557,37 +1557,42 @@ images/ Describe these images
 </tr>
 </tbody>
 </table>
-<p>Pressing <code>a</code> or <code>s</code> opens the pattern for inline editing. The input is pre-filled with the suggested pattern. Edit the pattern to broaden or narrow the rule (e.g. change <code>filesystem_read_file src/main.py</code> to <code>filesystem_* src/**</code>), then press <code>Enter</code> to save the rule and approve. While editing, approval hotkeys are disabled so you can type freely.</p>
+<p>Pressing <code>a</code> or <code>s</code> opens an editable input pre-filled with the suggested permission pattern (not the verbatim text shown above). Edit the pattern to broaden or narrow the rule (e.g. change <code>filesystem_read_file src/main.py</code> to <code>filesystem_* src/**</code>), then press <code>Enter</code> to save the rule and approve. While editing, approval hotkeys are disabled so you can type freely.</p>
 <p>Always-allow rules persist to <code>.freeact/permissions.json</code> across sessions. Session-allow rules are in-memory and cleared when the session ends. Future actions matching a saved rule are auto-approved without prompting.</p>
-<p>The suggested pattern depends on the action type:</p>
+<p>What the bar displays depends on the action type:</p>
 <table>
 <thead>
 <tr>
 <th>Action</th>
-<th>Pattern format</th>
-<th>Example</th>
+<th>Bar shows</th>
+<th>Suggested pattern (when pressing <code>a</code>/<code>s</code>)</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Shell command</td>
-<td><code>command *</code> heuristic</td>
-<td><code>git add *</code></td>
+<td>Shell command (<code>!cmd</code> and split sub-commands)</td>
+<td>Verbatim command, e.g. <code>git add src/main.py</code></td>
+<td><code>cmd subcmd *</code> heuristic, e.g. <code>git add *</code></td>
+</tr>
+<tr>
+<td>Shell magic (<code>%%bash</code>)</td>
+<td>First non-empty line + <code>(+N more lines)</code> summary; full script is shown in the Shell Script box above the bar</td>
+<td>Full script with newlines escaped as <code>\n</code></td>
 </tr>
 <tr>
 <td>Code action</td>
-<td>tool name</td>
-<td><code>ipybox_execute_ipython_cell</code></td>
+<td>Tool name, e.g. <code>ipybox_execute_ipython_cell</code></td>
+<td>Same</td>
 </tr>
 <tr>
 <td>File read/write/edit</td>
-<td>tool name + path</td>
-<td><code>filesystem_write_text_file src/main.py</code></td>
+<td>Tool name + path, e.g. <code>filesystem_write_text_file src/main.py</code></td>
+<td>Same</td>
 </tr>
 <tr>
 <td>Other tool calls</td>
-<td>tool name</td>
-<td><code>github_search_repositories</code></td>
+<td>Tool name, e.g. <code>github_search_repositories</code></td>
+<td>Same</td>
 </tr>
 </tbody>
 </table>

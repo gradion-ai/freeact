@@ -104,10 +104,10 @@ Press `Escape` during an active agent turn to cancel it. This interrupts the cur
 
 ### Approval Prompt
 
-Before executing code actions, shell commands, and tool calls, the agent requests approval. Shell commands and programmatic tool calls within code actions are intercepted during execution and approved individually. The prompt displays a suggested pattern that summarizes the pending action:
+Before executing code actions, shell commands, and tool calls, the agent requests approval. Shell commands and programmatic tool calls within code actions are intercepted during execution and approved individually. For shell commands the prompt displays the verbatim command being executed; for other action types it displays a suggested permission pattern that summarizes the action:
 
 ```
-Approve? [Y/n/a/s] git add *
+Approve? [Y/n/a/s] git add src/main.py
 ```
 
 | Key           | Action                                        |
@@ -117,18 +117,19 @@ Approve? [Y/n/a/s] git add *
 | `a`           | Edit pattern, then save as always-allow rule  |
 | `s`           | Edit pattern, then save as session-allow rule |
 
-Pressing `a` or `s` opens the pattern for inline editing. The input is pre-filled with the suggested pattern. Edit the pattern to broaden or narrow the rule (e.g. change `filesystem_read_file src/main.py` to `filesystem_* src/**`), then press `Enter` to save the rule and approve. While editing, approval hotkeys are disabled so you can type freely.
+Pressing `a` or `s` opens an editable input pre-filled with the suggested permission pattern (not the verbatim text shown above). Edit the pattern to broaden or narrow the rule (e.g. change `filesystem_read_file src/main.py` to `filesystem_* src/**`), then press `Enter` to save the rule and approve. While editing, approval hotkeys are disabled so you can type freely.
 
 Always-allow rules persist to `.freeact/permissions.json` across sessions. Session-allow rules are in-memory and cleared when the session ends. Future actions matching a saved rule are auto-approved without prompting.
 
-The suggested pattern depends on the action type:
+What the bar displays depends on the action type:
 
-| Action               | Pattern format        | Example                                  |
-| -------------------- | --------------------- | ---------------------------------------- |
-| Shell command        | `command *` heuristic | `git add *`                              |
-| Code action          | tool name             | `ipybox_execute_ipython_cell`            |
-| File read/write/edit | tool name + path      | `filesystem_write_text_file src/main.py` |
-| Other tool calls     | tool name             | `github_search_repositories`             |
+| Action                                        | Bar shows                                                                                                    | Suggested pattern (when pressing `a`/`s`)  |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
+| Shell command (`!cmd` and split sub-commands) | Verbatim command, e.g. `git add src/main.py`                                                                 | `cmd subcmd *` heuristic, e.g. `git add *` |
+| Shell magic (`%%bash`)                        | First non-empty line + `(+N more lines)` summary; full script is shown in the Shell Script box above the bar | Full script with newlines escaped as `\n`  |
+| Code action                                   | Tool name, e.g. `ipybox_execute_ipython_cell`                                                                | Same                                       |
+| File read/write/edit                          | Tool name + path, e.g. `filesystem_write_text_file src/main.py`                                              | Same                                       |
+| Other tool calls                              | Tool name, e.g. `github_search_repositories`                                                                 | Same                                       |
 
 See [Permissions](https://gradion-ai.github.io/freeact/configuration/#permissions) for the persisted format and pattern syntax.
 

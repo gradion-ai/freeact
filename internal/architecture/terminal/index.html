@@ -1231,9 +1231,9 @@ Read this first, then follow code references for details.</p>
 <ul>
 <li><code>clipboard.py</code>: platform clipboard adapter (<code>pbcopy/pbpaste</code>, <code>wl-*</code>, <code>xclip</code>/<code>xsel</code>, PowerShell) with local fallback.</li>
 <li><code>config.py</code>: terminal UI collapse behavior and keybinding configuration.</li>
-<li><code>widgets.py</code>: all prompt/approval widgets and box factories (including <code>ApprovalBar</code> with inline pattern editing).</li>
+<li><code>widgets.py</code>: all prompt/approval widgets and box factories. <code>ApprovalBar</code> takes a <code>pattern</code> (seeds the inline edit input on <code>a</code>/<code>s</code>) and an optional <code>display_text</code> (the verbatim text shown in the bar; falls back to <code>pattern</code> when empty). The attribute is named <code>display_text</code> to avoid shadowing Textual's <code>Widget.display</code> reactive.</li>
 <li><code>screens.py</code>: modal file picker for <code>@</code> insertion.</li>
-<li><code>freeact/agent/call.py</code>: <code>ToolCall</code> type hierarchy, <code>suggest_pattern</code>, <code>parse_pattern</code>, <code>extract_tool_output_text</code>.</li>
+<li><code>freeact/agent/call.py</code>: <code>ToolCall</code> type hierarchy, <code>suggest_pattern</code>, <code>suggest_display</code>, <code>parse_pattern</code>, <code>extract_tool_output_text</code>.</li>
 <li><code>freeact.permissions.PermissionManager</code>: pre-approval and persisted/session allow-lists.</li>
 </ul>
 <h2 id="keyboard-semantics">Keyboard Semantics</h2>

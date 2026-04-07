@@ -360,6 +360,16 @@ matches_entry(
 
 Check if a permission entry matches this tool call.
 
+### to_display
+
+```
+to_display() -> str
+```
+
+Return display text for the approval bar.
+
+Empty string means "fall back to the suggested pattern". Subclasses override this to surface the verbatim action being approved (e.g. a shell command) instead of the permission pattern.
+
 ### to_entry
 
 ```

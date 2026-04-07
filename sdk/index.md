@@ -339,3 +339,5 @@ async for event in agent.stream(prompt):
                     case _:
                         request.approve(True)
 ```
+
+For shell commands, suggest_display(tool_call) returns the verbatim command (or a first-line summary for `%%bash` shell magic) and is suitable for displaying in the prompt instead of the permission pattern. It returns an empty string for non-shell tool calls, so applications can fall back to `suggest_pattern()` in that case.
