@@ -20,7 +20,7 @@ See [Installation](installation.md) for alternative setup options and sandbox mo
 
 !!! tip "Using a different model"
 
-    The current default model is `google-gla:gemini-3-flash-preview`. Freeact supports any model compatible with Pydantic AI. To switch providers or configure model settings, see [Models](models.md).
+    The current default model is `google-gla:gemini-3.5-flash`. Freeact supports any model compatible with Pydantic AI. To switch providers or configure model settings, see [Models](models.md).
 
 ### Generating MCP Tool APIs
 
