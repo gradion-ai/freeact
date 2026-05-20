@@ -14,8 +14,8 @@ The `model` field uses Pydantic AI's `provider:model-name` format. Common provid
 
 | Provider            | Prefix           | Example                                  |
 | ------------------- | ---------------- | ---------------------------------------- |
-| Google (Gemini API) | `google-gla:`    | `google-gla:gemini-3-flash-preview`      |
-| Google (Vertex AI)  | `google-vertex:` | `google-vertex:gemini-3-flash-preview`   |
+| Google (Gemini API) | `google-gla:`    | `google-gla:gemini-3.5-flash`            |
+| Google (Vertex AI)  | `google-vertex:` | `google-vertex:gemini-3.5-flash`         |
 | Anthropic           | `anthropic:`     | `anthropic:claude-sonnet-4-6`            |
 | OpenAI              | `openai:`        | `openai:gpt-5.2`                         |
 | OpenRouter          | `openrouter:`    | `openrouter:anthropic/claude-sonnet-4.6` |
@@ -30,10 +30,10 @@ The default configuration uses Google's Gemini API with dynamic thinking enabled
 
 ```
 {
-  "model": "google-gla:gemini-3-flash-preview",
+  "model": "google-gla:gemini-3.5-flash",
   "model_settings": {
     "google_thinking_config": {
-      "thinking_level": "high",
+      "thinking_level": "medium",
       "include_thoughts": true
     }
   }
@@ -120,13 +120,13 @@ Freeact streams thinking content when the model supports it. Thinking is configu
 ```
 "model_settings": {
   "google_thinking_config": {
-    "thinking_level": "high",
+    "thinking_level": "medium",
     "include_thoughts": true
   }
 }
 ```
 
-`thinking_level` accepts `"low"`, `"medium"`, or `"high"`. Set `include_thoughts` to `true` to stream thinking content.
+`thinking_level` accepts `"minimal"`, `"low"`, `"medium"`, or `"high"`. Set `include_thoughts` to `true` to stream thinking content.
 
 **Anthropic** (Opus 4.6, Sonnet 4.6):
 

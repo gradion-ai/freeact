@@ -103,7 +103,7 @@ This approach lets you install additional packages (e.g., `uv add pandas`) that 
 
 ## API Key
 
-Freeact uses `google-gla:gemini-3-flash-preview` as the [default model](https://gradion-ai.github.io/freeact/models/index.md). Set the API key in your environment:
+Freeact uses `google-gla:gemini-3.5-flash` as the [default model](https://gradion-ai.github.io/freeact/models/index.md). Set the API key in your environment:
 
 ```
 export GEMINI_API_KEY="your-api-key"
@@ -169,7 +169,7 @@ See [Installation](https://gradion-ai.github.io/freeact/installation/index.md) f
 
 Using a different model
 
-The current default model is `google-gla:gemini-3-flash-preview`. Freeact supports any model compatible with Pydantic AI. To switch providers or configure model settings, see [Models](https://gradion-ai.github.io/freeact/models/index.md).
+The current default model is `google-gla:gemini-3.5-flash`. Freeact supports any model compatible with Pydantic AI. To switch providers or configure model settings, see [Models](https://gradion-ai.github.io/freeact/models/index.md).
 
 ### Generating MCP Tool APIs
 
@@ -313,7 +313,7 @@ The `agent.json` file contains agent settings and MCP server configurations:
 
 ```
 {
-  "model": "google-gla:gemini-3-flash-preview",
+  "model": "google-gla:gemini-3.5-flash",
   "model_settings": { ... },
   "tool_search": "basic",
   "images_dir": null,
@@ -336,7 +336,7 @@ The `agent.json` file contains agent settings and MCP server configurations:
 
 | Setting                        | Default                                                                               | Description                                                                                                                                                                                    |
 | ------------------------------ | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `model`                        | `google-gla:gemini-3-flash-preview`                                                   | [Model identifier](https://gradion-ai.github.io/freeact/models/#model-identifier) in `provider:model-name` format                                                                              |
+| `model`                        | `google-gla:gemini-3.5-flash`                                                         | [Model identifier](https://gradion-ai.github.io/freeact/models/#model-identifier) in `provider:model-name` format                                                                              |
 | `model_settings`               | [Google thinking config](https://gradion-ai.github.io/freeact/models/#google-default) | Provider-specific [model settings](https://gradion-ai.github.io/freeact/models/#model-settings) (e.g., thinking config, temperature)                                                           |
 | `provider_settings`            | `null`                                                                                | Custom API credentials, endpoints, or other [provider-specific options](https://gradion-ai.github.io/freeact/models/#provider-settings)                                                        |
 | `images_dir`                   | `null`                                                                                | Directory for saving generated images to disk. `null` defaults to `images` in the working directory.                                                                                           |
@@ -876,8 +876,8 @@ The `model` field uses Pydantic AI's `provider:model-name` format. Common provid
 
 | Provider            | Prefix           | Example                                  |
 | ------------------- | ---------------- | ---------------------------------------- |
-| Google (Gemini API) | `google-gla:`    | `google-gla:gemini-3-flash-preview`      |
-| Google (Vertex AI)  | `google-vertex:` | `google-vertex:gemini-3-flash-preview`   |
+| Google (Gemini API) | `google-gla:`    | `google-gla:gemini-3.5-flash`            |
+| Google (Vertex AI)  | `google-vertex:` | `google-vertex:gemini-3.5-flash`         |
 | Anthropic           | `anthropic:`     | `anthropic:claude-sonnet-4-6`            |
 | OpenAI              | `openai:`        | `openai:gpt-5.2`                         |
 | OpenRouter          | `openrouter:`    | `openrouter:anthropic/claude-sonnet-4.6` |
@@ -892,10 +892,10 @@ The default configuration uses Google's Gemini API with dynamic thinking enabled
 
 ```
 {
-  "model": "google-gla:gemini-3-flash-preview",
+  "model": "google-gla:gemini-3.5-flash",
   "model_settings": {
     "google_thinking_config": {
-      "thinking_level": "high",
+      "thinking_level": "medium",
       "include_thoughts": true
     }
   }
@@ -982,13 +982,13 @@ Freeact streams thinking content when the model supports it. Thinking is configu
 ```
 "model_settings": {
   "google_thinking_config": {
-    "thinking_level": "high",
+    "thinking_level": "medium",
     "include_thoughts": true
   }
 }
 ```
 
-`thinking_level` accepts `"low"`, `"medium"`, or `"high"`. Set `include_thoughts` to `true` to stream thinking content.
+`thinking_level` accepts `"minimal"`, `"low"`, `"medium"`, or `"high"`. Set `include_thoughts` to `true` to stream thinking content.
 
 **Anthropic** (Opus 4.6, Sonnet 4.6):
 
@@ -2059,7 +2059,7 @@ Fields:
 ## freeact.agent.config.DEFAULT_MODEL_NAME
 
 ```
-DEFAULT_MODEL_NAME = 'google-gla:gemini-3-flash-preview'
+DEFAULT_MODEL_NAME = 'google-gla:gemini-3.5-flash'
 ```
 
 ## freeact.agent.config.DEFAULT_MODEL_SETTINGS
@@ -2067,7 +2067,7 @@ DEFAULT_MODEL_NAME = 'google-gla:gemini-3-flash-preview'
 ```
 DEFAULT_MODEL_SETTINGS: dict[str, Any] = {
     "google_thinking_config": {
-        "thinking_level": "high",
+        "thinking_level": "medium",
         "include_thoughts": True,
     }
 }

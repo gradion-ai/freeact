@@ -88,7 +88,7 @@ Fields:
 ## freeact.agent.config.DEFAULT_MODEL_NAME
 
 ```
-DEFAULT_MODEL_NAME = 'google-gla:gemini-3-flash-preview'
+DEFAULT_MODEL_NAME = 'google-gla:gemini-3.5-flash'
 ```
 
 ## freeact.agent.config.DEFAULT_MODEL_SETTINGS
@@ -96,7 +96,7 @@ DEFAULT_MODEL_NAME = 'google-gla:gemini-3-flash-preview'
 ```
 DEFAULT_MODEL_SETTINGS: dict[str, Any] = {
     "google_thinking_config": {
-        "thinking_level": "high",
+        "thinking_level": "medium",
         "include_thoughts": True,
     }
 }

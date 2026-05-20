@@ -20,7 +20,7 @@ See [Installation](https://gradion-ai.github.io/freeact/installation/index.md) f
 
 Using a different model
 
-The current default model is `google-gla:gemini-3-flash-preview`. Freeact supports any model compatible with Pydantic AI. To switch providers or configure model settings, see [Models](https://gradion-ai.github.io/freeact/models/index.md).
+The current default model is `google-gla:gemini-3.5-flash`. Freeact supports any model compatible with Pydantic AI. To switch providers or configure model settings, see [Models](https://gradion-ai.github.io/freeact/models/index.md).
 
 ### Generating MCP Tool APIs
 

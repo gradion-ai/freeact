@@ -51,7 +51,7 @@ The `agent.json` file contains agent settings and MCP server configurations:
 
 ```
 {
-  "model": "google-gla:gemini-3-flash-preview",
+  "model": "google-gla:gemini-3.5-flash",
   "model_settings": { ... },
   "tool_search": "basic",
   "images_dir": null,
@@ -74,7 +74,7 @@ The `agent.json` file contains agent settings and MCP server configurations:
 
 | Setting                        | Default                                                                               | Description                                                                                                                                                                                    |
 | ------------------------------ | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `model`                        | `google-gla:gemini-3-flash-preview`                                                   | [Model identifier](https://gradion-ai.github.io/freeact/models/#model-identifier) in `provider:model-name` format                                                                              |
+| `model`                        | `google-gla:gemini-3.5-flash`                                                         | [Model identifier](https://gradion-ai.github.io/freeact/models/#model-identifier) in `provider:model-name` format                                                                              |
 | `model_settings`               | [Google thinking config](https://gradion-ai.github.io/freeact/models/#google-default) | Provider-specific [model settings](https://gradion-ai.github.io/freeact/models/#model-settings) (e.g., thinking config, temperature)                                                           |
 | `provider_settings`            | `null`                                                                                | Custom API credentials, endpoints, or other [provider-specific options](https://gradion-ai.github.io/freeact/models/#provider-settings)                                                        |
 | `images_dir`                   | `null`                                                                                | Directory for saving generated images to disk. `null` defaults to `images` in the working directory.                                                                                           |

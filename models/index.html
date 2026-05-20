@@ -1490,12 +1490,12 @@
 <tr>
 <td>Google (Gemini API)</td>
 <td><code>google-gla:</code></td>
-<td><code>google-gla:gemini-3-flash-preview</code></td>
+<td><code>google-gla:gemini-3.5-flash</code></td>
 </tr>
 <tr>
 <td>Google (Vertex AI)</td>
 <td><code>google-vertex:</code></td>
-<td><code>google-vertex:gemini-3-flash-preview</code></td>
+<td><code>google-vertex:gemini-3.5-flash</code></td>
 </tr>
 <tr>
 <td>Anthropic</td>
@@ -1519,10 +1519,10 @@
 <h3 id="google-default">Google (default)</h3>
 <p>The default configuration uses Google's Gemini API with dynamic thinking enabled:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;google-gla:gemini-3-flash-preview&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;google-gla:gemini-3.5-flash&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;model_settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;google_thinking_config&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;thinking_level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;high&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;thinking_level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;medium&quot;</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;include_thoughts&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
@@ -1585,12 +1585,12 @@
 <p><strong>Google (Gemini)</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;model_settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;google_thinking_config&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;thinking_level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;high&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;thinking_level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;medium&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;include_thoughts&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
-<p><code>thinking_level</code> accepts <code>"low"</code>, <code>"medium"</code>, or <code>"high"</code>. Set <code>include_thoughts</code> to <code>true</code> to stream thinking content.</p>
+<p><code>thinking_level</code> accepts <code>"minimal"</code>, <code>"low"</code>, <code>"medium"</code>, or <code>"high"</code>. Set <code>include_thoughts</code> to <code>true</code> to stream thinking content.</p>
 <p><strong>Anthropic</strong> (Opus 4.6, Sonnet 4.6):</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;model_settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;anthropic_thinking&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
