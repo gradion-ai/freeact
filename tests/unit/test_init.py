@@ -44,7 +44,7 @@ class TestConfigSave:
         payload = json.loads((tmp_path / ".freeact" / "agent.json").read_text())
         assert "tool_search" in payload
         assert "model_settings" in payload
-        assert payload["model_settings"]["google_thinking_config"]["thinking_level"] == "high"
+        assert payload["model_settings"]["google_thinking_config"]["thinking_level"] == "medium"
         assert "kernel_env" in payload
         assert "tool_result_inline_max_bytes" in payload
         assert "tool_result_preview_chars" in payload

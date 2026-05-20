@@ -20,8 +20,8 @@ def test_config_constructor_is_in_memory_defaults(tmp_path: Path, monkeypatch: p
     config = Config()
 
     assert config.freeact_dir == tmp_path / ".freeact"
-    assert config.model == "google-gla:gemini-3-flash-preview"
-    assert config.model_settings["google_thinking_config"]["thinking_level"] == "high"
+    assert config.model == "google-gla:gemini-3.5-flash"
+    assert config.model_settings["google_thinking_config"]["thinking_level"] == "medium"
     assert config.tool_result_inline_max_bytes == 32768
     assert config.tool_result_preview_chars == 2048
     assert config.enable_persistence is True
@@ -110,7 +110,7 @@ async def test_load_returns_defaults_when_config_missing(tmp_path: Path) -> None
     config = await Config.load(working_dir=tmp_path)
 
     assert config.freeact_dir == tmp_path / ".freeact"
-    assert config.model == "google-gla:gemini-3-flash-preview"
+    assert config.model == "google-gla:gemini-3.5-flash"
     assert not config.freeact_dir.exists()
 
 

@@ -8,15 +8,8 @@ from pathlib import Path
 
 import pytest
 from pydantic_ai.mcp import MCPServerStdio
-from pydantic_ai.models import _cached_async_http_client
 
 from freeact.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
-
-
-@pytest.fixture(autouse=True)
-def clear_http_client_cache() -> None:
-    """Clear pydantic-ai's cached HTTP client to avoid cancel scope issues."""
-    _cached_async_http_client.cache_clear()
 
 
 @pytest.fixture

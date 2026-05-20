@@ -9,7 +9,7 @@ from pydantic import Field
 
 mcp = FastMCP("google_mcp", log_level="ERROR")
 
-_thinking_level: str = "low"
+_thinking_level: str = "medium"
 
 
 async def _get_redirect_target(url: str) -> str:
@@ -51,7 +51,7 @@ async def web_search(
     )
 
     response = await client.aio.models.generate_content(
-        model="gemini-3-flash-preview",
+        model="gemini-3.5-flash",
         contents=query,
         config=config,
     )
@@ -80,7 +80,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--thinking-level",
-        default="low",
+        default="medium",
         choices=["minimal", "low", "medium", "high"],
         help="Thinking level for the model",
     )
