@@ -9,7 +9,7 @@ from pydantic import Field
 
 mcp = FastMCP("google_mcp", log_level="ERROR")
 
-_thinking_level: str = "low"
+_thinking_level: str = "medium"
 
 
 async def _get_redirect_target(url: str) -> str:
@@ -80,7 +80,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--thinking-level",
-        default="low",
+        default="medium",
         choices=["minimal", "low", "medium", "high"],
         help="Thinking level for the model",
     )

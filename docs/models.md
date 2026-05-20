@@ -120,7 +120,7 @@ Freeact streams thinking content when the model supports it. Thinking is configu
 ```json
 "model_settings": {
   "google_thinking_config": {
-    "thinking_level": "high",
+    "thinking_level": "medium",
     "include_thoughts": true
   }
 }
