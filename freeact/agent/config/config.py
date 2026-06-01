@@ -89,6 +89,7 @@ class Config(PersistentConfig):
     images_dir: Path | None = None
     execution_timeout: float | None = 300
     approval_timeout: float | None = None
+    kernel_init_timeout: float = Field(default=10, gt=0)
     tool_result_inline_max_bytes: int = Field(default=32768, ge=1)
     tool_result_preview_chars: int = Field(default=2048, ge=1)
     enable_persistence: bool = True

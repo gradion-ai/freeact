@@ -32,6 +32,10 @@ def create_test_config(
         "model_settings": {},
         "mcp_servers": {},
         "ptc_servers": {},
+        # CI runners cold-start many kernels in parallel; give kernel init
+        # generous headroom so contention-induced readiness delays do not trip
+        # the default timeout. See ipybox kernel_init_timeout / gradion-ai/freeact#98.
+        "kernel_init_timeout": 30,
     }
     if stream_function is not None:
         config_kwargs["model"] = FunctionModel(stream_function=stream_function)
