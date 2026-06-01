@@ -33,4 +33,10 @@ jobs:
 
       - name: Run integration tests
         run: |
-          uv run invoke it --parallel
+          # TEMP EXPERIMENT (freeact#98): run integration tests sequentially
+          # (no pytest-xdist) to test whether parallel kernel startup is the
+          # cause of flaky code-executor startup timeouts. The kernel_init
+          # timeout (30s in test config) is held constant, so this isolates
+          # parallelism as the only changed variable vs the failed parallel run.
+          # Revert to `uv run invoke it --parallel` once the experiment concludes.
+          uv run pytest tests/integration
