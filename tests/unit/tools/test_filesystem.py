@@ -69,8 +69,8 @@ class TestLoadImage:
         img.save(path)
 
         data = _load_image(path, "image/png", DEFAULT_MAX_IMAGE_SIZE)
-        loaded = PILImage.open(path)
-        assert loaded.width == 100
+        with PILImage.open(path) as loaded:
+            assert loaded.width == 100
         assert len(data) > 0
 
     def test_large_image_downscaled(self, tmp_path: Path) -> None:
