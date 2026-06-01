@@ -348,7 +348,7 @@ def test_provider_settings_builds_runtime_model(monkeypatch: pytest.MonkeyPatch,
 
     config = Config(
         working_dir=tmp_path,
-        model="openai-chat:gpt-4o",
+        model="openai:gpt-4o",
         provider_settings={"api_key": "${MY_API_KEY}"},
     )
 
@@ -361,7 +361,7 @@ def test_provider_settings_missing_env_raises(monkeypatch: pytest.MonkeyPatch, t
     with pytest.raises(ValueError, match="provider_settings"):
         Config(
             working_dir=tmp_path,
-            model="openai-chat:gpt-4o",
+            model="openai:gpt-4o",
             provider_settings={"api_key": "${MISSING_KEY}"},
         )
 
