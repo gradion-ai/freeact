@@ -564,12 +564,16 @@ class TestCancellation:
         assert tool_returns[0].content == "Interrupted by user"
         assert tool_returns[0].metadata.get("interrupted") is True
 
-    def test_approve_after_future_resolved_is_noop(self):
+    @pytest.mark.asyncio
+    async def test_approve_after_future_resolved_is_noop(self):
         """approve() after future already resolved is a no-op (no InvalidStateError).
 
         When cancel races with terminal approval, both paths may try to
         resolve the same ApprovalRequest._future. The second call must
         not raise InvalidStateError.
+
+        Runs inside an event loop because `ApprovalRequest` (like in
+        production) binds its `_future` to the running loop on construction.
         """
         approval = ApprovalRequest(
             agent_id="main",

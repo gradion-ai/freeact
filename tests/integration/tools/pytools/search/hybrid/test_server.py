@@ -7,7 +7,8 @@ import shutil
 from pathlib import Path
 
 import pytest
-from pydantic_ai.mcp import MCPServerStdio
+from fastmcp.client.transports import StdioTransport
+from pydantic_ai.mcp import MCPToolset
 
 from freeact.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
 
@@ -28,10 +29,10 @@ def db_path(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def mcp_server(tools_dir: Path, db_path: Path) -> MCPServerStdio:
-    """Create MCPServerStdio client (not connected) for the hybrid search server."""
-    return MCPServerStdio(
-        "uv",
+def mcp_server(tools_dir: Path, db_path: Path) -> MCPToolset:
+    """Create an MCPToolset client (not connected) for the hybrid search server."""
+    transport = StdioTransport(
+        command="uv",
         args=["run", "-m", "freeact.tools.pytools.search.hybrid"],
         env={
             "PYTOOLS_DIR": str(tools_dir),
@@ -41,12 +42,12 @@ def mcp_server(tools_dir: Path, db_path: Path) -> MCPServerStdio:
             "PYTOOLS_WATCH": "true",
             "PYTOOLS_SYNC": "true",
         },
-        timeout=30,
     )
+    return MCPToolset(transport, init_timeout=30)
 
 
 async def call_search_tools(
-    server: MCPServerStdio,
+    server: MCPToolset,
     query: str,
     mode: str = "hybrid",
     limit: int = 5,
@@ -63,7 +64,7 @@ class TestServerLifecycle:
     """Test server startup and shutdown."""
 
     @pytest.mark.asyncio
-    async def test_server_starts_and_provides_tools(self, mcp_server: MCPServerStdio) -> None:
+    async def test_server_starts_and_provides_tools(self, mcp_server: MCPToolset) -> None:
         """Server starts and exposes the search_tools tool."""
         async with mcp_server:
             tools = await mcp_server.list_tools()
@@ -75,7 +76,7 @@ class TestInitialIndexSync:
     """Test initial indexing on startup."""
 
     @pytest.mark.asyncio
-    async def test_all_tools_indexed(self, mcp_server: MCPServerStdio) -> None:
+    async def test_all_tools_indexed(self, mcp_server: MCPToolset) -> None:
         """All 4 fixture tools are indexed and searchable."""
         async with mcp_server:
             # Use vector search to find all tools (test embedder returns same embeddings)
@@ -88,7 +89,7 @@ class TestSearchModes:
     """Test all search modes via MCP client."""
 
     @pytest.mark.asyncio
-    async def test_bm25_search(self, mcp_server: MCPServerStdio) -> None:
+    async def test_bm25_search(self, mcp_server: MCPToolset) -> None:
         """BM25 search finds tools by keyword."""
         async with mcp_server:
             result = await call_search_tools(mcp_server, query="weather forecast", mode="bm25", limit=5)
@@ -96,7 +97,7 @@ class TestSearchModes:
             assert "get_forecast" in names
 
     @pytest.mark.asyncio
-    async def test_vector_search(self, mcp_server: MCPServerStdio) -> None:
+    async def test_vector_search(self, mcp_server: MCPToolset) -> None:
         """Vector search finds semantically similar tools."""
         async with mcp_server:
             result = await call_search_tools(mcp_server, query="shorten text", mode="vector", limit=5)
@@ -104,7 +105,7 @@ class TestSearchModes:
             assert len(result) > 0
 
     @pytest.mark.asyncio
-    async def test_hybrid_search(self, mcp_server: MCPServerStdio) -> None:
+    async def test_hybrid_search(self, mcp_server: MCPToolset) -> None:
         """Hybrid search combines BM25 and vector results."""
         async with mcp_server:
             result = await call_search_tools(mcp_server, query="translate language", mode="hybrid", limit=5)
@@ -116,7 +117,7 @@ class TestFileWatching:
     """Test real-time file watching."""
 
     @pytest.mark.asyncio
-    async def test_new_tool_indexed(self, mcp_server: MCPServerStdio, tools_dir: Path) -> None:
+    async def test_new_tool_indexed(self, mcp_server: MCPToolset, tools_dir: Path) -> None:
         """Adding a new tool file triggers indexing."""
         async with mcp_server:
             # Add new tool
@@ -145,7 +146,7 @@ def run(city: str) -> int:
             assert "get_humidity" in names
 
     @pytest.mark.asyncio
-    async def test_modified_tool_reindexed(self, mcp_server: MCPServerStdio, tools_dir: Path) -> None:
+    async def test_modified_tool_reindexed(self, mcp_server: MCPToolset, tools_dir: Path) -> None:
         """Modifying a tool file triggers re-indexing."""
         async with mcp_server:
             tool_file = tools_dir / MCPTOOLS_DIR / "weather" / "get_forecast.py"
@@ -173,7 +174,7 @@ def run(city: str) -> dict:
             assert any("temperature" in r.get("description", "").lower() for r in result)
 
     @pytest.mark.asyncio
-    async def test_deleted_tool_removed(self, mcp_server: MCPServerStdio, tools_dir: Path) -> None:
+    async def test_deleted_tool_removed(self, mcp_server: MCPToolset, tools_dir: Path) -> None:
         """Deleting a tool file removes it from index."""
         async with mcp_server:
             # First verify tool exists
@@ -195,7 +196,7 @@ class TestResultFormat:
     """Test search result structure."""
 
     @pytest.mark.asyncio
-    async def test_mcptools_source(self, mcp_server: MCPServerStdio) -> None:
+    async def test_mcptools_source(self, mcp_server: MCPToolset) -> None:
         """mcptools have correct source field."""
         async with mcp_server:
             result = await call_search_tools(mcp_server, query="weather", mode="bm25", limit=5)
@@ -203,7 +204,7 @@ class TestResultFormat:
             assert all(r["source"] == MCPTOOLS_DIR for r in weather_tools)
 
     @pytest.mark.asyncio
-    async def test_gentools_source(self, mcp_server: MCPServerStdio) -> None:
+    async def test_gentools_source(self, mcp_server: MCPToolset) -> None:
         """gentools have correct source field."""
         async with mcp_server:
             result = await call_search_tools(mcp_server, query="text", mode="bm25", limit=5)
@@ -211,7 +212,7 @@ class TestResultFormat:
             assert all(r["source"] == GENTOOLS_DIR for r in text_tools)
 
     @pytest.mark.asyncio
-    async def test_result_fields(self, mcp_server: MCPServerStdio) -> None:
+    async def test_result_fields(self, mcp_server: MCPToolset) -> None:
         """Results have all required fields."""
         async with mcp_server:
             result = await call_search_tools(mcp_server, query="forecast", mode="bm25", limit=1)
@@ -229,7 +230,7 @@ class TestConcurrentServers:
 
     @pytest.mark.asyncio
     async def test_concurrent_searches_with_multiple_servers(
-        self, mcp_server: MCPServerStdio, tools_dir: Path, db_path: Path
+        self, mcp_server: MCPToolset, tools_dir: Path, db_path: Path
     ) -> None:
         """Multiple servers can search concurrently against a shared database."""
         # First, start the main server with sync to populate the database
@@ -238,9 +239,9 @@ class TestConcurrentServers:
             assert len(result) == 4  # Verify database is populated
 
         # Create 3 additional server instances with sync and watch disabled
-        def create_readonly_server() -> MCPServerStdio:
-            return MCPServerStdio(
-                "uv",
+        def create_readonly_server() -> MCPToolset:
+            transport = StdioTransport(
+                command="uv",
                 args=["run", "-m", "freeact.tools.pytools.search.hybrid"],
                 env={
                     "PYTOOLS_DIR": str(tools_dir),
@@ -250,12 +251,12 @@ class TestConcurrentServers:
                     "PYTOOLS_WATCH": "false",
                     "PYTOOLS_SYNC": "false",
                 },
-                timeout=30,
             )
+            return MCPToolset(transport, init_timeout=30)
 
         servers = [create_readonly_server() for _ in range(3)]
 
-        async def search_with_server(server: MCPServerStdio, query: str, mode: str) -> list[dict]:
+        async def search_with_server(server: MCPToolset, query: str, mode: str) -> list[dict]:
             async with server:
                 return await call_search_tools(server, query=query, mode=mode, limit=5)
 

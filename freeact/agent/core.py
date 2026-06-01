@@ -2,18 +2,18 @@ import asyncio
 import contextlib
 import logging
 import uuid
-from collections.abc import Sequence, Set
+from collections.abc import Sequence
 from dataclasses import replace
 from pathlib import Path
-from typing import Any, AsyncIterator
+from typing import AsyncIterator
 
 import ipybox
 from aiostream.stream import merge
+from fastmcp.client.transports import StdioTransport, StreamableHttpTransport
 from ipybox.utils import arun
-from mcp import types as mcp_types
 from pydantic_ai import BinaryContent
 from pydantic_ai.direct import model_request_stream
-from pydantic_ai.mcp import MCPServer, MCPServerStdio, MCPServerStreamableHTTP, ToolResult
+from pydantic_ai.mcp import ToolResult
 from pydantic_ai.messages import (
     ModelMessage,
     ModelRequest,
@@ -51,24 +51,13 @@ from freeact.agent.events import (
 from freeact.agent.shell import split_composite_command
 from freeact.agent.store import SessionStore, ToolResultMaterializer
 from freeact.tools.utils import (
+    _McpServer,
     get_tool_definitions,
     load_ipybox_tool_definitions,
     load_subagent_task_tool_definitions,
 )
 
 logger = logging.getLogger("freeact")
-
-
-class _MCPServerStdioFiltered(MCPServerStdio):
-    """MCPServerStdio that filters out specified tools."""
-
-    def __init__(self, excluded_tools: Set[str], **kwargs: Any):
-        super().__init__(**kwargs)
-        self._excluded_tools = excluded_tools
-
-    async def list_tools(self) -> list[mcp_types.Tool]:
-        tools = await super().list_tools()
-        return [t for t in tools if t.name not in self._excluded_tools]
 
 
 class Agent:
@@ -147,9 +136,9 @@ class Agent:
             )
 
         self._mcp_servers = config.resolved_mcp_servers
-        self._mcp_server_instances: dict[str, MCPServer] = {}
+        self._mcp_server_instances: dict[str, _McpServer] = {}
 
-        self._tool_mapping: dict[str, MCPServer] = {}
+        self._tool_mapping: dict[str, _McpServer] = {}
         self._tool_definitions: list[ToolDefinition] = []
 
         self._kernel_env = config.resolved_kernel_env
@@ -228,7 +217,6 @@ class Agent:
         resource_supervisors = [_ResourceSupervisor(self._code_executor, "code-executor")]
         for name, server in self._mcp_server_instances.items():
             logger.debug(f"Starting MCP server: {name}")
-            server.tool_prefix = name
             resource_supervisors.append(_ResourceSupervisor(server, f"mcp-server-{name}"))
 
         try:
@@ -281,28 +269,27 @@ class Agent:
             raise ExceptionGroup("Multiple errors while stopping agent resources", errors)
         self._mcp_server_instances = {}
 
-    def _create_mcp_servers(self) -> dict[str, MCPServer]:
+    def _create_mcp_servers(self) -> dict[str, _McpServer]:
         if not self._mcp_servers:
             return {}
 
-        servers: dict[str, MCPServer] = {}
+        servers: dict[str, _McpServer] = {}
 
         for name, raw_cfg in self._mcp_servers.items():
             cfg = dict(raw_cfg)
-            excluded_tools = cfg.pop("excluded_tools", None)
+            excluded_tools = frozenset(cfg.pop("excluded_tools", None) or ())
             match cfg:
-                case {"command": _}:
-                    if excluded_tools:
-                        servers[name] = _MCPServerStdioFiltered(
-                            excluded_tools=frozenset(excluded_tools),
-                            **cfg,
-                        )
-                    else:
-                        servers[name] = MCPServerStdio(**cfg)
-                case {"url": _}:
-                    servers[name] = MCPServerStreamableHTTP(**cfg)
+                case {"command": command}:
+                    transport: StdioTransport | StreamableHttpTransport = StdioTransport(
+                        command=command,
+                        args=cfg.get("args", []),
+                        env=cfg.get("env"),
+                    )
+                case {"url": url}:
+                    transport = StreamableHttpTransport(url=url, headers=cfg.get("headers"))
                 case _:
                     raise ValueError(f"Invalid server config for {name}: must have 'command' or 'url'")
+            servers[name] = _McpServer(transport, tool_prefix=name, excluded_tools=excluded_tools)
 
         return servers
 
