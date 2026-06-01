@@ -1,8 +1,18 @@
 import json
+from typing import AsyncIterator
 
 import pytest
+import pytest_asyncio
 
 from freeact.tools.fetch import web_fetch
+from tests.integration.tools.http_server import local_http_server
+
+
+@pytest_asyncio.fixture
+async def http_server() -> AsyncIterator[str]:
+    """Local HTTP server serving deterministic /json and /redirect/1 endpoints."""
+    async with local_http_server() as base_url:
+        yield base_url
 
 
 @pytest.mark.asyncio
@@ -38,9 +48,9 @@ async def test_falls_back_to_plain_on_index_page() -> None:
 
 
 @pytest.mark.asyncio
-async def test_fetches_json_endpoint() -> None:
+async def test_fetches_json_endpoint(http_server: str) -> None:
     """JSON endpoints should be pretty-printed."""
-    result = await web_fetch("https://httpbin.org/json")
+    result = await web_fetch(f"{http_server}/json")
     parsed = json.loads(result)
 
     assert parsed["status"] == 200
@@ -49,9 +59,9 @@ async def test_fetches_json_endpoint() -> None:
 
 
 @pytest.mark.asyncio
-async def test_follows_redirects() -> None:
+async def test_follows_redirects(http_server: str) -> None:
     """Redirects should be followed, with finalUrl reflecting the destination."""
-    result = await web_fetch("https://httpbin.org/redirect/1")
+    result = await web_fetch(f"{http_server}/redirect/1")
     parsed = json.loads(result)
 
     assert parsed["status"] == 200
