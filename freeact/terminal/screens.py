@@ -88,20 +88,6 @@ class FilePickerTree(DirectoryTree):
         if self._safe_is_dir(dir_entry.path):
             cursor_node.collapse()
 
-    async def watch_path(self) -> None:
-        """Suppress the reactive reload that races with cursor positioning.
-
-        `DirectoryTree.watch_path` fires when the root path is set during
-        construction and reloads the tree, rebuilding the root's children and
-        resetting the cursor to the root. That runs concurrently with
-        `FilePickerScreen._focus_tree_path`, which loads and expands the path
-        down to the working directory and positions the cursor there; the
-        reactive reload orphans the navigated nodes, leaving the cursor stuck
-        at the root. The picker keeps a fixed root, so loading and cursor
-        positioning are driven entirely by the screen's `on_mount`.
-        """
-        return None
-
 
 class FilePickerScreen(ModalScreen[Path | None]):
     """Modal file picker opened from `@path` prompt completion."""
@@ -253,10 +239,6 @@ class FilePickerScreen(ModalScreen[Path | None]):
             current_path = next_path
             if child.allow_expand:
                 await tree.reload_node(child)
-        # Build the tree's line layout so the target node's line index is
-        # assigned; otherwise `node._line` is still -1 and `move_cursor` falls
-        # back to the root (line 0).
-        _ = tree._tree_lines
         tree.move_cursor(node, animate=False)
 
 

@@ -10,17 +10,17 @@ readme = "README.md"
 license = "Apache-2.0"
 dependencies = [
     "aiostream>=0.7.1",
-    "google-genai>=2.7.0",
-    "pydantic-ai>=1.104.0",
-    "python-dotenv>=1.2.2",
-    "pillow>=12.2.0",
+    "google-genai>=2.4.0",
+    "pydantic-ai>=1.99.0",
+    "python-dotenv>=1.0.0",
+    "pillow>=12.0.0",
     "pyyaml>=6.0.3",
-    "rich>=15.0.0",
-    "textual>=8.2.7",
+    "rich>=14.2.0",
+    "textual>=8.0.0",
     "ipybox>=0.9.1",
     "mcpygen>=0.1.4",
-    "sqlite-vec>=0.1.9",
-    "watchfiles>=1.2.0",
+    "sqlite-vec>=0.1.0",
+    "watchfiles>=1.0.0",
     "trafilatura>=2.0.0",
 ]
 
@@ -35,21 +35,21 @@ default-groups = [
 
 [dependency-groups]
 docs = [
-    "griffe-pydantic>=1.3.1",
+    "griffe-pydantic>=1.1.8",
     "mkdocs>=1.6.1,<2",
-    "mkdocs-material>=9.7.6,<10",
-    "mkdocstrings-python>=2.0.3,<3",
-    "mkdocs-llmstxt>=0.5.0",
-    "click>=8.4.1",
+    "mkdocs-material>=9.5.48,<10",
+    "mkdocstrings-python>=1.12.2,<2",
+    "mkdocs-llmstxt>=0.4.0",
+    "click<=8.2.1",
 ]
 dev = [
-    "invoke>=3.0.3,<4",
-    "pre-commit>=4.6.0,<5",
-    "pytest>=9.0.3,<10",
-    "pytest-asyncio>=1.4.0,<2",
-    "pytest-cov>=7.1.0,<8",
+    "invoke>=2.2,<3",
+    "pre-commit>=4.3.0,<5",
+    "pytest>=8.4.2,<9",
+    "pytest-asyncio>=1.2.0,<2",
+    "pytest-cov>=4.1.0,<5",
     "pytest-xdist>=3.8.0",
-    "types-pyyaml>=6.0.12.20260518",
+    "types-pyyaml>=6.0.12.20250915",
 ]
 
 [build-system]
