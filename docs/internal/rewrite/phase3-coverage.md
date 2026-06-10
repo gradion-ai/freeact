@@ -1,8 +1,7 @@
-# Phase 3+4 Coverage Map
+# Rewrite Coverage Map (phases 3-5)
 
-Maps every [behavior-inventory.md](behavior-inventory.md) item in sections 1-17 to its
-test coverage after phases 3 (core SDK) and 4 (tools layer). Sections 18 (CLI) and 20
-(terminal) are phase 5.
+Maps every [behavior-inventory.md](behavior-inventory.md) item in sections 1-20 to its
+test coverage after phases 3 (core SDK), 4 (tools layer), and 5 (terminal UI + CLI).
 
 Legend: U = tests/unit, I = tests/integration, PORT = module ported verbatim with its
 pre-rewrite tests, DEFER(phaseN) = explicitly deferred with reason.
@@ -131,6 +130,38 @@ pre-rewrite tests, DEFER(phaseN) = explicitly deferred with reason.
 - Schema defaults, load/init, validation, presets, ${VAR} handling, kernel env, timeouts, for_subagent, system prompt composition, skills: U test_config
 - Hybrid extra check: resolve-level guard implemented; both extra modules installed in dev env so the missing-extra error path is untestable until phase 6 moves them to extras. DEFER(phase6).
 - AMENDED items (init-writes-once, no Config.save) per inventory section 22.
+
+## 18. CLI (phase 5)
+
+- Commands (run default, init), flags (--sandbox/--sandbox-config/--session-id with
+  persistence guard/--skip-permissions/--log-level), init-does-not-overwrite, wiring
+  (session id, sandbox, skip-permissions through to Agent/TerminalApp): U test_cli
+  (12 tests, ported; legacy-flag rejection consciously dropped per inventory 22)
+- .env autoload, PTC source generation at startup, agent lifecycle ownership:
+  cli.run() (covered by the wiring harness; generation skip-if-exists covered-by-port)
+- Sandbox runtime effect: DEFER (inventory 21, docs-only contract, no automated test)
+
+## 19. System prompt & skills (phases 3+5)
+
+- Prompt composition, skills discovery/materialization: U test_config (phase 3)
+- /skill-name conversion to skill tags on submit, skill picker: U terminal test_app,
+  test_screens
+
+## 20. Terminal UI (phase 5)
+
+- Implementation rebuilt into app/dispatcher/view/approvals/widgets/screens/clipboard
+  per architecture section 5; behavior ported from the pre-rewrite TUI.
+- Test suite ported with every old behavioral case surviving by name (59/59 in
+  test_app plus 3 new: empty-prompt warning, skip-permissions bar skip, user toggle):
+  U tests/unit/terminal/ (138 tests: input/pickers/slash commands, streaming render,
+  copy/paste incl. OS-clipboard fallback, approval flows y/n/a/s incl. pattern
+  editing and verbatim/summary display, collapse precedence incl. expand-all
+  override and manual-beats-forced, subagent nesting/parallel routing/stable order,
+  exec output finalization, error box, cancellation, banner, quit) + I
+  test_clipboard (platform roundtrips)
+- TrackedCollapsible user-toggle detection: watcher-based (handler override
+  double-fires under Textual MRO dispatch; found by the ported pilot tests, fixed)
+- Terminal config section validation: U terminal test_config_section + U test_config
 
 ## Known gaps carried forward
 
