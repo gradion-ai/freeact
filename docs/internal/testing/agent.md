@@ -22,6 +22,6 @@ Key helpers:
 
 ## Config setup
 
-- Use `create_test_config()` from `tests.helpers` to create test configs with defaults and `**overrides` for any config attribute.
+- Use `create_test_config(tmp_dir)` from `tests.helpers` to create test configs with defaults and `**overrides` for any config attribute. `tmp_dir` is required and is usually pytest's `tmp_path`.
 - `Config.freeact_dir` is derived from `working_dir / ".freeact"`.
 - Persist config files explicitly with `await config.save()` when a test needs on-disk config artifacts.

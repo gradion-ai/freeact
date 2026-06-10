@@ -1,7 +1,3 @@
-"""Integration tests for the hybrid search MCP server."""
-
-from __future__ import annotations
-
 import asyncio
 import shutil
 from pathlib import Path
@@ -14,22 +10,13 @@ from freeact.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
 
 @pytest.fixture
 def tools_dir(tmp_path: Path) -> Path:
-    """Create a temporary tools directory with fixtures."""
     fixtures = Path(__file__).parent / "fixtures"
     shutil.copytree(fixtures / MCPTOOLS_DIR, tmp_path / MCPTOOLS_DIR)
     shutil.copytree(fixtures / GENTOOLS_DIR, tmp_path / GENTOOLS_DIR)
     return tmp_path
 
 
-@pytest.fixture
-def db_path(tmp_path: Path) -> Path:
-    """Temporary database path."""
-    return tmp_path / "test.db"
-
-
-@pytest.fixture
-def mcp_server(tools_dir: Path, db_path: Path) -> MCPServerStdio:
-    """Create MCPServerStdio client (not connected) for the hybrid search server."""
+def create_server(tools_dir: Path, db_path: Path, sync: bool = True, watch: bool = True) -> MCPServerStdio:
     return MCPServerStdio(
         "uv",
         args=["run", "-m", "freeact.tools.pytools.search.hybrid"],
@@ -38,11 +25,16 @@ def mcp_server(tools_dir: Path, db_path: Path) -> MCPServerStdio:
             "PYTOOLS_DB_PATH": str(db_path),
             "PYTOOLS_EMBEDDING_MODEL": "test",
             "PYTOOLS_EMBEDDING_DIM": "8",
-            "PYTOOLS_WATCH": "true",
-            "PYTOOLS_SYNC": "true",
+            "PYTOOLS_WATCH": str(watch).lower(),
+            "PYTOOLS_SYNC": str(sync).lower(),
         },
         timeout=30,
     )
+
+
+@pytest.fixture
+def mcp_server(tools_dir: Path, db_path: Path) -> MCPServerStdio:
+    return create_server(tools_dir, db_path)
 
 
 async def call_search_tools(
@@ -51,77 +43,52 @@ async def call_search_tools(
     mode: str = "hybrid",
     limit: int = 5,
 ) -> list[dict]:
-    """Helper to call search_tools and parse the JSON result."""
-    # direct_call_tool returns the parsed result directly for structured outputs
     return await server.direct_call_tool(
         "search_tools",
         {"query": query, "mode": mode, "limit": limit},
     )
 
 
-class TestServerLifecycle:
-    """Test server startup and shutdown."""
+@pytest.mark.asyncio
+async def test_server_starts_and_provides_tools(mcp_server: MCPServerStdio) -> None:
+    async with mcp_server:
+        tools = await mcp_server.list_tools()
 
-    @pytest.mark.asyncio
-    async def test_server_starts_and_provides_tools(self, mcp_server: MCPServerStdio) -> None:
-        """Server starts and exposes the search_tools tool."""
-        async with mcp_server:
-            tools = await mcp_server.list_tools()
-            tool_names = [t.name for t in tools]
-            assert "search_tools" in tool_names
+        assert "search_tools" in [t.name for t in tools]
 
 
-class TestInitialIndexSync:
-    """Test initial indexing on startup."""
+@pytest.mark.asyncio
+async def test_all_tools_indexed(mcp_server: MCPServerStdio) -> None:
+    async with mcp_server:
+        # Vector search matches all tools (test embedder returns same embeddings)
+        result = await call_search_tools(mcp_server, query="utility", mode="vector", limit=10)
 
-    @pytest.mark.asyncio
-    async def test_all_tools_indexed(self, mcp_server: MCPServerStdio) -> None:
-        """All 4 fixture tools are indexed and searchable."""
-        async with mcp_server:
-            # Use vector search to find all tools (test embedder returns same embeddings)
-            result = await call_search_tools(mcp_server, query="utility", mode="vector", limit=10)
-            # Should find all 4 tools
-            assert len(result) == 4
+        assert len(result) == 4
 
 
-class TestSearchModes:
-    """Test all search modes via MCP client."""
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("mode", "query", "expected_name"),
+    [
+        ("bm25", "weather forecast", "get_forecast"),
+        ("vector", "shorten text", None),
+        ("hybrid", "translate language", "translator"),
+    ],
+)
+async def test_search_modes(mcp_server: MCPServerStdio, mode: str, query: str, expected_name: str | None) -> None:
+    async with mcp_server:
+        result = await call_search_tools(mcp_server, query=query, mode=mode, limit=5)
 
-    @pytest.mark.asyncio
-    async def test_bm25_search(self, mcp_server: MCPServerStdio) -> None:
-        """BM25 search finds tools by keyword."""
-        async with mcp_server:
-            result = await call_search_tools(mcp_server, query="weather forecast", mode="bm25", limit=5)
-            names = [r["name"] for r in result]
-            assert "get_forecast" in names
-
-    @pytest.mark.asyncio
-    async def test_vector_search(self, mcp_server: MCPServerStdio) -> None:
-        """Vector search finds semantically similar tools."""
-        async with mcp_server:
-            result = await call_search_tools(mcp_server, query="shorten text", mode="vector", limit=5)
-            # Should find summarizer (semantic similarity)
-            assert len(result) > 0
-
-    @pytest.mark.asyncio
-    async def test_hybrid_search(self, mcp_server: MCPServerStdio) -> None:
-        """Hybrid search combines BM25 and vector results."""
-        async with mcp_server:
-            result = await call_search_tools(mcp_server, query="translate language", mode="hybrid", limit=5)
-            names = [r["name"] for r in result]
-            assert "translator" in names
+        assert len(result) > 0
+        if expected_name is not None:
+            assert expected_name in [r["name"] for r in result]
 
 
-class TestFileWatching:
-    """Test real-time file watching."""
-
-    @pytest.mark.asyncio
-    async def test_new_tool_indexed(self, mcp_server: MCPServerStdio, tools_dir: Path) -> None:
-        """Adding a new tool file triggers indexing."""
-        async with mcp_server:
-            # Add new tool
-            new_tool = tools_dir / MCPTOOLS_DIR / "weather" / "get_humidity.py"
-            new_tool.write_text('''
+@pytest.mark.asyncio
+async def test_new_tool_indexed(mcp_server: MCPServerStdio, tools_dir: Path) -> None:
+    async with mcp_server:
+        new_tool = tools_dir / MCPTOOLS_DIR / "weather" / "get_humidity.py"
+        new_tool.write_text('''
 """Humidity tool."""
 
 
@@ -137,19 +104,19 @@ def run(city: str) -> int:
     return 50
 ''')
 
-            # Wait for watcher to detect change
-            await asyncio.sleep(0.5)
+        # Wait for watcher to detect change
+        await asyncio.sleep(0.5)
 
-            result = await call_search_tools(mcp_server, query="humidity", mode="bm25", limit=5)
-            names = [r["name"] for r in result]
-            assert "get_humidity" in names
+        result = await call_search_tools(mcp_server, query="humidity", mode="bm25", limit=5)
 
-    @pytest.mark.asyncio
-    async def test_modified_tool_reindexed(self, mcp_server: MCPServerStdio, tools_dir: Path) -> None:
-        """Modifying a tool file triggers re-indexing."""
-        async with mcp_server:
-            tool_file = tools_dir / MCPTOOLS_DIR / "weather" / "get_forecast.py"
-            tool_file.write_text('''
+        assert "get_humidity" in [r["name"] for r in result]
+
+
+@pytest.mark.asyncio
+async def test_modified_tool_reindexed(mcp_server: MCPServerStdio, tools_dir: Path) -> None:
+    async with mcp_server:
+        tool_file = tools_dir / MCPTOOLS_DIR / "weather" / "get_forecast.py"
+        tool_file.write_text('''
 """Updated weather tool."""
 
 
@@ -165,115 +132,74 @@ def run(city: str) -> dict:
     return {}
 ''')
 
-            await asyncio.sleep(0.5)
+        await asyncio.sleep(0.5)
 
-            result = await call_search_tools(mcp_server, query="temperature precipitation", mode="bm25", limit=5)
-            # Should find updated tool
-            assert len(result) > 0
-            assert any("temperature" in r.get("description", "").lower() for r in result)
+        result = await call_search_tools(mcp_server, query="temperature precipitation", mode="bm25", limit=5)
 
-    @pytest.mark.asyncio
-    async def test_deleted_tool_removed(self, mcp_server: MCPServerStdio, tools_dir: Path) -> None:
-        """Deleting a tool file removes it from index."""
-        async with mcp_server:
-            # First verify tool exists
-            result = await call_search_tools(mcp_server, query="weather alerts region", mode="bm25", limit=5)
-            assert any(r["name"] == "get_alerts" for r in result)
-
-            # Delete the tool
-            tool_file = tools_dir / MCPTOOLS_DIR / "weather" / "get_alerts.py"
-            tool_file.unlink()
-
-            await asyncio.sleep(0.5)
-
-            # Verify tool is gone
-            result = await call_search_tools(mcp_server, query="weather alerts region", mode="bm25", limit=5)
-            assert not any(r["name"] == "get_alerts" for r in result)
+        assert len(result) > 0
+        assert any("temperature" in r.get("description", "").lower() for r in result)
 
 
-class TestResultFormat:
-    """Test search result structure."""
+@pytest.mark.asyncio
+async def test_deleted_tool_removed(mcp_server: MCPServerStdio, tools_dir: Path) -> None:
+    async with mcp_server:
+        result = await call_search_tools(mcp_server, query="weather alerts region", mode="bm25", limit=5)
+        assert any(r["name"] == "get_alerts" for r in result)
 
-    @pytest.mark.asyncio
-    async def test_mcptools_source(self, mcp_server: MCPServerStdio) -> None:
-        """mcptools have correct source field."""
-        async with mcp_server:
-            result = await call_search_tools(mcp_server, query="weather", mode="bm25", limit=5)
-            weather_tools = [r for r in result if r["category"] == "weather"]
-            assert all(r["source"] == MCPTOOLS_DIR for r in weather_tools)
+        (tools_dir / MCPTOOLS_DIR / "weather" / "get_alerts.py").unlink()
 
-    @pytest.mark.asyncio
-    async def test_gentools_source(self, mcp_server: MCPServerStdio) -> None:
-        """gentools have correct source field."""
-        async with mcp_server:
-            result = await call_search_tools(mcp_server, query="text", mode="bm25", limit=5)
-            text_tools = [r for r in result if r["category"] == "text"]
-            assert all(r["source"] == GENTOOLS_DIR for r in text_tools)
+        await asyncio.sleep(0.5)
 
-    @pytest.mark.asyncio
-    async def test_result_fields(self, mcp_server: MCPServerStdio) -> None:
-        """Results have all required fields."""
-        async with mcp_server:
-            result = await call_search_tools(mcp_server, query="forecast", mode="bm25", limit=1)
-            assert len(result) > 0
-            r = result[0]
-            assert "name" in r
-            assert "category" in r
-            assert "source" in r
-            assert "description" in r
-            assert "path" in r
+        result = await call_search_tools(mcp_server, query="weather alerts region", mode="bm25", limit=5)
+        assert not any(r["name"] == "get_alerts" for r in result)
 
 
-class TestConcurrentServers:
-    """Test multiple server instances accessing the same database."""
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("query", "category", "source"),
+    [
+        ("weather", "weather", MCPTOOLS_DIR),
+        ("text", "text", GENTOOLS_DIR),
+    ],
+)
+async def test_result_source(mcp_server: MCPServerStdio, query: str, category: str, source: str) -> None:
+    async with mcp_server:
+        result = await call_search_tools(mcp_server, query=query, mode="bm25", limit=5)
+        matching = [r for r in result if r["category"] == category]
 
-    @pytest.mark.asyncio
-    async def test_concurrent_searches_with_multiple_servers(
-        self, mcp_server: MCPServerStdio, tools_dir: Path, db_path: Path
-    ) -> None:
-        """Multiple servers can search concurrently against a shared database."""
-        # First, start the main server with sync to populate the database
-        async with mcp_server:
-            result = await call_search_tools(mcp_server, query="utility", mode="vector", limit=10)
-            assert len(result) == 4  # Verify database is populated
+        assert all(r["source"] == source for r in matching)
 
-        # Create 3 additional server instances with sync and watch disabled
-        def create_readonly_server() -> MCPServerStdio:
-            return MCPServerStdio(
-                "uv",
-                args=["run", "-m", "freeact.tools.pytools.search.hybrid"],
-                env={
-                    "PYTOOLS_DIR": str(tools_dir),
-                    "PYTOOLS_DB_PATH": str(db_path),
-                    "PYTOOLS_EMBEDDING_MODEL": "test",
-                    "PYTOOLS_EMBEDDING_DIM": "8",
-                    "PYTOOLS_WATCH": "false",
-                    "PYTOOLS_SYNC": "false",
-                },
-                timeout=30,
-            )
 
-        servers = [create_readonly_server() for _ in range(3)]
+@pytest.mark.asyncio
+async def test_result_fields(mcp_server: MCPServerStdio) -> None:
+    async with mcp_server:
+        result = await call_search_tools(mcp_server, query="forecast", mode="bm25", limit=1)
 
-        async def search_with_server(server: MCPServerStdio, query: str, mode: str) -> list[dict]:
-            async with server:
-                return await call_search_tools(server, query=query, mode=mode, limit=5)
+        assert len(result) > 0
+        assert {"name", "category", "source", "description", "path"} <= result[0].keys()
 
-        # Run all 3 searches concurrently with different queries/modes
-        results = await asyncio.gather(
-            search_with_server(servers[0], "weather forecast", "bm25"),
-            search_with_server(servers[1], "text summarize", "vector"),
-            search_with_server(servers[2], "translate", "hybrid"),
-        )
 
-        # Verify each search returned expected results
-        # Server 0: BM25 search for "weather forecast"
-        names_0 = [r["name"] for r in results[0]]
-        assert "get_forecast" in names_0
+@pytest.mark.asyncio
+async def test_concurrent_searches_with_multiple_servers(
+    mcp_server: MCPServerStdio, tools_dir: Path, db_path: Path
+) -> None:
+    # Start the main server with sync to populate the database
+    async with mcp_server:
+        result = await call_search_tools(mcp_server, query="utility", mode="vector", limit=10)
+        assert len(result) == 4
 
-        # Server 1: Vector search for "text summarize"
-        assert len(results[1]) > 0
+    servers = [create_server(tools_dir, db_path, sync=False, watch=False) for _ in range(3)]
 
-        # Server 2: Hybrid search for "translate"
-        names_2 = [r["name"] for r in results[2]]
-        assert "translator" in names_2
+    async def search_with_server(server: MCPServerStdio, query: str, mode: str) -> list[dict]:
+        async with server:
+            return await call_search_tools(server, query=query, mode=mode, limit=5)
+
+    results = await asyncio.gather(
+        search_with_server(servers[0], "weather forecast", "bm25"),
+        search_with_server(servers[1], "text summarize", "vector"),
+        search_with_server(servers[2], "translate", "hybrid"),
+    )
+
+    assert "get_forecast" in [r["name"] for r in results[0]]
+    assert len(results[1]) > 0
+    assert "translator" in [r["name"] for r in results[2]]

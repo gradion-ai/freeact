@@ -1,7 +1,13 @@
+from collections.abc import Callable
+from functools import partial
+from typing import Any
+
+import pytest
 from rich.syntax import Syntax
 from textual.binding import Binding
+from textual.containers import Container
 from textual.content import Content
-from textual.widgets import Static
+from textual.widgets import Collapsible, Static
 
 from freeact.terminal.widgets import (
     ApprovalBar,
@@ -17,32 +23,64 @@ from freeact.terminal.widgets import (
     create_user_input_box,
 )
 
+BoxFactory = Callable[[], tuple[Collapsible, Container]]
 
-def test_create_file_read_action_box_metadata() -> None:
-    box, trace_container = create_file_read_action_box(
-        path="/tmp/workspace/config.json",
-        offset=3,
-        limit=10,
-        agent_id="agent-1",
-    )
 
-    assert "read-file-box" in box.classes
+@pytest.mark.parametrize(
+    ("factory", "expected_classes", "expected_title"),
+    [
+        (
+            partial(
+                create_file_read_action_box, path="/tmp/workspace/config.json", offset=3, limit=10, agent_id="agent-1"
+            ),
+            ["read-file-box"],
+            r"\[agent-1] Read Action: config.json",
+        ),
+        (
+            partial(
+                create_file_edit_action_box,
+                path="src/config.py",
+                old_text="DEBUG = True",
+                new_text="DEBUG = False",
+                agent_id="agent-1",
+            ),
+            ["diff-box"],
+            r"\[agent-1] Edit Action: src/config.py",
+        ),
+        (
+            partial(
+                create_tool_call_box, tool_name="filesystem_read", tool_args={"path": "README.md"}, agent_id="agent-1"
+            ),
+            ["tool-call-box"],
+            r"\[agent-1] Tool Call: filesystem_read",
+        ),
+        (
+            partial(create_tool_call_box, tool_name="mcp_list_resources", tool_args={}, agent_id="agent-1", ptc=True),
+            ["tool-call-box"],
+            r"\[agent-1] PTC: mcp_list_resources",
+        ),
+        (
+            partial(
+                create_subagent_task_box, tool_args={"prompt": "delegate work", "max_turns": 3}, agent_id="agent-1"
+            ),
+            ["tool-call-box", "subagent-task-box"],
+            r"\[agent-1] Tool Call: subagent_task",
+        ),
+        (
+            partial(create_code_action_box, code="print('hello')", agent_id="agent-1"),
+            ["code-action-box"],
+            r"\[agent-1] Code Action",
+        ),
+    ],
+    ids=["file_read", "file_edit", "tool_call_default", "tool_call_ptc", "subagent_task", "code_action"],
+)
+def test_create_action_box_metadata(factory: BoxFactory, expected_classes: list[str], expected_title: str) -> None:
+    box, trace_container = factory()
+
+    for expected_class in expected_classes:
+        assert expected_class in box.classes
     assert not box.collapsed
-    assert box.title == r"\[agent-1] Read Action: config.json"
-    assert "tool-trace-container" in trace_container.classes
-
-
-def test_create_file_edit_action_box_has_diff_class_and_is_expanded() -> None:
-    box, trace_container = create_file_edit_action_box(
-        path="src/config.py",
-        old_text="DEBUG = True",
-        new_text="DEBUG = False",
-        agent_id="agent-1",
-    )
-
-    assert "diff-box" in box.classes
-    assert not box.collapsed
-    assert box.title == r"\[agent-1] Edit Action: src/config.py"
+    assert box.title == expected_title
     assert "tool-trace-container" in trace_container.classes
 
 
@@ -55,71 +93,17 @@ def test_create_error_box_has_error_class_and_is_expanded() -> None:
 
 
 def test_create_tool_output_box_generic_is_collapsed() -> None:
-    box = create_tool_output_box(
-        "ok",
-        agent_id="agent-1",
-    )
+    box = create_tool_output_box("ok", agent_id="agent-1")
 
     assert "tool-output-box" in box.classes
     assert box.collapsed
     assert box.title == r"\[agent-1] Tool Output"
 
 
-def test_create_tool_call_box_uses_tool_call_prefix_by_default() -> None:
-    box, trace_container = create_tool_call_box(
-        tool_name="filesystem_read",
-        tool_args={"path": "README.md"},
-        agent_id="agent-1",
-    )
-
-    assert "tool-call-box" in box.classes
-    assert not box.collapsed
-    assert box.title == r"\[agent-1] Tool Call: filesystem_read"
-    assert "tool-trace-container" in trace_container.classes
-
-
-def test_create_tool_call_box_uses_ptc_prefix_when_requested() -> None:
-    box, trace_container = create_tool_call_box(
-        tool_name="mcp_list_resources",
-        tool_args={},
-        agent_id="agent-1",
-        ptc=True,
-    )
-
-    assert "tool-call-box" in box.classes
-    assert not box.collapsed
-    assert box.title == r"\[agent-1] PTC: mcp_list_resources"
-    assert "tool-trace-container" in trace_container.classes
-
-
-def test_create_subagent_task_box_has_trace_container() -> None:
-    box, trace_container = create_subagent_task_box(
-        tool_args={"prompt": "delegate work", "max_turns": 3},
-        agent_id="agent-1",
-    )
-
-    assert "tool-call-box" in box.classes
-    assert "subagent-task-box" in box.classes
-    assert not box.collapsed
-    assert box.title == r"\[agent-1] Tool Call: subagent_task"
-    assert "tool-trace-container" in trace_container.classes
-
-
-def test_create_code_action_box_has_trace_container() -> None:
-    box, trace_container = create_code_action_box(
-        code="print('hello')",
-        agent_id="agent-1",
-    )
-
-    assert "code-action-box" in box.classes
-    assert not box.collapsed
-    assert box.title == r"\[agent-1] Code Action"
-    assert "tool-trace-container" in trace_container.classes
-
-
-def test_approval_bar_prompt_text_matches_current_ui() -> None:
+def test_approval_bar_default_state() -> None:
     bar = ApprovalBar()
     assert "Y/n/a/s" in str(bar.content)
+    assert bar.pattern == ""
 
 
 def test_approval_bar_displays_pattern() -> None:
@@ -135,23 +119,12 @@ def test_approval_bar_decided_carries_pattern() -> None:
     assert decided.pattern == "my_pattern"
 
 
-def test_approval_bar_default_pattern_is_empty() -> None:
-    bar = ApprovalBar()
-    assert bar.pattern == ""
-
-
 def test_approval_bar_display_text_overrides_pattern() -> None:
     bar = ApprovalBar(pattern="git *", display_text="git status")
     content = str(bar.content)
     assert "git status" in content
     assert "git *" not in content
     assert content.startswith("Approve? [Y/n/a/s] ")
-
-
-def test_approval_bar_falls_back_to_pattern_when_no_display_text() -> None:
-    bar = ApprovalBar(pattern="github_*")
-    content = str(bar.content)
-    assert "github_*" in content
 
 
 def test_approval_bar_display_text_property_round_trip() -> None:
@@ -185,7 +158,7 @@ def test_prompt_input_enables_soft_wrap() -> None:
 
 
 def test_prompt_input_has_terminal_paste_fallback_bindings() -> None:
-    keymap = {
+    keymap: dict[str, Any] = {
         binding.key: binding.action if isinstance(binding, Binding) else binding[1] for binding in PromptInput.BINDINGS
     }
     assert keymap["super+v"] == "paste"

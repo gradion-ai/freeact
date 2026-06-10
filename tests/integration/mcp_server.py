@@ -1,14 +1,9 @@
-import asyncio
-from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import AsyncIterator
 
 from mcp.server.fastmcp import FastMCP
 from pydantic import BaseModel, Field
 
 STDIO_SERVER_PATH = Path(__file__)
-HTTP_SERVER_PORT = 8710
-SSE_SERVER_PORT = 8711
 
 
 class InnerResult(BaseModel):
@@ -61,57 +56,15 @@ async def tool_3(name: str, level: int) -> OuterResult:
     )
 
 
-def create_server(**kwargs) -> FastMCP:
-    server = FastMCP("Test MCP Server", log_level="ERROR", **kwargs)
+def create_server() -> FastMCP:
+    server = FastMCP("Test MCP Server", log_level="ERROR")
     server.add_tool(tool_1, structured_output=False, name="tool-1")
     server.add_tool(tool_2, structured_output=False)
     server.add_tool(tool_3)
     return server
 
 
-@asynccontextmanager
-async def streamable_http_server(
-    host: str = "0.0.0.0",
-    port: int = 8710,
-    json_response: bool = True,
-) -> AsyncIterator[FastMCP]:
-    server = create_server(host=host, port=port, json_response=json_response)
-    async with _server(server.streamable_http_app(), server.settings):
-        yield server
-
-
-@asynccontextmanager
-async def sse_server(
-    host: str = "0.0.0.0",
-    port: int = 8711,
-) -> AsyncIterator[FastMCP]:
-    server = create_server(host=host, port=port)
-    async with _server(server.sse_app(), server.settings):
-        yield server
-
-
-@asynccontextmanager
-async def _server(app, settings):
-    import uvicorn
-
-    cfg = uvicorn.Config(
-        app,
-        host=settings.host,
-        port=settings.port,
-        log_level=settings.log_level.lower(),
-    )
-    server = uvicorn.Server(cfg)
-    task = asyncio.create_task(server.serve())
-    while not server.started:
-        await asyncio.sleep(0.01)
-
-    yield
-
-    server.should_exit = True
-    await task
-
-
-def main():
+def main() -> None:
     server = create_server()
 
     try:

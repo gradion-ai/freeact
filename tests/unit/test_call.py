@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 
 from freeact.agent.call import (
@@ -14,248 +16,180 @@ from freeact.agent.call import (
 )
 
 
-class TestFromRaw:
-    """Tests for ToolCall.from_raw() factory method."""
-
-    def test_code_action(self) -> None:
-        tc = ToolCall.from_raw("ipybox_execute_ipython_cell", {"code": "print('x')"})
-        assert isinstance(tc, CodeAction)
-        assert tc.tool_name == "ipybox_execute_ipython_cell"
-        assert tc.code == "print('x')"
-
-    def test_read_file(self) -> None:
-        tc = ToolCall.from_raw(
+@pytest.mark.parametrize(
+    ("tool_name", "tool_args", "expected"),
+    [
+        (
+            "ipybox_execute_ipython_cell",
+            {"code": "print('x')"},
+            CodeAction(tool_name="ipybox_execute_ipython_cell", code="print('x')"),
+        ),
+        (
             "filesystem_read_text_file",
             {"path": "/tmp/config.json", "offset": 3, "limit": 10},
-        )
-        assert isinstance(tc, FileRead)
-        assert tc.path == "/tmp/config.json"
-        assert tc.offset == 3
-        assert tc.limit == 10
-
-    def test_read_file_no_offset_limit(self) -> None:
-        tc = ToolCall.from_raw("filesystem_read_text_file", {"path": "/tmp/README.md"})
-        assert isinstance(tc, FileRead)
-        assert tc.path == "/tmp/README.md"
-        assert tc.offset is None
-        assert tc.limit is None
-
-    def test_write_file(self) -> None:
-        tc = ToolCall.from_raw(
+            FileRead(tool_name="filesystem_read_text_file", path="/tmp/config.json", offset=3, limit=10),
+        ),
+        (
+            "filesystem_read_text_file",
+            {"path": "/tmp/README.md"},
+            FileRead(tool_name="filesystem_read_text_file", path="/tmp/README.md", offset=None, limit=None),
+        ),
+        (
             "filesystem_write_text_file",
             {"path": "src/main.py", "content": "print(1)"},
-        )
-        assert isinstance(tc, FileWrite)
-        assert tc.path == "src/main.py"
-        assert tc.content == "print(1)"
-
-    def test_edit_file(self) -> None:
-        tc = ToolCall.from_raw(
+            FileWrite(tool_name="filesystem_write_text_file", path="src/main.py", content="print(1)"),
+        ),
+        (
             "filesystem_edit_text_file",
-            {
-                "path": "src/config.py",
-                "old_text": "DEBUG = True",
-                "new_text": "DEBUG = False",
-            },
-        )
-        assert isinstance(tc, FileEdit)
-        assert tc.path == "src/config.py"
-        assert tc.old_text == "DEBUG = True"
-        assert tc.new_text == "DEBUG = False"
-
-    def test_unknown_tool_returns_generic_call(self) -> None:
-        tc = ToolCall.from_raw("database_query", {"sql": "SELECT 1"})
-        assert isinstance(tc, GenericCall)
-        assert tc.tool_name == "database_query"
-        assert tc.tool_args == {"sql": "SELECT 1"}
-        assert tc.ptc is False
-
-    def test_missing_code_key(self) -> None:
-        tc = ToolCall.from_raw("ipybox_execute_ipython_cell", {})
-        assert isinstance(tc, CodeAction)
-        assert tc.code == ""
-
-    def test_missing_path_key(self) -> None:
-        tc = ToolCall.from_raw("filesystem_read_text_file", {})
-        assert isinstance(tc, FileRead)
-        assert tc.path == "unknown"
-
-    def test_missing_edit_keys(self) -> None:
-        tc = ToolCall.from_raw("filesystem_edit_text_file", {"path": "f.py"})
-        assert isinstance(tc, FileEdit)
-        assert tc.old_text == ""
-        assert tc.new_text == ""
+            {"path": "src/config.py", "old_text": "DEBUG = True", "new_text": "DEBUG = False"},
+            FileEdit(
+                tool_name="filesystem_edit_text_file",
+                path="src/config.py",
+                old_text="DEBUG = True",
+                new_text="DEBUG = False",
+            ),
+        ),
+        (
+            "database_query",
+            {"sql": "SELECT 1"},
+            GenericCall(tool_name="database_query", tool_args={"sql": "SELECT 1"}, ptc=False),
+        ),
+        ("ipybox_execute_ipython_cell", {}, CodeAction(tool_name="ipybox_execute_ipython_cell", code="")),
+        (
+            "filesystem_read_text_file",
+            {},
+            FileRead(tool_name="filesystem_read_text_file", path="unknown", offset=None, limit=None),
+        ),
+        (
+            "filesystem_edit_text_file",
+            {"path": "f.py"},
+            FileEdit(tool_name="filesystem_edit_text_file", path="f.py", old_text="", new_text=""),
+        ),
+    ],
+)
+def test_from_raw(tool_name: str, tool_args: dict[str, Any], expected: ToolCall) -> None:
+    assert ToolCall.from_raw(tool_name, tool_args) == expected
 
 
-class TestFrozenImmutability:
-    """ToolCall subclasses are frozen dataclasses."""
-
-    def test_generic_call_is_frozen(self) -> None:
-        tc = GenericCall(tool_name="x", tool_args={}, ptc=False)
-        with pytest.raises(AttributeError):
-            tc.tool_name = "y"  # type: ignore[misc]
-
-    def test_shell_action_is_frozen(self) -> None:
-        tc = ShellAction(tool_name="bash", command="ls")
-        with pytest.raises(AttributeError):
-            tc.command = "rm"  # type: ignore[misc]
-
-    def test_code_action_is_frozen(self) -> None:
-        tc = CodeAction(tool_name="ipybox_execute_ipython_cell", code="x=1")
-        with pytest.raises(AttributeError):
-            tc.code = "y=2"  # type: ignore[misc]
-
-    def test_file_read_is_frozen(self) -> None:
-        tc = FileRead(tool_name="filesystem_read_text_file", path="a", offset=None, limit=None)
-        with pytest.raises(AttributeError):
-            tc.path = "b"  # type: ignore[misc]
-
-    def test_file_write_is_frozen(self) -> None:
-        tc = FileWrite(tool_name="filesystem_write_text_file", path="a", content="c")
-        with pytest.raises(AttributeError):
-            tc.path = "b"  # type: ignore[misc]
-
-    def test_file_edit_is_frozen(self) -> None:
-        tc = FileEdit(tool_name="filesystem_edit_text_file", path="a", old_text="x", new_text="y")
-        with pytest.raises(AttributeError):
-            tc.path = "b"  # type: ignore[misc]
+@pytest.mark.parametrize(
+    "tool_call",
+    [
+        GenericCall(tool_name="x", tool_args={}, ptc=False),
+        ShellAction(tool_name="bash", command="ls"),
+        CodeAction(tool_name="ipybox_execute_ipython_cell", code="x=1"),
+        FileRead(tool_name="filesystem_read_text_file", path="a", offset=None, limit=None),
+        FileWrite(tool_name="filesystem_write_text_file", path="a", content="c"),
+        FileEdit(tool_name="filesystem_edit_text_file", path="a", old_text="x", new_text="y"),
+    ],
+)
+def test_tool_calls_are_frozen(tool_call: ToolCall) -> None:
+    with pytest.raises(AttributeError):
+        tool_call.tool_name = "other"  # type: ignore[misc]
 
 
-class TestSuggestPattern:
-    """Tests for suggest_pattern()."""
-
-    def test_generic_call(self) -> None:
-        tc = GenericCall(tool_name="github_search", tool_args={}, ptc=False)
-        assert suggest_pattern(tc) == "github_search"
-
-    def test_code_action(self) -> None:
-        tc = CodeAction(tool_name="ipybox_execute_ipython_cell", code="x=1")
-        assert suggest_pattern(tc) == "ipybox_execute_ipython_cell"
-
-    def test_shell_action_delegates_to_shell_module(self) -> None:
-        tc = ShellAction(tool_name="bash", command="git add /path/to/file.py")
-        assert suggest_pattern(tc) == "git add *"
-
-    def test_shell_action_single_token(self) -> None:
-        tc = ShellAction(tool_name="bash", command="ls")
-        assert suggest_pattern(tc) == "ls *"
-
-    def test_shell_magic_multiline(self) -> None:
-        tc = ShellAction(tool_name="shell_magic", command="echo hello\necho world")
-        assert suggest_pattern(tc) == "echo hello\\necho world"
-
-    def test_file_read(self) -> None:
-        tc = FileRead(tool_name="filesystem_read_text_file", path="/tmp/a.txt", offset=None, limit=None)
-        assert suggest_pattern(tc) == "filesystem_read_text_file /tmp/a.txt"
-
-    def test_file_write(self) -> None:
-        tc = FileWrite(tool_name="filesystem_write_text_file", path="src/main.py", content="x")
-        assert suggest_pattern(tc) == "filesystem_write_text_file src/main.py"
-
-    def test_file_edit(self) -> None:
-        tc = FileEdit(tool_name="filesystem_edit_text_file", path="src/main.py", old_text="a", new_text="b")
-        assert suggest_pattern(tc) == "filesystem_edit_text_file src/main.py"
+@pytest.mark.parametrize(
+    ("tool_call", "expected"),
+    [
+        (GenericCall(tool_name="github_search", tool_args={}, ptc=False), "github_search"),
+        (CodeAction(tool_name="ipybox_execute_ipython_cell", code="x=1"), "ipybox_execute_ipython_cell"),
+        (ShellAction(tool_name="bash", command="git add /path/to/file.py"), "git add *"),
+        (ShellAction(tool_name="bash", command="ls"), "ls *"),
+        (ShellAction(tool_name="shell_magic", command="echo hello\necho world"), "echo hello\\necho world"),
+        (
+            FileRead(tool_name="filesystem_read_text_file", path="/tmp/a.txt", offset=None, limit=None),
+            "filesystem_read_text_file /tmp/a.txt",
+        ),
+        (
+            FileWrite(tool_name="filesystem_write_text_file", path="src/main.py", content="x"),
+            "filesystem_write_text_file src/main.py",
+        ),
+        (
+            FileEdit(tool_name="filesystem_edit_text_file", path="src/main.py", old_text="a", new_text="b"),
+            "filesystem_edit_text_file src/main.py",
+        ),
+    ],
+)
+def test_suggest_pattern(tool_call: ToolCall, expected: str) -> None:
+    assert suggest_pattern(tool_call) == expected
 
 
-class TestExtractToolOutputText:
-    """Tests for extract_tool_output_text(), ported from test_tool_adapter.py."""
-
-    def test_string_payload(self) -> None:
-        assert extract_tool_output_text("plain text") == "plain text"
-
-    def test_content_dict(self) -> None:
-        assert extract_tool_output_text({"content": "dict-content"}) == "dict-content"
-
-    def test_text_dict(self) -> None:
-        assert extract_tool_output_text({"text": "dict-text"}) == "dict-text"
-
-    def test_list_payload(self) -> None:
-        result = extract_tool_output_text([{"text": "a"}, "b", {"content": "c"}])
-        assert result == "a\nb\nc"
-
-    def test_unknown_dict_serializes_as_json(self) -> None:
-        result = extract_tool_output_text({"unexpected": 1})
-        assert result == '{\n  "unexpected": 1\n}'
-
-    def test_non_string_non_dict_uses_str(self) -> None:
-        assert extract_tool_output_text(42) == "42"
+@pytest.mark.parametrize(
+    ("payload", "expected"),
+    [
+        ("plain text", "plain text"),
+        ({"content": "dict-content"}, "dict-content"),
+        ({"text": "dict-text"}, "dict-text"),
+        ([{"text": "a"}, "b", {"content": "c"}], "a\nb\nc"),
+        ({"unexpected": 1}, '{\n  "unexpected": 1\n}'),
+        (42, "42"),
+    ],
+)
+def test_extract_tool_output_text(payload: object, expected: str) -> None:
+    assert extract_tool_output_text(payload) == expected
 
 
-class TestParsePattern:
-    """Tests for parse_pattern()."""
+@pytest.mark.parametrize(
+    ("pattern", "template", "expected"),
+    [
+        (
+            "git *",
+            ShellAction(tool_name="bash", command="git status"),
+            ShellAction(tool_name="bash", command="git *"),
+        ),
+        (
+            "echo *",
+            ShellAction(tool_name="shell_magic", command="echo test"),
+            ShellAction(tool_name="shell_magic", command="echo *"),
+        ),
+        (
+            "ipybox_*",
+            CodeAction(tool_name="ipybox_execute_ipython_cell", code="print(1)"),
+            CodeAction(tool_name="ipybox_*", code=""),
+        ),
+        (
+            "filesystem_* src/**",
+            FileRead(tool_name="filesystem_read_text_file", path="src/main.py", offset=None, limit=None),
+            FileRead(tool_name="filesystem_*", path="src/**", offset=None, limit=None),
+        ),
+        (
+            "github_*",
+            GenericCall(tool_name="github_search", tool_args={"q": "test"}, ptc=False),
+            GenericCall(tool_name="github_*", tool_args={}, ptc=False),
+        ),
+    ],
+)
+def test_parse_pattern(pattern: str, template: ToolCall, expected: ToolCall) -> None:
+    assert parse_pattern(pattern, template) == expected
 
-    def test_shell_action(self) -> None:
-        template = ShellAction(tool_name="bash", command="git status")
-        result = parse_pattern("git *", template)
-        assert isinstance(result, ShellAction)
-        assert result.tool_name == "bash"
-        assert result.command == "git *"
 
-    def test_shell_action_preserves_tool_name(self) -> None:
-        template = ShellAction(tool_name="shell_magic", command="echo test")
-        result = parse_pattern("echo *", template)
-        assert isinstance(result, ShellAction)
-        assert result.tool_name == "shell_magic"
-
-    def test_shell_magic_roundtrip(self) -> None:
-        tc = ShellAction(tool_name="shell_magic", command="echo hello\necho world")
-        pattern = suggest_pattern(tc)
-        result = parse_pattern(pattern, tc)
-        assert isinstance(result, ShellAction)
-        assert result.tool_name == "shell_magic"
-        assert result.command == "echo hello\necho world"
-
-    def test_code_action(self) -> None:
-        template = CodeAction(tool_name="ipybox_execute_ipython_cell", code="print(1)")
-        result = parse_pattern("ipybox_*", template)
-        assert isinstance(result, CodeAction)
-        assert result.tool_name == "ipybox_*"
-        assert result.code == ""
-
-    def test_code_action_roundtrip(self) -> None:
-        tc = CodeAction(tool_name="ipybox_execute_ipython_cell", code="x = 1")
-        result = parse_pattern(suggest_pattern(tc), tc)
-        assert isinstance(result, CodeAction)
-        assert result.tool_name == tc.tool_name
-
-    def test_file_read_with_tool_name_and_path(self) -> None:
-        template = FileRead(tool_name="filesystem_read_text_file", path="src/main.py", offset=None, limit=None)
-        result = parse_pattern("filesystem_* src/**", template)
-        assert isinstance(result, FileRead)
-        assert result.tool_name == "filesystem_*"
-        assert result.path == "src/**"
-
-    def test_file_write_roundtrip(self) -> None:
-        tc = FileWrite(tool_name="filesystem_write_text_file", path="src/main.py", content="x")
-        pattern = suggest_pattern(tc)
-        result = parse_pattern(pattern, tc)
-        assert isinstance(result, FileWrite)
-        assert result.tool_name == tc.tool_name
-        assert result.path == tc.path
-
-    def test_file_edit_roundtrip(self) -> None:
-        tc = FileEdit(tool_name="filesystem_edit_text_file", path="src/config.py", old_text="a", new_text="b")
-        pattern = suggest_pattern(tc)
-        result = parse_pattern(pattern, tc)
-        assert isinstance(result, FileEdit)
-        assert result.tool_name == tc.tool_name
-        assert result.path == tc.path
-
-    def test_fallback_to_generic_call(self) -> None:
-        template = GenericCall(tool_name="github_search", tool_args={"q": "test"}, ptc=False)
-        result = parse_pattern("github_*", template)
-        assert isinstance(result, GenericCall)
-        assert result.tool_name == "github_*"
-
-    def test_roundtrip_shell_action(self) -> None:
-        tc = ShellAction(tool_name="bash", command="git add /path/to/file.py")
-        result = parse_pattern(suggest_pattern(tc), tc)
-        assert isinstance(result, ShellAction)
-        assert result.tool_name == "bash"
-
-    def test_roundtrip_file_read(self) -> None:
-        tc = FileRead(tool_name="filesystem_read_text_file", path="/tmp/a.txt", offset=3, limit=None)
-        result = parse_pattern(suggest_pattern(tc), tc)
-        assert isinstance(result, FileRead)
-        assert result.tool_name == tc.tool_name
-        assert result.path == tc.path
+@pytest.mark.parametrize(
+    ("tool_call", "expected"),
+    [
+        (
+            ShellAction(tool_name="bash", command="git add /path/to/file.py"),
+            ShellAction(tool_name="bash", command="git add *"),
+        ),
+        (
+            ShellAction(tool_name="shell_magic", command="echo hello\necho world"),
+            ShellAction(tool_name="shell_magic", command="echo hello\necho world"),
+        ),
+        (
+            CodeAction(tool_name="ipybox_execute_ipython_cell", code="x = 1"),
+            CodeAction(tool_name="ipybox_execute_ipython_cell", code=""),
+        ),
+        (
+            FileRead(tool_name="filesystem_read_text_file", path="/tmp/a.txt", offset=3, limit=None),
+            FileRead(tool_name="filesystem_read_text_file", path="/tmp/a.txt", offset=None, limit=None),
+        ),
+        (
+            FileWrite(tool_name="filesystem_write_text_file", path="src/main.py", content="x"),
+            FileWrite(tool_name="filesystem_write_text_file", path="src/main.py", content=""),
+        ),
+        (
+            FileEdit(tool_name="filesystem_edit_text_file", path="src/config.py", old_text="a", new_text="b"),
+            FileEdit(tool_name="filesystem_edit_text_file", path="src/config.py", old_text="", new_text=""),
+        ),
+    ],
+)
+def test_parse_pattern_roundtrip(tool_call: ToolCall, expected: ToolCall) -> None:
+    assert parse_pattern(suggest_pattern(tool_call), tool_call) == expected

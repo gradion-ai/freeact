@@ -1,5 +1,4 @@
 import copy
-import tempfile
 import types
 from collections.abc import Callable
 from contextlib import asynccontextmanager
@@ -19,13 +18,11 @@ from .streams import CodeExecFunction
 
 
 def create_test_config(
-    tmp_dir: Path | None = None,
+    tmp_dir: Path,
     stream_function: Any | None = None,
     **overrides: Any,
 ) -> Config:
-    """Create a Config for test agents with a temporary working directory."""
-    if tmp_dir is None:
-        tmp_dir = Path(tempfile.mkdtemp())
+    """Create a Config for test agents using tmp_dir as working directory."""
     config_kwargs: dict[str, Any] = {
         "working_dir": tmp_dir,
         "model": "test",
@@ -56,7 +53,8 @@ async def _mock_code_executor():
 @asynccontextmanager
 async def unpatched_agent(
     stream_function: Any,
-    tmp_dir: Path | None = None,
+    *,
+    tmp_dir: Path,
     session_id: str | None = None,
     **config_overrides: Any,
 ):
@@ -71,8 +69,9 @@ async def unpatched_agent(
 async def patched_agent(
     stream_function: Any,
     code_exec_function: CodeExecFunction | None = None,
+    *,
+    tmp_dir: Path,
     mcp_servers: dict[str, dict[str, Any]] | None = None,
-    tmp_dir: Path | None = None,
     session_id: str | None = None,
     execution_timeout: float | None = 300,
     approval_timeout: float | None = None,

@@ -9,6 +9,15 @@ from pydantic_core import to_jsonable_python
 from freeact.agent.store import SessionStore
 
 
+@pytest.fixture
+def store(tmp_path: Path) -> SessionStore:
+    return SessionStore(sessions_root=tmp_path, session_id="session-1")
+
+
+def _session_file(tmp_path: Path) -> Path:
+    return tmp_path / "session-1" / "main.jsonl"
+
+
 def _sample_messages() -> list[ModelRequest | ModelResponse]:
     return [
         ModelRequest(parts=[UserPromptPart(content="hello")]),
@@ -20,8 +29,19 @@ def _jsonable_messages(messages: list[ModelRequest | ModelResponse]) -> list[dic
     return [to_jsonable_python(message, bytes_mode="base64") for message in messages]
 
 
-def test_append_load_round_trip_model_messages(tmp_path: Path):
-    store = SessionStore(sessions_root=tmp_path, session_id="session-1")
+def _write_session_file(tmp_path: Path, content: str) -> None:
+    session_file = _session_file(tmp_path)
+    session_file.parent.mkdir(parents=True, exist_ok=True)
+    session_file.write_text(content)
+
+
+def _valid_envelope_line(meta_extra: dict[str, str] | None = None) -> str:
+    message = to_jsonable_python(ModelRequest(parts=[UserPromptPart(content="hello")]), bytes_mode="base64")
+    meta: dict[str, str] = {"ts": "2026-02-11T10:22:08.423090Z", **(meta_extra or {})}
+    return json.dumps({"v": 1, "message": message, "meta": meta})
+
+
+def test_append_load_round_trip_model_messages(store: SessionStore):
     messages = _sample_messages()
 
     store.append_messages(agent_id="main", messages=messages)
@@ -30,14 +50,12 @@ def test_append_load_round_trip_model_messages(tmp_path: Path):
     assert _jsonable_messages(loaded) == _jsonable_messages(messages)
 
 
-def test_append_writes_envelope_without_agent_id(tmp_path: Path):
-    store = SessionStore(sessions_root=tmp_path, session_id="session-1")
+def test_append_writes_envelope_without_agent_id(store: SessionStore, tmp_path: Path):
     messages = _sample_messages()
 
     store.append_messages(agent_id="main", messages=messages)
 
-    session_file = tmp_path / "session-1" / "main.jsonl"
-    lines = [json.loads(line) for line in session_file.read_text().splitlines()]
+    lines = [json.loads(line) for line in _session_file(tmp_path).read_text().splitlines()]
 
     assert len(lines) == len(messages)
     for line in lines:
@@ -49,70 +67,41 @@ def test_append_writes_envelope_without_agent_id(tmp_path: Path):
         assert "agent_id" not in line["meta"]
 
 
-def test_load_rejects_meta_agent_id(tmp_path: Path):
-    session_dir = tmp_path / "session-1"
-    session_dir.mkdir(parents=True)
-    session_file = session_dir / "main.jsonl"
-    message = to_jsonable_python(ModelRequest(parts=[UserPromptPart(content="hello")]), bytes_mode="base64")
-    session_file.write_text(
-        json.dumps(
-            {
-                "v": 1,
-                "message": message,
-                "meta": {
-                    "ts": "2026-02-11T10:22:08.423090Z",
-                    "agent_id": "main",
-                },
-            }
-        )
-        + "\n"
-    )
-
-    store = SessionStore(sessions_root=tmp_path, session_id="session-1")
+def test_load_rejects_meta_agent_id(store: SessionStore, tmp_path: Path):
+    _write_session_file(tmp_path, _valid_envelope_line({"agent_id": "main"}) + "\n")
 
     with pytest.raises(ValueError, match="meta.agent_id"):
         store.load_messages(agent_id="main")
 
 
-def test_append_writes_one_line_per_message(tmp_path: Path):
-    store = SessionStore(sessions_root=tmp_path, session_id="session-1")
+def test_append_writes_one_line_per_message(store: SessionStore, tmp_path: Path):
     messages = _sample_messages() + _sample_messages()
 
     store.append_messages(agent_id="main", messages=messages)
 
-    session_file = tmp_path / "session-1" / "main.jsonl"
-    assert len(session_file.read_text().splitlines()) == len(messages)
+    assert len(_session_file(tmp_path).read_text().splitlines()) == len(messages)
 
 
-def test_load_ignores_malformed_trailing_line(tmp_path: Path):
-    store = SessionStore(sessions_root=tmp_path, session_id="session-1")
+def test_load_ignores_malformed_trailing_line(store: SessionStore, tmp_path: Path):
     messages = _sample_messages()
     store.append_messages(agent_id="main", messages=messages)
 
-    session_file = tmp_path / "session-1" / "main.jsonl"
-    with session_file.open("a", encoding="utf-8") as f:
+    with _session_file(tmp_path).open("a", encoding="utf-8") as f:
         f.write('{"v": 1, "message": ')
 
     loaded = store.load_messages(agent_id="main")
     assert _jsonable_messages(loaded) == _jsonable_messages(messages)
 
 
-def test_load_raises_on_non_tail_malformed_line(tmp_path: Path):
-    session_dir = tmp_path / "session-1"
-    session_dir.mkdir(parents=True)
-    session_file = session_dir / "main.jsonl"
-    message = to_jsonable_python(ModelRequest(parts=[UserPromptPart(content="hello")]), bytes_mode="base64")
-    valid_line = json.dumps({"v": 1, "message": message, "meta": {"ts": "2026-02-11T10:22:08.423090Z"}})
-    session_file.write_text(f"{valid_line}\n{{bad-json}}\n{valid_line}\n")
-
-    store = SessionStore(sessions_root=tmp_path, session_id="session-1")
+def test_load_raises_on_non_tail_malformed_line(store: SessionStore, tmp_path: Path):
+    valid_line = _valid_envelope_line()
+    _write_session_file(tmp_path, f"{valid_line}\n{{bad-json}}\n{valid_line}\n")
 
     with pytest.raises(ValueError, match="Malformed JSONL"):
         store.load_messages(agent_id="main")
 
 
-def test_delete_last_messages_truncates_persisted_tail(tmp_path: Path) -> None:
-    store = SessionStore(sessions_root=tmp_path, session_id="session-1")
+def test_delete_last_messages_truncates_persisted_tail(store: SessionStore) -> None:
     messages = _sample_messages() + _sample_messages()
 
     store.append_messages(agent_id="main", messages=messages)
@@ -122,88 +111,58 @@ def test_delete_last_messages_truncates_persisted_tail(tmp_path: Path) -> None:
     assert _jsonable_messages(loaded) == _jsonable_messages(messages[:2])
 
 
-def test_delete_last_messages_rejects_excess_count(tmp_path: Path) -> None:
-    store = SessionStore(sessions_root=tmp_path, session_id="session-1")
+def test_delete_last_messages_rejects_excess_count(store: SessionStore) -> None:
     store.append_messages(agent_id="main", messages=_sample_messages())
 
     with pytest.raises(ValueError, match="Cannot delete 3 messages"):
         store.delete_last_messages(agent_id="main", count=3)
 
 
-def test_flush_after_append_true_calls_flush(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    store = SessionStore(sessions_root=tmp_path, session_id="session-1", flush_after_append=True)
-    flush_called = False
+class _FakeFile:
+    def __init__(self) -> None:
+        self.flush_called = False
 
-    class _FakeFile:
-        def write(self, _: str) -> int:
-            return 0
+    def write(self, _: str) -> int:
+        return 0
 
-        def flush(self) -> None:
-            nonlocal flush_called
-            flush_called = True
+    def flush(self) -> None:
+        self.flush_called = True
 
-        def __enter__(self) -> "_FakeFile":
-            return self
+    def __enter__(self) -> "_FakeFile":
+        return self
 
-        def __exit__(self, *args: object) -> None:
-            return None
+    def __exit__(self, *args: object) -> None:
+        return None
+
+
+@pytest.mark.parametrize("flush_after_append", [True, False])
+def test_flush_after_append(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, flush_after_append: bool):
+    store = SessionStore(sessions_root=tmp_path, session_id="session-1", flush_after_append=flush_after_append)
+    fake_file = _FakeFile()
 
     def fake_open(self: Path, mode: str = "r", encoding: str | None = None) -> _FakeFile:
-        return _FakeFile()
+        return fake_file
 
     monkeypatch.setattr(Path, "open", fake_open)
     store.append_messages(agent_id="main", messages=_sample_messages())
 
-    assert flush_called is True
+    assert fake_file.flush_called is flush_after_append
 
 
-def test_flush_after_append_false_does_not_force_flush(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    store = SessionStore(sessions_root=tmp_path, session_id="session-1", flush_after_append=False)
-    flush_called = False
-
-    class _FakeFile:
-        def write(self, _: str) -> int:
-            return 0
-
-        def flush(self) -> None:
-            nonlocal flush_called
-            flush_called = True
-
-        def __enter__(self) -> "_FakeFile":
-            return self
-
-        def __exit__(self, *args: object) -> None:
-            return None
-
-    def fake_open(self: Path, mode: str = "r", encoding: str | None = None) -> _FakeFile:
-        return _FakeFile()
-
-    monkeypatch.setattr(Path, "open", fake_open)
-    store.append_messages(agent_id="main", messages=_sample_messages())
-
-    assert flush_called is False
-
-
-def test_save_tool_result_writes_payload_file(tmp_path: Path) -> None:
-    store = SessionStore(sessions_root=tmp_path / ".freeact" / "sessions", session_id="session-1")
-
+def test_save_tool_result_writes_payload_file(store: SessionStore) -> None:
     stored = store.save_tool_result(payload=b"tool-output", extension="txt")
 
     assert stored.exists()
     assert stored.read_bytes() == b"tool-output"
 
 
-def test_save_tool_result_filename_format(tmp_path: Path) -> None:
-    store = SessionStore(sessions_root=tmp_path / ".freeact" / "sessions", session_id="session-1")
-
+def test_save_tool_result_filename_format(store: SessionStore) -> None:
     stored = store.save_tool_result(payload=b"x", extension="json")
 
     assert re.fullmatch(r"[0-9a-f]{8}\.json", stored.name)
 
 
-def test_save_tool_result_sanitizes_extension(tmp_path: Path) -> None:
-    store = SessionStore(sessions_root=tmp_path / ".freeact" / "sessions", session_id="session-1")
-
+def test_save_tool_result_sanitizes_extension(store: SessionStore) -> None:
     stored = store.save_tool_result(payload=b"x", extension="../bad")
 
     assert stored.suffix == ".bin"

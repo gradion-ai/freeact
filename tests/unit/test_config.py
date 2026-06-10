@@ -140,44 +140,42 @@ async def test_save_creates_agent_json_and_runtime_directories(tmp_path: Path) -
     await config.save()
 
     freeact_dir = tmp_path / ".freeact"
+    assert freeact_dir.is_dir()
     assert (freeact_dir / "agent.json").exists()
     payload = json.loads((freeact_dir / "agent.json").read_text())
     assert "tool_search" in payload
     assert "model_settings" in payload
+    assert payload["model_settings"]["google_thinking_config"]["thinking_level"] == "medium"
+    assert "kernel_env" in payload
+    assert "tool_result_inline_max_bytes" in payload
+    assert "tool_result_preview_chars" in payload
     assert "mcp_servers" in payload
     assert "ptc_servers" in payload
+    assert "google" in payload["ptc_servers"]
     assert "enable_persistence" in payload
+    assert "tool-search" not in payload
+    assert "model-settings" not in payload
     assert (freeact_dir / "generated").exists()
     assert (freeact_dir / "plans").exists()
     assert (freeact_dir / "sessions").exists()
 
 
 @pytest.mark.asyncio
-async def test_load_save_roundtrip(tmp_path: Path) -> None:
-    config = Config(
-        working_dir=tmp_path,
-        model="test-model",
-        tool_search="basic",
-        execution_timeout=42,
-        tool_result_inline_max_bytes=2048,
-        tool_result_preview_chars=300,
-        max_subagents=7,
-        ptc_servers={"demo": {"command": "python", "args": ["-m", "demo"]}},
-    )
+async def test_save_is_idempotent(tmp_path: Path) -> None:
+    config = Config(working_dir=tmp_path)
+
+    await config.save()
+    await config.save()
     await config.save()
 
-    loaded = await Config.load(working_dir=tmp_path)
-
-    assert loaded.model == "test-model"
-    assert loaded.execution_timeout == 42
-    assert loaded.tool_result_inline_max_bytes == 2048
-    assert loaded.tool_result_preview_chars == 300
-    assert loaded.max_subagents == 7
-    assert "demo" in loaded.ptc_servers
+    freeact_dir = tmp_path / ".freeact"
+    assert (freeact_dir / "agent.json").exists()
+    assert (freeact_dir / "generated").exists()
+    assert (freeact_dir / "sessions").exists()
 
 
 @pytest.mark.asyncio
-async def test_load_save_roundtrip_preserves_constructor_overrides(tmp_path: Path) -> None:
+async def test_load_save_roundtrip(tmp_path: Path) -> None:
     config = Config(
         working_dir=tmp_path,
         model="openai:gpt-4o-mini",
@@ -245,6 +243,7 @@ async def test_save_materializes_bundled_skills(tmp_path: Path) -> None:
     skills = config.skills_metadata
     assert len(skills) > 0
     assert config.skills_dir.exists()
+    assert any(path.name == "SKILL.md" for path in config.skills_dir.rglob("SKILL.md"))
 
 
 @pytest.mark.asyncio

@@ -155,17 +155,17 @@ def run_harness() -> _RunHarness:
 
 
 @pytest.mark.asyncio
-async def test_run_passes_provided_session_id_to_agent(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, run_harness: _RunHarness
+@pytest.mark.parametrize("session_id", [uuid.uuid4(), None])
+async def test_run_passes_session_id_to_agent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, run_harness: _RunHarness, session_id: uuid.UUID | None
 ):
-    provided = uuid.uuid4()
     run_harness.install(monkeypatch, tmp_path)
 
-    await cli.run(run_harness.namespace(session_id=provided))
+    await cli.run(run_harness.namespace(session_id=session_id))
 
     agent_kwargs = run_harness.captured["agent_kwargs"]
     assert isinstance(agent_kwargs, dict)
-    assert agent_kwargs["session_id"] == str(provided)
+    assert agent_kwargs["session_id"] == (str(session_id) if session_id is not None else None)
     assert run_harness.captured["terminal_run"] is True
     assert run_harness.captured["skip_permissions"] is False
 
@@ -179,19 +179,6 @@ async def test_run_passes_skip_permissions_to_terminal(
     await cli.run(run_harness.namespace(skip_permissions=True))
 
     assert run_harness.captured["skip_permissions"] is True
-
-
-@pytest.mark.asyncio
-async def test_run_passes_none_session_id_when_missing(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, run_harness: _RunHarness
-):
-    run_harness.install(monkeypatch, tmp_path)
-
-    await cli.run(run_harness.namespace())
-
-    agent_kwargs = run_harness.captured["agent_kwargs"]
-    assert isinstance(agent_kwargs, dict)
-    assert agent_kwargs["session_id"] is None
 
 
 @pytest.mark.asyncio

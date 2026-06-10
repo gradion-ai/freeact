@@ -126,14 +126,6 @@ async def test_save_updates_existing_file(tmp_path: Path) -> None:
     assert loaded["expand_all_toggle_key"] == "ctrl+p"
 
 
-@pytest.mark.asyncio
-async def test_terminal_config_freeact_dir_is_derived_from_working_dir(tmp_path: Path) -> None:
-    config = TerminalConfig(working_dir=tmp_path)
-    await config.save()
-
-    assert (tmp_path / ".freeact" / "terminal.json").exists()
-
-
 def test_expand_all_toggle_key_must_be_non_empty() -> None:
     with pytest.raises(ValidationError):
         TerminalConfig(expand_all_toggle_key="")
