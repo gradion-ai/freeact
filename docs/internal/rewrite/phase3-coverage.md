@@ -1,9 +1,8 @@
-# Phase 3 Coverage Map
+# Phase 3+4 Coverage Map
 
-Maps every [behavior-inventory.md](behavior-inventory.md) item in sections 1-12 and 17
-(the core SDK contract) to its phase-3 test coverage. Sections 13-16 (tools), 18 (CLI),
-19-20 (system prompt rendering in TUI, terminal) are later phases; their existing tests
-under tests/*/tools/ continue to run unchanged.
+Maps every [behavior-inventory.md](behavior-inventory.md) item in sections 1-17 to its
+test coverage after phases 3 (core SDK) and 4 (tools layer). Sections 18 (CLI) and 20
+(terminal) are phase 5.
 
 Legend: U = tests/unit, I = tests/integration, PORT = module ported verbatim with its
 pre-rewrite tests, DEFER(phaseN) = explicitly deferred with reason.
@@ -92,6 +91,40 @@ pre-rewrite tests, DEFER(phaseN) = explicitly deferred with reason.
 ## 12. Tool call typing
 
 - from_raw dispatch, defaults, immutability, pattern symmetry, output text extraction: U test_toolcalls
+
+## 13. Filesystem tools (phase 4)
+
+- PORT: read/write/edit semantics, BOM/line-ending INVARIANTs, fuzzy matching, media
+  handling: U tests/unit/tools/test_filesystem.py (unchanged)
+
+## 14. Web tools (phase 4)
+
+- Security wrapping incl. spoof-sanitization INVARIANT: U test_security (PORT)
+- Fetch contract: U test_fetch (PORT), I tools/test_fetch (local HTTP server)
+- Brave search contract: U test_bsearch (PORT)
+- Google search contract: U test_gsearch — NEW (pre-rewrite gap, inventory 21):
+  answer + numbered references format, web-chunk filtering with position-based
+  numbering, redirect resolution, None-text handling, grounding config,
+  thinking-level option (parser extracted as gsearch.create_parser for testability)
+
+## 15. Tool discovery (phase 4)
+
+- Package restructured: pytools/search/basic.py -> pytools/basic.py,
+  pytools/search/hybrid/ -> pytools/hybrid/ (architecture section 2 layout);
+  resolve.py preset module paths updated
+- Basic mode: U tests/unit/tools/pytools/test_basic.py — NEW (was source-derived
+  only): categories from both sources, full source file paths, underscore skipping,
+  gentools api.py requirement, list/string params, unknown category
+- Hybrid stack: U+I tests/*/tools/pytools/hybrid/ (PORT, paths updated): extract,
+  embed, database, search (BM25/vector/RRF/weights), index sync, watch, MCP server
+
+## 16. MCP code mode (phase 4)
+
+- apigen: thin mcpygen wrapper, exercised by I conftest mcp_sources_dir and the PTC
+  integration tests (test_agent PTC approval flows). Generation skip-if-exists logic:
+  covered-by-port (apigen.py unchanged).
+- gentools authoring: bundled skills materialization U test_config; tool layout
+  contract U hybrid test_extract
 
 ## 17. Configuration capabilities
 

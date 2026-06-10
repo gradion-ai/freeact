@@ -5,8 +5,8 @@ import pytest
 import pytest_asyncio
 from pydantic_ai.embeddings import TestEmbeddingModel
 
-from freeact.tools.pytools.search.hybrid.database import Database
-from freeact.tools.pytools.search.hybrid.embed import ToolEmbedder
+from freeact.tools.pytools.hybrid.database import Database
+from freeact.tools.pytools.hybrid.embed import ToolEmbedder
 
 
 @pytest.fixture
@@ -32,5 +32,5 @@ def embedder(dimensions: int) -> ToolEmbedder:
 
 @pytest.fixture
 def fixtures_dir() -> Path:
-    tests_root = Path(__file__).parents[5]
-    return tests_root / "unit" / "tools" / "pytools" / "search" / "hybrid" / "fixtures"
+    tests_root = Path(__file__).parents[4]
+    return tests_root / "unit" / "tools" / "pytools" / "hybrid" / "fixtures"

@@ -4,9 +4,9 @@ from pathlib import Path
 import pytest
 
 from freeact.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
-from freeact.tools.pytools.search.hybrid.database import Database
-from freeact.tools.pytools.search.hybrid.embed import ToolEmbedder
-from freeact.tools.pytools.search.hybrid.index import Indexer, SyncResult
+from freeact.tools.pytools.hybrid.database import Database
+from freeact.tools.pytools.hybrid.embed import ToolEmbedder
+from freeact.tools.pytools.hybrid.index import Indexer, SyncResult
 
 MCPTOOL_ID = f"{MCPTOOLS_DIR}:cat:tool"
 GENTOOL_ID = f"{GENTOOLS_DIR}:cat:tool"

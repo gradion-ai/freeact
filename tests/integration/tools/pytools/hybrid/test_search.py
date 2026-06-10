@@ -1,8 +1,8 @@
 import pytest
 import pytest_asyncio
 
-from freeact.tools.pytools.search.hybrid.database import Database, ToolEntry
-from freeact.tools.pytools.search.hybrid.search import SearchConfig, SearchEngine
+from freeact.tools.pytools.hybrid.database import Database, ToolEntry
+from freeact.tools.pytools.hybrid.search import SearchConfig, SearchEngine
 
 
 @pytest.fixture

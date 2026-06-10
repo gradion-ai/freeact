@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from freeact.tools.pytools.search.hybrid.database import Database, ToolEntry
+from freeact.tools.pytools.hybrid.database import Database, ToolEntry
 
 
 @pytest.fixture

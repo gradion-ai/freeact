@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 
-from freeact.tools.pytools.search.hybrid.database import Database, SearchResult
+from freeact.tools.pytools.hybrid.database import Database, SearchResult
 
 
 @dataclass

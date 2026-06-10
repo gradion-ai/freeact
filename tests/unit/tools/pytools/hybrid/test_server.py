@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from freeact.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
-from freeact.tools.pytools.search.hybrid.database import SearchResult, ToolEntry
-from freeact.tools.pytools.search.hybrid.server import (
+from freeact.tools.pytools.hybrid.database import SearchResult, ToolEntry
+from freeact.tools.pytools.hybrid.server import (
     ServerState,
     ToolResult,
     _get_env_config,

@@ -74,9 +74,7 @@ async def web_search(
     return "\n".join(result_parts)
 
 
-def main() -> None:
-    """Entry point for the Google Search MCP server."""
-    global _thinking_level
+def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--thinking-level",
@@ -84,7 +82,13 @@ def main() -> None:
         choices=["minimal", "low", "medium", "high"],
         help="Thinking level for the model",
     )
-    args = parser.parse_args()
+    return parser
+
+
+def main() -> None:
+    """Entry point for the Google Search MCP server."""
+    global _thinking_level
+    args = create_parser().parse_args()
     _thinking_level = args.thinking_level
     mcp.run(transport="stdio")
 

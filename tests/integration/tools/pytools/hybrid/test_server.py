@@ -19,7 +19,7 @@ def tools_dir(tmp_path: Path) -> Path:
 def create_server(tools_dir: Path, db_path: Path, sync: bool = True, watch: bool = True) -> MCPServerStdio:
     return MCPServerStdio(
         "uv",
-        args=["run", "-m", "freeact.tools.pytools.search.hybrid"],
+        args=["run", "-m", "freeact.tools.pytools.hybrid"],
         env={
             "PYTOOLS_DIR": str(tools_dir),
             "PYTOOLS_DB_PATH": str(db_path),

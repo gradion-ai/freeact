@@ -241,7 +241,7 @@ class TestResolve:
         runtime = resolve(config, working_dir=tmp_path, env={})
 
         assert set(runtime.mcp_servers.keys()) == {"filesystem", "pytools"}
-        assert runtime.mcp_servers["pytools"]["args"] == ["-m", "freeact.tools.pytools.search.basic"]
+        assert runtime.mcp_servers["pytools"]["args"] == ["-m", "freeact.tools.pytools.basic"]
         ws = workspace(tmp_path)
         assert runtime.mcp_servers["pytools"]["env"]["PYTOOLS_DIR"] == str(ws.generated_rel_dir)
 
@@ -250,7 +250,7 @@ class TestResolve:
 
         runtime = resolve(config, working_dir=tmp_path, env={"GEMINI_API_KEY": "test"})
 
-        assert runtime.mcp_servers["pytools"]["args"] == ["-m", "freeact.tools.pytools.search.hybrid"]
+        assert runtime.mcp_servers["pytools"]["args"] == ["-m", "freeact.tools.pytools.hybrid"]
         pytools_env = runtime.mcp_servers["pytools"]["env"]
         assert pytools_env["GEMINI_API_KEY"] == "test"
         assert pytools_env["PYTOOLS_EMBEDDING_MODEL"] == "google-gla:gemini-embedding-001"

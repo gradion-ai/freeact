@@ -21,7 +21,7 @@ FILESYSTEM_MCP_SERVER_CONFIG: dict[str, Any] = {
 
 BASIC_SEARCH_MCP_SERVER_CONFIG: dict[str, Any] = {
     "command": "python",
-    "args": ["-m", "freeact.tools.pytools.search.basic"],
+    "args": ["-m", "freeact.tools.pytools.basic"],
     "env": {
         "PYTOOLS_DIR": "${PYTOOLS_DIR}",
     },
@@ -29,7 +29,7 @@ BASIC_SEARCH_MCP_SERVER_CONFIG: dict[str, Any] = {
 
 HYBRID_SEARCH_MCP_SERVER_CONFIG: dict[str, Any] = {
     "command": "python",
-    "args": ["-m", "freeact.tools.pytools.search.hybrid"],
+    "args": ["-m", "freeact.tools.pytools.hybrid"],
     "env": {
         "GEMINI_API_KEY": "${GEMINI_API_KEY}",
         "PYTOOLS_DIR": "${PYTOOLS_DIR}",

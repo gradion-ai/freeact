@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from freeact.tools.pytools import GENTOOLS_DIR, MCPTOOLS_DIR
-from freeact.tools.pytools.search.hybrid.extract import (
+from freeact.tools.pytools.hybrid.extract import (
     extract_docstring,
     make_tool_id,
     parse_tool_id,
