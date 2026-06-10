@@ -4,16 +4,22 @@ from collections.abc import AsyncIterator, Callable
 from pathlib import Path
 from typing import Any
 
+import ipybox
 import pytest
 from pydantic_ai.messages import ModelMessage, ModelRequest, ToolReturnPart
 from pydantic_ai.models.function import AgentInfo, DeltaThinkingPart, DeltaToolCall
 
-from freeact.agent import Agent, ApprovalRequest, CodeExecutionOutput
-from freeact.agent.call import GenericCall, ShellAction
-from freeact.agent.events import CodeExecutionOutputChunk
+from freeact import (
+    ApprovalRequest,
+    CodeExecutionOutput,
+    CodeExecutionOutputChunk,
+    GenericCall,
+    ShellAction,
+)
 from tests.helpers import (
     DeltaThinkingCalls,
     DeltaToolCalls,
+    FakeCodeExecutor,
     StreamResults,
     collect_stream,
     create_stream_function,
@@ -141,14 +147,14 @@ async def test_shell_approval_rejected(tmp_path: Path) -> None:
         assert isinstance(results.approvals[1].tool_call, ShellAction)
         # Agent sees the rejection error in code output
         assert len(results.code_outputs) == 1
-        assert results.code_outputs[0].approval_rejected()
+        assert results.code_outputs[0].approval_rejected
         # Agent turn ends with rejection response
         assert any(r.content == "Tool call rejected" for r in results.responses)
 
 
 @pytest.mark.asyncio
 async def test_mcp_tool_approval_accepted(mcp_servers: dict[str, dict[str, Any]], tmp_path: Path) -> None:
-    """Verify an MCP tool is registered, approved and executed via _call_mcp_tool."""
+    """Verify an MCP tool is registered, approved and executed via the MCP manager."""
     stream_function = create_stream_function(
         tool_name="test_tool_2",
         tool_args={"s": "approved"},
@@ -224,13 +230,10 @@ async def test_ipybox_reset_exception(tmp_path: Path) -> None:
     """ipybox_reset returns error message when reset fails."""
     stream_function = create_stream_function(tool_name="ipybox_reset", tool_args={})
 
-    async with unpatched_agent(stream_function, tmp_dir=tmp_path) as agent:
-        # Mock reset to raise an exception
-        async def failing_reset() -> None:
-            raise RuntimeError("Kernel crashed")
+    code_executor = FakeCodeExecutor()
+    code_executor.reset_error = RuntimeError("Kernel crashed")
 
-        agent._code_executor.reset = failing_reset
-
+    async with patched_agent(stream_function, code_executor, tmp_dir=tmp_path) as agent:
         results = await collect_stream(agent, "reset kernel")
 
         assert len(results.tool_outputs) == 1
@@ -251,7 +254,7 @@ async def test_mcp_tool_exception_returns_error(mcp_servers: dict[str, dict[str,
         async def failing_call(*args: Any, **kwargs: Any) -> Any:
             raise RuntimeError("Connection failed")
 
-        agent._tool_mapping["test_tool_2"].direct_call_tool = failing_call
+        agent._mcp._tool_mapping["test_tool_2"].direct_call_tool = failing_call
 
         results = await collect_stream(agent, "test")
 
@@ -286,7 +289,7 @@ async def test_mcp_tool_result_overflow_is_saved_to_file(
         async def large_call(*args: Any, **kwargs: Any) -> str:
             return payload
 
-        agent._tool_mapping["test_tool_2"].direct_call_tool = large_call
+        agent._mcp._tool_mapping["test_tool_2"].direct_call_tool = large_call
         results = await collect_stream(agent, "trigger overflow")
 
         assert len(results.tool_outputs) == 1
@@ -295,7 +298,7 @@ async def test_mcp_tool_result_overflow_is_saved_to_file(
         assert "Preview (~100 characters):" in notice
         assert "line-1" in notice
 
-        tool_returns = collect_tool_return_parts(agent._message_history)
+        tool_returns = collect_tool_return_parts(agent._session.messages)
         assert len(tool_returns) == 1
         assert tool_returns[0].content == notice
 
@@ -329,13 +332,13 @@ async def test_mcp_tool_result_under_threshold_stays_inline(
         async def small_call(*args: Any, **kwargs: Any) -> str:
             return payload
 
-        agent._tool_mapping["test_tool_2"].direct_call_tool = small_call
+        agent._mcp._tool_mapping["test_tool_2"].direct_call_tool = small_call
         results = await collect_stream(agent, "no overflow")
 
         assert len(results.tool_outputs) == 1
         assert results.tool_outputs[0].content == payload
 
-        tool_returns = collect_tool_return_parts(agent._message_history)
+        tool_returns = collect_tool_return_parts(agent._session.messages)
         assert len(tool_returns) == 1
         assert tool_returns[0].content == payload
 
@@ -353,12 +356,12 @@ async def test_code_execution_final_output_overflow_replaced_with_notice(
     )
     payload = "alpha\nbeta\ngamma\n" + ("x" * 400)
 
-    async def code_exec_function(self: Agent, code: str) -> AsyncIterator[CodeExecutionOutput]:
-        yield CodeExecutionOutput(text=payload, images=[])
+    async def script(code: str) -> AsyncIterator[Any]:
+        yield ipybox.CodeExecutionResult(text=payload, images=[])
 
     async with patched_agent(
         stream_function,
-        code_exec_function=code_exec_function,
+        FakeCodeExecutor(script=script),
         tmp_dir=tmp_path,
         session_id="session-1",
         tool_result_inline_max_bytes=32,
@@ -374,7 +377,7 @@ async def test_code_execution_final_output_overflow_replaced_with_notice(
         assert "alpha" in output.text
         assert output.images == []
 
-        tool_returns = collect_tool_return_parts(agent._message_history)
+        tool_returns = collect_tool_return_parts(agent._session.messages)
         assert len(tool_returns) == 1
         assert tool_returns[0].content == output.text
 
@@ -397,15 +400,13 @@ async def test_code_execution_chunk_does_not_create_duplicate_overflow_file(
     payload_chunk = "row-1\nrow-2\nrow-3\n" + ("x" * 400) + "\n"
     payload_final = payload_chunk.rstrip("\n")
 
-    async def code_exec_function(
-        self: Agent, code: str
-    ) -> AsyncIterator[CodeExecutionOutput | CodeExecutionOutputChunk]:
-        yield CodeExecutionOutputChunk(text=payload_chunk, agent_id=self.agent_id)
-        yield CodeExecutionOutput(text=payload_final, images=[])
+    async def script(code: str) -> AsyncIterator[Any]:
+        yield ipybox.CodeExecutionChunk(text=payload_chunk)
+        yield ipybox.CodeExecutionResult(text=payload_final, images=[])
 
     async with patched_agent(
         stream_function,
-        code_exec_function=code_exec_function,
+        FakeCodeExecutor(script=script),
         tmp_dir=tmp_path,
         session_id="session-1",
         tool_result_inline_max_bytes=32,
@@ -439,14 +440,11 @@ async def test_code_execution_exception_yields_error(tmp_path: Path) -> None:
         tool_args={"code": "x = 1"},
     )
 
-    async with unpatched_agent(stream_function, tmp_dir=tmp_path) as agent:
-        # Mock the stream method to raise an exception
-        async def failing_stream(code: str, timeout: float | None = None, chunks: bool = False) -> AsyncIterator[Any]:
-            raise RuntimeError("Kernel crashed unexpectedly")
-            yield  # Make it an async generator
+    async def failing_script(code: str) -> AsyncIterator[Any]:
+        raise RuntimeError("Kernel crashed unexpectedly")
+        yield  # Make it an async generator
 
-        agent._code_executor.stream = failing_stream
-
+    async with patched_agent(stream_function, FakeCodeExecutor(script=failing_script), tmp_dir=tmp_path) as agent:
         results = await collect_stream(agent, "test")
 
         assert len(results.code_outputs) == 1

@@ -1,9 +1,19 @@
-import json
 from pathlib import Path
+from typing import Any
 
 import pytest
+import tomli_w
+import tomllib
 
-from freeact.agent.call import (
+from freeact.permissions import (
+    DEFAULT_ALLOW_RULES,
+    DEFAULT_ASK_RULES,
+    GenericCallRule,
+    PermissionManager,
+    PermissionRule,
+    PermissionsConfig,
+)
+from freeact.toolcalls import (
     CodeAction,
     FileEdit,
     FileRead,
@@ -12,7 +22,6 @@ from freeact.agent.call import (
     ShellAction,
     ToolCall,
 )
-from freeact.permissions import DEFAULT_ALLOW_RULES, DEFAULT_ASK_RULES, PermissionManager, PermissionsConfig
 
 
 def _read(path: str, tool_name: str = "filesystem_read_text_file") -> FileRead:
@@ -33,6 +42,10 @@ def _shell(command: str, tool_name: str = "bash") -> ShellAction:
 
 def _generic(tool_name: str, **tool_args: str) -> GenericCall:
     return GenericCall(tool_name=tool_name, tool_args=dict(tool_args), ptc=False)
+
+
+def _rule_dicts(rules: list[PermissionRule]) -> list[dict[str, Any]]:
+    return [rule.model_dump() for rule in rules]
 
 
 @pytest.fixture
@@ -209,13 +222,13 @@ def test_session_rule_no_match_without_defaults(
 
 def test_ask_overrides_allow(permission_manager: PermissionManager) -> None:
     permission_manager.allow_session(_generic("my_tool"))
-    permission_manager._always.ask.append({"type": "GenericCall", "tool_name": "my_tool"})
+    permission_manager._always.ask.append(GenericCallRule(tool_name="my_tool"))
     assert not permission_manager.is_allowed(_generic("my_tool"))
 
 
 def test_ask_session_overrides_allow_always(permission_manager: PermissionManager) -> None:
-    permission_manager._always.allow.append({"type": "GenericCall", "tool_name": "my_tool"})
-    permission_manager._session.ask.append({"type": "GenericCall", "tool_name": "my_tool"})
+    permission_manager._always.allow.append(GenericCallRule(tool_name="my_tool"))
+    permission_manager._session.ask.append(GenericCallRule(tool_name="my_tool"))
     assert not permission_manager.is_allowed(_generic("my_tool"))
 
 
@@ -241,7 +254,7 @@ def test_path_outside_workspace_stays_absolute(permission_manager: PermissionMan
     assert permission_manager.is_allowed(_read("/etc/hosts"))
 
 
-# Save/load with typed dict format
+# Save/load with typed rule format (TOML)
 
 
 def test_save_new_format(freeact_dir: Path, working_dir: Path) -> None:
@@ -249,10 +262,10 @@ def test_save_new_format(freeact_dir: Path, working_dir: Path) -> None:
     manager.allow_always(_generic("github_*"))
     manager.allow_always(ShellAction(tool_name="bash", command="git *"))
 
-    data = json.loads((freeact_dir / "permissions.json").read_text())
+    data = tomllib.loads((freeact_dir / "permissions.toml").read_text())
     assert data == {
-        "ask": DEFAULT_ASK_RULES,
-        "allow": DEFAULT_ALLOW_RULES
+        "ask": _rule_dicts(DEFAULT_ASK_RULES),
+        "allow": _rule_dicts(DEFAULT_ALLOW_RULES)
         + [
             {"type": "GenericCall", "tool_name": "github_*"},
             {"type": "ShellAction", "tool_name": "bash", "command": "git *"},
@@ -269,7 +282,7 @@ def test_load_new_format(freeact_dir: Path, working_dir: Path) -> None:
             {"type": "ShellAction", "tool_name": "bash", "command": "git *"},
         ],
     }
-    (freeact_dir / "permissions.json").write_text(json.dumps(data))
+    (freeact_dir / "permissions.toml").write_text(tomli_w.dumps(data))
 
     manager = PermissionManager(working_dir, freeact_dir)
     manager.load()
@@ -314,7 +327,7 @@ def test_allow_always_deduplicates(freeact_dir: Path, working_dir: Path) -> None
     manager.allow_always(_generic("github_*"))
     manager.allow_always(_generic("github_*"))
 
-    data = json.loads((freeact_dir / "permissions.json").read_text())
+    data = tomllib.loads((freeact_dir / "permissions.toml").read_text())
     github_entries = [e for e in data["allow"] if e.get("tool_name") == "github_*"]
     assert len(github_entries) == 1
 
@@ -345,9 +358,9 @@ def test_save_creates_freeact_directory(freeact_dir: Path, working_dir: Path) ->
 def test_init_saves_defaults_when_no_file(freeact_dir: Path, working_dir: Path) -> None:
     manager = PermissionManager(working_dir, freeact_dir)
     manager.init()
-    assert (freeact_dir / "permissions.json").exists()
-    data = json.loads((freeact_dir / "permissions.json").read_text())
-    assert data == {"ask": DEFAULT_ASK_RULES, "allow": DEFAULT_ALLOW_RULES}
+    assert (freeact_dir / "permissions.toml").exists()
+    data = tomllib.loads((freeact_dir / "permissions.toml").read_text())
+    assert data == {"ask": _rule_dicts(DEFAULT_ASK_RULES), "allow": _rule_dicts(DEFAULT_ALLOW_RULES)}
 
 
 def test_init_loads_from_file_when_exists(freeact_dir: Path, working_dir: Path) -> None:
@@ -356,17 +369,17 @@ def test_init_loads_from_file_when_exists(freeact_dir: Path, working_dir: Path) 
         "ask": [],
         "allow": [{"type": "GenericCall", "tool_name": "custom_*"}],
     }
-    (freeact_dir / "permissions.json").write_text(json.dumps(custom_rules))
+    (freeact_dir / "permissions.toml").write_text(tomli_w.dumps(custom_rules))
 
     manager = PermissionManager(working_dir, freeact_dir)
     manager.init()
-    assert manager._always.allow == [{"type": "GenericCall", "tool_name": "custom_*"}]
+    assert manager._always.allow == [GenericCallRule(tool_name="custom_*")]
 
 
 def test_init_restores_defaults_after_file_deleted(freeact_dir: Path, working_dir: Path) -> None:
     manager = PermissionManager(working_dir, freeact_dir)
     manager.init()
-    (freeact_dir / "permissions.json").unlink()
+    (freeact_dir / "permissions.toml").unlink()
 
     manager2 = PermissionManager(working_dir, freeact_dir)
     manager2.init()
@@ -388,7 +401,7 @@ def test_defaults_active_without_load(freeact_dir: Path, working_dir: Path) -> N
         "README.md",
         "src/main.py",
         "a/b/c/d.txt",
-        ".freeact/permissions.json",
+        ".freeact/permissions.toml",
         ".freeact/sessions/abc/main.jsonl",
     ],
 )

@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from ipybox.utils import arun
 from pydantic_ai.mcp import ToolResult
 from pydantic_ai.messages import BinaryContent, ModelMessage, ModelMessagesTypeAdapter
 from pydantic_core import to_jsonable_python
@@ -187,6 +188,14 @@ class ToolResultMaterializer:
         self._working_dir = working_dir
 
     def materialize(self, content: ToolResult) -> ToolResult:
+        """Return content inline or replace it with an overflow notice.
+
+        Results at or below the inline threshold pass through unchanged.
+        Larger results are written to the session's `tool-results/`
+        directory and replaced by a notice with size, optional preview,
+        and the saved file path. If saving fails, the content stays
+        inline.
+        """
         canonical = self._canonicalize(content)
         actual_size_bytes = len(canonical.payload)
 
@@ -257,3 +266,91 @@ class ToolResultMaterializer:
         guessed = mimetypes.guess_extension(media_type, strict=False)
         ext = (guessed or ".bin").lstrip(".").lower()
         return ext if ext and ext.isalnum() else "bin"
+
+
+class Session:
+    """Single source of truth for an agent's message history.
+
+    Owns the in-memory history and keeps the persistent store (when
+    present) in sync on every mutation; callers never write to both.
+    Also owns tool-result overflow materialization, which stores
+    oversized results in the session directory.
+    """
+
+    def __init__(
+        self,
+        *,
+        agent_id: str,
+        store: SessionStore | None,
+        working_dir: Path,
+        inline_max_bytes: int,
+        preview_chars: int,
+    ) -> None:
+        self._history_id = agent_id if agent_id.startswith("sub-") else "main"
+        self._store = store
+        self._messages: list[ModelMessage] = []
+        self._materializer: ToolResultMaterializer | None = None
+        if store is not None:
+            self._materializer = ToolResultMaterializer(
+                session_store=store,
+                inline_max_bytes=inline_max_bytes,
+                preview_chars=preview_chars,
+                working_dir=working_dir,
+            )
+
+    @property
+    def messages(self) -> list[ModelMessage]:
+        """Current message history (live view, do not mutate)."""
+        return self._messages
+
+    def __len__(self) -> int:
+        return len(self._messages)
+
+    async def load(self) -> None:
+        """Restore persisted history.
+
+        Only the main agent's history is rehydrated; subagent histories
+        are an audit record. No-op when persistence is disabled or
+        history was already loaded.
+        """
+        if self._store is None or self._history_id != "main" or self._messages:
+            return
+        self._messages = await arun(self._store.load_messages, agent_id="main")
+
+    async def append(self, messages: list[ModelMessage]) -> None:
+        """Append messages to history (and the store, when persistent)."""
+        if not messages:
+            return
+
+        self._messages.extend(messages)
+        if self._store is not None:
+            await arun(self._store.append_messages, agent_id=self._history_id, messages=messages)
+
+    async def rollback(self, count: int) -> None:
+        """Remove the last `count` messages from history (and the store)."""
+        if count <= 0:
+            return
+        if count > len(self._messages):
+            raise ValueError(f"Cannot rollback {count} messages from history of size {len(self._messages)}")
+
+        del self._messages[-count:]
+        if self._store is not None:
+            await arun(self._store.delete_last_messages, agent_id=self._history_id, count=count)
+
+    async def materialize(self, content: ToolResult) -> ToolResult:
+        """Apply overflow handling to a tool result.
+
+        Pass-through when persistence is disabled.
+        """
+        if self._materializer is None:
+            return content
+        return await arun(self._materializer.materialize, content)
+
+    async def materialize_text(self, text: str) -> tuple[str, bool]:
+        """Apply overflow handling to text output.
+
+        Returns:
+            The (possibly replaced) text and whether it was truncated.
+        """
+        materialized = str(await self.materialize(text))
+        return materialized, materialized != text

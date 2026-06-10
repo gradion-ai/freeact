@@ -1,11 +1,19 @@
 from asyncio import Future
 from dataclasses import dataclass, field
+from enum import Enum
 from pathlib import Path
-from typing import Literal
 
 from pydantic_ai.mcp import ToolResult
 
-from freeact.agent.call import ToolCall
+from freeact.toolcalls import ToolCall
+
+
+class Phase(str, Enum):
+    """Phase boundary at which a turn can be cancelled."""
+
+    BETWEEN_TURNS = "between_turns"
+    LLM_STREAMING = "llm_streaming"
+    TOOL_EXECUTION = "tool_execution"
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -14,6 +22,8 @@ class AgentEvent:
 
     Carries the `agent_id` of the agent that produced the event, allowing
     callers to distinguish events from a parent agent vs. its subagents.
+    Tool-related events carry a `corr_id`; events produced by a subagent
+    additionally carry the parent task's correlation id in `parent_corr_id`.
     """
 
     agent_id: str = ""
@@ -70,13 +80,7 @@ class CodeExecutionOutput(AgentEvent):
     text: str | None
     images: list[Path]
     truncated: bool = False
-
-    def approval_rejected(self) -> bool:
-        """Whether the output indicates a rejected programmatic tool call or shell command."""
-        if not self.text:
-            return False
-
-        return "ApprovalRejectedError:" in self.text
+    approval_rejected: bool = False
 
     def format(self) -> str:
         """Format output with image markdown links."""
@@ -90,11 +94,12 @@ class CodeExecutionOutput(AgentEvent):
 
 @dataclass(frozen=True)
 class ApprovalRequest(AgentEvent):
-    """Pending code action or tool call awaiting user approval.
+    """Pending code action or tool call awaiting approval.
 
-    Yielded by [`Agent.stream()`][freeact.agent.Agent.stream] before
-    executing any code action, programmatic tool call, or JSON tool call.
-    The stream is suspended until `approve()` is called.
+    Yielded by [`Agent.stream()`][freeact.Agent.stream] before executing any
+    code action, shell command, programmatic tool call, JSON tool call, or
+    subagent task. The affected execution is suspended until `approve()` is
+    called.
     """
 
     tool_call: ToolCall
@@ -103,7 +108,7 @@ class ApprovalRequest(AgentEvent):
     def approve(self, decision: bool) -> None:
         """Resolve this approval request.
 
-        No-op if already resolved (e.g. by cancellation).
+        No-op if already resolved (e.g. by cancellation or timeout).
 
         Args:
             decision: `True` to execute, `False` to reject and end
@@ -121,4 +126,4 @@ class ApprovalRequest(AgentEvent):
 class Cancelled(AgentEvent):
     """Agent execution was cancelled by the user."""
 
-    phase: Literal["between_turns", "llm_streaming", "tool_execution"]
+    phase: Phase

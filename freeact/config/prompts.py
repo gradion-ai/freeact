@@ -1,7 +1,7 @@
 from importlib.resources import as_file, files
 from pathlib import Path
 
-from freeact.agent.config.skills import SkillMetadata
+from freeact.config.skills import SkillMetadata
 
 
 def load_system_prompt(
@@ -11,7 +11,18 @@ def load_system_prompt(
     project_instructions_file: Path,
     skills_metadata: list[SkillMetadata],
 ) -> str:
-    prompts = files("freeact.agent.config").joinpath("prompts")
+    """Compose the system prompt from the bundled template.
+
+    Args:
+        working_dir: Agent workspace directory.
+        generated_rel_dir: Relative path to generated tool sources.
+        project_instructions_file: Optional `AGENTS.md` in the working directory.
+        skills_metadata: Discovered skills for the skills section.
+
+    Returns:
+        Rendered system prompt.
+    """
+    prompts = files("freeact.config").joinpath("prompts")
     with as_file(prompts) as prompts_dir:
         template = (prompts_dir / "system.md").read_text()
 
@@ -30,7 +41,7 @@ def _render_section(section_name: str, content: str | None) -> str:
     if content is None:
         return ""
 
-    prompts = files("freeact.agent.config").joinpath("prompts")
+    prompts = files("freeact.config").joinpath("prompts")
     with as_file(prompts) as prompts_dir:
         template = (prompts_dir / f"section-{section_name}.md").read_text()
     return template.format(content=content)

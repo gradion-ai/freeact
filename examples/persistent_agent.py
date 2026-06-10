@@ -1,6 +1,6 @@
 import asyncio
 
-from freeact.agent import (
+from freeact import (
     Agent,
     ApprovalRequest,
     CodeAction,
@@ -9,9 +9,8 @@ from freeact.agent import (
     ShellAction,
     Thoughts,
     ToolOutput,
+    config,
 )
-from freeact.agent.config import Config
-from freeact.tools.pytools.apigen import generate_mcp_sources
 
 
 async def handle_events(agent: Agent, prompt: str) -> None:
@@ -37,15 +36,11 @@ async def handle_events(agent: Agent, prompt: str) -> None:
 
 
 async def main() -> None:
-    config = await Config.init()
-
-    for server_name, params in config.ptc_servers.items():
-        if not (config.generated_dir / "mcptools" / server_name).exists():
-            await generate_mcp_sources({server_name: params}, config.generated_dir)
+    runtime = config.resolve(config.init())
 
     # --8<-- [start:session-run-no-id]
     # No session_id: agent creates a new session ID internally.
-    async with Agent(config=config) as agent:
+    async with Agent(runtime) as agent:
         print(f"Generated session ID: {agent.session_id}")
         await handle_events(agent, "What is the capital of France?")
         await handle_events(agent, "What about Germany?")
@@ -58,13 +53,13 @@ async def main() -> None:
 
     # --8<-- [start:session-run-existing]
     # Create-or-resume behavior: resume if present, otherwise start new.
-    async with Agent(config=config, session_id=session_id) as agent:
+    async with Agent(runtime, session_id=session_id) as agent:
         await handle_events(agent, "What is the capital of Spain?")
     # --8<-- [end:session-run-existing]
 
     # --8<-- [start:session-resume]
     # Resume the same session ID later.
-    async with Agent(config=config, session_id=session_id) as agent:
+    async with Agent(runtime, session_id=session_id) as agent:
         # Previous message history is restored automatically
         await handle_events(agent, "And what country did we discuss in this session?")
     # --8<-- [end:session-resume]

@@ -1,5 +1,6 @@
 import json
 from collections.abc import AsyncIterator, Callable
+from dataclasses import dataclass, field
 from typing import Any
 
 from pydantic_ai.messages import (
@@ -9,12 +10,20 @@ from pydantic_ai.messages import (
 )
 from pydantic_ai.models.function import AgentInfo, DeltaThinkingPart, DeltaToolCall
 
-from freeact.agent import ApprovalRequest, CodeExecutionOutput
-from freeact.agent.events import CodeExecutionOutputChunk
+from freeact import (
+    ApprovalRequest,
+    Cancelled,
+    CodeExecutionOutput,
+    Response,
+    ResponseChunk,
+    Thoughts,
+    ThoughtsChunk,
+    ToolOutput,
+)
+from freeact.agent import Agent
 
 DeltaToolCalls = dict[int, DeltaToolCall]
 DeltaThinkingCalls = dict[int, DeltaThinkingPart]
-CodeExecFunction = Callable[..., AsyncIterator[ApprovalRequest | CodeExecutionOutput | CodeExecutionOutputChunk]]
 
 
 def get_tool_return_parts(messages: list[ModelMessage]) -> list[ToolReturnPart]:
@@ -73,3 +82,49 @@ def create_task_stream_function(
             yield subagent_response
 
     return stream_function
+
+
+@dataclass
+class StreamResults:
+    """Container for collected stream events."""
+
+    approvals: list[ApprovalRequest] = field(default_factory=list)
+    cancelled: list[Cancelled] = field(default_factory=list)
+    code_outputs: list[CodeExecutionOutput] = field(default_factory=list)
+    tool_outputs: list[ToolOutput] = field(default_factory=list)
+    responses: list[Response] = field(default_factory=list)
+    response_chunks: list[ResponseChunk] = field(default_factory=list)
+    thoughts: list[Thoughts] = field(default_factory=list)
+    thoughts_chunks: list[ThoughtsChunk] = field(default_factory=list)
+    all_events: list[Any] = field(default_factory=list)
+
+
+async def collect_stream(
+    agent: Agent,
+    prompt: str,
+    approve_function: Callable[[ApprovalRequest], bool] = lambda _: True,
+    max_turns: int | None = None,
+) -> StreamResults:
+    """Collect all events from agent.stream(), auto-approving with approve_function."""
+    results = StreamResults()
+    async for event in agent.stream(prompt, max_turns=max_turns):
+        results.all_events.append(event)
+        match event:
+            case ApprovalRequest() as req:
+                results.approvals.append(req)
+                req.approve(approve_function(req))
+            case Cancelled() as c:
+                results.cancelled.append(c)
+            case CodeExecutionOutput() as out:
+                results.code_outputs.append(out)
+            case ToolOutput() as out:
+                results.tool_outputs.append(out)
+            case Response() as resp:
+                results.responses.append(resp)
+            case ResponseChunk() as chunk:
+                results.response_chunks.append(chunk)
+            case Thoughts() as thought:
+                results.thoughts.append(thought)
+            case ThoughtsChunk() as chunk:
+                results.thoughts_chunks.append(chunk)
+    return results

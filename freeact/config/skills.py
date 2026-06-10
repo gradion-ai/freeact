@@ -16,16 +16,35 @@ class SkillMetadata(BaseModel):
 
 
 def load_skills_metadata(*, skills_dir: Path, project_skills_dir: Path) -> list[SkillMetadata]:
+    """Scan workspace and project skill directories for skill metadata.
+
+    Args:
+        skills_dir: Workspace skills directory (`.freeact/skills`).
+        project_skills_dir: Project skills directory (`.agents/skills`).
+
+    Returns:
+        Metadata of all discovered skills.
+    """
     return _scan_skills_dir(skills_dir) + _scan_skills_dir(project_skills_dir)
 
 
 def materialize_bundled_skills(*, skills_dir: Path, generated_rel_dir: Path, plans_rel_dir: Path) -> None:
+    """Copy bundled skill templates into the workspace skills directory.
+
+    Skill directories that already exist are skipped so user modifications
+    persist.
+
+    Args:
+        skills_dir: Target workspace skills directory.
+        generated_rel_dir: Relative path to generated tool sources (template placeholder).
+        plans_rel_dir: Relative path to the plans directory (template placeholder).
+    """
     placeholders = {
         "generated_rel_dir": str(generated_rel_dir),
         "plans_rel_dir": str(plans_rel_dir),
     }
 
-    templates_root = files("freeact.agent.config").joinpath("templates", "skills")
+    templates_root = files("freeact.config").joinpath("templates", "skills")
     with as_file(templates_root) as skills_template_dir:
         for template_skill_dir in skills_template_dir.iterdir():
             if not template_skill_dir.is_dir():

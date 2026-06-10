@@ -22,6 +22,7 @@ dependencies = [
     "sqlite-vec>=0.1.0",
     "watchfiles>=1.0.0",
     "trafilatura>=2.0.0",
+    "tomli-w>=1.2.0",
 ]
 
 [project.scripts]

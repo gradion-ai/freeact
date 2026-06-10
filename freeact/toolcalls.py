@@ -1,30 +1,26 @@
 import json
 from dataclasses import dataclass
-from fnmatch import fnmatch
-from pathlib import Path, PurePosixPath
 from typing import Any
 
-from freeact.agent.shell import suggest_shell_pattern
-
-
-def _path_matches(path: str, pattern: str) -> bool:
-    # A relative pattern must not match an absolute path. `PurePosixPath.full_match`
-    # treats `**` as matching any path including absolute ones, which would let
-    # broad relative patterns like `**` leak reads of arbitrary host files.
-    if pattern.startswith("/") != path.startswith("/"):
-        return False
-    return PurePosixPath(path).full_match(pattern)  # type: ignore[attr-defined]
-
-
-def _normalize_path(path_str: str, working_dir: Path) -> str:
-    """Normalize a path: if absolute and under working_dir, make relative."""
-    p = Path(path_str)
-    if p.is_absolute():
-        try:
-            return str(p.relative_to(working_dir))
-        except ValueError:
-            return path_str
-    return path_str
+_KNOWN_SUBCOMMAND_TOOLS = frozenset(
+    {
+        "git",
+        "pip",
+        "docker",
+        "kubectl",
+        "npm",
+        "yarn",
+        "cargo",
+        "go",
+        "apt",
+        "brew",
+        "conda",
+        "poetry",
+        "uv",
+        "make",
+        "systemctl",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -94,14 +90,6 @@ class ToolCall:
         """Reconstruct a ToolCall from a user-edited pattern string."""
         return GenericCall(tool_name=pattern, tool_args={}, ptc=False)
 
-    def to_entry(self) -> dict[str, Any]:
-        """Serialize this tool call's pattern-relevant fields to a dict entry."""
-        return {"type": "ToolCall", "tool_name": self.tool_name}
-
-    def matches_entry(self, entry: dict[str, Any], working_dir: Path) -> bool:
-        """Check if a permission entry matches this tool call."""
-        return False
-
 
 @dataclass(frozen=True)
 class GenericCall(ToolCall):
@@ -109,14 +97,6 @@ class GenericCall(ToolCall):
 
     tool_args: dict[str, Any]
     ptc: bool = False
-
-    def to_entry(self) -> dict[str, Any]:
-        return {"type": "GenericCall", "tool_name": self.tool_name}
-
-    def matches_entry(self, entry: dict[str, Any], working_dir: Path) -> bool:
-        if entry.get("type") != "GenericCall":
-            return False
-        return fnmatch(self.tool_name, entry.get("tool_name", ""))
 
 
 @dataclass(frozen=True)
@@ -139,14 +119,6 @@ class ShellAction(ToolCall):
         command = pattern.replace("\\n", "\n") if self.tool_name == "shell_magic" else pattern
         return ShellAction(tool_name=self.tool_name, command=command)
 
-    def to_entry(self) -> dict[str, Any]:
-        return {"type": "ShellAction", "tool_name": self.tool_name, "command": self.command}
-
-    def matches_entry(self, entry: dict[str, Any], working_dir: Path) -> bool:
-        if entry.get("type") != "ShellAction":
-            return False
-        return fnmatch(self.tool_name, entry.get("tool_name", "")) and fnmatch(self.command, entry.get("command", ""))
-
 
 @dataclass(frozen=True)
 class CodeAction(ToolCall):
@@ -156,14 +128,6 @@ class CodeAction(ToolCall):
 
     def from_pattern(self, pattern: str) -> "ToolCall":
         return CodeAction(tool_name=pattern, code="")
-
-    def to_entry(self) -> dict[str, Any]:
-        return {"type": "CodeAction", "tool_name": self.tool_name}
-
-    def matches_entry(self, entry: dict[str, Any], working_dir: Path) -> bool:
-        if entry.get("type") != "CodeAction":
-            return False
-        return fnmatch(self.tool_name, entry.get("tool_name", ""))
 
 
 @dataclass(frozen=True)
@@ -183,20 +147,6 @@ class FileRead(ToolCall):
         path = parts[1] if len(parts) > 1 else self.path
         return FileRead(tool_name=name, path=path, offset=None, limit=None)
 
-    def to_entry(self) -> dict[str, Any]:
-        return {"type": "FileRead", "tool_name": self.tool_name, "path": self.path}
-
-    def matches_entry(self, entry: dict[str, Any], working_dir: Path) -> bool:
-        if entry.get("type") != "FileRead":
-            return False
-        if not fnmatch(self.tool_name, entry.get("tool_name", "")):
-            return False
-        entry_pattern = entry.get("path", "")
-        if not entry_pattern:
-            return False
-        normalized = _normalize_path(self.path, working_dir)
-        return _path_matches(normalized, entry_pattern)
-
 
 @dataclass(frozen=True)
 class FileWrite(ToolCall):
@@ -213,17 +163,6 @@ class FileWrite(ToolCall):
         name = parts[0] if parts else self.tool_name
         path = parts[1] if len(parts) > 1 else self.path
         return FileWrite(tool_name=name, path=path, content="")
-
-    def to_entry(self) -> dict[str, Any]:
-        return {"type": "FileWrite", "tool_name": self.tool_name, "path": self.path}
-
-    def matches_entry(self, entry: dict[str, Any], working_dir: Path) -> bool:
-        if entry.get("type") != "FileWrite":
-            return False
-        if not fnmatch(self.tool_name, entry.get("tool_name", "")):
-            return False
-        normalized = _normalize_path(self.path, working_dir)
-        return _path_matches(normalized, entry.get("path", ""))
 
 
 @dataclass(frozen=True)
@@ -242,17 +181,6 @@ class FileEdit(ToolCall):
         name = parts[0] if parts else self.tool_name
         path = parts[1] if len(parts) > 1 else self.path
         return FileEdit(tool_name=name, path=path, old_text="", new_text="")
-
-    def to_entry(self) -> dict[str, Any]:
-        return {"type": "FileEdit", "tool_name": self.tool_name, "path": self.path}
-
-    def matches_entry(self, entry: dict[str, Any], working_dir: Path) -> bool:
-        if entry.get("type") != "FileEdit":
-            return False
-        if not fnmatch(self.tool_name, entry.get("tool_name", "")):
-            return False
-        normalized = _normalize_path(self.path, working_dir)
-        return _path_matches(normalized, entry.get("path", ""))
 
 
 def suggest_pattern(tool_call: ToolCall) -> str:
@@ -280,23 +208,6 @@ def suggest_display(tool_call: ToolCall) -> str:
     return tool_call.to_display()
 
 
-def _summarize_shell_script(script: str) -> str:
-    """Render a multi-line shell script as a compact single-line summary.
-
-    Returns the first non-empty line, optionally followed by a count of
-    the remaining non-empty lines. Used by the approval bar so the bar
-    stays compact while the full script is shown in the action box above.
-    """
-    lines = [line for line in script.splitlines() if line.strip()]
-    if not lines:
-        return "(empty script)"
-    head = lines[0].strip()
-    extra = len(lines) - 1
-    if extra == 0:
-        return head
-    return f"{head} (+{extra} more lines)"
-
-
 def parse_pattern(pattern: str, template: ToolCall) -> ToolCall:
     """Reconstruct a ToolCall from a user-edited pattern string and an original type.
 
@@ -308,6 +219,20 @@ def parse_pattern(pattern: str, template: ToolCall) -> ToolCall:
         A ToolCall with pattern fields from the edited string.
     """
     return template.from_pattern(pattern)
+
+
+def suggest_shell_pattern(command: str) -> str:
+    """Suggest a glob pattern for a shell command.
+
+    Uses `cmd subcmd *` heuristic for known multi-word commands,
+    otherwise `cmd *`.
+    """
+    parts = command.split()
+    if not parts:
+        return "*"
+    if len(parts) >= 2 and parts[0] in _KNOWN_SUBCOMMAND_TOOLS:
+        return f"{parts[0]} {parts[1]} *"
+    return f"{parts[0]} *"
 
 
 def extract_tool_output_text(content: object) -> str:
@@ -332,6 +257,19 @@ def extract_tool_output_text(content: object) -> str:
             return "\n".join(extract_tool_output_text(item) for item in content)
         case _:
             return str(content)
+
+
+def _summarize_shell_script(script: str) -> str:
+    # First non-empty line plus a count of the rest, so the approval bar
+    # stays compact while the full script is shown in the action box above.
+    lines = [line for line in script.splitlines() if line.strip()]
+    if not lines:
+        return "(empty script)"
+    head = lines[0].strip()
+    extra = len(lines) - 1
+    if extra == 0:
+        return head
+    return f"{head} (+{extra} more lines)"
 
 
 def _to_str(value: object) -> str:

@@ -7,8 +7,7 @@ import pytest
 from pydantic_ai.messages import ModelMessage
 from pydantic_ai.models.function import AgentInfo, DeltaToolCall
 
-from freeact.agent import ApprovalRequest, CodeExecutionOutput, Response, ToolOutput
-from freeact.agent.events import AgentEvent, ResponseChunk
+from freeact import AgentEvent, ApprovalRequest, CodeExecutionOutput, Response, ResponseChunk, ToolOutput
 from tests.helpers import (
     DeltaToolCalls,
     collect_stream,

@@ -2,7 +2,7 @@ import asyncio
 from typing import Any
 
 
-class _ResourceSupervisor:
+class ResourceSupervisor:
     """Keeps a single async context manager running in its own task.
 
     Unlike `AsyncExitStack`, multiple supervisors can be started and

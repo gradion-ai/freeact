@@ -1,15 +1,17 @@
 import json
 from collections.abc import AsyncIterator, Callable
 from pathlib import Path
+from typing import Any
 
+import ipybox
 import pytest
 from pydantic_ai.messages import ModelMessage, ModelRequest, ModelResponse, ToolReturnPart, UserPromptPart
 from pydantic_ai.models.function import AgentInfo
 from pydantic_core import to_jsonable_python
 
-from freeact.agent import Agent, CodeExecutionOutput
-from freeact.agent.store import SessionStore
+from freeact.agent import SessionStore
 from tests.helpers import (
+    FakeCodeExecutor,
     collect_stream,
     create_stream_function,
     create_task_stream_function,
@@ -89,12 +91,12 @@ async def test_large_tool_result_is_persisted_in_tool_results_directory(
         tool_args={"code": "print('large')"},
     )
 
-    async def code_exec_function(self: Agent, code: str) -> AsyncIterator[CodeExecutionOutput]:
-        yield CodeExecutionOutput(text="line-1\nline-2\nline-3\n" + ("x" * 300), images=[])
+    async def script(code: str) -> AsyncIterator[Any]:
+        yield ipybox.CodeExecutionResult(text="line-1\nline-2\nline-3\n" + ("x" * 300), images=[])
 
     async with patched_agent(
         stream_function,
-        code_exec_function=code_exec_function,
+        FakeCodeExecutor(script=script),
         tmp_dir=tmp_path,
         session_id="session-1",
         tool_result_inline_max_bytes=32,

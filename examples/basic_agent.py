@@ -1,7 +1,9 @@
 import asyncio
 
 # --8<-- [start:agent-imports]
-from freeact.agent import (
+# --8<-- [end:agent-imports]
+# --8<-- [start:config-imports]
+from freeact import (
     Agent,
     ApprovalRequest,
     CodeAction,
@@ -10,11 +12,8 @@ from freeact.agent import (
     ShellAction,
     Thoughts,
     ToolOutput,
+    config,
 )
-
-# --8<-- [end:agent-imports]
-# --8<-- [start:config-imports]
-from freeact.agent.config import Config
 
 # --8<-- [end:config-imports]
 # --8<-- [start:apigen-imports]
@@ -25,18 +24,24 @@ from freeact.tools.pytools.apigen import generate_mcp_sources
 
 async def main() -> None:
     # --8<-- [start:config]
-    config = await Config.init()
+    config.init()  # set up the .freeact/ workspace (config.toml, dirs, bundled skills)
+
+    # Enable the bundled search and fetch tool servers for this example
+    # (in a real workspace, set them in .freeact/config.toml instead).
+    cfg = config.FreeactConfig.model_validate({"agent": {"tools": {"search": True, "fetch": True}}})
+    runtime = config.resolve(cfg)
     # --8<-- [end:config]
 
     # --8<-- [start:apigen]
     # Generate Python APIs for MCP servers in ptc_servers
-    for server_name, params in config.ptc_servers.items():
-        if not (config.generated_dir / "mcptools" / server_name).exists():
-            await generate_mcp_sources({server_name: params}, config.generated_dir)
+    generated_dir = runtime.workspace.generated_dir
+    for server_name, params in runtime.ptc_servers.items():
+        if not (generated_dir / "mcptools" / server_name).exists():
+            await generate_mcp_sources({server_name: params}, generated_dir)
     # --8<-- [end:apigen]
 
     # --8<-- [start:agent]
-    async with Agent(config=config) as agent:
+    async with Agent(runtime) as agent:
         prompt = "Who is the F1 world champion 2025?"
 
         async for event in agent.stream(prompt):

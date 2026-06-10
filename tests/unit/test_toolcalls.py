@@ -1,8 +1,9 @@
+# Covers behavior-inventory.md sections: 4 (shell pattern suggestion), 12 (tool call typing)
 from typing import Any
 
 import pytest
 
-from freeact.agent.call import (
+from freeact.toolcalls import (
     CodeAction,
     FileEdit,
     FileRead,
@@ -12,7 +13,9 @@ from freeact.agent.call import (
     ToolCall,
     extract_tool_output_text,
     parse_pattern,
+    suggest_display,
     suggest_pattern,
+    suggest_shell_pattern,
 )
 
 
@@ -114,6 +117,20 @@ def test_suggest_pattern(tool_call: ToolCall, expected: str) -> None:
 
 
 @pytest.mark.parametrize(
+    ("tool_call", "expected"),
+    [
+        (ShellAction(tool_name="bash", command="git add /path/to/file.py"), "git add /path/to/file.py"),
+        (ShellAction(tool_name="shell_magic", command="echo hello\necho world"), "echo hello (+1 more lines)"),
+        (ShellAction(tool_name="shell_magic", command="echo solo"), "echo solo"),
+        (GenericCall(tool_name="github_search", tool_args={}, ptc=False), ""),
+        (CodeAction(tool_name="ipybox_execute_ipython_cell", code="x=1"), ""),
+    ],
+)
+def test_suggest_display(tool_call: ToolCall, expected: str) -> None:
+    assert suggest_display(tool_call) == expected
+
+
+@pytest.mark.parametrize(
     ("payload", "expected"),
     [
         ("plain text", "plain text"),
@@ -193,3 +210,17 @@ def test_parse_pattern(pattern: str, template: ToolCall, expected: ToolCall) -> 
 )
 def test_parse_pattern_roundtrip(tool_call: ToolCall, expected: ToolCall) -> None:
     assert parse_pattern(suggest_pattern(tool_call), tool_call) == expected
+
+
+@pytest.mark.parametrize(
+    ("command", "expected"),
+    [
+        ("git add /path/to/file.py", "git add *"),
+        ("ls", "ls *"),
+        ("ls -la /tmp", "ls *"),
+        ("pip install pandas", "pip install *"),
+        ("docker run --rm ubuntu", "docker run *"),
+    ],
+)
+def test_suggest_shell_pattern(command: str, expected: str) -> None:
+    assert suggest_shell_pattern(command) == expected

@@ -1,31 +1,195 @@
-import json
-from pathlib import Path
-from typing import Any
+from fnmatch import fnmatch
+from pathlib import Path, PurePosixPath
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict
+import tomli_w
+import tomllib
+from pydantic import BaseModel, ConfigDict, Field
 
-from freeact.agent.call import ToolCall
+from freeact.toolcalls import (
+    CodeAction,
+    FileEdit,
+    FileRead,
+    FileWrite,
+    GenericCall,
+    ShellAction,
+    ToolCall,
+)
 
 
-def _shell(command: str) -> dict[str, Any]:
-    return {"type": "ShellAction", "tool_name": "bash", "command": command}
+def _path_matches(path: str, pattern: str) -> bool:
+    # A relative pattern must not match an absolute path. `PurePosixPath.full_match`
+    # treats `**` as matching any path including absolute ones, which would let
+    # broad relative patterns like `**` leak reads of arbitrary host files.
+    if pattern.startswith("/") != path.startswith("/"):
+        return False
+    return PurePosixPath(path).full_match(pattern)  # type: ignore[attr-defined]
 
 
-def _generic(tool_name: str) -> dict[str, Any]:
-    return {"type": "GenericCall", "tool_name": tool_name}
+def _normalize_path(path_str: str, working_dir: Path) -> str:
+    # If absolute and under working_dir, make relative so workspace-relative
+    # rules apply; paths outside the working dir stay absolute.
+    p = Path(path_str)
+    if p.is_absolute():
+        try:
+            return str(p.relative_to(working_dir))
+        except ValueError:
+            return path_str
+    return path_str
 
 
-def _file_read(path: str, tool_name: str = "filesystem_*") -> dict[str, Any]:
-    return {"type": "FileRead", "tool_name": tool_name, "path": path}
+class _Rule(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    tool_name: str
+
+    def matches(self, call: ToolCall, working_dir: Path) -> bool:
+        """Check whether this rule matches a concrete tool call."""
+        return False
+
+
+class GenericCallRule(_Rule):
+    """Rule matching generic tool calls by tool name glob."""
+
+    type: Literal["GenericCall"] = "GenericCall"
+
+    def matches(self, call: ToolCall, working_dir: Path) -> bool:
+        match call:
+            case GenericCall():
+                return fnmatch(call.tool_name, self.tool_name)
+            case _:
+                return False
+
+
+class ShellActionRule(_Rule):
+    """Rule matching shell commands by tool name and command globs."""
+
+    type: Literal["ShellAction"] = "ShellAction"
+    command: str
+
+    def matches(self, call: ToolCall, working_dir: Path) -> bool:
+        match call:
+            case ShellAction():
+                return fnmatch(call.tool_name, self.tool_name) and fnmatch(call.command, self.command)
+            case _:
+                return False
+
+
+class CodeActionRule(_Rule):
+    """Rule matching code actions by tool name glob."""
+
+    type: Literal["CodeAction"] = "CodeAction"
+
+    def matches(self, call: ToolCall, working_dir: Path) -> bool:
+        match call:
+            case CodeAction():
+                return fnmatch(call.tool_name, self.tool_name)
+            case _:
+                return False
+
+
+class _FileRule(_Rule):
+    path: str
+
+    def _matches_file(self, call_tool_name: str, call_path: str, working_dir: Path) -> bool:
+        if not fnmatch(call_tool_name, self.tool_name):
+            return False
+        if not self.path:
+            return False
+        normalized = _normalize_path(call_path, working_dir)
+        return _path_matches(normalized, self.path)
+
+
+class FileReadRule(_FileRule):
+    """Rule matching file reads by tool name glob and path pattern."""
+
+    type: Literal["FileRead"] = "FileRead"
+
+    def matches(self, call: ToolCall, working_dir: Path) -> bool:
+        match call:
+            case FileRead():
+                return self._matches_file(call.tool_name, call.path, working_dir)
+            case _:
+                return False
+
+
+class FileWriteRule(_FileRule):
+    """Rule matching file writes by tool name glob and path pattern."""
+
+    type: Literal["FileWrite"] = "FileWrite"
+
+    def matches(self, call: ToolCall, working_dir: Path) -> bool:
+        match call:
+            case FileWrite():
+                return self._matches_file(call.tool_name, call.path, working_dir)
+            case _:
+                return False
+
+
+class FileEditRule(_FileRule):
+    """Rule matching file edits by tool name glob and path pattern."""
+
+    type: Literal["FileEdit"] = "FileEdit"
+
+    def matches(self, call: ToolCall, working_dir: Path) -> bool:
+        match call:
+            case FileEdit():
+                return self._matches_file(call.tool_name, call.path, working_dir)
+            case _:
+                return False
+
+
+PermissionRule = Annotated[
+    GenericCallRule | ShellActionRule | CodeActionRule | FileReadRule | FileWriteRule | FileEditRule,
+    Field(discriminator="type"),
+]
+
+
+def rule_from_call(tool_call: ToolCall) -> PermissionRule:
+    """Build a permission rule from a (possibly wildcarded) tool call.
+
+    Args:
+        tool_call: Tool call whose pattern-relevant fields become the rule.
+
+    Returns:
+        Typed permission rule matching calls like `tool_call`.
+    """
+    match tool_call:
+        case ShellAction():
+            return ShellActionRule(tool_name=tool_call.tool_name, command=tool_call.command)
+        case CodeAction():
+            return CodeActionRule(tool_name=tool_call.tool_name)
+        case FileRead():
+            return FileReadRule(tool_name=tool_call.tool_name, path=tool_call.path)
+        case FileWrite():
+            return FileWriteRule(tool_name=tool_call.tool_name, path=tool_call.path)
+        case FileEdit():
+            return FileEditRule(tool_name=tool_call.tool_name, path=tool_call.path)
+        case GenericCall():
+            return GenericCallRule(tool_name=tool_call.tool_name)
+        case _:
+            raise ValueError(f"unsupported tool call type: {type(tool_call).__name__}")
+
+
+def _shell(command: str) -> ShellActionRule:
+    return ShellActionRule(tool_name="bash", command=command)
+
+
+def _generic(tool_name: str) -> GenericCallRule:
+    return GenericCallRule(tool_name=tool_name)
+
+
+def _file_read(path: str, tool_name: str = "filesystem_*") -> FileReadRule:
+    return FileReadRule(tool_name=tool_name, path=path)
 
 
 # Ask rules are evaluated before allow rules; an ask match overrides any allow
 # match. Reads of `.env` files always prompt, even though `**` is allowed.
-DEFAULT_ASK_RULES: list[dict[str, Any]] = [
+DEFAULT_ASK_RULES: list[PermissionRule] = [
     _file_read("**/.env"),
 ]
 
-DEFAULT_ALLOW_RULES: list[dict[str, Any]] = [
+DEFAULT_ALLOW_RULES: list[PermissionRule] = [
     # FileRead: any text/media file inside the working directory. The relative
     # pattern is intentional; `_path_matches` rejects absolute paths outside
     # `working_dir`, so reads of e.g. /etc/passwd still prompt.
@@ -111,15 +275,15 @@ class PermissionsConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    ask: list[dict[str, Any]] = []
-    allow: list[dict[str, Any]] = []
+    ask: list[PermissionRule] = []
+    allow: list[PermissionRule] = []
 
     @classmethod
     def with_defaults(cls) -> "PermissionsConfig":
         """Create an instance with default ask and allow rules."""
         return cls(
-            ask=[rule.copy() for rule in DEFAULT_ASK_RULES],
-            allow=[rule.copy() for rule in DEFAULT_ALLOW_RULES],
+            ask=list(DEFAULT_ASK_RULES),
+            allow=list(DEFAULT_ALLOW_RULES),
         )
 
     @classmethod
@@ -131,11 +295,11 @@ class PermissionsConfig(BaseModel):
 class PermissionManager:
     """Tool call permission gating with type-specific pattern rules.
 
-    Rules are `ToolCall` instances whose fields may contain glob wildcards
-    (`*`, `?`). Path fields (`path`, `paths`) use path-aware matching
-    where `*` matches within a single directory and `**` matches across
-    directory boundaries. Non-path fields (`tool_name`, `command`) use
-    simple glob matching.
+    Rules are typed patterns whose fields may contain glob wildcards
+    (`*`, `?`). Path fields use path-aware matching where `*` matches
+    within a single directory and `**` matches across directory
+    boundaries. Non-path fields (`tool_name`, `command`) use simple glob
+    matching.
 
     Use [`allow_always`][freeact.permissions.PermissionManager.allow_always]
     and [`allow_session`][freeact.permissions.PermissionManager.allow_session]
@@ -149,7 +313,7 @@ class PermissionManager:
 
     def __init__(self, working_dir: Path | None = None, freeact_dir: Path = Path(".freeact")):
         self._freeact_dir = freeact_dir.resolve()
-        self._permissions_file = self._freeact_dir / "permissions.json"
+        self._permissions_file = self._freeact_dir / "permissions.toml"
         self._working_dir = (working_dir or Path.cwd()).resolve()
 
         self._always: PermissionsConfig = PermissionsConfig.with_defaults()
@@ -163,19 +327,17 @@ class PermissionManager:
             self.save()
 
     def load(self) -> None:
-        """Load permissions from `.freeact/permissions.json`."""
+        """Load permissions from `.freeact/permissions.toml`."""
         if not self._permissions_file.exists():
             return
 
-        text = self._permissions_file.read_text()
-        data = json.loads(text)
-
+        data = tomllib.loads(self._permissions_file.read_text())
         self._always = PermissionsConfig.model_validate(data)
 
     def save(self) -> None:
-        """Persist always-tier permissions to `.freeact/permissions.json`."""
+        """Persist always-tier permissions to `.freeact/permissions.toml`."""
         self._freeact_dir.mkdir(parents=True, exist_ok=True)
-        content = json.dumps(self._always.model_dump(), indent=2)
+        content = tomli_w.dumps(self._always.model_dump())
         self._permissions_file.write_text(content)
 
     def is_allowed(self, tool_call: ToolCall) -> bool:
@@ -191,20 +353,19 @@ class PermissionManager:
             `True` if an allow rule matches and no ask rule takes
             precedence, `False` otherwise.
         """
-        result = self._check_all(tool_call)
-        return result == "allow"
+        return self._check_all(tool_call) == "allow"
 
     def allow_always(self, tool_call: ToolCall) -> None:
         """Add a pattern rule to the always-allow list and persist.
 
         The tool call's fields may contain glob wildcards. For example,
         `ShellAction(tool_name="bash", command="git *")` allows all git
-        subcommands, and `FileRead(tool_name="filesystem_*",
-        paths=("src/**",))` allows reading any file under `src/`.
+        subcommands, and `FileRead(tool_name="filesystem_*", path="src/**",
+        offset=None, limit=None)` allows reading any file under `src/`.
         """
-        entry = tool_call.to_entry()
-        if entry not in self._always.allow:
-            self._always.allow.append(entry)
+        rule = rule_from_call(tool_call)
+        if rule not in self._always.allow:
+            self._always.allow.append(rule)
         self.save()
 
     def allow_session(self, tool_call: ToolCall) -> None:
@@ -214,22 +375,22 @@ class PermissionManager:
         [`allow_always`][freeact.permissions.PermissionManager.allow_always].
         Session rules are cleared when the process ends.
         """
-        entry = tool_call.to_entry()
-        if entry not in self._session.allow:
-            self._session.allow.append(entry)
+        rule = rule_from_call(tool_call)
+        if rule not in self._session.allow:
+            self._session.allow.append(rule)
 
     def _check_all(self, tool_call: ToolCall) -> str | None:
-        """Evaluate all permission lists in order. First match wins."""
-        for entry in self._session.ask:
-            if tool_call.matches_entry(entry, self._working_dir):
+        # Evaluate all permission lists in order. First match wins.
+        for rule in self._session.ask:
+            if rule.matches(tool_call, self._working_dir):
                 return "ask"
-        for entry in self._always.ask:
-            if tool_call.matches_entry(entry, self._working_dir):
+        for rule in self._always.ask:
+            if rule.matches(tool_call, self._working_dir):
                 return "ask"
-        for entry in self._session.allow:
-            if tool_call.matches_entry(entry, self._working_dir):
+        for rule in self._session.allow:
+            if rule.matches(tool_call, self._working_dir):
                 return "allow"
-        for entry in self._always.allow:
-            if tool_call.matches_entry(entry, self._working_dir):
+        for rule in self._always.allow:
+            if rule.matches(tool_call, self._working_dir):
                 return "allow"
         return None

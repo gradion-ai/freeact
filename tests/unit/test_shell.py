@@ -1,6 +1,7 @@
+# Covers behavior-inventory.md sections: 4 (shell command interception)
 import pytest
 
-from freeact.agent.shell import split_composite_command, suggest_shell_pattern
+from freeact.agent.shell import split_composite_command
 
 
 @pytest.mark.parametrize(
@@ -17,17 +18,3 @@ from freeact.agent.shell import split_composite_command, suggest_shell_pattern
 )
 def test_split_composite_command(command: str, expected: list[str]) -> None:
     assert split_composite_command(command) == expected
-
-
-@pytest.mark.parametrize(
-    ("command", "expected"),
-    [
-        ("git add /path/to/file.py", "git add *"),
-        ("ls", "ls *"),
-        ("ls -la /tmp", "ls *"),
-        ("pip install pandas", "pip install *"),
-        ("docker run --rm ubuntu", "docker run *"),
-    ],
-)
-def test_suggest_shell_pattern(command: str, expected: str) -> None:
-    assert suggest_shell_pattern(command) == expected
