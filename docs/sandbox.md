@@ -28,13 +28,13 @@ freeact --sandbox --sandbox-config sandbox-config.json
 
 ### Agent SDK
 
-The `sandbox` and `sandbox_config` parameters of the [`Agent`][freeact.agent.Agent] constructor provide the same functionality:
+The `sandbox` and `sandbox_config` parameters of the [`Agent`][freeact.Agent] constructor provide the same functionality:
 
 ```python
 from pathlib import Path
 
 agent = Agent(
-    ...
+    runtime,
     sandbox=True,
     sandbox_config=Path("sandbox-config.json"),
 )
@@ -68,20 +68,12 @@ uv add mcp-server-fetch
 uv add "httpx[socks]>=0.28.1"
 ```
 
-Then add it to the `ptc_servers` section:
+Then add it to the [`ptc_servers`](configuration.md#ptc_servers) section:
 
-```json title=".freeact/agent.json"
-{
-  "ptc_servers": {
-    "fetch": {
-      "command": "srt",
-      "args": [
-        "--settings", "sandbox-fetch-mcp.json",
-        "python", "-m", "mcp_server_fetch"
-      ]
-    }
-  }
-}
+```toml title=".freeact/config.toml"
+[agent.ptc_servers.fetch]
+command = "srt"
+args = ["--settings", "sandbox-fetch-mcp.json", "python", "-m", "mcp_server_fetch"]
 ```
 
 The sandbox configuration blocks `.env` reads and restricts the MCP server to fetch only from `example.com`. Access to the npm registry is required for the server's internal operations:

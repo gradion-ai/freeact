@@ -79,7 +79,9 @@ class ToolExecutor:
         self._code_executor = ipybox.CodeExecutor(
             kernel_env=runtime.kernel_env,
             working_dir=runtime.working_dir,
-            images_dir=runtime.config.images_dir,
+            # Resolved path: a configured relative dir (or the `images` default)
+            # anchors to working_dir, not to the embedder's process cwd.
+            images_dir=runtime.images_dir,
             sandbox=sandbox,
             sandbox_config=sandbox_config,
             approval_timeout=runtime.approval_timeout,

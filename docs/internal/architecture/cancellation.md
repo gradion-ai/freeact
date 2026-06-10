@@ -4,35 +4,32 @@ Cooperative cancellation of a running agent turn, triggered by Escape in the ter
 
 ## Mechanism
 
-- `Agent` owns an `asyncio.Event` (`_cancel_event`) checked at phase boundaries inside `stream()`.
-- `Agent.cancel()` sets the event and calls `self._code_executor.cancel()` (kernel SIGINT + drain).
-- The active `stream()` stops at the next boundary and yields a `Cancelled` event.
-- No `CancelledError` propagation -- all cancellation is flag-based.
+- `CancelToken` (`freeact/agent/approvals.py`) is shared across a turn's components (Agent, ApprovalGate, ToolExecutor, SubagentRunner) and checked at phase boundaries.
+- `Agent.cancel()` sets the token and calls `ToolExecutor.cancel_kernel()` (ipybox kernel SIGINT + drain).
+- The active `stream()` stops at the next boundary and yields `Cancelled(phase=...)` (`Phase` in `freeact/events.py`).
+- No `CancelledError` propagation -- all turn cancellation is flag-based.
+- `stream()` clears the token at the start of each call for the main agent only (subagent ids start with `sub-`; they share the parent's token and never clear it).
 
-## Phase Boundaries
+## Phase boundaries (`Agent._stream_turn`)
 
-The cancel event is cleared at the start of each `stream()` call (main agent only, not subagents).
+- **Between turns**: top of the loop. Yields `Cancelled(phase=BETWEEN_TURNS)`.
+- **LLM streaming**: checked after each chunk; breaks out, the aggregated (partial) response is appended to history. If the partial response contains tool calls, synthetic returns are appended for all of them. Yields `Cancelled(phase=LLM_STREAMING)`.
+- **Approval wait**: `ApprovalGate.decide()` races the token; result `Decision.CANCELLED` makes the executor yield an interrupted return for that call (not a rejected one, so cancellation does not trigger the rejection-ends-turn response).
+- **Tool execution**: checked after each merged item; the execution stream is closed, every tool call without a return gets a synthetic return, the returns are appended, then `Cancelled(phase=TOOL_EXECUTION)`.
+- **Individual tool end**: `ToolExecutor._execute` yields an interrupted return carrying any content produced so far (partial output preserved).
 
-- **Between turns**: top of `while True` loop. Yields `Cancelled(phase="between_turns")`.
-- **LLM streaming**: after each chunk. Breaks out; partial response preserved in history.
-- **Post-LLM with tool calls**: synthetic `ToolReturnPart` for all emitted calls, then `Cancelled(phase="llm_streaming")`.
-- **Approval wait**: `_await_approval_or_cancel()` races cancel against `approval.approved()`. Cancel auto-rejects.
-- **Tool execution**: after each item in the `aiostream.merge()` loop. Synthetic returns for incomplete tools, then `Cancelled(phase="tool_execution")`.
-- **Individual tool end**: `_execute_tool()` yields an interrupted return if cancelled (preserving partial output).
+## Conversation coherence (INVARIANT)
 
-## Conversation Coherence
-
-Orphaned tool calls get synthetic returns via `_interrupted_tool_return()`: `ToolReturnPart(content="Interrupted by user", metadata={"interrupted": True})`. This preserves the strict `[tool_use] -> [tool_result]` sequencing required by model APIs. Partial responses are kept in history, not discarded.
+After cancellation every tool call the model issued has a tool return in history: `interrupted_tool_return()` (`freeact/agent/executor.py`) produces `ToolReturnPart(content="Interrupted by user", metadata={"interrupted": True})`. This preserves the strict `[tool_use] -> [tool_result]` sequencing required by model APIs, so persisted history stays valid for resume. Cancellation NEVER rolls history back; `Session.rollback` is exclusively the turn-exception path.
 
 ## Subagents
 
-- Parent shares `_cancel_event` with the subagent.
-- A monitor task in `_execute_subagent_task()` watches the event and calls `subagent._code_executor.cancel()`.
-- Subagents do not clear the shared event.
+- The parent's `CancelToken` is passed to each subagent's constructor.
+- A monitor task in `SubagentRunner.run_task` watches the token and calls `subagent.cancel()`, which also interrupts the subagent's kernel.
+- In-kernel approvals resolved as cancelled also reject the ipybox-side request so the kernel unblocks.
 
 ## Terminal
 
-- `TerminalApp` receives `cancel_fn` (bound to `Agent.cancel`) and tracks `_turn_in_progress`.
-- Escape binding (`action_cancel_turn`): calls `cancel_fn()` and resolves any pending `_approval_future`.
-- `check_action` guards the binding: only fires during an active turn.
-- `ApprovalRequest.approve()` is idempotent to handle the race between cancel and terminal approval resolution.
+- `TerminalApp` receives `cancel` (bound to `Agent.cancel`) and tracks `_turn_in_progress`.
+- Escape binding (`action_cancel_turn`): calls `cancel()` and `ApprovalController.reject_pending()` to resolve any pending approval-bar future; `check_action` only enables it during an active turn.
+- `ApprovalRequest.approve()` is idempotent, handling the race between cancellation/timeout and a terminal decision.

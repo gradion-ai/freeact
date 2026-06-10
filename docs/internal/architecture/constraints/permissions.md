@@ -1,29 +1,30 @@
 # Permission System Constraints
 
-The permission system uses methods on `ToolCall` subtypes for self-description. Each subtype implements five methods:
+Rules are typed pydantic classes in `freeact/permissions.py`, one per ToolCall type, forming the `PermissionRule` discriminated union (`type` field): `GenericCallRule`, `ShellActionRule` (tool name + command globs), `CodeActionRule`, `FileReadRule`/`FileWriteRule`/`FileEditRule` (tool name glob + path pattern). Each rule owns `matches(call, working_dir)`; rules match only their own ToolCall type. `rule_from_call(tool_call)` builds a rule from a (possibly wildcarded) tool call; it is the only conversion path.
 
-| Method | Purpose |
+## Evaluation order (INVARIANT)
+
+`PermissionManager._check_all`: session-ask, always-ask, session-allow, always-allow. First match wins; ask beats allow; no match means not allowed (explicit allow required).
+
+## Path security (INVARIANTs, preserve exactly)
+
+- `_normalize_path`: absolute paths under `working_dir` become relative before matching; paths outside stay absolute.
+- `_path_matches`: pattern and path must agree on absoluteness; a relative pattern (including bare `**`) NEVER matches an absolute path. This is what keeps the broad `**` read-allow from exposing `/etc/passwd` or `~/.ssh/...`.
+- Path matching uses `PurePosixPath.full_match` (`*` does not cross `/`, `**` crosses any depth). Non-path fields use `fnmatch`.
+- `**/.env` is in `DEFAULT_ASK_RULES` and beats the `**` allow.
+
+## Defaults rationale
+
+`DEFAULT_ALLOW_RULES`: file reads (`**`) for `filesystem_*` tools, pytools introspection (`pytools_list_categories/list_tools/search_tools`), and a curated read-only shell list (introspection, listing/metadata, text reading, process info, git read-only subcommands). Deliberately excluded: mutating git commands, `find`/`env` (can execute arbitrary commands), `rm/mv/cp/...`, and everything via `shell_magic` (no shell_magic defaults at all). fnmatch nuance: `git status *` does not match bare `git status`, so non-trivial commands need both entries; `git tag`/`git branch`/`git reflog` get only the bare form because the `*` form would match destructive flags.
+
+## Storage
+
+`.freeact/permissions.toml` is machine-managed (written with `tomli_w`); never hand-maintain comments there, and never store permissions in `config.toml`. `PermissionManager.init()` loads the file when present, else saves defaults; the constructor creates no directories (only `save()` does). Always-tier rules persist; session-tier rules are memory-only; adds deduplicate. Seeding is the embedder's job (`cli.py` calls `init()`).
+
+## Adding a new ToolCall subtype
+
+| Location | Change |
 |---|---|
-| `to_pattern()` | Suggest editable pattern from ToolCall |
-| `to_display()` | Return verbatim text for the approval bar (empty string falls back to the pattern) |
-| `from_pattern(pattern)` | Reconstruct ToolCall from edited pattern |
-| `to_entry()` | Serialize ToolCall to permission dict |
-| `matches_entry(entry, working_dir)` | Check if a rule matches this concrete ToolCall |
-
-The base `ToolCall` class provides defaults (returns `tool_name` for pattern, `""` for display, `False` for matching). Subtypes override with type-specific logic. `ShellAction` overrides `to_display()` to surface the verbatim command (`bash`) or a first-line summary (`shell_magic`); other subtypes inherit the empty default so the bar shows the suggested pattern.
-
-Standalone functions `suggest_pattern()`, `suggest_display()`, and `parse_pattern()` in `freeact/agent/call.py` delegate to these methods and are kept for API stability.
-
-`PermissionManager` in `freeact/permissions.py` calls `tool_call.to_entry()` and `tool_call.matches_entry()` directly, importing only the `ToolCall` base class.
-
-`PermissionsConfig.with_defaults()` seeds both `ask` (from `DEFAULT_ASK_RULES`) and `allow` (from `DEFAULT_ALLOW_RULES`). Ask rules win over allow rules.
-
-`_path_matches()` in `freeact/agent/call.py` requires pattern and path to agree on absoluteness; relative patterns cannot match absolute paths.
-
-When adding a new ToolCall subtype, three places must be updated:
-
-| Location | Purpose |
-|---|---|
-| `ToolCall.from_raw()` in `freeact/agent/call.py` | Map raw tool name to subtype |
-| Methods on the new subtype in `freeact/agent/call.py` | `to_pattern`, `to_display` (optional override), `from_pattern`, `to_entry`, `matches_entry` |
-| Widget dispatch in `freeact/terminal/app.py` | Route to UI factory |
+| `freeact/toolcalls.py` | Subclass + `from_raw()` match arm + `to_pattern`/`to_display` (optional)/`from_pattern` overrides |
+| `freeact/permissions.py` | Rule class with `matches()`, added to the `PermissionRule` union and a `rule_from_call()` arm |
+| `freeact/terminal/approvals.py` | Renderer entry in `_RENDERERS` |

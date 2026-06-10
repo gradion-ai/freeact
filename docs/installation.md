@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Python 3.11+
+- Python 3.13+
 - [uv](https://docs.astral.sh/uv/) package manager
 - Node.js 20+ (for MCP servers)
 
@@ -38,6 +38,34 @@ uv run freeact
 ```
 
 This approach lets you install additional packages (e.g., `uv add pandas`) that will be available to the agent.
+
+In environments managed with `pip`, install the core package with:
+
+```bash
+pip install freeact
+```
+
+## Hybrid Tool Discovery
+
+[Hybrid tool discovery](configuration.md#discovery) (`discovery = "hybrid"` in `.freeact/config.toml`) requires the `search` extra, which adds `sqlite-vec` and `watchfiles`:
+
+```bash
+uv add 'freeact[search]'
+```
+
+or with `pip`:
+
+```bash
+pip install 'freeact[search]'
+```
+
+With `uvx`, run freeact with the extra applied:
+
+```bash
+uvx --from 'freeact[search]' freeact
+```
+
+The core install covers everything else: SDK, CLI, bundled tool servers, and basic tool discovery.
 
 ## API Key
 

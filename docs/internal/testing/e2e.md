@@ -6,8 +6,8 @@ E2E tests use the `freeact-interaction` skill to drive freeact through tmux.
 
 - Always check for `.freeact/` first. It is not checked into git.
 - If missing (worktrees, fresh clones), create it with `uv run freeact init`.
-- Edit `.freeact/agent.json` as needed for the test scenario (e.g. adding a PTC server entry).
-- API keys live in the repo's `.env` file. Freeact loads it automatically via `dotenv` on startup. The `${VAR}` references in `agent.json` resolve from this environment.
+- Edit `.freeact/config.toml` as needed for the test scenario (e.g. adding a PTC server entry).
+- API keys live in the repo's `.env` file. Freeact loads it automatically via `dotenv` on startup. The `${VAR}` references in `config.toml` resolve from this environment.
 
 ## Verification
 
@@ -16,7 +16,7 @@ E2E tests use the `freeact-interaction` skill to drive freeact through tmux.
 
 ## PTC server testing
 
-- Add the server entry to `ptc_servers` in `.freeact/agent.json`.
+- Add the server entry as an `[agent.ptc_servers.<name>]` table in `.freeact/config.toml`.
 - Send a prompt that explicitly names the tool under test.
 - Approve tool executions when prompted (code action, then PTC call).
 - Verify the agent response is grounded in real data from the external API.

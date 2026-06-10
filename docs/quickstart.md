@@ -6,14 +6,14 @@ This guide shows how to run a simple task using the freeact [CLI tool](#cli-tool
 
 Freeact provides a [CLI tool](cli.md) for running the agent in a terminal. 
 
-### Starting Freeact
+### Initializing a Workspace
 
-Create a workspace directory, set your API key, and start the agent:
+Create a workspace directory, set your API key, and initialize the `.freeact/` configuration directory:
 
 ```bash
 mkdir my-workspace && cd my-workspace
 echo "GEMINI_API_KEY=your-api-key" > .env
-uvx freeact
+uvx freeact init
 ```
 
 See [Installation](installation.md) for alternative setup options and sandbox mode prerequisites.
@@ -22,13 +22,31 @@ See [Installation](installation.md) for alternative setup options and sandbox mo
 
     The current default model is `google-gla:gemini-3.5-flash`. Freeact supports any model compatible with Pydantic AI. To switch providers or configure model settings, see [Models](models.md).
 
+### Enabling Tools
+
+By default, only code execution and filesystem tools are enabled. Bundled tool servers are one-line opt-ins in `.freeact/config.toml`. For this task, enable web search and tool discovery by uncommenting the corresponding lines under `[agent.tools]`:
+
+```toml title=".freeact/config.toml"
+[agent.tools]
+search = true            # google search (code mode); needs GEMINI_API_KEY
+discovery = "basic"      # tool discovery via category browsing
+```
+
+See [Tool Presets](configuration.md#tool-presets) for all presets and [Configuration](configuration.md) for the full file format.
+
 ### Generating MCP Tool APIs
 
-On first start, the CLI tool auto-generates Python APIs for [configured](configuration.md#ptc_servers) MCP servers. For example, it creates `.freeact/generated/mcptools/google/web_search.py` for the `web_search` tool of the bundled `google` MCP server. With the generated Python API, the agent can import and call this tool programmatically.
+Start the agent:
+
+```bash
+uvx freeact
+```
+
+On start, the CLI tool auto-generates Python APIs for [configured](configuration.md#ptc_servers) MCP servers. For example, it creates `.freeact/generated/mcptools/google/web_search.py` for the `web_search` tool of the bundled `google` MCP server, enabled by the `search` preset. With the generated Python API, the agent can import and call this tool programmatically.
 
 !!! tip "Custom MCP servers"
 
-    For calling the tools of your own MCP servers programmatically, add them to the [`ptc_servers`](configuration.md#ptc_servers) section in `.freeact/agent.json`. Freeact auto-generates a Python API for them when the CLI tool starts.
+    For calling the tools of your own MCP servers programmatically, add them to the [`ptc_servers`](configuration.md#ptc_servers) section in `.freeact/config.toml`. Freeact auto-generates a Python API for them when the CLI tool starts.
 
 ### Running a Task
 

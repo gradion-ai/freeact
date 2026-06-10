@@ -42,7 +42,7 @@ Resuming a previous [session](sdk.md#persistence):
 freeact --session-id 550e8400-e29b-41d4-a716-446655440000
 ```
 
-If `enable_persistence` is `false` in `.freeact/agent.json`, passing `--session-id` exits with an error.
+If `enable_persistence` is `false` in `.freeact/config.toml`, passing `--session-id` exits with an error.
 
 ## Interactive Mode
 
@@ -72,7 +72,7 @@ Clipboard behavior depends on terminal key forwarding.
 
 Use `Ctrl+O` to toggle all collapsible boxes between expanded and configured state.
 
-The shortcut is configured in `.freeact/terminal.json` under `expand_all_toggle_key`.
+The shortcut is configured in the [`[terminal]` section](configuration.md#terminal-ui) of `.freeact/config.toml` under `expand_all_toggle_key`.
 
 ### File References
 
@@ -119,9 +119,9 @@ Approve? [Y/n/a/s] git add src/main.py
 | `a` | Edit pattern, then save as always-allow rule |
 | `s` | Edit pattern, then save as session-allow rule |
 
-Pressing `a` or `s` opens an editable input pre-filled with the suggested permission pattern (not the verbatim text shown above). Edit the pattern to broaden or narrow the rule (e.g. change `filesystem_read_file src/main.py` to `filesystem_* src/**`), then press `Enter` to save the rule and approve. While editing, approval hotkeys are disabled so you can type freely.
+Pressing `a` or `s` opens an editable input pre-filled with the suggested permission pattern (not the verbatim text shown above). Edit the pattern to broaden or narrow the rule (e.g. change `filesystem_read_text_file src/main.py` to `filesystem_* src/**`), then press `Enter` to save the rule and approve. While editing, approval hotkeys are disabled so you can type freely.
 
-Always-allow rules persist to `.freeact/permissions.json` across sessions. Session-allow rules are in-memory and cleared when the session ends. Future actions matching a saved rule are auto-approved without prompting.
+Always-allow rules persist to `.freeact/permissions.toml` across sessions. Session-allow rules are in-memory and cleared when the session ends. Future actions matching a saved rule are auto-approved without prompting.
 
 What the bar displays depends on the action type:
 

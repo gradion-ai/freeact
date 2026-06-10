@@ -38,10 +38,6 @@ ls -la
 
 Shell state (working directory, variables) does not persist across `!` lines but persists within a `%%bash` block. Neither carries state to the next cell execution. Their results can be stored in variables though.
 
-!!! note "`%%bash` approval"
-
-    Approval support for `%%bash` cell magic is not implemented yet (coming soon).
-
 ## Programmatic Tool Calls
 
 [Generated Python APIs](sdk.md#generation-api) for MCP server tools can be imported and called like regular packages:
@@ -85,7 +81,7 @@ filename = "report.pdf"
 
 Code actions, contained shell commands, and programmatic tool calls require approval before execution. Shell commands and programmatic tool calls are intercepted during code action execution for individual approval. 
 
-Composite shell commands (using `&&`, `||`, `|`, `;`) are decomposed into individual sub-commands, each approved separately. Python variables in shell commands are resolved before the approval request, so the approval request shows actual values.
+Composite shell commands (using `&&`, `||`, `|`, `;`) are decomposed into individual sub-commands, each approved separately. Python variables in shell commands are resolved before the approval request, so the approval request shows actual values. `%%bash` scripts are approved as a whole.
 
 See the Agent SDK for programmatic [approval](sdk.md#approval) control, [permission configuration](configuration.md#permissions) for action pre-approval, and the CLI tool for the interactive [approval prompt](cli.md#approval-prompt).
 

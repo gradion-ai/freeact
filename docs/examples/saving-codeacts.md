@@ -2,7 +2,7 @@
 
 Any code action can be saved as a discoverable tool, enabling tool libraries to evolve as agents work. Composite code actions that chain multiple tools are a common example.
 
-Freeact provides the [`saving-codeacts`](https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates/skills/saving-codeacts) skill for saving code actions as reusable tools. It separates interface (`api.py`) from implementation (`impl.py`). The interface contains the function signature, Pydantic models, and docstrings. The implementation contains the actual logic. 
+Freeact provides the [`saving-codeacts`](https://github.com/gradion-ai/freeact/tree/main/freeact/config/templates/skills/saving-codeacts) skill for saving code actions as reusable tools. It separates interface (`api.py`) from implementation (`impl.py`). The interface contains the function signature, Pydantic models, and docstrings. The implementation contains the actual logic. 
 
 This separation enables efficient tool discovery: agents inspect signatures and docstrings without loading implementation details. The implementation stays hidden, saving tokens and reducing distraction by keeping non-essential details out of context.
 

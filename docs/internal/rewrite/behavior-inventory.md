@@ -218,7 +218,7 @@ The rewrite replaces the format (unified TOML, minimal defaults, named tool pres
 
 Input:
 - Enter submits (trimmed), input clears, submitted text shown in a user box; submitting empty/whitespace-only input shows a warning notification instead. Alt+Enter/Ctrl+J inserts newline; Escape clears input when idle with text, cancels the turn while one is in progress, and rejects a pending approval. [U test_app; widgets.py]
-- `@` at a word start opens a file picker (tree rooted at /, cursor at cwd, prefix-search navigation, backspace reverts); selection inserts the path (relative to cwd or `~` form preferred). [U test_app, test_screens]
+- `@` at a word start opens a file picker (tree rooted at /, cursor at cwd, prefix-search navigation, backspace reverts); selection inserts the path, relative to the working dir when possible, absolute otherwise. [U test_app, test_screens]
 - `/` at prompt start opens a skill picker (prefix matching, Enter selects); selection inserts `/skill-name `; on submit, slash commands are converted to skill tags. [U test_app, test_screens]
 - Paste via Ctrl+V / Super+V / Ctrl+Shift+V / Shift+Insert reads the OS clipboard, falling back to the app-local clipboard only when the OS clipboard is unavailable (None), not when it is empty. [U test_app]
 

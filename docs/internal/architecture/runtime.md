@@ -1,50 +1,30 @@
 # Runtime Architecture
 
-This page documents agent runtime architecture only (`freeact/agent/*`).
-It intentionally excludes CLI, terminal UI, and longer-lived permission policy layers.
+This page documents agent runtime architecture only (`freeact/agent/*` plus the SDK surface in `freeact/events.py` and `freeact/toolcalls.py`).
+It intentionally excludes CLI, terminal UI, and permission policy (the SDK is policy-free: it emits `ApprovalRequest`s, the embedder decides).
 
-## Core Agent
+## Components
 
-- `freeact/agent/call.py` defines the `ToolCall` type hierarchy (`GenericCall`, `ShellAction`, `CodeAction`, `FileRead`, `FileWrite`, `FileEdit`), pattern functions (`suggest_pattern`, `suggest_display`, `parse_pattern`), and `extract_tool_output_text`. Filesystem tool names: `filesystem_read_text_file`, `filesystem_read_media_file`, `filesystem_write_text_file`, `filesystem_edit_text_file`.
-- `freeact/agent/events.py` defines all typed stream events (`ResponseChunk`, `Response`, `Thoughts*`, `ApprovalRequest`, `CodeExecutionOutput*`, `ToolOutput`).
-- `freeact/agent/core.py` contains the `Agent` class and main orchestration loop.
-- `freeact/agent/_supervisor.py` contains `_ResourceSupervisor`, a generic async lifecycle utility for context managers.
-- `freeact/agent/_subagent.py` contains `_SubagentRunner`, which bridges subagent events via a queue.
-- `_execute_tool()` handles approval and tool execution routing, including subagent delegation via `_execute_subagent_task()`.
-- Multiple tool calls from one model turn execute concurrently via `aiostream.merge`.
+- `Agent` (`agent/agent.py`): public API (`start/stop`, async context manager, `stream(prompt, max_turns)`, `cancel()`, `session_id`, `tool_names`, `runtime`) and the turn loop. Constructed from a `ResolvedRuntime` (`config/resolve.py`); rejects `session_id` when persistence is disabled.
+- `ApprovalGate` (`agent/approvals.py`): the single approval mechanism; creates and resolves all `ApprovalRequest`s, racing decision vs `CancelToken` vs `approval_timeout` into a typed `Decision`. See [constraints/async.md](constraints/async.md).
+- `ToolExecutor` (`agent/executor.py`): routes each model tool call (code execution, `ipybox_reset`, `subagent_task`, MCP, unknown -> error return without approval) and owns the kernel bridge (ipybox executor with working dir reset, images dir, kernel env, sandbox settings; `execution_timeout` enforced by ipybox so approval wait time is excluded; one `asyncio.Lock` serializes kernel access). Runs one turn's calls concurrently via `aiostream.merge`. Intercepts in-kernel approvals: `!` shell commands (split per sub-command via `agent/shell.py`; rejecting any sub-command rejects the whole command), `%%bash` shell magic, and PTCs (`GenericCall` with `ptc=True`, name `<server>_<tool>`). Sets `approval_rejected` on the final `CodeExecutionOutput` instead of string matching.
+- `MCPServerManager` (`agent/mcp.py`): server lifecycle (concurrent start/stop via `ResourceSupervisor`, partial-start cleanup), tool definition loading with server-name prefixes, per-server `exclude_tools`, call dispatch with exception-to-error-text conversion.
+- `SubagentRunner` (`agent/subagents.py`): spawns child `Agent`s (`sub-` ids) from `runtime.for_subagent()`, bridges their events through a queue into the parent stream with `parent_corr_id` set, bounds concurrency with the `max_subagents` semaphore, propagates parent cancellation, converts child failure to an error `ToolOutput`. Default subagent `max_turns` is 100.
+- `Session` (`agent/session.py`): single source of truth for message history; persistence and tool-result overflow per [constraints/persistence.md](constraints/persistence.md).
+- Built-in tool definitions (ipybox tools, `subagent_task`) are JSON caches in `agent/tooldefs/`; regenerate manually against a live ipybox when its tool schemas change.
 
-## Subagents
+## Turn loop (`Agent._stream_turn`)
 
-- Subagents are invoked through `subagent_task`.
-- `_execute_subagent_task()` creates a nested `Agent` with `enable_subagents=False`.
-- Parent and subagent events share one stream and are separated by `agent_id`.
-- Subagent events keep their own `corr_id` and set `parent_corr_id` to the parent `subagent_task` id.
-- Concurrent subagents are bounded by `max_subagents` via `asyncio.Semaphore`.
+Append user request -> loop: stream model response (yield `ThoughtsChunk`/`ResponseChunk`, then `Thoughts`/`Response`), append the aggregated message; if no tool calls, the turn ends (no implicit turn limit). Otherwise run the executor, yielding `ApprovalRequest`/`CodeExecutionOutputChunk`/`CodeExecutionOutput`/`ToolOutput` events and collecting `ToolReturnPart`s plus media `UserPromptPart`s; append them as one `ModelRequest`. `max_turns` counts completed tool-execution rounds. Exceptions roll the turn's history back; cancellation does not (see [cancellation.md](cancellation.md)).
 
-## Configuration
+- Rejection ends the turn (INVARIANT): if any tool return has `metadata["rejected"]`, the agent yields a final `"Tool call rejected"` response and stops; nothing after the rejected action executes. Approval timeout counts as rejection; cancellation does not (it produces interrupted returns instead).
+- Media flow: binary MCP results (e.g. `filesystem_read_media_file`) and a `"Read media: <path>"` tool return reach the model as a `UserPromptPart` with multimodal content appended alongside the tool returns.
+- Every incomplete tool call gets a synthetic interrupted return so `[tool_use] -> [tool_result]` sequencing stays valid.
 
-- `freeact/agent/config/` handles `.freeact/` initialization and loading.
-- `Config()` creates defaults in memory; `save()` persists static config artifacts; `load()` reads persisted config when present.
+## Correlation ids
 
-## Tools
+`ToolExecutor._execute` assigns a fresh `corr_id` per tool call; all events for that call (approval, chunks, outputs) carry it from construction (frozen events, no post-hoc mutation). Subagent events keep their own `corr_id` and get `parent_corr_id` set to the parent `subagent_task`'s corr_id via `dataclasses.replace` in `SubagentRunner`. Every event carries the originating `agent_id` (`main` or `sub-xxxx`).
 
-- Bundled tool-definition caches:
-  - ipybox tools: `freeact/tools/ipybox.json`
-  - subagent tool: `freeact/tools/subagent.json`
-- Filesystem MCP server: Python-based at `freeact/tools/filesystem/`. Provides `read_text_file`, `read_media_file`, `write_text_file`, `edit_text_file`. Registered as an internal `mcp_servers` entry with prefix `filesystem`.
-- When an MCP tool returns `BinaryContent` (e.g. `read_media_file`), the agent yields it as a `UserPromptPart` with multimodal content instead of a plain tool return. This lets the model process media (images, audio, video, PDF) directly.
-- JSON MCP calls use `mcp_servers`.
-- Programmatic tool calling uses generated Python APIs from `ptc_servers` in `.freeact/generated/mcptools/`.
-- User-defined generated tools live in `.freeact/generated/gentools/`.
+## Lifecycle
 
-## Sessions
-
-- Session persistence is owned by `Agent` in `freeact/agent/core.py`, which creates `SessionStore` internally when `Config.enable_persistence` is `true`.
-- Session storage implementation: `freeact/agent/store.py`.
-- Main-session rehydration loads `main.jsonl`; subagent JSONL files are persisted for audit.
-- Tool results exceeding `tool_result_inline_max_bytes` are persisted to `.freeact/sessions/<session-id>/tool-results/`. Inline content is replaced by a reference notice and a character-limited preview.
-
-## Approvals
-
-- All tool executions require approval and surface as `ApprovalRequest` (including nested programmatic tool calls encountered during `ipybox_execute_ipython_cell`).
-- Rejected approvals are reflected as rejected tool returns and end the current agent turn with a `"Tool call rejected"` response.
+`start()` loads persisted history, then starts executor and MCP servers concurrently (cleanup on partial failure); `stop()` stops both and collects errors into an `ExceptionGroup`. `Agent.stream` deterministically closes its turn stream on exit so abandonment propagates into tool execution and rejects pending approvals (see [constraints/async.md](constraints/async.md)).

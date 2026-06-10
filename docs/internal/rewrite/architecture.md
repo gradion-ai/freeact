@@ -2,8 +2,9 @@
 
 Design for the greenfield rewrite (branch `wip-rewrite`). Companion to
 [behavior-inventory.md](behavior-inventory.md), which defines WHAT must work; this document
-defines HOW it is structured. Status: DRAFT v2 (post adversarial review), pending
-maintainer review.
+defines HOW it is structured. Status: IMPLEMENTED (phases 3-6 complete, 2026-06-10);
+kept as the historical design record. The living architecture reference is
+docs/internal/architecture/ (rewritten in phase 6 to describe the implemented system).
 
 Agreed constraints (see memory/redesign decisions): single package with a `freeact[search]`
 extra; unified TOML config with minimal defaults and one-line tool opt-ins; tests rewritten
@@ -77,7 +78,8 @@ freeact/
 ```
 
 Dependency direction (documented in the rewritten constraints docs):
-`tools` -> nothing internal except `security`; `events`/`toolcalls` -> nothing internal;
+`tools` -> nothing internal except `security`; `toolcalls` -> nothing internal;
+`events` -> `toolcalls` (ApprovalRequest carries the typed call);
 `permissions` -> `toolcalls`; `config` -> nothing internal; `agent` -> `events`,
 `toolcalls`, `config`; `terminal` -> `events`, `toolcalls`, `permissions`, `config`;
 `cli` -> everything. `agent` never imports `terminal` or `permissions`: the SDK stays
@@ -329,7 +331,8 @@ owning its `matches(call, working_dir)`. Path-matching semantics ported verbatim
 (security INVARIANTs, inventory 11), with the old integration test cases ported verbatim
 as the seed of the new suite. Evaluation order and default rule set unchanged. Storage:
 `.freeact/permissions.toml`; session tier in memory only. `PermissionManager` keeps its
-small API (`init/load/save/is_allowed/allow_always/allow_session/ask_*`).
+small API (`init/load/save/is_allowed/allow_always/allow_session`; ask rules come from
+defaults and the permissions file, there is no ask_* method, matching the old API).
 
 The SDK stays policy-free: `Agent` emits `ApprovalRequest`s; the embedder decides.
 PermissionManager is a library the terminal (or any embedder) uses.
