@@ -15,9 +15,3 @@ explain.
 - [testing.md](testing.md) -- test harness patterns (agent, terminal, e2e via tmux).
 - [examples/rerun.md](examples/rerun.md) -- how to reproduce the documentation example
   sessions and screenshots.
-
-## Historical archive (do not treat as current)
-
-- [rewrite/](rewrite/README.md) -- the 2026 greenfield rewrite: behavior inventory,
-  target design, coverage map. Delete after merge to main (see its README); its
-  coverage map's "Known gaps" section is still a valid TODO source.
