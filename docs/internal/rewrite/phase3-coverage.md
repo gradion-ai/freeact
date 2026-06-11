@@ -1,5 +1,9 @@
 # Rewrite Coverage Map (phases 3-5)
 
+STATUS: ARCHIVED (rewrite complete). Snapshot of inventory-to-test mapping at the end
+of the rewrite. The "Known gaps carried forward" section at the bottom remains a valid
+TODO source. See [README.md](README.md).
+
 Maps every [behavior-inventory.md](behavior-inventory.md) item in sections 1-20 to its
 test coverage after phases 3 (core SDK), 4 (tools layer), and 5 (terminal UI + CLI).
 

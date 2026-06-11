@@ -1,5 +1,9 @@
 # Behavior Inventory
 
+STATUS: ARCHIVED (rewrite complete). This was the rewrite's functional contract; the
+living behavior contract is now the test suite, and the living rules reference is
+docs/internal/invariants.md. See [README.md](README.md).
+
 Functional contract for the greenfield rewrite (branch `wip-rewrite`). Triangulated from
 three sources: the pre-rewrite test suite, the user and architecture docs, and a sweep of
 the package source for behaviors that are implemented but neither tested nor documented.

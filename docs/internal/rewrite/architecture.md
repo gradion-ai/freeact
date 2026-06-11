@@ -3,8 +3,8 @@
 Design for the greenfield rewrite (branch `wip-rewrite`). Companion to
 [behavior-inventory.md](behavior-inventory.md), which defines WHAT must work; this document
 defines HOW it is structured. Status: IMPLEMENTED (phases 3-6 complete, 2026-06-10);
-kept as the historical design record. The living architecture reference is
-docs/internal/architecture/ (rewritten in phase 6 to describe the implemented system).
+kept as the historical design record. The living rules reference is
+docs/internal/invariants.md (distilled from the phase-6 architecture docs).
 
 Agreed constraints (see memory/redesign decisions): single package with a `freeact[search]`
 extra; unified TOML config with minimal defaults and one-line tool opt-ins; tests rewritten
