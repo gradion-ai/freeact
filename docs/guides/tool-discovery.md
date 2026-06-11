@@ -1,12 +1,12 @@
 # Enable tool discovery
 
-The agent discovers Python tools in [tool directories](#tool-directories) under `.freeact/generated/`, loading only task-relevant tool information into the context window. Discovery is off by default and is enabled with the `discovery` key under `[agent.tools]` in `.freeact/config.toml`.
+The agent discovers Python tools in [tool directories](#tool-directories) under `.freeact/generated/`, loading only task-relevant tool information into the context window. Basic discovery is on by default; the mode is controlled with the `discovery` key under `[agent.tools]` in `.freeact/config.toml` (`"off"` disables it).
 
 ## Choose a discovery mode
 
 ```toml title=".freeact/config.toml"
 [agent.tools]
-discovery = "basic"      # or "hybrid" (needs freeact[search]); omit for none
+discovery = "basic"      # default; "hybrid" needs freeact[search]; "off" disables
 ```
 
 | Mode | Description |

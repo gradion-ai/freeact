@@ -20,12 +20,11 @@ See [Installation](installation.md) for alternative setup options and sandbox mo
 
 ## 2. Enable tools
 
-By default, only code execution and filesystem tools are enabled. Bundled tool servers are one-line opt-ins in `.freeact/config.toml`. For this task, enable web search and tool discovery by uncommenting the corresponding lines under `[agent.tools]`:
+By default, code execution, filesystem tools, and basic tool discovery are enabled. The bundled web tool servers are one-line opt-ins in `.freeact/config.toml`. For this task, enable web search by uncommenting the corresponding line under `[agent.tools]`:
 
 ```toml title=".freeact/config.toml"
 [agent.tools]
 search = true            # google search (code mode); needs GEMINI_API_KEY
-discovery = "basic"      # tool discovery via category browsing
 ```
 
 See [Add custom tool servers](../guides/tool-servers.md) for all presets and custom MCP servers, and [Configuration](../reference/configuration.md) for the full file format.

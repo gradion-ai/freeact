@@ -28,8 +28,12 @@ class ToolPresets(BaseModel):
     fetch: bool = False
     """Web fetch (code mode)."""
 
-    discovery: Literal["basic", "hybrid"] | None = None
-    """Tool discovery mode. `"hybrid"` needs the `freeact[search]` extra."""
+    discovery: Literal["basic", "hybrid", "off"] = "basic"
+    """Tool discovery mode. `"hybrid"` needs the `freeact[search]` extra.
+
+    Defaults to `"basic"`: without a discovery server the agent cannot
+    enumerate its generated tool APIs and falls back to ad-hoc code.
+    """
 
 
 class AgentSection(BaseModel):

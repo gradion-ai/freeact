@@ -77,7 +77,7 @@ google_thinking_config = { thinking_level = "medium", include_thoughts = true }
 # tools are always available.
 # search = true            # google search (code mode); needs GEMINI_API_KEY
 # fetch = true             # web fetch (code mode)
-# discovery = "basic"      # or "hybrid" (needs freeact[search]); omit for none
+# discovery = "basic"      # default; "hybrid" needs freeact[search]; "off" disables
 
 # Environment variables for the IPython kernel. `${VAR}` reads host env vars.
 # [agent.kernel_env]
@@ -116,7 +116,7 @@ The `[agent]` section accepts these keys:
 | `model` | `google-gla:gemini-3.5-flash` | [Model identifier](../guides/models.md#model-identifier) in `provider:model-name` format |
 | `model_settings` | [Google thinking config](../guides/models.md#google-default) | Provider-specific [model settings](../guides/models.md#model-settings) (e.g., thinking config, temperature) |
 | `provider_settings` | unset | Custom API credentials, endpoints, or other [provider-specific options](../guides/models.md#provider-settings) |
-| `tools` | all off | Presets for [bundled tool servers](../guides/tool-servers.md#enable-bundled-servers) and [tool discovery](../guides/tool-discovery.md) |
+| `tools` | `discovery = "basic"`, web tools off | Presets for [bundled tool servers](../guides/tool-servers.md#enable-bundled-servers) and [tool discovery](../guides/tool-discovery.md) |
 | `execution_timeout` | `300` | Maximum time in seconds for each [code execution](../concepts/code-actions.md). Approval wait time is excluded. `0` disables the timeout. |
 | `approval_timeout` | `0` | Timeout in seconds for [approval requests](../concepts/approvals.md). An unresolved request is rejected when the timeout expires. `0` waits forever. |
 | `tool_result_inline_max_bytes` | `32768` | Inline size threshold in bytes for tool results. Larger results are saved to `.freeact/sessions/<session-id>/tool-results/` and replaced with a file reference notice plus preview characters. |

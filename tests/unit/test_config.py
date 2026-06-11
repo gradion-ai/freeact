@@ -37,7 +37,7 @@ class TestSchemaDefaults:
 
         assert config.agent.tools.search is False
         assert config.agent.tools.fetch is False
-        assert config.agent.tools.discovery is None
+        assert config.agent.tools.discovery == "basic"
 
     def test_tool_result_limits_must_be_positive(self) -> None:
         with pytest.raises(ValidationError):
@@ -175,10 +175,19 @@ class TestInit:
 
 class TestResolve:
     def test_minimal_defaults(self, tmp_path: Path) -> None:
+        # Basic discovery is on by default: without it the agent cannot
+        # enumerate generated tool APIs (e2e regression, 2026-06-11).
         runtime = resolve(FreeactConfig(), working_dir=tmp_path, env={})
 
-        assert set(runtime.mcp_servers.keys()) == {"filesystem"}
+        assert set(runtime.mcp_servers.keys()) == {"filesystem", "pytools"}
+        assert runtime.mcp_servers["pytools"]["args"] == ["-m", "freeact.tools.pytools.basic"]
         assert runtime.ptc_servers == {}
+
+    def test_discovery_off_disables_pytools_server(self, tmp_path: Path) -> None:
+        config = FreeactConfig.model_validate({"agent": {"tools": {"discovery": "off"}}})
+        runtime = resolve(config, working_dir=tmp_path, env={})
+
+        assert set(runtime.mcp_servers.keys()) == {"filesystem"}
         assert runtime.model == "google-gla:gemini-3.5-flash"
         assert runtime.enable_subagents is True
         assert runtime.subagent_mode is False

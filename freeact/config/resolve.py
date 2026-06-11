@@ -221,7 +221,7 @@ def _resolve_mcp_servers(agent: AgentSection, resolution_env: Mapping[str, str])
             internal["pytools"] = copy.deepcopy(BASIC_SEARCH_MCP_SERVER_CONFIG)
         case "hybrid":
             internal["pytools"] = copy.deepcopy(HYBRID_SEARCH_MCP_SERVER_CONFIG)
-        case None:
+        case "off":
             pass
 
     merged = {**internal, **agent.mcp_servers}

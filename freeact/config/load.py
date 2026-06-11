@@ -32,11 +32,11 @@ google_thinking_config = { thinking_level = "medium", include_thoughts = true }
 # api_key = "${MY_PROVIDER_KEY}"
 
 [agent.tools]
-# One-line opt-ins for bundled tool servers. Code execution and filesystem
-# tools are always available.
+# One-line opt-ins for bundled tool servers. Code execution, filesystem tools,
+# and basic tool discovery are always available by default.
 # search = true            # google search (code mode); needs GEMINI_API_KEY
 # fetch = true             # web fetch (code mode)
-# discovery = "basic"      # or "hybrid" (needs freeact[search]); omit for none
+# discovery = "basic"      # default; "hybrid" needs freeact[search]; "off" disables
 
 # Environment variables for the IPython kernel. `${VAR}` reads host env vars.
 # [agent.kernel_env]
