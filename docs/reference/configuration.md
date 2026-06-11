@@ -13,10 +13,6 @@ The `.freeact/` directory is initialized through CLI entry points:
 
 Initialization writes `config.toml` when missing (never overwrites), creates the runtime directories (`generated/`, `plans/`, `sessions/`), materializes [bundled skills](../guides/skills.md#bundled-skills) without overwriting user-modified ones, and seeds `permissions.toml` with the [default rules](permission-rules.md#default-rules). For programmatic configuration, see the [SDK tutorial](../getting-started/sdk-tutorial.md) and [Configuration API](../api/config.md).
 
-!!! warning "Migration from pre-rewrite versions"
-
-    Earlier freeact versions stored configuration in `.freeact/agent.json`, `.freeact/terminal.json`, and `.freeact/permissions.json`. These files are now ignored; there is no automatic migration. Run `freeact init` to create `config.toml` and transfer your settings manually. Saved permission rules are not migrated: freeact prompts for approval again, and rules can be re-saved from the [approval prompt](../guides/permissions.md#respond-to-approval-prompts).
-
 ## Directory Structure
 
 Freeact stores configuration and runtime state in `.freeact/`. Project-level customization uses `AGENTS.md` for [project instructions](#project-instructions) and `.agents/skills/` for [custom skills](../guides/skills.md#add-a-custom-skill).
