@@ -1490,6 +1490,28 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#structure-diataxis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structure (Diataxis)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sync-hazards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sync hazards
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#accuracy" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1524,6 +1546,16 @@
 <ul>
 <li>Use mkdocs-formatter and mkdocs-style skills for documentation (except <code>docs/internal/</code>)</li>
 <li>In <code>docs/internal/</code>, match the conciseness of surrounding entries when adding new ones</li>
+</ul>
+<h2 id="structure-diataxis">Structure (Diataxis)</h2>
+<ul>
+<li>Every page belongs to exactly ONE genre and nav section: tutorial (<code>getting-started/</code>), task-oriented how-to (<code>guides/</code>), lookup reference (<code>reference/</code>), or explanation (<code>concepts/</code>). Do not mix genres within a page; cross-link instead of repeating.</li>
+<li>When moving or renaming a page, add the old path to <code>REDIRECTS</code> in <code>scripts/mkdocs_redirects.py</code> and update the mkdocs-llmstxt sections in <code>mkdocs.yml</code>. NEVER add the <code>mkdocs-redirects</code> pip package (its release channel shipped a malicious dependency in 1.2.3); the local hook replaces it.</li>
+</ul>
+<h2 id="sync-hazards">Sync hazards</h2>
+<ul>
+<li><code>docs/reference/configuration.md</code> embeds a copy of <code>DEFAULT_CONFIG_TOML</code> from <code>freeact/config/load.py</code>; keep them identical when either changes.</li>
+<li><code>docs/getting-started/sdk-tutorial.md</code> embeds <code>examples/*.py</code> via <code>--8&lt;--</code> snippet markers; keep marker names stable when editing the examples.</li>
 </ul>
 <h2 id="accuracy">Accuracy</h2>
 <ul>
