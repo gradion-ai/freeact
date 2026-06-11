@@ -1,0 +1,1983 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Freeact code action agent">
+      
+      
+      
+        <link rel="canonical" href="https://gradion-ai.github.io/freeact/internal/rewrite/phase3-coverage/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Rewrite Coverage Map (phases 3-5) - freeact</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#rewrite-coverage-map-phases-3-5" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="freeact" class="md-header__button md-logo" aria-label="freeact" data-md-component="logo">
+      
+  <img src="../../../images/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            freeact
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Rewrite Coverage Map (phases 3-5)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/gradion-ai/freeact" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    gradion-ai/freeact
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Overview
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../guides/models/" class="md-tabs__link">
+          
+  
+  
+  How-to guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../reference/configuration/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../concepts/code-actions/" class="md-tabs__link">
+          
+  
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../llms.txt" class="md-tabs__link">
+          
+  
+  
+  LLM readable
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="freeact" class="md-nav__button md-logo" aria-label="freeact" data-md-component="logo">
+      
+  <img src="../../../images/logo.png" alt="logo">
+
+    </a>
+    freeact
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/gradion-ai/freeact" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    gradion-ai/freeact
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/sdk-tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First agent with the SDK
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How-to guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How-to guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configure models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/tool-servers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Add custom tool servers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/tool-discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configure tool discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/permissions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Manage permissions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/sandbox/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use sandbox mode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/sessions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Persist and resume sessions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/skills/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Create agent skills
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/saving-tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Save code actions as tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/enhancing-tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Enhance generated tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/python-packages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use Python packages
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/permission-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Permission rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Config
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/generate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/permissions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Permissions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/code-actions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code actions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/approvals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Approvals and permissions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM readable
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    LLM readable
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../llms.txt" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    llms.txt
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../llms-full.txt" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    llms-full.txt
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-agent-sdk-lifecycle-public-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Agent SDK: lifecycle &amp; public API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-event-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Event model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-code-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Code execution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-shell-command-interception" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Shell command interception
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-approvals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Approvals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-cancellation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Cancellation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-mcp-tool-calls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. MCP tool calls
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-tool-result-overflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Tool result overflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-subagents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Subagents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-session-persistence-resume" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Session persistence &amp; resume
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-permissions-security-critical" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Permissions (security-critical)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-tool-call-typing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Tool call typing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-filesystem-tools-phase-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Filesystem tools (phase 4)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-web-tools-phase-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Web tools (phase 4)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-tool-discovery-phase-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Tool discovery (phase 4)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-mcp-code-mode-phase-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. MCP code mode (phase 4)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17-configuration-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. Configuration capabilities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#18-cli-phase-5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18. CLI (phase 5)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#19-system-prompt-skills-phases-35" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19. System prompt &amp; skills (phases 3+5)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#20-terminal-ui-phase-5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        20. Terminal UI (phase 5)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-gaps-carried-forward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Known gaps carried forward
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="rewrite-coverage-map-phases-3-5">Rewrite Coverage Map (phases 3-5)</h1>
+<p>STATUS: ARCHIVED (rewrite complete). Snapshot of inventory-to-test mapping at the end
+of the rewrite. The "Known gaps carried forward" section at the bottom remains a valid
+TODO source. See <a href="../">README.md</a>.</p>
+<p>Maps every <a href="../behavior-inventory/">behavior-inventory.md</a> item in sections 1-20 to its
+test coverage after phases 3 (core SDK), 4 (tools layer), and 5 (terminal UI + CLI).</p>
+<p>Legend: U = tests/unit, I = tests/integration, PORT = module ported verbatim with its
+pre-rewrite tests, DEFER(phaseN) = explicitly deferred with reason.</p>
+<h2 id="1-agent-sdk-lifecycle-public-api">1. Agent SDK: lifecycle &amp; public API</h2>
+<ul>
+<li>Construction params, context manager, start/stop: I test_agent (all tests construct via harness), U test_agent::TestSessionPersistenceConfig</li>
+<li>Default agent id <code>main</code>: I test_subagents::test_agent_has_default_id</li>
+<li>Turn ends when model stops calling tools: I test_agent::test_no_max_turns_completes_normally</li>
+<li>max_turns: I test_subagents::test_max_turns_limits_parent, test_max_turns_limits_subagent</li>
+<li>cancel(): U test_agent::TestCancellation (all), test_cancel_method_cancels_kernel</li>
+<li>session_id generation/validation: U test_agent::TestSessionPersistenceConfig</li>
+<li>tool_names / agent attrs: exercised throughout U+I test_agent</li>
+<li>.env autoload at CLI startup: DEFER(phase5) — CLI/TUI rewrite; minimal cli.py has no run command yet</li>
+</ul>
+<h2 id="2-event-model">2. Event model</h2>
+<ul>
+<li>Chunk + final pairs (text, thinking): I test_agent::test_text_deltas_yielded, test_thinking_parts_yielded</li>
+<li>agent_id on every event: I test_subagents::test_events_carry_agent_id</li>
+<li>corr_id / parent_corr_id invariants: I test_subagents::test_subagent_events_keep_subagent_corr_ids, test_parallel_subagent_events_keep_parent_task_corr_ids</li>
+<li>None thinking deltas ignored: I test_agent::test_thinking_none_content_ignored</li>
+<li>CodeExecutionOutput.format + truncated flag: U test_agent::TestEvents, I test_agent overflow tests</li>
+</ul>
+<h2 id="3-code-execution">3. Code execution</h2>
+<ul>
+<li>Real kernel execution, cwd reset, exceptions, reset tool: I test_agent::test_real_code_execution, test_working_dir_reset_after_chdir, test_code_execution_exception_yields_error, test_ipybox_reset_*</li>
+<li>Timeout enforcement + approval wait excluded: I test_agent::test_execution_timeout_exceeded, test_execution_timeout_excludes_ptc_approval_wait, test_fast_execution_within_timeout; U test_agent::test_execution_timeout_passed_to_kernel, test_execution_timeout_disabled</li>
+<li>Kernel env (HOME, PYTHONPATH, ${VAR}): U test_config resolve tests</li>
+</ul>
+<h2 id="4-shell-command-interception">4. Shell command interception</h2>
+<ul>
+<li>bash / shell_magic approvals: U test_agent::TestGeneratorExitRejectsIpyboxApproval (parametrized), U test_toolcalls (patterns, display)</li>
+<li>Composite splitting + quoting: U test_shell, U test_agent::test_shell_approvals_split_composite_command</li>
+<li>Partial rejection rejects whole command: U test_agent::test_composite_partial_rejection_rejects_whole_command; I test_agent::test_shell_approval_rejected</li>
+<li>Pattern suggestion: U test_toolcalls</li>
+</ul>
+<h2 id="5-approvals">5. Approvals</h2>
+<ul>
+<li>Approval before execution, accept/reject paths (code, PTC, MCP, subagent): U test_agent::TestIpyboxExecution; I test_agent::test_mcp_tool_approval_*, I test_subagents::test_task_approval_rejected</li>
+<li>INVARIANT rejection ends turn: U+I (rejected cases assert "Tool call rejected" response)</li>
+<li>approve() idempotent / exactly-once: U test_approvals::test_approve_after_resolution_is_noop, TestApprovalRequest</li>
+<li>INVARIANT abandonment rejects pending approvals exactly once, nothing hangs: U test_agent::TestGeneratorExitRejectsIpyboxApproval (in-kernel, parametrized; double-reject guard) + test_abandoned_stream_rejects_pending_approval_via_agent (top-level, end-to-end). NEW vs pre-rewrite: top-level abandonment now also resolves the request (gate guarantee).</li>
+<li>Unknown tool: no approval, error return: U test_agent::test_unknown_tool_returns_error_without_approval; I test_agent::test_unknown_tool_returns_error_without_approval</li>
+<li>approval_timeout: U test_approvals::test_decide_timeout_resolves_request_rejected, test_decision_before_timeout_wins. NEW coverage (pre-rewrite gap, inventory 21).</li>
+</ul>
+<h2 id="6-cancellation">6. Cancellation</h2>
+<ul>
+<li>Phase-tagged Cancelled events (all three phases): U test_agent::TestCancellation</li>
+<li>Partial response/output preserved: U test_agent::test_cancel_during_llm_streaming, test_cancel_during_tool_execution</li>
+<li>Cancel during approval wait -&gt; interrupted return: U test_agent::test_cancel_during_approval_wait; U test_approvals (cancel racing)</li>
+<li>INVARIANT synthetic returns for every issued call: U test_agent::test_cancel_produces_synthetic_returns_for_orphaned_calls, test_cancel_during_execution_with_empty_output</li>
+<li>No spurious events without cancel: U test_agent::test_stream_without_cancel_unchanged</li>
+<li>Parent cancel propagates to subagents: covered structurally (shared CancelToken passed at construction, monitor task in SubagentRunner); end-to-end kernel-interrupt propagation not separately tested. PORT of old mechanism; flagged for a future integration test.</li>
+</ul>
+<h2 id="7-mcp-tool-calls">7. MCP tool calls</h2>
+<ul>
+<li>Registration, approval, results: I test_agent::test_mcp_tool_approval_accepted/rejected</li>
+<li>Exception -&gt; error text: I test_agent::test_mcp_tool_exception_returns_error</li>
+<li>Binary content / media parts: I test_agent (media path via filesystem read in old suite ported), executor BinaryContent branch</li>
+<li>Per-server tool exclusion: PORT (_MCPServerStdioFiltered ported verbatim; config plumbing in U test_config server overrides). No dedicated behavioral test pre-rewrite or now; flagged.</li>
+</ul>
+<h2 id="8-tool-result-overflow">8. Tool result overflow</h2>
+<ul>
+<li>Threshold, preview, structured/binary, inline-on-failure INVARIANT, extension sanitization INVARIANT: U test_session (materializer + store)</li>
+<li>End-to-end file storage + notice + exactly-one-file INVARIANT: I test_agent::test_mcp_tool_result_overflow_is_saved_to_file, test_mcp_tool_result_under_threshold_stays_inline, test_code_execution_final_output_overflow_replaced_with_notice, test_code_execution_chunk_does_not_create_duplicate_overflow_file</li>
+<li>System prompt overflow guidance: U test_config</li>
+</ul>
+<h2 id="9-subagents">9. Subagents</h2>
+<ul>
+<li>Delegation, sub- ids, event bubbling, approvals, no nesting, kernel isolation, parallel tasks, error ToolOutput, max_turns: I test_subagents (all tests ported)</li>
+<li>Runtime inheritance + sync/watch off: U test_config::for_subagent tests</li>
+<li>max_turns default 100 in schema: U test_agent::TestEvents</li>
+</ul>
+<h2 id="10-session-persistence-resume">10. Session persistence &amp; resume</h2>
+<ul>
+<li>Incremental persistence at all history points: I test_session_persistence::test_agent_persists_incrementally_at_all_history_points</li>
+<li>Main-only resume, subagent audit files: I test_session_persistence; U test_session (Session.load)</li>
+<li>Crash-tolerant tail INVARIANT, fidelity INVARIANT, rollback: U test_session</li>
+<li>tool-results dir: I test_session_persistence</li>
+</ul>
+<h2 id="11-permissions-security-critical">11. Permissions (security-critical)</h2>
+<ul>
+<li>All evaluation-order, type-matching, path-semantics INVARIANTs, default rules, persistence/dedup/init: I test_permissions (137 tests, cases ported verbatim; storage assertions updated to TOML)</li>
+<li>Typed rule layer (rule_from_call, discriminators, TOML round-trip): U test_permissions</li>
+</ul>
+<h2 id="12-tool-call-typing">12. Tool call typing</h2>
+<ul>
+<li>from_raw dispatch, defaults, immutability, pattern symmetry, output text extraction: U test_toolcalls</li>
+</ul>
+<h2 id="13-filesystem-tools-phase-4">13. Filesystem tools (phase 4)</h2>
+<ul>
+<li>PORT: read/write/edit semantics, BOM/line-ending INVARIANTs, fuzzy matching, media
+  handling: U tests/unit/tools/test_filesystem.py (unchanged)</li>
+</ul>
+<h2 id="14-web-tools-phase-4">14. Web tools (phase 4)</h2>
+<ul>
+<li>Security wrapping incl. spoof-sanitization INVARIANT: U test_security (PORT)</li>
+<li>Fetch contract: U test_fetch (PORT), I tools/test_fetch (local HTTP server)</li>
+<li>Brave search contract: U test_bsearch (PORT)</li>
+<li>Google search contract: U test_gsearch — NEW (pre-rewrite gap, inventory 21):
+  answer + numbered references format, web-chunk filtering with position-based
+  numbering, redirect resolution, None-text handling, grounding config,
+  thinking-level option (parser extracted as gsearch.create_parser for testability)</li>
+</ul>
+<h2 id="15-tool-discovery-phase-4">15. Tool discovery (phase 4)</h2>
+<ul>
+<li>Package restructured: pytools/search/basic.py -&gt; pytools/basic.py,
+  pytools/search/hybrid/ -&gt; pytools/hybrid/ (architecture section 2 layout);
+  resolve.py preset module paths updated</li>
+<li>Basic mode: U tests/unit/tools/pytools/test_basic.py — NEW (was source-derived
+  only): categories from both sources, full source file paths, underscore skipping,
+  gentools api.py requirement, list/string params, unknown category</li>
+<li>Hybrid stack: U+I tests/*/tools/pytools/hybrid/ (PORT, paths updated): extract,
+  embed, database, search (BM25/vector/RRF/weights), index sync, watch, MCP server</li>
+</ul>
+<h2 id="16-mcp-code-mode-phase-4">16. MCP code mode (phase 4)</h2>
+<ul>
+<li>apigen: thin mcpygen wrapper, exercised by I conftest mcp_sources_dir and the PTC
+  integration tests (test_agent PTC approval flows). Generation skip-if-exists logic:
+  covered-by-port (apigen.py unchanged).</li>
+<li>gentools authoring: bundled skills materialization U test_config; tool layout
+  contract U hybrid test_extract</li>
+</ul>
+<h2 id="17-configuration-capabilities">17. Configuration capabilities</h2>
+<ul>
+<li>Schema defaults, load/init, validation, presets, ${VAR} handling, kernel env, timeouts, for_subagent, system prompt composition, skills: U test_config</li>
+<li>Hybrid extra check: resolve-level guard implemented; both extra modules installed in dev env so the missing-extra error path is untestable until phase 6 moves them to extras. DEFER(phase6).</li>
+<li>AMENDED items (init-writes-once, no Config.save) per inventory section 22.</li>
+</ul>
+<h2 id="18-cli-phase-5">18. CLI (phase 5)</h2>
+<ul>
+<li>Commands (run default, init), flags (--sandbox/--sandbox-config/--session-id with
+  persistence guard/--skip-permissions/--log-level), init-does-not-overwrite, wiring
+  (session id, sandbox, skip-permissions through to Agent/TerminalApp): U test_cli
+  (12 tests, ported; legacy-flag rejection consciously dropped per inventory 22)</li>
+<li>.env autoload, PTC source generation at startup, agent lifecycle ownership:
+  cli.run() (covered by the wiring harness; generation skip-if-exists covered-by-port)</li>
+<li>Sandbox runtime effect: DEFER (inventory 21, docs-only contract, no automated test)</li>
+</ul>
+<h2 id="19-system-prompt-skills-phases-35">19. System prompt &amp; skills (phases 3+5)</h2>
+<ul>
+<li>Prompt composition, skills discovery/materialization: U test_config (phase 3)</li>
+<li>/skill-name conversion to skill tags on submit, skill picker: U terminal test_app,
+  test_screens</li>
+</ul>
+<h2 id="20-terminal-ui-phase-5">20. Terminal UI (phase 5)</h2>
+<ul>
+<li>Implementation rebuilt into app/dispatcher/view/approvals/widgets/screens/clipboard
+  per architecture section 5; behavior ported from the pre-rewrite TUI.</li>
+<li>Test suite ported with every old behavioral case surviving by name (59/59 in
+  test_app plus 3 new: empty-prompt warning, skip-permissions bar skip, user toggle):
+  U tests/unit/terminal/ (138 tests: input/pickers/slash commands, streaming render,
+  copy/paste incl. OS-clipboard fallback, approval flows y/n/a/s incl. pattern
+  editing and verbatim/summary display, collapse precedence incl. expand-all
+  override and manual-beats-forced, subagent nesting/parallel routing/stable order,
+  exec output finalization, error box, cancellation, banner, quit) + I
+  test_clipboard (platform roundtrips)</li>
+<li>TrackedCollapsible user-toggle detection: watcher-based (handler override
+  double-fires under Textual MRO dispatch; found by the ported pilot tests, fixed)</li>
+<li>Terminal config section validation: U terminal test_config_section + U test_config</li>
+</ul>
+<h2 id="known-gaps-carried-forward">Known gaps carried forward</h2>
+<ul>
+<li>Subagent kernel-interrupt propagation end-to-end (see section 6 note).</li>
+<li>MCP tool exclusion behavioral test (see section 7 note).</li>
+<li>Sandbox smoke test: DEFER (inventory 21, no pre-rewrite coverage either).</li>
+<li>gsearch contract tests: DEFER(phase4) with the tools layer.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025-2026 Gradion AI
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.preview", "navigation.instant.progress", "navigation.top", "navigation.tracking", "search.suggest", "toc.follow", "content.code.copy", "content.code.select", "content.code.annotate"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

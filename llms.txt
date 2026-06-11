@@ -16,22 +16,43 @@ It can enforce application-level approval of code actions, shell commands, and p
 Freeact runs locally on your computer and is available as a CLI tool and Python SDK.
 
 
-## Documentation
+## Getting started
 
 - [Overview](https://gradion-ai.github.io/freeact/index.md): Overview, usage, and capabilities
-- [Installation](https://gradion-ai.github.io/freeact/installation/index.md): Setup and installation instructions
-- [Quickstart](https://gradion-ai.github.io/freeact/quickstart/index.md): Getting started with code actions and MCP tools
-- [Configuration](https://gradion-ai.github.io/freeact/configuration/index.md): Configuration directory structure and MCP server setup
-- [Code Execution](https://gradion-ai.github.io/freeact/execution/index.md): Code and shell command execution in IPython kernels
-- [Sandbox Mode](https://gradion-ai.github.io/freeact/sandbox/index.md): Sandbox mode for code execution and MCP servers
-- [Models](https://gradion-ai.github.io/freeact/models/index.md): Model configuration, provider settings, and custom providers
-- [Agent SDK](https://gradion-ai.github.io/freeact/sdk/index.md): Agent SDK for agent integration
-- [CLI Tool](https://gradion-ai.github.io/freeact/cli/index.md): CLI tool and interactive mode
+- [Installation](https://gradion-ai.github.io/freeact/getting-started/installation/index.md): Setup and installation instructions
+- [CLI quickstart](https://gradion-ai.github.io/freeact/getting-started/quickstart/index.md): Running a first task with the CLI tool
+- [First agent with the SDK](https://gradion-ai.github.io/freeact/getting-started/sdk-tutorial/index.md): Building a first agent with the Agent SDK
+
+## How-to guides
+
+- [Configure models](https://gradion-ai.github.io/freeact/guides/models/index.md): Model configuration, provider settings, and custom providers
+- [Add custom tool servers](https://gradion-ai.github.io/freeact/guides/tool-servers/index.md): Bundled tool servers and custom MCP servers for JSON and programmatic tool calling
+- [Configure tool discovery](https://gradion-ai.github.io/freeact/guides/tool-discovery/index.md): Basic and hybrid tool discovery setup
+- [Manage permissions](https://gradion-ai.github.io/freeact/guides/permissions/index.md): Approval prompts, permission rules, and approval automation
+- [Use sandbox mode](https://gradion-ai.github.io/freeact/guides/sandbox/index.md): Sandbox mode for code execution and MCP servers
+- [Persist and resume sessions](https://gradion-ai.github.io/freeact/guides/sessions/index.md): Session persistence and resumption
+- [Create agent skills](https://gradion-ai.github.io/freeact/guides/skills/index.md): Custom and bundled agent skills
+- [Save code actions as tools](https://gradion-ai.github.io/freeact/guides/saving-tools/index.md): Saving code actions as reusable tools
+- [Enhance generated tools](https://gradion-ai.github.io/freeact/guides/enhancing-tools/index.md): Enhancing generated tool APIs with output parsers
+- [Use Python packages](https://gradion-ai.github.io/freeact/guides/python-packages/index.md): Using Python packages in code actions
+
+## Reference
+
+- [Configuration](https://gradion-ai.github.io/freeact/reference/configuration/index.md): Configuration file format, agent and terminal settings, and directory structure
+- [CLI](https://gradion-ai.github.io/freeact/reference/cli/index.md): CLI commands, options, and interactive mode
+- [Environment variables](https://gradion-ai.github.io/freeact/reference/environment/index.md): API keys, variable references, and hybrid search variables
+- [Permission rules](https://gradion-ai.github.io/freeact/reference/permission-rules/index.md): Permission rule format, tiers, and pattern matching semantics
+
+## Concepts
+
+- [Code actions](https://gradion-ai.github.io/freeact/concepts/code-actions/index.md): Code actions and unified execution of Python code, shell commands, and tool calls
+- [Approvals and permissions](https://gradion-ai.github.io/freeact/concepts/approvals/index.md): Approval model and permission tiers
+- [Runtime model](https://gradion-ai.github.io/freeact/concepts/runtime/index.md): Event stream, turns, subagents, and cancellation
 
 ## API Reference
 
 - [Agent](https://gradion-ai.github.io/freeact/api/agent/index.md): Agent class, events, and approval workflow
-- [Config](https://gradion-ai.github.io/freeact/api/config/index.md): Configuration initialization and loading
+- [Config](https://gradion-ai.github.io/freeact/api/config/index.md): Configuration loading and resolution
 - [Generate](https://gradion-ai.github.io/freeact/api/generate/index.md): MCP tool API generation
 - [Permissions](https://gradion-ai.github.io/freeact/api/permissions/index.md): Permission management for tool approvals
 

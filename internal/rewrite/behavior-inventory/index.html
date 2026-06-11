@@ -1,0 +1,2070 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Freeact code action agent">
+      
+      
+      
+        <link rel="canonical" href="https://gradion-ai.github.io/freeact/internal/rewrite/behavior-inventory/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Behavior Inventory - freeact</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#behavior-inventory" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="freeact" class="md-header__button md-logo" aria-label="freeact" data-md-component="logo">
+      
+  <img src="../../../images/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            freeact
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Behavior Inventory
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/gradion-ai/freeact" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    gradion-ai/freeact
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Overview
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../guides/models/" class="md-tabs__link">
+          
+  
+  
+  How-to guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../reference/configuration/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../concepts/code-actions/" class="md-tabs__link">
+          
+  
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../llms.txt" class="md-tabs__link">
+          
+  
+  
+  LLM readable
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="freeact" class="md-nav__button md-logo" aria-label="freeact" data-md-component="logo">
+      
+  <img src="../../../images/logo.png" alt="logo">
+
+    </a>
+    freeact
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/gradion-ai/freeact" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    gradion-ai/freeact
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/sdk-tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First agent with the SDK
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How-to guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How-to guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configure models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/tool-servers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Add custom tool servers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/tool-discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configure tool discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/permissions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Manage permissions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/sandbox/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use sandbox mode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/sessions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Persist and resume sessions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/skills/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Create agent skills
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/saving-tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Save code actions as tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/enhancing-tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Enhance generated tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/python-packages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use Python packages
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/permission-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Permission rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Config
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/generate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/permissions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Permissions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/code-actions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code actions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/approvals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Approvals and permissions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM readable
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    LLM readable
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../llms.txt" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    llms.txt
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../llms-full.txt" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    llms-full.txt
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-agent-sdk-lifecycle-public-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Agent SDK: lifecycle &amp; public API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-event-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Event model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-code-execution-ipybox" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Code execution (ipybox)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-shell-command-interception" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Shell command interception
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-approvals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Approvals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-cancellation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Cancellation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-mcp-tool-calls-json-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. MCP tool calls (JSON mode)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-tool-result-overflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Tool result overflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-subagents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Subagents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-session-persistence-resume" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Session persistence &amp; resume
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-permissions-security-critical-semantics-must-be-preserved-exactly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Permissions (security-critical; semantics must be preserved exactly)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-tool-call-typing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Tool call typing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-filesystem-tools-port-processing-logic-ported-as-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Filesystem tools (PORT: processing logic ported as-is)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-web-tools-port-for-security-wrapping-fetchsearch-contracts-pinned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Web tools (PORT for security wrapping; fetch/search contracts pinned)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-tool-discovery-pytools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Tool discovery (pytools)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-mcp-code-mode-ptc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. MCP code mode (PTC)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17-configuration-capabilities-format-independent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. Configuration capabilities (format-independent)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#18-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18. CLI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#19-system-prompt-skills" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19. System prompt &amp; skills
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#20-terminal-ui-user-observable-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        20. Terminal UI (user-observable behavior)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#21-known-coverage-gaps-documented-but-untested-pre-rewrite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        21. Known coverage gaps (documented but untested pre-rewrite)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#22-consciously-dropped" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22. Consciously dropped
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="behavior-inventory">Behavior Inventory</h1>
+<p>STATUS: ARCHIVED (rewrite complete). This was the rewrite's functional contract; the
+living behavior contract is now the test suite, and the living rules reference is
+docs/internal/invariants.md. See <a href="../">README.md</a>.</p>
+<p>Functional contract for the greenfield rewrite (branch <code>wip-rewrite</code>). Triangulated from
+three sources: the pre-rewrite test suite, the user and architecture docs, and a sweep of
+the package source for behaviors that are implemented but neither tested nor documented.
+The rewrite must preserve every behavior listed here unless explicitly listed under
+"Consciously dropped". Test code itself is NOT the contract; this document is. Evidence
+references point at the pre-rewrite tree (reachable on <code>main</code>).</p>
+<p>Legend: <code>[U]</code> tests/unit, <code>[I]</code> tests/integration, <code>[D]</code> docs; bare <code>file.py</code> references
+mean source-derived (no test or doc coverage pre-rewrite). Statements are
+implementation-independent unless marked INVARIANT (property that must hold regardless of
+mechanism) or PORT (module is ported, contract pinned by existing tests).</p>
+<h2 id="1-agent-sdk-lifecycle-public-api">1. Agent SDK: lifecycle &amp; public API</h2>
+<ul>
+<li>Agent is constructed with config plus optional <code>agent_id</code>, <code>session_id</code>, <code>sandbox</code>, <code>sandbox_config</code>. [D sdk.md]</li>
+<li>Agent works as an async context manager; <code>start()</code>/<code>stop()</code> manage kernel and MCP server lifecycle explicitly. [D sdk.md]</li>
+<li>Default main agent id is <code>main</code>. [I test_subagents::test_agent_has_default_id]</li>
+<li><code>stream(prompt, max_turns=None)</code> yields events for one turn; the turn ends when the model responds without tool calls (no implicit turn limit). [I test_agent::test_no_max_turns_completes_normally]</li>
+<li><code>max_turns</code> limits tool-execution rounds for the agent it is passed to. [I test_subagents::test_max_turns_limits_parent]</li>
+<li><code>cancel()</code> interrupts the current turn at the next phase boundary. [D sdk.md]</li>
+<li><code>session_id</code> property returns the session id, or None when persistence is disabled. [D sdk.md]</li>
+<li>A session id is generated when persistence is enabled and none is provided; a provided session id is used as-is. [U test_agent::TestSessionPersistenceConfig]</li>
+<li>Providing a session id while persistence is disabled is an error (ValueError). [U test_agent::test_agent_rejects_session_id_when_persistence_disabled; U test_cli]</li>
+<li><code>tool_names</code> lists all registered tool names; <code>agent_id</code>, <code>model</code>, and <code>model_settings</code> are readable on the agent instance. [D sdk.md; core.py]</li>
+<li><code>.env</code> in the working directory is auto-loaded at CLI startup. [cli.py main]</li>
+</ul>
+<h2 id="2-event-model">2. Event model</h2>
+<ul>
+<li>Event types: <code>ThoughtsChunk</code>/<code>Thoughts</code>, <code>ResponseChunk</code>/<code>Response</code>, <code>CodeExecutionOutputChunk</code>/<code>CodeExecutionOutput</code>, <code>ToolOutput</code>, <code>ApprovalRequest</code>, <code>Cancelled</code>. [D sdk.md]</li>
+<li>Chunk events stream deltas; a final non-chunk event carries the consolidated content. [I test_agent::test_text_deltas_yielded, test_thinking_parts_yielded]</li>
+<li>INVARIANT: every event carries the originating agent's id; subagent events are distinguishable from main-agent events. [I test_subagents::test_events_carry_agent_id]</li>
+<li>INVARIANT: tool-related events carry a correlation id; subagent events carry their own correlation ids plus a reference to the parent task's correlation id (enables nested rendering and parallel-task routing). [I test_subagents::test_subagent_events_keep_subagent_corr_ids, test_parallel_subagent_events_keep_parent_task_corr_ids]</li>
+<li>None deltas in thinking streams are ignored without error. [I test_agent::test_thinking_none_content_ignored]</li>
+<li><code>CodeExecutionOutput</code> formats as its text plus markdown image references for produced images; empty output formats as empty string; it carries a <code>truncated</code> flag indicating truncated output. [U test_agent::TestCodeExecutionOutput; events.py]</li>
+</ul>
+<h2 id="3-code-execution-ipybox">3. Code execution (ipybox)</h2>
+<ul>
+<li>Python code executes in a stateful IPython kernel; output streams back as chunk events followed by a final output event. [I test_agent::test_real_code_execution]</li>
+<li>Working directory is reset to the workspace directory after each code action (even if code chdir'd away). [I test_agent::test_working_dir_reset_after_chdir; D execution.md]</li>
+<li>Code execution exceptions are caught and returned as error text in the output event (turn continues). [I test_agent::test_code_execution_exception_yields_error]</li>
+<li><code>execution_timeout</code> (default 300s, None disables) bounds code execution; timeout produces an interrupted/empty result, not a crash. [I test_agent::test_execution_timeout_exceeded]</li>
+<li>INVARIANT: time spent waiting for approvals does NOT count toward the execution timeout. [I test_agent::test_execution_timeout_excludes_ptc_approval_wait]</li>
+<li>A kernel-reset tool exists; success returns a confirmation, failure returns an error message. [I test_agent::test_ipybox_reset_success, test_ipybox_reset_exception]</li>
+<li>Generated images are saved under the configured images directory and referenced from output events. [D configuration.md]</li>
+<li>Kernel env: user-provided <code>kernel_env</code> is resolved with <code>${VAR}</code> substitution; <code>HOME</code> is inherited from the host env unless the user sets it; the generated-tools dir is always on <code>PYTHONPATH</code>. [U test_agent::TestKernelEnvHome; U test_config]</li>
+</ul>
+<h2 id="4-shell-command-interception">4. Shell command interception</h2>
+<ul>
+<li><code>!command</code> lines inside code actions are intercepted and surfaced as shell approvals (tool name <code>bash</code>); <code>%%bash</code> cell magic surfaces as a distinct shell approval (tool name <code>shell_magic</code>). [U test_agent_shell::test_shell_command_yields_shell_approval]</li>
+<li>Composite shell commands (<code>&amp;&amp;</code>, <code>||</code>, <code>|</code>, <code>;</code>) are split into one approval per sub-command; operators inside quotes do not split. [U test_agent_shell, U test_shell::test_split_composite_command]</li>
+<li>Rejecting any sub-command of a composite rejects the whole command. [U test_agent_shell::test_composite_partial_rejection_rejects_ipybox_approval]</li>
+<li>Python variables in shell commands are resolved before the approval is requested (the user approves the concrete command). [D execution.md]</li>
+<li>Shell state persists within a <code>%%bash</code> block but not across separate <code>!</code> lines. [D execution.md]</li>
+<li>Pattern suggestion generalizes a concrete shell command to a glob pattern (e.g. <code>git add /path/file.py</code> suggests <code>git add *</code>); multiline commands escape newlines in the pattern. [U test_shell::test_suggest_shell_pattern, U test_call::test_suggest_pattern]</li>
+</ul>
+<h2 id="5-approvals">5. Approvals</h2>
+<ul>
+<li>Every code action, shell command, programmatic tool call (PTC), JSON MCP tool call, and subagent task requires approval before execution (unless pre-approved by permission rules or <code>--skip-permissions</code>). [I test_agent; D index.md]</li>
+<li><code>ApprovalRequest</code> carries a typed tool call; <code>approve(bool)</code> resolves it; <code>approved()</code> awaits the decision. Resolving twice is a safe no-op. [D sdk.md; U test_agent::test_approve_after_future_resolved_is_noop]</li>
+<li>INVARIANT: rejection of any approval ends the agent turn with a "Tool call rejected" response; nothing after the rejected action executes. [U+I many tests]</li>
+<li>Rejected PTCs surface an ApprovalRejectedError in the code output so the model can see the rejection. [U test_agent::test_ptc_approval_rejected]</li>
+<li>PTC approvals during code execution surface as nested approvals (correlated to the running code action). [U test_agent::test_ptc_approval_accepted]</li>
+<li>Non-shell PTC approvals surface as GenericCall with <code>ptc=True</code> and tool name <code>&lt;server&gt;_&lt;tool&gt;</code>. [U test_agent_shell::test_non_shell_ptc_uses_generic_call]</li>
+<li>INVARIANT: abandoning the event stream (consumer closes the generator) while an approval is pending rejects that approval exactly once; nothing hangs. [U test_agent::TestGeneratorExitRejectsIpyboxApproval]</li>
+<li>Unknown tool names return an error to the model without requesting approval. [I test_agent::test_unknown_tool_returns_error_without_approval]</li>
+<li><code>approval_timeout</code> (default None = wait forever) is configurable and bounds PTC approval waits. [U test_agent::TestTimeoutParameters; D configuration.md]</li>
+</ul>
+<h2 id="6-cancellation">6. Cancellation</h2>
+<p>Documented semantics: docs/internal/architecture/cancellation.md (pre-rewrite). Phases: <code>between_turns</code>, <code>llm_streaming</code>, <code>tool_execution</code>.</p>
+<ul>
+<li>Cancelling yields a <code>Cancelled</code> event carrying the phase where cancellation took effect. [U test_agent::TestCancellation]</li>
+<li>Cancel during LLM streaming preserves the partial response. [U test_agent::test_cancel_during_llm_streaming]</li>
+<li>Cancel during code execution preserves output produced so far. [U test_agent::test_cancel_during_tool_execution]</li>
+<li>Cancel while an approval is pending rejects/abandons it and produces an interrupted tool return. [U test_agent::test_cancel_during_approval_wait]</li>
+<li>INVARIANT: after cancellation, every tool call the model issued has a tool return in history ("Interrupted by user" synthetic returns for unfinished ones), so the persisted history remains valid for resumption. [U test_agent::test_cancel_produces_synthetic_returns_for_orphaned_calls]</li>
+<li>A stream that is never cancelled behaves identically with or without cancellation support (no spurious events). [U test_agent::test_stream_without_cancel_unchanged]</li>
+<li>Parent cancellation propagates to running subagents (and their code executors). [U test_agent::test_cancel_propagates_to_subagent_code_executor]</li>
+</ul>
+<h2 id="7-mcp-tool-calls-json-mode">7. MCP tool calls (JSON mode)</h2>
+<ul>
+<li>Configured MCP servers' tools are registered and callable; results surface as <code>ToolOutput</code> events. [I test_agent::test_mcp_tool_approval_accepted]</li>
+<li>MCP tool exceptions are converted to error text in the tool return ("MCP tool call failed: ..."), the turn continues. [I test_agent::test_mcp_tool_exception_returns_error]</li>
+<li>Binary MCP content is supported in tool results. [core.py; U media handling]</li>
+<li>Specific tools can be excluded per server via config. [U test_config]</li>
+</ul>
+<h2 id="8-tool-result-overflow">8. Tool result overflow</h2>
+<ul>
+<li>Tool results and code outputs up to <code>tool_result_inline_max_bytes</code> (default 32768) stay inline; larger results are written to a session-scoped file and replaced in history by a notice containing the threshold, a preview (<code>tool_result_preview_chars</code>, default 2048, string results only), and the file path. [U test_tool_result_overflow; I test_agent::test_mcp_tool_result_overflow_is_saved_to_file]</li>
+<li>Structured (JSON) results are saved as JSON without preview; binary results without preview, with extension matching media type. [U test_tool_result_overflow]</li>
+<li>Streamed chunks plus final output produce exactly one overflow file. [I test_agent::test_code_execution_chunk_does_not_create_duplicate_overflow_file]</li>
+<li>INVARIANT: if saving the overflow file fails, the result stays inline (no data loss). [U test_tool_result_overflow::test_large_result_stays_inline_when_store_write_fails]</li>
+<li>INVARIANT: file extensions for saved results are sanitized (no path traversal via media-type-derived extension). [U test_session::test_save_tool_result_sanitizes_extension]</li>
+<li>The system prompt tells the model about overflow files so it can read them on demand. [U test_config::test_system_prompt_mentions_overflow_file_guidance]</li>
+</ul>
+<h2 id="9-subagents">9. Subagents</h2>
+<ul>
+<li><code>subagent_task</code> tool (present when <code>enable_subagents</code>, default true) delegates a prompt to a child agent with its own kernel and MCP connections; the child's final response returns as the parent's <code>ToolOutput</code>. [I test_subagents]</li>
+<li>Subagent ids use a <code>sub-</code> prefix; subagent events stream through the parent's event stream, including approvals. [I test_subagents]</li>
+<li>Subagents cannot nest (no <code>subagent_task</code> tool in subagents). [I test_subagents::test_subagent_has_no_task_tool]</li>
+<li>Subagent kernels are independent of the parent kernel (no shared state). [I test_subagents::test_subagent_kernel_is_independent]</li>
+<li>Subagent default <code>max_turns</code> is 100; concurrency is bounded by <code>max_subagents</code> (default 5). [U test_agent; D configuration.md]</li>
+<li>Subagents inherit parent settings (model, system prompt, kernel env [deep copy], images dir, timeouts, sandbox settings, session id) but always have subagents disabled; in hybrid-search mode subagents do not sync/watch the index. [U test_agent::TestSubagentConfigPropagation; U test_config::test_for_subagent_disables_subagents_and_sync_watch]</li>
+<li>Subagent failure returns an error-text ToolOutput to the parent ("Subagent error..."), not a crash. [I test_subagents::test_subagent_exception_returns_error_in_tool_output]</li>
+<li>Parallel subagent tasks run concurrently with separate ToolOutputs and correctly correlated event streams. [I test_subagents::test_parallel_task_execution]</li>
+<li>Rejecting the <code>subagent_task</code> approval prevents the subagent from running. [I test_subagents::test_task_approval_rejected]</li>
+</ul>
+<h2 id="10-session-persistence-resume">10. Session persistence &amp; resume</h2>
+<ul>
+<li>With persistence enabled, message history is persisted incrementally (after every history mutation, not just at turn end) under <code>.freeact/sessions/&lt;session-id&gt;/</code>. [I test_session_persistence]</li>
+<li>Main agent history and each subagent's history are persisted separately; resume rehydrates only the main history (subagent files are an audit record). [I test_session_persistence::test_resume_loads_only_main_history]</li>
+<li>Resuming with an existing session id continues the conversation; a new id creates a fresh session. [D sdk.md]</li>
+<li>Overflowed tool results live in a <code>tool-results/</code> directory inside the session directory. [I test_session_persistence]</li>
+<li>INVARIANT: a partially written (crashed mid-write) trailing record is tolerated on load (valid prefix is used); corruption elsewhere is an error. [U test_session::test_load_ignores_malformed_trailing_line, test_load_raises_on_non_tail_malformed_line]</li>
+<li>INVARIANT: persisted history round-trips with full fidelity (pydantic-ai ModelMessage parity). [U test_session::test_append_load_round_trip_model_messages]</li>
+<li>History rollback (e.g. on cancellation) is reflected in the persisted record, not only in memory. [U test_session::test_delete_last_messages_truncates_persisted_tail]</li>
+<li>Storage format (JSONL envelopes, one message per line, versioned, timestamped) is an implementation choice the rewrite may change, but incremental-append, crash tolerance, and fidelity are contract.</li>
+</ul>
+<h2 id="11-permissions-security-critical-semantics-must-be-preserved-exactly">11. Permissions (security-critical; semantics must be preserved exactly)</h2>
+<p>Rule model: two tiers (session-only, persistent "always"), two lists per tier (ask, allow).</p>
+<ul>
+<li>INVARIANT: evaluation order is session-ask, always-ask, session-allow, always-allow; first match wins; ask beats allow. No match means not allowed (explicit allow required). [I test_permissions]</li>
+<li>Typed call matching:</li>
+<li>GenericCall: tool name fnmatch glob.</li>
+<li>ShellAction: tool name AND command fnmatch glob.</li>
+<li>CodeAction: tool name fnmatch glob.</li>
+<li>FileRead/FileWrite/FileEdit: tool name fnmatch AND path matched with <code>PurePosixPath.full_match</code> semantics (<code>*</code> does not cross <code>/</code>, <code>**</code> crosses any depth, <code>**/*.py</code> matches at root and nested). [I test_permissions::test_session_rule_matching]</li>
+<li>INVARIANT (security): paths under the working dir are normalized to relative before matching; paths outside the working dir stay absolute; a relative pattern (including bare <code>**</code>) NEVER matches an absolute path. Consequence: a broad <code>**</code> read-allow does not expose <code>/etc/passwd</code> or <code>~/.ssh/...</code>. [I test_permissions::test_default_read_blocked, test_path_outside_workspace_stays_absolute]</li>
+<li>INVARIANT (security): <code>**/.env</code> at any depth is in the default ask rules and beats the broad <code>**</code> allow (covers relative and absolute-under-workdir forms). [I test_permissions::test_absolute_dotenv_under_workdir_blocked]</li>
+<li>Default allow rules: file reads (<code>**</code>) for filesystem tools; pytools introspection calls; a curated list of read-only shell commands (pwd/whoami/uptime/ls/cat/head/tail/ps, git read-only subcommands incl. status/log/diff/show/blame/ls-files/rev-parse/describe/config --get/remote/tag/branch/stash list/worktree list). [I test_permissions::test_default_shell_command_allowed]</li>
+<li>Deliberately NOT in defaults: mutating git commands, rm/mv/cp/mkdir/touch/chmod/chown/kill/pkill, <code>find</code> (any args; can exec/delete), <code>env</code> (can run arbitrary commands), everything via <code>shell_magic</code> (no shell_magic defaults at all). [I test_permissions::test_default_shell_command_blocked, test_shell_magic_not_covered_by_bash_defaults]</li>
+<li>Persistence: always-rules persist to disk; session rules never persist; rules deduplicate on add; constructor does not create directories (only save/init do); init seeds defaults when no file exists and loads the file when it does; defaults active even without load. [I test_permissions]</li>
+<li>Tool call &lt;-&gt; pattern symmetry: each call type supports suggest-pattern (generalize), parse-pattern (reconstruct from user-edited pattern, wildcards allowed in tool name), and entry serialization for storage. [U test_call]</li>
+<li><code>--skip-permissions</code> bypasses all checks. [D cli.md]</li>
+</ul>
+<h2 id="12-tool-call-typing">12. Tool call typing</h2>
+<ul>
+<li>Raw tool calls are classified into: CodeAction (code execution), ShellAction (intercepted shell), FileRead/FileWrite/FileEdit (filesystem tools, with path/offset/limit/content/old/new captured), GenericCall (everything else, with <code>ptc</code> flag). Missing args get sensible defaults (empty code, None offset/limit). [U test_call::test_from_raw]</li>
+<li>Tool call objects are immutable. [U test_call::test_tool_calls_are_frozen]</li>
+<li>Tool output text extraction handles strings, dicts (<code>content</code> then <code>text</code> key), and lists (joined by newlines). [U test_call::test_extract_tool_output_text]</li>
+</ul>
+<h2 id="13-filesystem-tools-port-processing-logic-ported-as-is">13. Filesystem tools (PORT: processing logic ported as-is)</h2>
+<ul>
+<li>read_text_file: full read or 1-indexed offset/limit range with <code>[Lines N-M of TOTAL total]</code> metadata; offset beyond EOF is a ValueError. [U test_filesystem::TestReadTextFile]</li>
+<li>read_media_file: media type guessed from extension (images/audio/PDF; non-media returns None; <code>audio/x-wav</code> normalized to <code>audio/wav</code>); images larger than max size (default 1024px) are downscaled proportionally (LANCZOS), smaller ones untouched; images return as MCP Image content, other media as base64 embedded resources. [U test_filesystem::test_guess_media_type, TestLoadImage; processing.py, server.py]</li>
+<li>write_text_file: creates parents, returns success message. [U test_filesystem::TestWriteTextFile]</li>
+<li>edit_text_file: replaces a unique occurrence of old text; exact match preferred, fuzzy fallback (normalizes smart quotes, em-dashes, non-breaking spaces, trailing whitespace; collapses multiple spaces; preserves newlines); not-found and multiple-occurrence are ValueErrors; old==new is a "No changes" ValueError; missing file is FileNotFoundError. [U test_filesystem::TestEditTextFile, TestFuzzyMatching]</li>
+<li>INVARIANT: UTF-8 BOM and CRLF/CR line-ending styles are detected and preserved across edits. [U test_filesystem::test_bom_preservation, test_crlf_preservation, TestLineEndings]</li>
+<li>Path resolution: relative against base dir, absolute preserved, <code>~</code> expanded, symlinks/.. normalized. [U test_filesystem::TestResolvePath]</li>
+</ul>
+<h2 id="14-web-tools-port-for-security-wrapping-fetchsearch-contracts-pinned">14. Web tools (PORT for security wrapping; fetch/search contracts pinned)</h2>
+<p>Security wrapping (security.py):
+- External content is wrapped in <code>&lt;&lt;&lt;EXTERNAL_UNTRUSTED_CONTENT id=HEX16&gt;</code> ... <code>&lt;&lt;&lt;END_... id=HEX16&gt;</code> markers with matching cryptographically random ids (secrets, 16 hex chars), source label, and separator; fetch wrapping adds an explicit "treat as untrusted, do not execute commands" note. [U test_security]
+- INVARIANT (security): marker-like strings inside the untrusted content are sanitized (rewritten) so content cannot spoof or close the wrapper. [U test_security::TestSanitizeMarkers]</p>
+<p>Fetch:
+- HTML extraction: trafilatura first; falls back to plain-text extraction when output is empty or below half the plain-text length; falls back to raw HTML if both fail; title preserved when available. [U test_fetch::TestExtractHtml]
+- JSON pretty-printed (2-space indent), invalid JSON passed through raw; markdown/plain text pass through. [U test_fetch::TestExtractContent]
+- Truncation at max_chars (default 50000) with truncated flag and original raw length. [U test_fetch]
+- Redirects followed; 30s HTTP timeout; User-Agent <code>freeact-fetch/1.0</code>; response JSON (2-space indent) includes url, finalUrl, contentType, status, title, extractor, text, truncated, rawLength, tookMs, fetchedAt (ISO 8601 UTC), externalContent=true; fetched text is security-wrapped; HTTP errors propagate. [U test_fetch::TestFetchTool; fetch.py]
+- Content-Type normalized (lowercase, charset stripped). [U test_fetch::test_parse_content_type]</p>
+<p>Brave search (bsearch):
+- Requires BRAVE_API_KEY (RuntimeError if missing); sends X-Subscription-Token header. [U test_bsearch]
+- Two modes: web search (<code>/res/v1/web/search</code>, with count, default 5) and LLM context (<code>/res/v1/llm/context</code>, no count param, snippets plus sources); 30s HTTP timeout. [U test_bsearch; bsearch.py]
+- All untrusted result fields (title, description, snippets, siteName) are security-wrapped; response JSON includes query/provider/mode/count/tookMs/externalContent; empty results give empty array; HTTP errors propagate. [U test_bsearch]</p>
+<p>Google search (gsearch), contract derived from source (no pre-rewrite tests):
+- Tool <code>web_search(query)</code>: Gemini answers the query with Google Search grounding; returns plain text: the synthesized answer, then a blank line and numbered source references <code>[N]: URL</code> when grounding is available (answer only otherwise). [gsearch.py]
+- Only web grounding chunks become references; redirect URLs are resolved (HEAD, follow redirects) before numbering; numbering is sequential from 1. [gsearch.py]
+- <code>--thinking-level {minimal,low,medium,high}</code> (default medium) server option; GEMINI_API_KEY required. [gsearch.py; D configuration.md]</p>
+<h2 id="15-tool-discovery-pytools">15. Tool discovery (pytools)</h2>
+<p>Basic mode: MCP server listing tool categories and tools by scanning <code>mcptools/</code> and <code>gentools/</code> under the generated dir; tool listings return full source file paths (so the model can read the APIs). [D configuration.md; basic.py]</p>
+<p>Hybrid mode (PORT: stack ported as-is, becomes the <code>freeact[search]</code> extra):
+- Tool layout contract: <code>mcptools/&lt;category&gt;/&lt;tool&gt;.py</code> and <code>gentools/&lt;category&gt;/&lt;tool&gt;/api.py</code>; tool ids <code>source:category:name</code>; <code>_</code>-prefixed dirs skipped; tools without docstrings skipped; docstring taken from <code>run()</code> (or preferred <code>run_parsed()</code>). [U test_extract]
+- Index sync: scans, embeds descriptions, stores in SQLite (FTS5 + sqlite-vec); hash-based change detection (unchanged skipped, modified re-embedded, deleted removed); empty dir is a no-op. [I hybrid test_index]
+- File watching: debounced watch of the two tool dirs, .py only, callbacks for change/delete, callback errors don't kill the watcher, idempotent start/stop, async context manager. [I hybrid test_watch]
+- Search: bm25 / vector (cosine, descending) / hybrid (RRF fusion, configurable bm25/vector weights, rrf_k=60, overfetch x2 defaults); limit respected; special characters in queries don't crash; empty db gives empty results. [I hybrid test_search, test_database]
+- Server: env-var config (PYTOOLS_DIR, PYTOOLS_DB_PATH, PYTOOLS_EMBEDDING_MODEL [default google-gla:gemini-embedding-001, <code>test</code> = deterministic embedder], PYTOOLS_EMBEDDING_DIM 3072, PYTOOLS_SYNC/WATCH true, weights 1.0; booleans case-insensitive); syncs on start, watches for live updates, <code>search_tools(query, mode, limit)</code> tool (limit bounded 1..50); results carry name/category/source/description/path, entries missing from the db are silently skipped; concurrent searches from multiple server instances against one db work. [U+I hybrid test_server]</p>
+<h2 id="16-mcp-code-mode-ptc">16. MCP code mode (PTC)</h2>
+<ul>
+<li>Typed Python APIs are generated from MCP server schemas into <code>.freeact/generated/mcptools/&lt;server&gt;/</code> (via mcpygen); generation runs at startup for configured ptc servers, skipping already-generated ones. [D index.md; apigen.py]</li>
+<li>Code actions import these as <code>mcptools.&lt;server&gt;.&lt;tool&gt;</code> and call <code>run()</code>/<code>run_parsed()</code> with a <code>Params</code> type; calls route back through the agent's approval and execution machinery. [D execution.md]</li>
+<li>Agents can author their own tools under <code>gentools/</code> and save code actions as reusable tools (supported by bundled skills). [D index.md]</li>
+</ul>
+<h2 id="17-configuration-capabilities-format-independent">17. Configuration capabilities (format-independent)</h2>
+<p>The rewrite replaces the format (unified TOML, minimal defaults, named tool presets). These capabilities must remain configurable:</p>
+<ul>
+<li>model (provider:name string), model_settings (passed through to pydantic-ai, incl. thinking config), provider_settings (api_key/base_url etc.) with <code>${VAR}</code> env substitution; any pydantic-ai-compatible model. [U test_config; D models.md]</li>
+<li>tool_search mode: basic | hybrid (| off, new in rewrite). mcp_servers (JSON-mode) and ptc_servers (code mode) as user-defined server tables (stdio + streamable HTTP), merged with built-ins; per-server tool exclusion; <code>${VAR}</code> references validated at load (missing var is an error) but substituted at use. [U test_config]</li>
+<li>execution_timeout, approval_timeout, tool_result_inline_max_bytes, tool_result_preview_chars, enable_persistence, enable_subagents, max_subagents, kernel_env, images_dir. [U test_config; D configuration.md]</li>
+<li>Workspace layout: <code>.freeact/</code> holds config, permissions, sessions/, generated/, plans/, skills/, search db. Save/init creates the runtime directories and materializes bundled skills (without overwriting user-modified ones). [U test_config]</li>
+<li>Config is immutable after load; loading is faithful (every documented key takes effect). [U test_config] (AMENDED: the old save/load round-trip becomes init-writes-once; see section 22 and architecture.md 4.1.)</li>
+<li>Defaults that are contract: model google-gla:gemini-3.5-flash with medium thinking, timeouts/thresholds above. Defaults that CHANGE in the rewrite: google+fetch ptc servers on by default (become opt-in presets).</li>
+</ul>
+<h2 id="18-cli">18. CLI</h2>
+<ul>
+<li><code>freeact</code> / <code>freeact run</code> starts the interactive TUI; <code>freeact init</code> initializes config without starting. [U test_cli; D cli.md]</li>
+<li>Flags: <code>--sandbox</code>, <code>--sandbox-config PATH</code>, <code>--session-id ID</code> (errors if persistence disabled), <code>--skip-permissions</code>, <code>--log-level {debug,info,warning,error,critical}</code> (default info). [U test_cli]</li>
+<li>Sandbox mode: OS-level filesystem/network restrictions for the kernel via sandbox-runtime (read all except .env, write cwd, no network by default; custom config file overrides); applies uniformly to Python and shell; MCP servers sandboxed independently via srt wrapping. [D sandbox.md] NOTE: no automated test coverage pre-rewrite.</li>
+</ul>
+<h2 id="19-system-prompt-skills">19. System prompt &amp; skills</h2>
+<ul>
+<li>System prompt composed from bundled template with working dir, generated-tools relative dir, optional <code>&lt;project-instructions&gt;</code> from <code>AGENTS.md</code> in the working dir, and a skills section listing each skill's name/description/location. [U test_config; D configuration.md]</li>
+<li>Skills follow the agentskills.io spec (SKILL.md with YAML frontmatter: name, description). Bundled skills: task-planning, output-parsers, saving-codeacts. Project skills from <code>.agents/skills/&lt;name&gt;/</code>. [D configuration.md]</li>
+<li>The model auto-invokes skills by description match; <code>/skill-name args</code> in a prompt explicitly invokes one (TUI converts it to a skill tag before sending). [D cli.md; U terminal tests]</li>
+</ul>
+<h2 id="20-terminal-ui-user-observable-behavior">20. Terminal UI (user-observable behavior)</h2>
+<p>Input:
+- Enter submits (trimmed), input clears, submitted text shown in a user box; submitting empty/whitespace-only input shows a warning notification instead. Alt+Enter/Ctrl+J inserts newline; Escape clears input when idle with text, cancels the turn while one is in progress, and rejects a pending approval. [U test_app; widgets.py]
+- <code>@</code> at a word start opens a file picker (tree rooted at /, cursor at cwd, prefix-search navigation, backspace reverts); selection inserts the path, relative to the working dir when possible, absolute otherwise. [U test_app, test_screens]
+- <code>/</code> at prompt start opens a skill picker (prefix matching, Enter selects); selection inserts <code>/skill-name</code>; on submit, slash commands are converted to skill tags. [U test_app, test_screens]
+- Paste via Ctrl+V / Super+V / Ctrl+Shift+V / Shift+Insert reads the OS clipboard, falling back to the app-local clipboard only when the OS clipboard is unavailable (None), not when it is empty. [U test_app]</p>
+<p>Rendering (main agent only; subagent events render nested, see below):
+- Thoughts stream into a box that collapses on completion (configurable); responses stream as markdown (links styled, hover effect). [U test_app]
+- Code actions, shell commands/scripts, file read/write/edit (with diff rendering for edits), generic tool calls, and subagent tasks each render as titled collapsible boxes (<code>[agent-id] &lt;kind&gt;: &lt;subject&gt;</code>); execution output streams nested inside its code action box; tool outputs render collapsed by default. [U test_app, test_widgets]
+- All rendered text (responses, code, outputs, diffs, user input) is mouse-selectable and copyable via Cmd+C / Super+C / Ctrl+Shift+C / Ctrl+Insert / Ctrl+C, copying to the OS clipboard. [U test_app]
+- Stream exceptions render as an expanded Error box and re-enable input. [U test_app]
+- Banner with version (build metadata stripped) and cwd (<code>~</code>-relative) at top; viewport starts at bottom. [U test_app]
+- Ctrl+Q quits. [U test_app]
+- A hints bar shows contextual keyboard shortcuts that update with state (e.g. "esc: interrupt" during a turn, "esc: clear" when idle with text). [app.py]</p>
+<p>Approvals:
+- Approval bar shows <code>Approve? [Y/n/a/s]</code> with the call's display text (verbatim command for bash; multi-line scripts summarized as "first line +N more") or suggested pattern. [U test_app]
+- Y/Enter approves (Enter works regardless of focus); N rejects (rejected boxes stay expanded, configurable); A/S open an editable pattern input seeded with the suggested pattern, then record allow-always (persisted) or allow-session respectively and approve. [U test_app]
+- Pre-approved calls (permission match or skip-permissions) skip the bar and follow the approved-collapse config. [U test_app]
+- PTC calls are labeled as PTC in the box title. [U test_app]
+- While an approval is pending its box stays pinned expanded (configurable). [U test_app]</p>
+<p>Collapse management:
+- Configurable expand-all toggle key (default ctrl+o) overrides all collapse state and restores it on second press; new boxes mounted during override render expanded; manual collapse choices survive. [U test_app]
+- Per-kind collapse config: thoughts, exec output, approved code actions (default expanded), approved tool calls (default collapsed), completed subagent tasks (default collapsed), tool outputs, rejected actions stay expanded, pin pending approval. [U test_app, test_terminal_config]</p>
+<p>Subagent display:
+- Subagent child widgets nest inside their task's box (routed by parent correlation id), parallel tasks route correctly and keep stable order; active tasks can be manually collapsed and stay collapsed as children mount; completed tasks auto-collapse (configurable); subagent approval bars appear at root level so they are always visible. [U test_app]</p>
+<p>Clipboard backends (PORT): macOS pbcopy/pbpaste; Linux wl-copy/wl-paste then xclip then xsel (X11 prefers xclip); Windows powershell/pwsh. [U+I clipboard tests]</p>
+<h2 id="21-known-coverage-gaps-documented-but-untested-pre-rewrite">21. Known coverage gaps (documented but untested pre-rewrite)</h2>
+<ul>
+<li>Google search tool (gsearch) has no tests; its contract in section 14 is source-derived.</li>
+<li>Sandbox mode has no automated tests (docs only).</li>
+<li>Approval timeout enforcement is config-plumbed but its runtime effect is untested.</li>
+<li>TUI-driven permission persistence end-to-end (approval bar "a" through to permissions.json) is covered only at unit level.</li>
+</ul>
+<h2 id="22-consciously-dropped">22. Consciously dropped</h2>
+<ul>
+<li>All tests pinning internal mechanics (private methods, mock call shapes, module singletons, widget internals); listed per area in the extraction reports. The behaviors above are the replacement contract.</li>
+<li>JSON config format details: snake_case-only key validation, kebab-case rejection, three separate config files, validate-but-not-substitute <code>${VAR}</code> timing in stored ptc configs, accepting pre-instantiated Model objects in persisted config.</li>
+<li>Default-on google/fetch ptc servers (replaced by one-line opt-in presets).</li>
+<li>Rejected-approval detection via "ApprovalRejectedError:" string matching as an SDK-visible mechanism (replaced by a structured rejection signal; the in-kernel error string shown to the model remains).</li>
+<li>CLI rejection of long-removed legacy flags (<code>--legacy-ui</code>, <code>--record</code>).</li>
+<li>Programmatic <code>Config.save()</code> of arbitrary config state back to disk: in the rewrite the app writes config.toml only at <code>init</code>; config flows one way (file -&gt; schema -&gt; resolve). Permissions remain machine-written (separate file).</li>
+<li>Migration of pre-rewrite <code>.freeact/*.json</code> files (agent.json, terminal.json, permissions.json): ignored by the rewrite; users re-run <code>freeact init</code> and re-approve permissions (fail-safe direction).</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025-2026 Gradion AI
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.preview", "navigation.instant.progress", "navigation.top", "navigation.tracking", "search.suggest", "toc.follow", "content.code.copy", "content.code.select", "content.code.annotate"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

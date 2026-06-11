@@ -12,7 +12,7 @@ Freeact supports tool discovery via agentic and semantic search, loading only ta
 
 Supported models
 
-Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/). See [Models](https://gradion-ai.github.io/freeact/models/index.md) for provider configuration and examples.
+Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/). See [Configure models](https://gradion-ai.github.io/freeact/guides/models/index.md) for provider configuration and examples.
 
 ## Capabilities
 
@@ -31,10 +31,12 @@ Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev
 
 ## Usage
 
-| Component                                                          | Description                                                            |
-| ------------------------------------------------------------------ | ---------------------------------------------------------------------- |
-| **[Agent SDK](https://gradion-ai.github.io/freeact/sdk/index.md)** | Agent harness and Python API for building freeact applications.        |
-| **[CLI tool](https://gradion-ai.github.io/freeact/cli/index.md)**  | Terminal interface for interactive conversations with a freeact agent. |
+| Component                                                                                   | Description                                                            |
+| ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| **[Agent SDK](https://gradion-ai.github.io/freeact/getting-started/sdk-tutorial/index.md)** | Agent harness and Python API for building freeact applications.        |
+| **[CLI tool](https://gradion-ai.github.io/freeact/getting-started/quickstart/index.md)**    | Terminal interface for interactive conversations with a freeact agent. |
+
+Start with [Installation](https://gradion-ai.github.io/freeact/getting-started/installation/index.md), then follow the [CLI quickstart](https://gradion-ai.github.io/freeact/getting-started/quickstart/index.md) or build a [first agent with the SDK](https://gradion-ai.github.io/freeact/getting-started/sdk-tutorial/index.md). How-to guides cover individual tasks, [Reference](https://gradion-ai.github.io/freeact/reference/configuration/index.md) pages document configuration and the [CLI](https://gradion-ai.github.io/freeact/reference/cli/index.md), and [Concepts](https://gradion-ai.github.io/freeact/concepts/code-actions/index.md) explain how freeact works.
 
 ______________________________________________________________________
 

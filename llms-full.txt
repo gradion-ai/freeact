@@ -16,7 +16,7 @@ It can enforce application-level approval of code actions, shell commands, and p
 Freeact runs locally on your computer and is available as a CLI tool and Python SDK.
 
 
-# Documentation
+# Getting started
 
 # freeact
 
@@ -32,7 +32,7 @@ Freeact supports tool discovery via agentic and semantic search, loading only ta
 
 Supported models
 
-Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/). See [Models](https://gradion-ai.github.io/freeact/models/index.md) for provider configuration and examples.
+Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/). See [Configure models](https://gradion-ai.github.io/freeact/guides/models/index.md) for provider configuration and examples.
 
 ## Capabilities
 
@@ -51,10 +51,12 @@ Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev
 
 ## Usage
 
-| Component                                                          | Description                                                            |
-| ------------------------------------------------------------------ | ---------------------------------------------------------------------- |
-| **[Agent SDK](https://gradion-ai.github.io/freeact/sdk/index.md)** | Agent harness and Python API for building freeact applications.        |
-| **[CLI tool](https://gradion-ai.github.io/freeact/cli/index.md)**  | Terminal interface for interactive conversations with a freeact agent. |
+| Component                                                                                   | Description                                                            |
+| ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| **[Agent SDK](https://gradion-ai.github.io/freeact/getting-started/sdk-tutorial/index.md)** | Agent harness and Python API for building freeact applications.        |
+| **[CLI tool](https://gradion-ai.github.io/freeact/getting-started/quickstart/index.md)**    | Terminal interface for interactive conversations with a freeact agent. |
+
+Start with [Installation](https://gradion-ai.github.io/freeact/getting-started/installation/index.md), then follow the [CLI quickstart](https://gradion-ai.github.io/freeact/getting-started/quickstart/index.md) or build a [first agent with the SDK](https://gradion-ai.github.io/freeact/getting-started/sdk-tutorial/index.md). How-to guides cover individual tasks, [Reference](https://gradion-ai.github.io/freeact/reference/configuration/index.md) pages document configuration and the [CLI](https://gradion-ai.github.io/freeact/reference/cli/index.md), and [Concepts](https://gradion-ai.github.io/freeact/concepts/code-actions/index.md) explain how freeact works.
 
 ______________________________________________________________________
 
@@ -64,7 +66,7 @@ ______________________________________________________________________
 
 ## Prerequisites
 
-- Python 3.11+
+- Python 3.13+
 - [uv](https://docs.astral.sh/uv/) package manager
 - Node.js 20+ (for MCP servers)
 
@@ -101,9 +103,37 @@ uv run freeact
 
 This approach lets you install additional packages (e.g., `uv add pandas`) that will be available to the agent.
 
+In environments managed with `pip`, install the core package with:
+
+```
+pip install freeact
+```
+
+## Hybrid Tool Discovery
+
+[Hybrid tool discovery](https://gradion-ai.github.io/freeact/guides/tool-discovery/index.md) (`discovery = "hybrid"` in `.freeact/config.toml`) requires the `search` extra, which adds `sqlite-vec` and `watchfiles`:
+
+```
+uv add 'freeact[search]'
+```
+
+or with `pip`:
+
+```
+pip install 'freeact[search]'
+```
+
+With `uvx`, run freeact with the extra applied:
+
+```
+uvx --from 'freeact[search]' freeact
+```
+
+The core install covers everything else: SDK, CLI, bundled tool servers, and basic tool discovery.
+
 ## API Key
 
-Freeact uses `google-gla:gemini-3.5-flash` as the [default model](https://gradion-ai.github.io/freeact/models/index.md). Set the API key in your environment:
+Freeact uses `google-gla:gemini-3.5-flash` as the [default model](https://gradion-ai.github.io/freeact/guides/models/index.md). Set the API key in your environment:
 
 ```
 export GEMINI_API_KEY="your-api-key"
@@ -147,39 +177,54 @@ Work in progress
 
 Sandboxing on Linux is currently work in progress.
 
-# Quickstart
+# CLI quickstart
 
-This guide shows how to run a simple task using the freeact [CLI tool](#cli-tool) and the [Agent SDK](#agent-sdk).
+This tutorial runs a first task with the freeact [CLI tool](https://gradion-ai.github.io/freeact/reference/cli/index.md): initialize a workspace, enable tool presets, start the agent, and approve its actions.
 
-## CLI Tool
+## 1. Initialize a workspace
 
-Freeact provides a [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) for running the agent in a terminal.
-
-### Starting Freeact
-
-Create a workspace directory, set your API key, and start the agent:
+Create a workspace directory, set your API key, and initialize the `.freeact/` configuration directory:
 
 ```
 mkdir my-workspace && cd my-workspace
 echo "GEMINI_API_KEY=your-api-key" > .env
-uvx freeact
+uvx freeact init
 ```
 
-See [Installation](https://gradion-ai.github.io/freeact/installation/index.md) for alternative setup options and sandbox mode prerequisites.
+See [Installation](https://gradion-ai.github.io/freeact/getting-started/installation/index.md) for alternative setup options and sandbox mode prerequisites.
 
 Using a different model
 
-The current default model is `google-gla:gemini-3.5-flash`. Freeact supports any model compatible with Pydantic AI. To switch providers or configure model settings, see [Models](https://gradion-ai.github.io/freeact/models/index.md).
+The current default model is `google-gla:gemini-3.5-flash`. Freeact supports any model compatible with Pydantic AI. To switch providers or configure model settings, see [Configure models](https://gradion-ai.github.io/freeact/guides/models/index.md).
 
-### Generating MCP Tool APIs
+## 2. Enable tools
 
-On first start, the CLI tool auto-generates Python APIs for [configured](https://gradion-ai.github.io/freeact/configuration/#ptc_servers) MCP servers. For example, it creates `.freeact/generated/mcptools/google/web_search.py` for the `web_search` tool of the bundled `google` MCP server. With the generated Python API, the agent can import and call this tool programmatically.
+By default, code execution, filesystem tools, and basic tool discovery are enabled. The bundled web tool servers are one-line opt-ins in `.freeact/config.toml`. For this task, enable web search by uncommenting the corresponding line under `[agent.tools]`:
+
+.freeact/config.toml
+
+```
+[agent.tools]
+search = true            # google search (code mode); needs GEMINI_API_KEY
+```
+
+See [Add custom tool servers](https://gradion-ai.github.io/freeact/guides/tool-servers/index.md) for all presets and custom MCP servers, and [Configuration](https://gradion-ai.github.io/freeact/reference/configuration/index.md) for the full file format.
+
+## 3. Start the agent
+
+Start the agent:
+
+```
+uvx freeact
+```
+
+On start, the CLI tool auto-generates Python APIs for [configured](https://gradion-ai.github.io/freeact/guides/tool-servers/#add-servers-for-programmatic-tool-calling) MCP servers. For example, it creates `.freeact/generated/mcptools/google/web_search.py` for the `web_search` tool of the bundled `google` MCP server, enabled by the `search` preset. With the generated Python API, the agent can import and call this tool programmatically.
 
 Custom MCP servers
 
-For calling the tools of your own MCP servers programmatically, add them to the [`ptc_servers`](https://gradion-ai.github.io/freeact/configuration/#ptc_servers) section in `.freeact/agent.json`. Freeact auto-generates a Python API for them when the CLI tool starts.
+For calling the tools of your own MCP servers programmatically, add them to the [`ptc_servers`](https://gradion-ai.github.io/freeact/guides/tool-servers/#add-servers-for-programmatic-tool-calling) section in `.freeact/config.toml`. Freeact auto-generates a Python API for them when the CLI tool starts.
 
-### Running a Task
+## 4. Run a task
 
 With this setup and a question like
 
@@ -194,20 +239,45 @@ The screenshot shows:
 
 The code execution output shows the search result with source URLs. The agent response is a summary of it.
 
-### Approval Prompt
+## 5. Approve actions
 
 Freeact can prompt for approval before running code actions. Shell commands and programmatic tool calls within code actions are intercepted during execution and approved individually. The screenshot below shows the approval prompt for a programmatic tool call (PTC):
 
-Code actions and tool calls can also be pre-approved. See [Approval Prompt](https://gradion-ai.github.io/freeact/cli/#approval-prompt) for prompt options and behavior.
+Code actions and tool calls can also be pre-approved. See [Manage permissions](https://gradion-ai.github.io/freeact/guides/permissions/index.md) for prompt options and saving permission rules.
 
-## Agent SDK
+## Next steps
 
-The CLI tool is built on the [Agent SDK](https://gradion-ai.github.io/freeact/sdk/index.md) that you can use directly in your applications. The following minimal example shows how to run the same task programmatically, with code actions and tool calls auto-approved by the application:
+- Build the same task programmatically: [First agent with the SDK](https://gradion-ai.github.io/freeact/getting-started/sdk-tutorial/index.md)
+- Understand what the agent executes: [Code actions](https://gradion-ai.github.io/freeact/concepts/code-actions/index.md)
+- Run code execution with OS-level restrictions: [Use sandbox mode](https://gradion-ai.github.io/freeact/guides/sandbox/index.md)
+
+# First agent with the SDK
+
+The [CLI tool](https://gradion-ai.github.io/freeact/reference/cli/index.md) is built on the Agent SDK that you can use directly in your applications. This tutorial builds a minimal application that runs the same task as the [CLI quickstart](https://gradion-ai.github.io/freeact/getting-started/quickstart/index.md) programmatically: load and resolve configuration, generate MCP tool APIs, run the agent, and handle its events, with code actions and tool calls auto-approved by the application.
+
+The complete example is [`examples/basic_agent.py`](https://github.com/gradion-ai/freeact/blob/main/examples/basic_agent.py), shown in full at the [end of this tutorial](#complete-example).
+
+## 1. Set up a workspace
+
+Create a workspace directory with freeact [installed](https://gradion-ai.github.io/freeact/getting-started/installation/index.md) and set your API key:
 
 ```
-import asyncio
+mkdir my-workspace && cd my-workspace
+uv init --bare --python 3.13
+uv add freeact
+export GEMINI_API_KEY="your-api-key"
+```
 
-from freeact.agent import (
+`.env` loading
+
+Automatic `.env` loading is a [CLI feature](https://gradion-ai.github.io/freeact/reference/cli/index.md). SDK applications read configuration from the process environment; export the API key or load a `.env` file yourself.
+
+## 2. Load and resolve configuration
+
+Configuration flows one way: file, then schema, then resolution. config.init() sets up the `.freeact/` workspace (writes the commented default `config.toml` when missing, creates runtime directories, materializes bundled skills). config.resolve() turns a parsed FreeactConfig into a ResolvedRuntime: it expands tool presets into server configs, substitutes `${VAR}` references, and prepares the model for pydantic-ai.
+
+```
+from freeact import (
     Agent,
     ApprovalRequest,
     CodeAction,
@@ -216,23 +286,128 @@ from freeact.agent import (
     ShellAction,
     Thoughts,
     ToolOutput,
+    config,
 )
 
-from freeact.agent.config import Config
+config.init()  # set up the .freeact/ workspace (config.toml, dirs, bundled skills)
+
+# Enable the bundled search and fetch tool servers for this example
+# (in a real workspace, set them in .freeact/config.toml instead).
+cfg = config.FreeactConfig.model_validate({"agent": {"tools": {"search": True, "fetch": True}}})
+runtime = config.resolve(cfg)
+```
+
+This example enables the `search` and `fetch` presets in code. In a real workspace, set them in `.freeact/config.toml` and load the file with config.load() instead:
+
+```
+runtime = config.resolve(config.load())
+```
+
+There is no programmatic save: freeact writes `config.toml` only at `init` and never rewrites it. Edit the file to change configuration. See the [Configuration](https://gradion-ai.github.io/freeact/reference/configuration/index.md) reference for the file format and the `.freeact/` directory structure.
+
+## 3. Generate MCP tool APIs
+
+MCP servers configured as [`ptc_servers`](https://gradion-ai.github.io/freeact/guides/tool-servers/#add-servers-for-programmatic-tool-calling) require Python API generation with generate_mcp_sources() before the agent can call their tools programmatically. The CLI tool does this automatically on start; SDK applications call it explicitly:
+
+```
+from freeact.tools.pytools.apigen import generate_mcp_sources
+
+# Generate Python APIs for MCP servers in ptc_servers
+generated_dir = runtime.workspace.generated_dir
+for server_name, params in runtime.ptc_servers.items():
+    if not (generated_dir / "mcptools" / server_name).exists():
+        await generate_mcp_sources({server_name: params}, generated_dir)
+```
+
+Generated APIs are stored as `.freeact/generated/mcptools/<server_name>/<tool>.py` modules and persist across agent sessions. The `.freeact/generated/` directory is on the kernel's `PYTHONPATH`, so the agent can import them directly in code actions:
+
+```
+from mcptools.google.web_search import run, Params
+
+result = run(Params(query="python async tutorial"))
+```
+
+## 4. Run the agent and handle events
+
+The Agent class implements the agentic code action loop, handling code action generation, code execution, tool calls, and the approval workflow. Each stream() call runs a single agent turn, with the agent managing conversation history across calls. Iterate over the yielded events and handle them with pattern matching:
+
+```
+async with Agent(runtime) as agent:
+    prompt = "Who is the F1 world champion 2025?"
+
+    async for event in agent.stream(prompt):
+        match event:
+            case ApprovalRequest(tool_call=CodeAction(code=code)) as request:
+                print(f"Code action:\n{code}")
+                request.approve(True)
+            case ApprovalRequest(tool_call=ShellAction(command=cmd)) as request:
+                print(f"Shell command: {cmd}")
+                request.approve(True)
+            case ApprovalRequest(tool_call=tool_call) as request:
+                print(f"Tool: {tool_call.tool_name}")
+                request.approve(True)
+            case Thoughts(content=content):
+                print(f"Thinking: {content}")
+            case CodeExecutionOutput(text=text):
+                print(f"Code execution output: {text}")
+            case ToolOutput(content=content):
+                print(f"Tool call result: {content}")
+            case Response(content=content):
+                print(content)
+```
+
+Three things to note:
+
+- The `async with` block starts the IPython kernel and MCP server connections on entry and closes them on exit.
+- Every ApprovalRequest suspends execution until the application calls `approve()`. This example approves everything with `approve(True)`; `approve(False)` rejects the action and ends the current agent turn.
+- Thoughts, CodeExecutionOutput, ToolOutput, and Response are complete events. For processing output incrementally, match their `*Chunk` variants instead. See [Runtime model](https://gradion-ai.github.io/freeact/concepts/runtime/index.md) for the full event list.
+
+## 5. Run the application
+
+Save the complete example as `basic_agent.py` and run it:
+
+```
+uv run python basic_agent.py
+```
+
+The output shows the agent's thoughts, the code action importing and calling `web_search` from `mcptools.google`, the execution output with search results, and the final response.
+
+## Complete example
+
+```
+import asyncio
+
+from freeact import (
+    Agent,
+    ApprovalRequest,
+    CodeAction,
+    CodeExecutionOutput,
+    Response,
+    ShellAction,
+    Thoughts,
+    ToolOutput,
+    config,
+)
 
 from freeact.tools.pytools.apigen import generate_mcp_sources
 
 
 
 async def main() -> None:
-    config = await Config.init()
+    config.init()  # set up the .freeact/ workspace (config.toml, dirs, bundled skills)
+
+    # Enable the bundled search and fetch tool servers for this example
+    # (in a real workspace, set them in .freeact/config.toml instead).
+    cfg = config.FreeactConfig.model_validate({"agent": {"tools": {"search": True, "fetch": True}}})
+    runtime = config.resolve(cfg)
 
     # Generate Python APIs for MCP servers in ptc_servers
-    for server_name, params in config.ptc_servers.items():
-        if not (config.generated_dir / "mcptools" / server_name).exists():
-            await generate_mcp_sources({server_name: params}, config.generated_dir)
+    generated_dir = runtime.workspace.generated_dir
+    for server_name, params in runtime.ptc_servers.items():
+        if not (generated_dir / "mcptools" / server_name).exists():
+            await generate_mcp_sources({server_name: params}, generated_dir)
 
-    async with Agent(config=config) as agent:
+    async with Agent(runtime) as agent:
         prompt = "Who is the F1 world champion 2025?"
 
         async for event in agent.stream(prompt):
@@ -260,24 +435,869 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
+## Next steps
+
+- Understand the event stream, turns, and cancellation: [Runtime model](https://gradion-ai.github.io/freeact/concepts/runtime/index.md)
+- Persist conversations and resume them later: [Persist and resume sessions](https://gradion-ai.github.io/freeact/guides/sessions/index.md)
+- Replace blanket auto-approval with stored permission rules: [Manage permissions](https://gradion-ai.github.io/freeact/guides/permissions/index.md)
+- Full API documentation: [Agent](https://gradion-ai.github.io/freeact/api/agent/index.md), [Config](https://gradion-ai.github.io/freeact/api/config/index.md), [Generate](https://gradion-ai.github.io/freeact/api/generate/index.md), [Permissions](https://gradion-ai.github.io/freeact/api/permissions/index.md)
+# How-to guides
+
+# Configure models
+
+Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/models/). The model is configured in the [`[agent]` section](https://gradion-ai.github.io/freeact/reference/configuration/#configuration-file) of `.freeact/config.toml` through three settings:
+
+| Setting             | Required | Description                                                                     |
+| ------------------- | -------- | ------------------------------------------------------------------------------- |
+| `model`             | yes      | Model identifier in `provider:model-name` format                                |
+| `model_settings`    | no       | Model behavior settings (for example thinking settings or `temperature`)        |
+| `provider_settings` | no       | Provider options (for example `api_key`, `base_url`, `app_url`, or `app_title`) |
+
+## Model Identifier
+
+The `model` field uses Pydantic AI's `provider:model-name` format. Common providers:
+
+| Provider            | Prefix           | Example                                  |
+| ------------------- | ---------------- | ---------------------------------------- |
+| Google (Gemini API) | `google-gla:`    | `google-gla:gemini-3.5-flash`            |
+| Google (Vertex AI)  | `google-vertex:` | `google-vertex:gemini-3.5-flash`         |
+| Anthropic           | `anthropic:`     | `anthropic:claude-sonnet-4-6`            |
+| OpenAI              | `openai:`        | `openai:gpt-5.2`                         |
+| OpenRouter          | `openrouter:`    | `openrouter:anthropic/claude-sonnet-4.6` |
+
+See Pydantic AI's [model documentation](https://ai.pydantic.dev/models/) for the full list of supported providers and model names.
+
+## Provider Examples
+
+### Google (default)
+
+The default configuration uses Google's Gemini API with medium thinking enabled:
+
+```
+[agent]
+model = "google-gla:gemini-3.5-flash"
+
+[agent.model_settings]
+google_thinking_config = { thinking_level = "medium", include_thoughts = true }
+```
+
+Set the `GEMINI_API_KEY` environment variable to authenticate.
+
+### Anthropic
+
+```
+[agent]
+model = "anthropic:claude-sonnet-4-6"
+
+[agent.model_settings]
+anthropic_thinking = { type = "adaptive" }
+```
+
+Set the `ANTHROPIC_API_KEY` environment variable to authenticate.
+
+### OpenAI
+
+```
+[agent]
+model = "openai:gpt-5.2"
+
+[agent.model_settings]
+openai_reasoning_effort = "medium"
+```
+
+Set the `OPENAI_API_KEY` environment variable to authenticate.
+
+### OpenRouter
+
+For providers like OpenRouter, put provider-specific options in `provider_settings` (for example `api_key`, `app_url`, and `app_title`):
+
+```
+[agent]
+model = "openrouter:anthropic/claude-sonnet-4.6"
+
+[agent.model_settings]
+anthropic_thinking = { type = "adaptive" }
+
+[agent.provider_settings]
+api_key = "${OPENROUTER_API_KEY}"
+app_url = "https://my-app.example.com"
+app_title = "freeact"
+```
+
+### OpenAI-Compatible Endpoints
+
+Any OpenAI-compatible API can be used by setting `base_url` in `provider_settings`:
+
+```
+[agent]
+model = "openai:my-custom-model"
+
+[agent.model_settings]
+temperature = 0.7
+
+[agent.provider_settings]
+base_url = "https://my-api.example.com/v1"
+api_key = "${CUSTOM_API_KEY}"
+```
+
+## Model Settings
+
+`model_settings` is passed directly to Pydantic AI's model request. Available settings depend on the provider.
+
+### Extended Thinking
+
+Freeact streams thinking content when the model supports it. Thinking is configured through provider-specific settings in `model_settings`.
+
+**Google (Gemini)**:
+
+```
+[agent.model_settings]
+google_thinking_config = { thinking_level = "medium", include_thoughts = true }
+```
+
+`thinking_level` accepts `"minimal"`, `"low"`, `"medium"`, or `"high"`. Set `include_thoughts` to `true` to stream thinking content.
+
+**Anthropic** (Opus 4.6, Sonnet 4.6):
+
+```
+[agent.model_settings]
+anthropic_thinking = { type = "adaptive" }
+anthropic_effort = "high"
+```
+
+Adaptive thinking lets the model decide when and how much to think. `anthropic_effort` accepts `"low"`, `"medium"`, `"high"`, or `"max"` (Opus only). The default is `"high"`.
+
+**OpenAI**:
+
+```
+[agent.model_settings]
+openai_reasoning_effort = "medium"
+```
+
+`openai_reasoning_effort` accepts `"low"`, `"medium"`, or `"high"`.
+
+### Common Settings
+
+| Setting       | Description                       |
+| ------------- | --------------------------------- |
+| `temperature` | Controls randomness (e.g., `0.7`) |
+| `max_tokens`  | Maximum response tokens           |
+
+See Pydantic AI's [settings documentation](https://ai.pydantic.dev/api/settings/) for the full reference.
+
+## Provider Settings
+
+Use `provider_settings` for provider-specific options such as `api_key`, `base_url`, `app_url`, or `app_title`. Values support [`${VAR}` environment variable references](https://gradion-ai.github.io/freeact/reference/environment/#variable-references).
+
+# Add custom tool servers
+
+Code execution and filesystem tools are always available to the agent. This guide shows how to extend the agent's tool surface in `.freeact/config.toml`: enable bundled tool servers with one-line presets, and add custom MCP servers for programmatic tool calling (code mode) or JSON tool calling. See [Configuration](https://gradion-ai.github.io/freeact/reference/configuration/#configuration-file) for the file basics and [Code actions](https://gradion-ai.github.io/freeact/concepts/code-actions/#programmatic-tool-calls) for how generated tool APIs are used in code actions.
+
+## Enable bundled servers
+
+The `[agent.tools]` section enables bundled tool servers with one line each. Defaults are minimal: the web tool servers are off, while code execution, filesystem tools, and [basic tool discovery](https://gradion-ai.github.io/freeact/guides/tool-discovery/index.md) are available out of the box.
+
+.freeact/config.toml
+
+```
+[agent.tools]
+search = true            # google search (code mode); needs GEMINI_API_KEY
+fetch = true             # web fetch (code mode)
+```
+
+| Preset   | Default | Description                                                                                                                                                                      |
+| -------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `search` | `false` | Adds the bundled `google` server (web search via Gemini with Google Search grounding) to [`ptc_servers`](#add-servers-for-programmatic-tool-calling). Requires `GEMINI_API_KEY`. |
+| `fetch`  | `false` | Adds the bundled `fetch` server (URL content retrieval via [trafilatura](https://trafilatura.readthedocs.io/)) to [`ptc_servers`](#add-servers-for-programmatic-tool-calling).   |
+
+The `[agent.tools]` section also accepts a `discovery` key for enabling tool discovery; see [Configure tool discovery](https://gradion-ai.github.io/freeact/guides/tool-discovery/index.md).
+
+Further bundled servers can be added manually to `ptc_servers`:
+
+.freeact/config.toml
+
+```
+[agent.ptc_servers.brave]
+command = "python"
+args = ["-m", "freeact.tools.bsearch"]
+env = { BRAVE_API_KEY = "${BRAVE_API_KEY}" }
+```
+
+| Server   | Module                  | Required env var | Description                                                                                                                         |
+| -------- | ----------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `google` | `freeact.tools.gsearch` | `GEMINI_API_KEY` | Web search via Gemini with Google Search grounding (enabled by the `search` preset)                                                 |
+| `brave`  | `freeact.tools.bsearch` | `BRAVE_API_KEY`  | Web search via [Brave Search API](https://brave.com/search/api/) with "web" and "llm-context" modes                                 |
+| `fetch`  | `freeact.tools.fetch`   | --               | Fetch and extract readable content from URLs via [trafilatura](https://trafilatura.readthedocs.io/) (enabled by the `fetch` preset) |
+
+## Add servers for programmatic tool calling
+
+MCP servers called programmatically via generated Python APIs are defined as `[agent.ptc_servers.<name>]` tables. This is freeact's implementation of *code mode*[1](#fn:1), where the agent calls MCP tools by writing code against generated APIs rather than through JSON tool calls. This allows composing multiple tool calls, processing intermediate results, and using control flow within a single code action.
+
+.freeact/config.toml
+
+```
+[agent.ptc_servers.github]
+url = "https://api.githubcopilot.com/mcp/"
+headers = { Authorization = "Bearer ${GITHUB_API_KEY}" }
+```
+
+Python APIs must be generated from `ptc_servers` to `.freeact/generated/mcptools/<server-name>/<tool>.py` before the agent can use them. The [CLI tool](https://gradion-ai.github.io/freeact/reference/cli/index.md) handles this automatically on start. When using the Agent SDK, call generate_mcp_sources() explicitly, as shown in the [SDK tutorial](https://gradion-ai.github.io/freeact/getting-started/sdk-tutorial/#3-generate-mcp-tool-apis). Code actions can then import and call the generated APIs because `.freeact/generated/` is on the kernel's `PYTHONPATH`.
+
+## Add servers for JSON tool calling
+
+MCP servers called directly via JSON tool calls are defined as `[agent.mcp_servers.<name>]` tables:
+
+.freeact/config.toml
+
+```
+[agent.mcp_servers.github]
+command = "docker"
+args = ["run", "-i", "--rm", "-e", "GITHUB_TOKEN", "ghcr.io/github/github-mcp-server"]
+env = { GITHUB_TOKEN = "${GITHUB_TOKEN}" }
+exclude_tools = []
+```
+
+The optional `exclude_tools` list hides individual server tools from the agent.
+
+Internal servers (filesystem for file operations and `pytools` for basic or hybrid tool discovery) are provided automatically and do not need to be configured. User-defined servers are merged with the internal defaults. If a user entry uses the same key as an internal server, the user entry takes precedence.
+
+## Server formats
+
+Both `mcp_servers` and `ptc_servers` support stdio servers (`command`, `args`, `env`) and streamable HTTP servers (`url`, `headers`):
+
+.freeact/config.toml
+
+```
+[agent.ptc_servers.github]
+url = "https://api.githubcopilot.com/mcp/"
+headers = { Authorization = "Bearer ${GITHUB_API_KEY}" }
+```
+
+Server configurations support [`${VAR}` environment variable references](https://gradion-ai.github.io/freeact/reference/environment/#variable-references).
+
+______________________________________________________________________
+
+1. [Code Mode: the better way to use MCP](https://blog.cloudflare.com/code-mode/) [↩](#fnref:1 "Jump back to footnote 1 in the text")
+
+# Configure tool discovery
+
+The agent discovers Python tools in [tool directories](#tool-directories) under `.freeact/generated/`, loading only task-relevant tool information into the context window. Basic discovery is on by default; the mode is controlled with the `discovery` key under `[agent.tools]` in `.freeact/config.toml` (`"off"` disables it).
+
+## Choose a discovery mode
+
+.freeact/config.toml
+
+```
+[agent.tools]
+discovery = "basic"      # default; "hybrid" needs freeact[search]; "off" disables
+```
+
+| Mode       | Description                                                                 |
+| ---------- | --------------------------------------------------------------------------- |
+| `"basic"`  | Category browsing with `pytools_list_categories` and `pytools_list_tools`   |
+| `"hybrid"` | BM25/vector search with `pytools_search_tools` for natural language queries |
+
+Basic mode requires no additional dependencies. Hybrid mode adds semantic search and scales to larger tool libraries.
+
+## Set up hybrid search
+
+1. Install the `freeact[search]` extra as described in [Installation](https://gradion-ai.github.io/freeact/getting-started/installation/#hybrid-tool-discovery). [Resolving](https://gradion-ai.github.io/freeact/api/config/index.md) a config with `discovery = "hybrid"` fails with an install hint when the extra is missing.
+
+1. Set `GEMINI_API_KEY` in your environment. The default embedding model is `google-gla:gemini-embedding-001`.
+
+1. Set `discovery = "hybrid"` under `[agent.tools]`:
+
+   .freeact/config.toml
+
+   ```
+   [agent.tools]
+   discovery = "hybrid"
+   ```
+
+The hybrid search server reads additional configuration from `PYTOOLS_*` environment variables, with defaults for all optional variables (index database path, sync and watch behavior, BM25/vector fusion weights). See [Environment variables](https://gradion-ai.github.io/freeact/reference/environment/#hybrid-search) for the full table.
+
+To use a different embedding provider, set `PYTOOLS_EMBEDDING_MODEL` to a supported [pydantic-ai embedder](https://ai.pydantic.dev/embeddings/) identifier.
+
+Testing without an API key
+
+Set `PYTOOLS_EMBEDDING_MODEL=test` to use a test embedder that generates deterministic embeddings. This is useful for development and testing but produces meaningless search results.
+
+## Tool directories
+
+The agent discovers tools from two directories under `.freeact/generated/`:
+
+### `mcptools/`
+
+Generated Python APIs from [`ptc_servers`](https://gradion-ai.github.io/freeact/guides/tool-servers/#add-servers-for-programmatic-tool-calling) schemas:
+
+```
+.freeact/generated/mcptools/
+└── <server-name>/
+    └── <tool>.py        # Generated tool module
+```
+
+### `gentools/`
+
+User-defined tools saved from successful code actions (see [Save code actions as tools](https://gradion-ai.github.io/freeact/guides/saving-tools/index.md)):
+
+```
+.freeact/generated/gentools/
+└── <category>/
+    └── <tool>/
+        ├── __init__.py
+        ├── api.py       # Public interface
+        └── impl.py      # Implementation
+```
+
+# Manage permissions
+
+Every code action, shell command, and tool call requires user approval before execution, unless it is pre-approved by a permission rule. This guide shows how to respond to approval prompts in the CLI, save and edit permission rules, bypass permission checks, and automate approvals in SDK applications. For rule syntax and matching semantics, see [Permission rules](https://gradion-ai.github.io/freeact/reference/permission-rules/index.md). For the approval model itself, see [Approvals and permissions](https://gradion-ai.github.io/freeact/concepts/approvals/index.md).
+
+## Respond to approval prompts
+
+Before executing code actions, shell commands, and tool calls, the agent requests approval. Shell commands and programmatic tool calls within code actions are intercepted during execution and approved individually. For shell commands the prompt displays the verbatim command being executed; for other action types it displays a suggested permission pattern that summarizes the action:
+
+```
+Approve? [Y/n/a/s] git add src/main.py
+```
+
+| Key           | Action                                        |
+| ------------- | --------------------------------------------- |
+| `y` / `Enter` | Approve this invocation only                  |
+| `n`           | Reject (ends the current agent turn)          |
+| `a`           | Edit pattern, then save as always-allow rule  |
+| `s`           | Edit pattern, then save as session-allow rule |
+
+What the bar displays depends on the action type:
+
+| Action                                        | Bar shows                                                                                                    | Suggested pattern (when pressing `a`/`s`)  |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
+| Shell command (`!cmd` and split sub-commands) | Verbatim command, e.g. `git add src/main.py`                                                                 | `cmd subcmd *` heuristic, e.g. `git add *` |
+| Shell magic (`%%bash`)                        | First non-empty line + `(+N more lines)` summary; full script is shown in the Shell Script box above the bar | Full script with newlines escaped as `\n`  |
+| Code action                                   | Tool name, e.g. `ipybox_execute_ipython_cell`                                                                | Same                                       |
+| File read/write/edit                          | Tool name + path, e.g. `filesystem_write_text_file src/main.py`                                              | Same                                       |
+| Other tool calls                              | Tool name, e.g. `github_search_repositories`                                                                 | Same                                       |
+
+## Save permission rules
+
+Pressing `a` or `s` opens an editable input pre-filled with the suggested permission pattern (not the verbatim text shown in the bar). Edit the pattern to broaden or narrow the rule (e.g. change `filesystem_read_text_file src/main.py` to `filesystem_* src/**`), then press `Enter` to save the rule and approve. While editing, approval hotkeys are disabled so you can type freely.
+
+For shell commands, the pre-filled pattern heuristic uses `cmd subcmd *` for known multi-word tools (git, pip, docker, kubectl, npm, uv, cargo, etc.) and `cmd *` for others.
+
+Always-allow rules persist to `.freeact/permissions.toml` across sessions. Session-allow rules are in-memory and cleared when the session ends. Future actions matching a saved rule are auto-approved without prompting.
+
+## Edit permission rules
+
+Rules are stored in `.freeact/permissions.toml` as typed rules with glob-style patterns. The file is machine-managed: freeact seeds it with [default rules](https://gradion-ai.github.io/freeact/reference/permission-rules/#default-rules) and appends rules saved from the approval prompt. It can also be edited by hand; comments do not survive the next machine write.
+
+.freeact/permissions.toml
+
+```
+ask = [
+    { tool_name = "bash", type = "ShellAction", command = "rm *" },
+]
+allow = [
+    { tool_name = "bash", type = "ShellAction", command = "git *" },
+]
+```
+
+Rules in the `ask` tier always prompt, even when an `allow` rule also matches. Inspect the file after the first run for the seeded defaults, and edit it to tighten or extend them. See [Permission rules](https://gradion-ai.github.io/freeact/reference/permission-rules/index.md) for rule types, pattern syntax, matching semantics, and a fuller example.
+
+## Skip permission checks
+
+The CLI supports a [`--skip-permissions`](https://gradion-ai.github.io/freeact/reference/cli/#options) flag to run tools without prompting for approval, effectively auto-approving all actions:
+
+```
+freeact --skip-permissions
+```
+
+## Automate approvals in SDK applications
+
+The agent does not enforce permissions itself. It yields ApprovalRequest events and leaves the decision to the application. PermissionManager is an optional utility that applications can use to automate those decisions based on stored rules. The [CLI tool](https://gradion-ai.github.io/freeact/reference/cli/index.md) uses it internally; SDK applications can use it the same way.
+
+The manager loads and saves rules from `.freeact/permissions.toml`. Rules are typed, glob-style [patterns](https://gradion-ai.github.io/freeact/reference/permission-rules/index.md) organized into two tiers (allow and ask) and two persistence scopes (always and session).
+
+The core API:
+
+- init() loads rules from `.freeact/permissions.toml` if present, otherwise saves defaults.
+- is_allowed(tool_call) checks a concrete tool call (literal values, no wildcards) against stored rules.
+- allow_always(tool_call) adds a rule and persists it to `permissions.toml`. The tool call fields may contain glob wildcards to match broadly (e.g., `command="git *"`).
+- allow_session(tool_call) adds an in-memory rule for the current session. Same wildcard support as `allow_always`.
+
+```
+import asyncio
+from freeact import ApprovalRequest, PermissionManager, suggest_pattern
+
+loop = asyncio.get_running_loop()
+
+manager = PermissionManager()
+await loop.run_in_executor(None, manager.init)
+
+async for event in agent.stream(prompt):
+    match event:
+        case ApprovalRequest() as request:
+            if manager.is_allowed(request.tool_call):
+                request.approve(True)
+            else:
+                pattern = suggest_pattern(request.tool_call)
+                choice = input(f"Allow [{pattern}]? [Y/n/a/s]: ")
+                match choice:
+                    case "a":
+                        await loop.run_in_executor(
+                            None, 
+                            manager.allow_always, 
+                            request.tool_call,
+                        )
+                        request.approve(True)
+                    case "s":
+                        manager.allow_session(request.tool_call)
+                        request.approve(True)
+                    case "n":
+                        request.approve(False)
+                    case _:
+                        request.approve(True)
+```
+
+For shell commands, suggest_display(tool_call) returns the verbatim command (or a first-line summary for `%%bash` shell magic) and is suitable for displaying in the prompt instead of the permission pattern. It returns an empty string for non-shell tool calls, so applications can fall back to `suggest_pattern()` in that case.
+
+# Use sandbox mode
+
+Freeact can restrict filesystem and network access for [code execution](https://gradion-ai.github.io/freeact/concepts/code-actions/index.md) and MCP servers using [ipybox sandbox](https://gradion-ai.github.io/ipybox/sandbox/) and Anthropic's [sandbox-runtime](https://github.com/anthropic-experimental/sandbox-runtime).
+
+Prerequisites
+
+Check the installation instructions for [sandbox mode prerequisites](https://gradion-ai.github.io/freeact/getting-started/installation/#sandbox-mode-prerequisites).
+
+## Sandbox code execution
+
+Scope
+
+Sandbox restrictions apply equally to Python code and shell commands, as both [execute](https://gradion-ai.github.io/freeact/concepts/code-actions/index.md) in the same IPython kernel.
+
+### CLI tool
+
+The `--sandbox` option enables sandboxed code execution:
+
+```
+freeact --sandbox
+```
+
+A custom configuration file can override the [default restrictions](#default-restrictions):
+
+```
+freeact --sandbox --sandbox-config sandbox-config.json
+```
+
+### Agent SDK
+
+The `sandbox` and `sandbox_config` parameters of the Agent constructor provide the same functionality:
+
+```
+from pathlib import Path
+
+agent = Agent(
+    runtime,
+    sandbox=True,
+    sandbox_config=Path("sandbox-config.json"),
+)
+```
+
+### Default restrictions
+
+Without a custom configuration file, sandbox mode applies these defaults:
+
+- **Filesystem**: Read all files except `.env`, write to current directory and subdirectories
+- **Network**: Internet access blocked, local network access to tool execution server permitted
+
+### Custom configuration
+
+Create a sandbox configuration file in your workspace directory:
+
+sandbox-config.json
+
+```
+{
+  "allowPty": true,
+  "network": {
+    "allowedDomains": ["example.org"],
+    "deniedDomains": [],
+    "allowLocalBinding": true
+  },
+  "filesystem": {
+    "denyRead": ["sandbox-config.json"],
+    "allowWrite": [".", "~/Library/Jupyter/", "~/.ipython/"],
+    "denyWrite": ["sandbox-config.json"]
+  }
+}
+```
+
+This macOS-specific example configuration allows additional network access to `example.org`. The `allowLocalBinding` setting and write access to `~/Library/Jupyter/` and `~/.ipython/` are required for running a sandboxed IPython kernel on macOS. The sandbox configuration file itself is protected from reads and writes.
+
+### Verify the restrictions
+
+Start the CLI tool with the custom sandbox configuration:
+
+```
+uvx freeact --sandbox --sandbox-config sandbox-config.json
+```
+
+The screenshot [below](#recording) demonstrates the sandbox in action. First, the agent can access the allowed domain:
+
+> use requests to read from example.org, print status code only
+
+This succeeds with status `200`. Other domains are blocked:
+
+> now from google.com
+
+This fails with a `403 Forbidden`. The sandbox also protects the config file:
+
+> print the content of sandbox-config.json in a code action
+
+This fails with a `PermissionError`.
+
+## Sandbox MCP servers
+
+MCP servers run as separate processes and are not affected by [code execution sandboxing](#sandbox-code-execution). Local stdio servers can be sandboxed independently by wrapping the server command with the `srt` tool from sandbox-runtime. This applies to both [`mcp_servers`](https://gradion-ai.github.io/freeact/guides/tool-servers/#add-servers-for-json-tool-calling) and [`ptc_servers`](https://gradion-ai.github.io/freeact/guides/tool-servers/#add-servers-for-programmatic-tool-calling) in the [configuration file](https://gradion-ai.github.io/freeact/reference/configuration/#configuration-file).
+
+### Fetch MCP server
+
+This example shows a sandboxed [fetch MCP server](https://github.com/modelcontextprotocol/servers/tree/main/src/fetch). First, install it locally with:
+
+```
+uv add mcp-server-fetch
+uv add "httpx[socks]>=0.28.1"
+```
+
+Then add it to the [`ptc_servers`](https://gradion-ai.github.io/freeact/guides/tool-servers/#add-servers-for-programmatic-tool-calling) section:
+
+.freeact/config.toml
+
+```
+[agent.ptc_servers.fetch]
+command = "srt"
+args = ["--settings", "sandbox-fetch-mcp.json", "python", "-m", "mcp_server_fetch"]
+```
+
+The sandbox configuration blocks `.env` reads and restricts the MCP server to fetch only from `example.com`. Access to the npm registry is required for the server's internal operations:
+
+sandbox-fetch-mcp.json
+
+```
+{
+  "filesystem": {
+    "denyRead": [".env"],
+    "allowWrite": [".", "~/.npm", "/tmp/**", "/private/tmp/**"],
+    "denyWrite": []
+  },
+  "network": {
+    "allowedDomains": ["registry.npmjs.org", "example.com"],
+    "deniedDomains": [],
+    "allowLocalBinding": true
+  }
+}
+```
+
+# Persist and resume sessions
+
+The `enable_persistence` setting in the [`[agent]` section](https://gradion-ai.github.io/freeact/reference/configuration/#agent-settings) of `.freeact/config.toml` controls session persistence.
+
+- Default: `true`. The agent persists history to `.freeact/sessions/<session-id>/<agent-id>.jsonl`.
+- `false`: The agent keeps history in memory only. Passing `session_id` to Agent raises `ValueError`.
+
+## Create a session
+
+When persistence is enabled, construct an agent without `session_id` to create a new session ID internally. Read it from `agent.session_id`:
+
+```
+# No session_id: agent creates a new session ID internally.
+async with Agent(runtime) as agent:
+    print(f"Generated session ID: {agent.session_id}")
+    await handle_events(agent, "What is the capital of France?")
+    await handle_events(agent, "What about Germany?")
+```
+
+## Resume a session
+
+Construct an agent with an explicit `session_id` for create-or-resume behavior:
+
+```
+# Choose an explicit session ID.
+session_id = "countries-session"
+# Create-or-resume behavior: resume if present, otherwise start new.
+async with Agent(runtime, session_id=session_id) as agent:
+    await handle_events(agent, "What is the capital of Spain?")
+```
+
+If that `session_id` already exists, the persisted history is resumed. If it does not exist, a new session starts with that ID.
+
+To resume later, create another agent with the same `session_id`:
+
+```
+# Resume the same session ID later.
+async with Agent(runtime, session_id=session_id) as agent:
+    # Previous message history is restored automatically
+    await handle_events(agent, "And what country did we discuss in this session?")
+```
+
+Only the main agent's message history (`main.jsonl`) is loaded on resume. Subagent messages are persisted to separate files (`sub-xxxx.jsonl`) for auditing but are not rehydrated.
+
+## Resume from the CLI
+
+The [CLI tool](https://gradion-ai.github.io/freeact/reference/cli/index.md) accepts `--session-id` to resume a session from the command line when `enable_persistence` is `true`:
+
+```
+freeact --session-id 550e8400-e29b-41d4-a716-446655440000
+```
+
+If `enable_persistence` is `false` in `.freeact/config.toml`, passing `--session-id` exits with an error.
+
+## Large tool results
+
+Tool call results, code execution outputs, and subagent responses are checked against an inline size threshold before being added to the message history. When a result exceeds the threshold, the full content is saved to `.freeact/sessions/<session-id>/tool-results/` and replaced inline with a file reference notice that includes a preview. This prevents large outputs from bloating context.
+
+Controlled by two [config options](https://gradion-ai.github.io/freeact/reference/configuration/#agent-settings):
+
+- `tool_result_inline_max_bytes`: Maximum inline payload size in bytes.
+- `tool_result_preview_chars`: Number of preview characters from both the beginning and end of large text results included in the file reference notice.
+
+# Create agent skills
+
+Skills are filesystem-based capability packages that specialize agent behavior. A skill is a directory containing a `SKILL.md` file with metadata in YAML frontmatter, and optionally further skill resources. Skills follow the [agentskills.io](https://agentskills.io/specification/) specification, a lightweight format for extending agent capabilities with specialized knowledge and workflows. Skills that guide code execution are particularly well-suited for freeact's code action approach. Skills are loaded on demand: only metadata is in context initially, full instructions load when relevant.
+
+## Add a custom skill
+
+Custom skills are loaded from `.agents/skills/` in the working directory. Each subdirectory containing a `SKILL.md` file is registered as a skill:
+
+```
+.agents/skills/
+└── <skill-name>/
+    ├── SKILL.md    # Skill metadata and instructions
+    └── ...         # Further skill resources
+```
+
+Metadata of custom skills appears in the system prompt after [bundled skills](#bundled-skills). The `.agents/skills/` directory is not managed by freeact and is not auto-created.
+
+## Example: PDF generation
+
+This example uses the PDF skill from the [Anthropic skills repository](https://github.com/anthropics/skills), a collection of production-quality skills maintained by Anthropic.
+
+Create a [workspace with a virtual environment](https://gradion-ai.github.io/freeact/getting-started/installation/#option-2-with-virtual-environment) and install the required dependencies for this example:
+
+```
+uv pip install reportlab
+```
+
+Install the PDF skill:
+
+```
+git clone https://github.com/anthropics/skills.git /tmp/skills
+mkdir -p .agents/skills
+cp -r /tmp/skills/skills/pdf .agents/skills/
+```
+
+Start the [CLI tool](https://gradion-ai.github.io/freeact/reference/cli/index.md):
+
+```
+uv run freeact
+```
+
+When asked to
+
+> calculate compound interest for $10,000 at 5% for 10 years, save result to output/compound_interest.pdf
+
+the agent:
+
+1. Identifies the PDF skill as relevant based on the request to create a PDF document
+1. Loads the skill instructions by reading the `pdf/SKILL.md` file
+1. Performs the calculation and generates a PDF following the skill's guidance
+
+## Invoke skills
+
+The agent autonomously selects a skill when the request matches the skill's description. Skills can also be invoked explicitly:
+
+- In the [CLI tool](https://gradion-ai.github.io/freeact/reference/cli/#skill-invocation), `/skill-name args` invokes a skill by name.
+- In SDK applications, prompts passed to `stream()` may contain skill tags that the agent processes:
+
+```
+<skill name="review">the auth module</skill>
+```
+
+The CLI generates these tags from the `/skill-name` syntax. Skills are discovered from `.freeact/skills/` and `.agents/skills/` directories.
+
+## Bundled skills
+
+Freeact contributes three bundled skills to `.freeact/skills/`:
+
+| Skill                                                                                                              | Description                                                            |
+| ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| [output-parsers](https://github.com/gradion-ai/freeact/tree/main/freeact/config/templates/skills/output-parsers)   | Generate output parsers for `mcptools/` with unstructured return types |
+| [saving-codeacts](https://github.com/gradion-ai/freeact/tree/main/freeact/config/templates/skills/saving-codeacts) | Save generated code actions as reusable tools in `gentools/`           |
+| [task-planning](https://github.com/gradion-ai/freeact/tree/main/freeact/config/templates/skills/task-planning)     | Basic task planning and tracking workflows                             |
+
+Bundled skills are auto-created from templates on [initialization](https://gradion-ai.github.io/freeact/reference/configuration/#initialization). User modifications persist across restarts.
+
+Tool authoring
+
+The `output-parsers` and `saving-codeacts` skills enable tool authoring. See [Enhance generated tools](https://gradion-ai.github.io/freeact/guides/enhancing-tools/index.md) and [Save code actions as tools](https://gradion-ai.github.io/freeact/guides/saving-tools/index.md) for walkthroughs.
+
+# Save code actions as tools
+
+Any code action can be saved as a discoverable tool, enabling tool libraries to evolve as agents work. Composite code actions that chain multiple tools are a common example.
+
+Freeact provides the [`saving-codeacts`](https://github.com/gradion-ai/freeact/tree/main/freeact/config/templates/skills/saving-codeacts) skill for saving code actions as reusable tools. It separates interface (`api.py`) from implementation (`impl.py`). The interface contains the function signature, Pydantic models, and docstrings. The implementation contains the actual logic.
+
+This separation enables efficient tool discovery: agents inspect signatures and docstrings without loading implementation details. The implementation stays hidden, saving tokens and reducing distraction by keeping non-essential details out of context.
+
+The following example shows how to [compose and save](#compose-and-save) a code action as a parameterized tool, then [discover and reuse](#discover-and-reuse) it in a new session.
+
+## Compose and Save
+
+This example continues from the [enhancing tools](https://gradion-ai.github.io/freeact/guides/enhancing-tools/index.md) example, where `search_repositories` was augmented with a `run_parsed()` function returning typed `Repository` objects. In the same workspace, start a new CLI tool session with:
+
+```
+uvx freeact
+```
+
+With a query like
+
+> get the latest 5 commits of the 3 github repos of torvalds with the most stars. For each repo, output name, stars and the first line of commit messages, and the link to the commit
+
+the agent discovers `search_repositories` and `list_commits` as appropriate tools and inspects their APIs. Because the enhanced `search_repositories` tool now returns typed output via `run_parsed()`, the agent can compose these tools in a single code action, passing repository names from search results as input to `list_commits`[1](#fn:1).
+
+After code action execution, the agent is instructed to save it as a reusable tool:
+
+> save this as tool under category github, with username, top_n_repos, top_n_commits as parameter
+
+The agent:
+
+1. Loads the `saving-codeacts` skill
+1. Creates a `gentools/github/commits_of_top_repos/` package under `.freeact/generated/`
+1. Saves the tool API with a parameterized `run()` function to [`api.py`](https://github.com/gradion-ai/ipybox/blob/main/docs/generated/gentools/github/commits_of_top_repos/api.py)
+1. Saves the implementation to [`impl.py`](https://github.com/gradion-ai/ipybox/blob/main/docs/generated/gentools/github/commits_of_top_repos/impl.py), lazily imported by `run()`
+1. Tests the saved tool to verify it works
+
+The structure of the saved tool is:
+
+```
+.freeact/generated/gentools/
+└── github/
+    └── commits_of_top_repos/
+        ├── __init__.py
+        ├── api.py       # Public interface
+        └── impl.py      # Implementation
+```
+
+## Discover and Reuse
+
+In a new session, the saved tool is discovered like any other Python tool. During discovery, only the API is inspected, not the implementation. When asked to
+
+> get the latest 3 commits of the 2 github repos of torvalds with the most stars. For each repo, output name, stars and the first line of commit messages, and the link to the commit
+
+the agent discovers the previously saved tool, inspects its API, and calls it with different parameters (`top_n_repos=2`, `top_n_commits=3`).
+
+______________________________________________________________________
+
+1. Since `list_commits` doesn't return typed output, the agent guesses output structure from training data, which may or may not work on first attempt. This can be made more reliable by also generating an output parser for `list_commits`. [↩](#fnref:1 "Jump back to footnote 1 in the text")
+
+# Enhance generated tools
+
+Many MCP servers lack output schemas. For example, all tools of the [GitHub MCP server](https://github.com/github/github-mcp-server) return a JSON string without defining an output schema. Without an output schema, the `run()` function of the [generated tool API](https://gradion-ai.github.io/freeact/guides/tool-servers/#add-servers-for-programmatic-tool-calling) returns a plain string instead of a structured `Result` type.
+
+Without knowing output structure beforehand, an agent cannot reliably write code that processes tool output inside a code action. It must retrieve raw results into context for inspection, then write processing logic in another inference round.
+
+Freeact's bundled [`output-parsers`](https://github.com/gradion-ai/freeact/tree/main/freeact/config/templates/skills/output-parsers) skill solves this by generating output parsers that enhance tool APIs with a `run_parsed()` function that returns a structured output type. With output types known, the agent can generate processing logic in a single inference round.
+
+This tool enhancement persists across sessions and is an example of the agent acting as a toolsmith, enhancing its own tool library rather than just executing tasks.
+
+## Output Parser Generation
+
+Create a [workspace](https://gradion-ai.github.io/freeact/getting-started/installation/#option-1-minimal) and initialize the configuration directory:
+
+```
+mkdir my-workspace && cd my-workspace
+uvx freeact init
+```
+
+Add the [GitHub MCP server](https://github.com/github/github-mcp-server) to [`ptc_servers`](https://gradion-ai.github.io/freeact/guides/tool-servers/#add-servers-for-programmatic-tool-calling) in `.freeact/config.toml`:
+
+```
+[agent.ptc_servers.github]
+url = "https://api.githubcopilot.com/mcp/"
+headers = { Authorization = "Bearer ${GITHUB_API_KEY}" }
+```
+
+Set your GitHub personal access token (PAT) as the `GITHUB_API_KEY` environment variable or add it to `.env`.
+
+Then start the [CLI tool](https://gradion-ai.github.io/freeact/reference/cli/index.md) to automatically generate Python APIs to `.freeact/generated/mcptools/github/`:
+
+```
+uvx freeact
+```
+
+When asked to
+
+> create an output parser for search_repositories
+
+the agent
+
+1. Loads the `output-parsers` skill and the [generated](https://github.com/gradion-ai/ipybox/blob/main/docs/generated/mcptools/github/search_repositories_orig.py) `search_repositories.py` tool API
+1. Calls the `search_repositories.run()` function with example inputs to observe outputs
+1. Identifies parseable JSON with fields like `name`, `description`, `stargazers_count`, etc.
+1. Creates an [enhanced](https://github.com/gradion-ai/ipybox/blob/main/docs/generated/mcptools/github/search_repositories.py) tool API with `ParseResult`, `Repository` and `run_parsed()`
+1. Saves the [parser](https://github.com/gradion-ai/ipybox/blob/main/docs/generated/mcpparse/github/search_repositories.py) to a separate `.freeact/generated/mcpparse/github/search_repositories.py`
+1. Resets the IPython kernel to re-import the tool for testing `run_parsed()`
+
+The enhanced tool can now be [composed with other tools](https://gradion-ai.github.io/freeact/guides/saving-tools/#compose-and-save) in a single code action, with full type information available for processing intermediate results.
+
+# Use Python packages
+
+Freeact can use any Python package available in the execution environment. This example demonstrates using scikit-learn and matplotlib directly in code actions to fit a Gaussian Process Regressor to noisy sine wave data and visualize the results with uncertainty bounds.
+
+Create a [workspace with a virtual environment](https://gradion-ai.github.io/freeact/getting-started/installation/#option-2-with-virtual-environment) and install the required dependencies:
+
+```
+uv pip install scikit-learn matplotlib
+```
+
+Start the [CLI tool](https://gradion-ai.github.io/freeact/reference/cli/index.md):
+
+```
+uv run freeact
+```
+
+In the screenshot [below](#recording), the agent performs Gaussian Process Regression in response to a single prompt:
+
+> Generate 30 noisy samples from a sine function and fit a Gaussian process regressor to the data. Save the result as a plot with uncertainty bounds to output/gpr_sine.png.
+
+The agent generates the samples, fits a `GaussianProcessRegressor` with an RBF kernel, and creates a [visualization](#result-plot) showing the true sine function, noisy samples, model predictions, and uncertainty bounds.
+
+A follow-up prompt asks for model statistics:
+
+> print the stats
+
+The agent prints the log-marginal-likelihood and other attributes from the fitted model.
+
+The resulting plot shows the GPR fit with a confidence interval:
+# Reference
+
 # Configuration
 
-Freeact configuration is stored in the `.freeact/` directory. This page describes the directory structure and configuration formats. It also describes the structure of [tool directories](#tool-directories).
+Freeact reads configuration from a single file, `.freeact/config.toml`, with an [`[agent]`](#agent-settings) and a [`[terminal]`](#terminal-ui) section. The file is human-owned: `freeact init` writes it once with commented defaults, and freeact never rewrites it afterwards. Approval decisions are stored separately in the machine-managed [`.freeact/permissions.toml`](https://gradion-ai.github.io/freeact/reference/permission-rules/index.md). The agent's tool surface (presets, custom MCP servers, tool discovery) is documented in [Add custom tool servers](https://gradion-ai.github.io/freeact/guides/tool-servers/index.md) and [Configure tool discovery](https://gradion-ai.github.io/freeact/guides/tool-discovery/index.md).
 
 ## Initialization
 
 The `.freeact/` directory is initialized through CLI entry points:
 
-| Entry Point                | Description                                                  |
-| -------------------------- | ------------------------------------------------------------ |
-| `freeact` or `freeact run` | Initializes `.freeact/` on first run, then starts the agent. |
-| `freeact init`             | Initializes `.freeact/` without starting the agent.          |
+| Entry Point                | Description                                                           |
+| -------------------------- | --------------------------------------------------------------------- |
+| `freeact` or `freeact run` | Initializes `.freeact/` (missing pieces only), then starts the agent. |
+| `freeact init`             | Initializes `.freeact/` without starting the agent.                   |
 
-Both CLI entry points initialize only when `.freeact/` is missing. For programmatic agent configuration, see the [Agent SDK](https://gradion-ai.github.io/freeact/sdk/index.md) and [Configuration API](https://gradion-ai.github.io/freeact/api/config/index.md).
+Initialization writes `config.toml` when missing (never overwrites), creates the runtime directories (`generated/`, `plans/`, `sessions/`), materializes [bundled skills](https://gradion-ai.github.io/freeact/guides/skills/#bundled-skills) without overwriting user-modified ones, and seeds `permissions.toml` with the [default rules](https://gradion-ai.github.io/freeact/reference/permission-rules/#default-rules). For programmatic configuration, see the [SDK tutorial](https://gradion-ai.github.io/freeact/getting-started/sdk-tutorial/index.md) and [Configuration API](https://gradion-ai.github.io/freeact/api/config/index.md).
 
 ## Directory Structure
 
-Freeact stores agent configuration and runtime state in `.freeact/`. Project-level customization uses `AGENTS.md` for [project instructions](#project-instructions) and `.agents/skills/` for [custom skills](#custom-skills).
+Freeact stores configuration and runtime state in `.freeact/`. Project-level customization uses `AGENTS.md` for [project instructions](#project-instructions) and `.agents/skills/` for [custom skills](https://gradion-ai.github.io/freeact/guides/skills/#add-a-custom-skill).
 
 ```
 <working-dir>/
@@ -288,8 +1308,8 @@ Freeact stores agent configuration and runtime state in `.freeact/`. Project-lev
 │           ├── SKILL.md
 │           └── ...
 └── .freeact/
-    ├── agent.json          # Configuration and MCP server definitions
-    ├── terminal.json       # Terminal UI behavior and keybindings
+    ├── config.toml         # Agent and terminal configuration (human-owned)
+    ├── permissions.toml    # Persisted approval decisions (machine-managed)
     ├── skills/             # Bundled skills
     │   └── <skill-name>/
     │       ├── SKILL.md    # Skill metadata and instructions
@@ -299,148 +1319,101 @@ Freeact stores agent configuration and runtime state in `.freeact/`. Project-lev
     │   └── gentools/       # User-defined tools saved from code actions
     ├── plans/              # Task plan storage
     ├── sessions/           # Session trace storage
-    │   └── <session-uuid>/
+    │   └── <session-id>/
     │       ├── main.jsonl
     │       ├── sub-xxxx.jsonl
     │       └── tool-results/
     │           └── <file-id>.<ext>   # Large tool results stored as files
-    └── permissions.json    # Persisted approval decisions
+    └── search.db           # Hybrid discovery index (discovery = "hybrid")
 ```
 
 ## Configuration File
 
-The `agent.json` file contains agent settings and MCP server configurations:
+`freeact init` writes `config.toml` with commented defaults:
+
+.freeact/config.toml
 
 ```
-{
-  "model": "google-gla:gemini-3.5-flash",
-  "model_settings": { ... },
-  "tool_search": "basic",
-  "images_dir": null,
-  "execution_timeout": 300,
-  "approval_timeout": null,
-  "tool_result_inline_max_bytes": 32768,
-  "tool_result_preview_chars": 2048,
-  "enable_persistence": true,
-  "enable_subagents": true,
-  "max_subagents": 5,
-  "kernel_env": {},
-  "mcp_servers": {},
-  "ptc_servers": {
-    "server-name": { ... }
-  }
-}
+[agent]
+model = "google-gla:gemini-3.5-flash"
+# execution_timeout = 300.0     # seconds; 0 disables the timeout
+# approval_timeout = 0.0        # seconds; 0 waits forever
+# enable_persistence = true
+# enable_subagents = true
+# max_subagents = 5
+# images_dir = "images"
+# tool_result_inline_max_bytes = 32768
+# tool_result_preview_chars = 2048
+
+[agent.model_settings]
+google_thinking_config = { thinking_level = "medium", include_thoughts = true }
+
+# Provider options (api_key, base_url, ...). `${VAR}` reads environment variables.
+# [agent.provider_settings]
+# api_key = "${MY_PROVIDER_KEY}"
+
+[agent.tools]
+# One-line opt-ins for bundled tool servers. Code execution, filesystem tools,
+# and basic tool discovery are always available by default.
+# search = true            # google search (code mode); needs GEMINI_API_KEY
+# fetch = true             # web fetch (code mode)
+# discovery = "basic"      # default; "hybrid" needs freeact[search]; "off" disables
+
+# Environment variables for the IPython kernel. `${VAR}` reads host env vars.
+# [agent.kernel_env]
+# MY_VAR = "${MY_VAR}"
+
+# Custom MCP servers for JSON tool calling:
+# [agent.mcp_servers.github]
+# command = "docker"
+# args = ["run", "-i", "--rm", "-e", "GITHUB_TOKEN", "ghcr.io/github/github-mcp-server"]
+# env = { GITHUB_TOKEN = "${GITHUB_TOKEN}" }
+# exclude_tools = []
+
+# Custom MCP servers for programmatic tool calling (generated Python APIs):
+# [agent.ptc_servers.github]
+# command = "..."
+# args = []
+
+[terminal]
+# collapse_thoughts_on_complete = true
+# collapse_exec_output_on_complete = true
+# collapse_approved_code_actions = false
+# collapse_approved_tool_calls = true
+# collapse_completed_subagent_tasks = true
+# collapse_tool_outputs = true
+# keep_rejected_actions_expanded = true
+# pin_pending_approval_action_expanded = true
+# expand_all_toggle_key = "ctrl+o"
 ```
 
 ### Agent Settings
 
-| Setting                        | Default                                                                               | Description                                                                                                                                                                                    |
-| ------------------------------ | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `model`                        | `google-gla:gemini-3.5-flash`                                                         | [Model identifier](https://gradion-ai.github.io/freeact/models/#model-identifier) in `provider:model-name` format                                                                              |
-| `model_settings`               | [Google thinking config](https://gradion-ai.github.io/freeact/models/#google-default) | Provider-specific [model settings](https://gradion-ai.github.io/freeact/models/#model-settings) (e.g., thinking config, temperature)                                                           |
-| `provider_settings`            | `null`                                                                                | Custom API credentials, endpoints, or other [provider-specific options](https://gradion-ai.github.io/freeact/models/#provider-settings)                                                        |
-| `images_dir`                   | `null`                                                                                | Directory for saving generated images to disk. `null` defaults to `images` in the working directory.                                                                                           |
-| `execution_timeout`            | `300`                                                                                 | Maximum time in seconds for [code execution](https://gradion-ai.github.io/freeact/execution/index.md). Approval wait time is excluded. `null` means no timeout.                                |
-| `approval_timeout`             | `null`                                                                                | Timeout in seconds for PTC approval requests. `null` means no timeout.                                                                                                                         |
-| `tool_result_inline_max_bytes` | `32768`                                                                               | Inline size threshold in bytes for tool results. Larger results are saved to `.freeact/sessions/<session-id>/tool-results/` and replaced with a file reference notice plus preview characters. |
-| `tool_result_preview_chars`    | `2048`                                                                                | Number of preview characters included from both the beginning and end of large text results in the file reference notice.                                                                      |
-| `enable_persistence`           | `true`                                                                                | Persist message history to `.freeact/sessions/` and allow session resume with `session_id`. If `false`, history stays in memory for the process lifetime only.                                 |
-| `enable_subagents`             | `true`                                                                                | Whether to enable subagent delegation                                                                                                                                                          |
-| `max_subagents`                | `5`                                                                                   | Maximum number of concurrent subagents                                                                                                                                                         |
-| `kernel_env`                   | `{}`                                                                                  | Environment variables passed to the IPython kernel. Supports `${VAR}` placeholders resolved against the host environment.                                                                      |
+The `[agent]` section accepts these keys:
 
-### `tool_search`
+| Setting                        | Default                                                                                      | Description                                                                                                                                                                                                                     |
+| ------------------------------ | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`                        | `google-gla:gemini-3.5-flash`                                                                | [Model identifier](https://gradion-ai.github.io/freeact/guides/models/#model-identifier) in `provider:model-name` format                                                                                                        |
+| `model_settings`               | [Google thinking config](https://gradion-ai.github.io/freeact/guides/models/#google-default) | Provider-specific [model settings](https://gradion-ai.github.io/freeact/guides/models/#model-settings) (e.g., thinking config, temperature)                                                                                     |
+| `provider_settings`            | unset                                                                                        | Custom API credentials, endpoints, or other [provider-specific options](https://gradion-ai.github.io/freeact/guides/models/#provider-settings)                                                                                  |
+| `tools`                        | `discovery = "basic"`, web tools off                                                         | Presets for [bundled tool servers](https://gradion-ai.github.io/freeact/guides/tool-servers/#enable-bundled-servers) and [tool discovery](https://gradion-ai.github.io/freeact/guides/tool-discovery/index.md)                  |
+| `execution_timeout`            | `300`                                                                                        | Maximum time in seconds for each [code execution](https://gradion-ai.github.io/freeact/concepts/code-actions/index.md). Approval wait time is excluded. `0` disables the timeout.                                               |
+| `approval_timeout`             | `0`                                                                                          | Timeout in seconds for [approval requests](https://gradion-ai.github.io/freeact/concepts/approvals/index.md). An unresolved request is rejected when the timeout expires. `0` waits forever.                                    |
+| `tool_result_inline_max_bytes` | `32768`                                                                                      | Inline size threshold in bytes for tool results. Larger results are saved to `.freeact/sessions/<session-id>/tool-results/` and replaced with a file reference notice plus preview characters.                                  |
+| `tool_result_preview_chars`    | `2048`                                                                                       | Number of preview characters included from both the beginning and end of large text results in the file reference notice.                                                                                                       |
+| `enable_persistence`           | `true`                                                                                       | Persist message history to `.freeact/sessions/` and allow [session resume](https://gradion-ai.github.io/freeact/guides/sessions/index.md) with `session_id`. If `false`, history stays in memory for the process lifetime only. |
+| `enable_subagents`             | `true`                                                                                       | Whether to enable subagent delegation                                                                                                                                                                                           |
+| `max_subagents`                | `5`                                                                                          | Maximum number of concurrent subagents                                                                                                                                                                                          |
+| `images_dir`                   | unset                                                                                        | Directory for saving generated images to disk. Unset defaults to `images` in the working directory; relative paths resolve against the working directory.                                                                       |
+| `kernel_env`                   | `{}`                                                                                         | Environment variables passed to the IPython kernel. Supports [`${VAR}` placeholders](https://gradion-ai.github.io/freeact/reference/environment/#variable-references) resolved against the host environment.                    |
+| `mcp_servers`                  | `{}`                                                                                         | User-defined MCP servers for [JSON tool calling](https://gradion-ai.github.io/freeact/guides/tool-servers/#add-servers-for-json-tool-calling)                                                                                   |
+| `ptc_servers`                  | `{}`                                                                                         | User-defined MCP servers for [programmatic tool calling](https://gradion-ai.github.io/freeact/guides/tool-servers/#add-servers-for-programmatic-tool-calling)                                                                   |
 
-Controls how the agent discovers Python tools:
-
-| Mode     | Description                                                                 |
-| -------- | --------------------------------------------------------------------------- |
-| `basic`  | Category browsing with `pytools_list_categories` and `pytools_list_tools`   |
-| `hybrid` | BM25/vector search with `pytools_search_tools` for natural language queries |
-
-For hybrid mode environment variables, see [Hybrid Search](#hybrid-search).
-
-### `mcp_servers`
-
-MCP servers called directly via JSON tool calls. Internal servers (`pytools` for basic or hybrid tool search and filesystem for file operations) are provided automatically and do not need to be configured. User-defined servers in this section are merged with the internal defaults. If a user entry uses the same key as an internal server, the user entry takes precedence.
-
-Custom MCP servers
-
-Application-specific MCP servers for JSON tool calls can be added to this section as needed.
-
-### `ptc_servers`
-
-MCP servers called programmatically via generated Python APIs. This is freeact's implementation of *code mode*[1](#fn:1), where the agent calls MCP tools by writing code against generated APIs rather than through JSON tool calls. This allows composing multiple tool calls, processing intermediate results, and using control flow within a single code action.
-
-Python APIs must be generated from `ptc_servers` to `.freeact/generated/mcptools/<server-name>/<tool>.py` before the agent can use them. The [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) handles this automatically. When using the [Agent SDK](https://gradion-ai.github.io/freeact/sdk/index.md), call generate_mcp_sources() explicitly. Code actions can then import and call the generated APIs because `.freeact/generated/` is on the kernel's `PYTHONPATH`.
-
-The default configuration includes the bundled `google` (web search via Gemini) and `fetch` (URL content retrieval) MCP servers. Additional bundled servers can be added manually:
-
-```
-{
-  "ptc_servers": {
-    "google": {
-      "command": "python",
-      "args": ["-m", "freeact.tools.gsearch", "--thinking-level", "medium"],
-      "env": {"GEMINI_API_KEY": "${GEMINI_API_KEY}"}
-    },
-    "brave": {
-      "command": "python",
-      "args": ["-m", "freeact.tools.bsearch"],
-      "env": {"BRAVE_API_KEY": "${BRAVE_API_KEY}"}
-    },
-    "fetch": {
-      "command": "python",
-      "args": ["-m", "freeact.tools.fetch"],
-      "env": {}
-    }
-  }
-}
-```
-
-| Server   | Module                  | Required env var | Description                                                                                         |
-| -------- | ----------------------- | ---------------- | --------------------------------------------------------------------------------------------------- |
-| `google` | `freeact.tools.gsearch` | `GEMINI_API_KEY` | Web search via Gemini with Google Search grounding                                                  |
-| `brave`  | `freeact.tools.bsearch` | `BRAVE_API_KEY`  | Web search via [Brave Search API](https://brave.com/search/api/) with "web" and "llm-context" modes |
-| `fetch`  | `freeact.tools.fetch`   | --               | Fetch and extract readable content from URLs via [trafilatura](https://trafilatura.readthedocs.io/) |
-
-Custom MCP servers
-
-Application-specific MCP servers can be added as needed to `ptc_servers` for programmatic tool calling.
-
-### Server Formats
-
-Both `mcp_servers` and `ptc_servers` support stdio servers and streamable HTTP servers.
-
-### Environment Variables
-
-Server configurations support environment variable references using `${VAR_NAME}` syntax. Config() validates that all referenced variables are set. If a variable is missing, loading fails with an error.
-
-## Hybrid Search
-
-When `tool_search` is set to `"hybrid"` in `agent.json`, the hybrid search server reads additional configuration from environment variables. Default values are provided for all optional variables:
-
-| Variable                  | Default                           | Description                                           |
-| ------------------------- | --------------------------------- | ----------------------------------------------------- |
-| `GEMINI_API_KEY`          | *(required)*                      | API key for the default embedding model               |
-| `PYTOOLS_DIR`             | `.freeact/generated`              | Base directory containing `mcptools/` and `gentools/` |
-| `PYTOOLS_DB_PATH`         | `.freeact/search.db`              | Path to SQLite database for search index              |
-| `PYTOOLS_EMBEDDING_MODEL` | `google-gla:gemini-embedding-001` | Embedding model identifier                            |
-| `PYTOOLS_EMBEDDING_DIM`   | `3072`                            | Embedding vector dimensions                           |
-| `PYTOOLS_SYNC`            | `true`                            | Sync index with tool directories on startup           |
-| `PYTOOLS_WATCH`           | `true`                            | Watch tool directories for changes                    |
-| `PYTOOLS_BM25_WEIGHT`     | `1.0`                             | Weight for BM25 (keyword) results in hybrid fusion    |
-| `PYTOOLS_VEC_WEIGHT`      | `1.0`                             | Weight for vector (semantic) results in hybrid fusion |
-
-To use a different embedding provider, change `PYTOOLS_EMBEDDING_MODEL` to a supported [pydantic-ai embedder](https://ai.pydantic.dev/embeddings/) identifier.
-
-Testing without an API key
-
-Set `PYTOOLS_EMBEDDING_MODEL=test` to use a test embedder that generates deterministic embeddings. This is useful for development and testing but produces meaningless search results.
+`provider_settings`, `kernel_env`, and server configurations support `${VAR}` environment variable references; see [Environment variables](https://gradion-ai.github.io/freeact/reference/environment/#variable-references) for resolution semantics.
 
 ## System Prompt
 
-The system prompt is an internal resource bundled with the package ([`system.md`](https://github.com/gradion-ai/freeact/blob/main/freeact/agent/config/prompts/system.md)).
+The system prompt is an internal resource bundled with the package ([`system.md`](https://github.com/gradion-ai/freeact/blob/main/freeact/config/prompts/system.md)).
 
 The template supports placeholders:
 
@@ -457,59 +1430,214 @@ The agent loads project-specific instructions from an `AGENTS.md` file in the wo
 
 `AGENTS.md` provides project context to the agent: domain-specific conventions, workflow preferences, or any instructions relevant to the agent's tasks.
 
-## Skills
+## Terminal UI
 
-Skills are filesystem-based capability packages that specialize agent behavior. A skill is a directory containing a `SKILL.md` file with metadata in YAML frontmatter, and optionally further skill resources. Skills follow the [agentskills.io](https://agentskills.io/specification/) specification. Skills are loaded on demand: only metadata is in context initially, full instructions load when relevant.
-
-### Bundled Skills
-
-Freeact contributes three bundled skills to `.freeact/skills/`:
-
-| Skill                                                                                                                    | Description                                                            |
-| ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
-| [output-parsers](https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates/skills/output-parsers)   | Generate output parsers for `mcptools/` with unstructured return types |
-| [saving-codeacts](https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates/skills/saving-codeacts) | Save generated code actions as reusable tools in `gentools/`           |
-| [task-planning](https://github.com/gradion-ai/freeact/tree/main/freeact/agent/config/templates/skills/task-planning)     | Basic task planning and tracking workflows                             |
-
-Bundled skills are auto-created from templates on [initialization](#initialization). User modifications persist across restarts.
-
-Tool authoring
-
-The `output-parsers` and `saving-codeacts` skills enable tool authoring. See [Enhancing Tools](https://gradion-ai.github.io/freeact/examples/output-parser/index.md) and [Code Action Reuse](https://gradion-ai.github.io/freeact/examples/saving-codeacts/index.md) for walkthroughs.
-
-### Custom Skills
-
-Custom skills are loaded from `.agents/skills/` in the working directory. Each subdirectory containing a `SKILL.md` file is registered as a skill. Metadata of custom skills appears in the system prompt after bundled skills.
-
-The `.agents/skills/` directory is not managed by freeact and is not auto-created.
-
-Example
-
-See [Custom Agent Skills](https://gradion-ai.github.io/freeact/examples/agent-skills/index.md) for a walkthrough of installing and using a custom skill.
-
-## Permissions
-
-[Permissions](https://gradion-ai.github.io/freeact/sdk/#permissions-api) control which code actions, shell commands, and tool calls require approval or are auto-approved. They are stored in `.freeact/permissions.json` as typed entries with glob-style patterns. `tool_name` and `command` fields support `*` (any characters) and `?` (single character). Path fields (`path`) use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries.
-
-Bypassing permissions
-
-The CLI supports a [`--skip-permissions`](https://gradion-ai.github.io/freeact/cli/#options) flag to run tools without prompting for approval, effectively auto-approving all actions.
+The `[terminal]` section of `config.toml` configures terminal UI collapse behavior and keybindings:
 
 ```
-{
-  "ask": [
-    {"type": "ShellAction", "tool_name": "bash", "command": "rm *"}
-  ],
-  "allow": [
-    {"type": "GenericCall", "tool_name": "github_*"},
-    {"type": "ShellAction", "tool_name": "bash", "command": "git *"},
-    {"type": "FileRead", "tool_name": "filesystem_*", "path": ".freeact/**"},
-    {"type": "FileWrite", "tool_name": "filesystem_*", "path": "src/**"}
-  ]
-}
+[terminal]
+collapse_thoughts_on_complete = true
+collapse_exec_output_on_complete = true
+collapse_approved_code_actions = false
+collapse_approved_tool_calls = true
+collapse_completed_subagent_tasks = true
+collapse_tool_outputs = true
+keep_rejected_actions_expanded = true
+pin_pending_approval_action_expanded = true
+expand_all_toggle_key = "ctrl+o"
 ```
 
-Each entry has a `type` field that determines which fields are matched:
+| Setting                                | Default  | Description                                                                                        |
+| -------------------------------------- | -------- | -------------------------------------------------------------------------------------------------- |
+| `collapse_thoughts_on_complete`        | `true`   | Collapse `Thinking` boxes after a completed `Thoughts` event.                                      |
+| `collapse_exec_output_on_complete`     | `true`   | Collapse `Execution Output` boxes after a completed `CodeExecutionOutput` event.                   |
+| `collapse_approved_code_actions`       | `false`  | Collapse approved code action previews after approval.                                             |
+| `collapse_approved_tool_calls`         | `true`   | Collapse approved tool call previews after approval.                                               |
+| `collapse_completed_subagent_tasks`    | `true`   | Collapse completed root-level `subagent_task` widgets after the parent task `Tool Output` arrives. |
+| `collapse_tool_outputs`                | `true`   | Render `Tool Output` boxes collapsed by default.                                                   |
+| `keep_rejected_actions_expanded`       | `true`   | Keep rejected action previews expanded after rejection.                                            |
+| `pin_pending_approval_action_expanded` | `true`   | Keep the current pending approval action expanded until a decision is made.                        |
+| `expand_all_toggle_key`                | `ctrl+o` | Toggle all collapsible boxes between expanded and configured state.                                |
+
+# CLI
+
+The `freeact` or `freeact run` command starts the [interactive mode](#interactive-mode):
+
+```
+freeact
+```
+
+A `.freeact/` [configuration](https://gradion-ai.github.io/freeact/reference/configuration/index.md) directory is created automatically if it does not exist yet. The `init` subcommand initializes the configuration directory without starting the interactive mode:
+
+```
+freeact init
+```
+
+## Options
+
+| Option                  | Description                                                                                         |
+| ----------------------- | --------------------------------------------------------------------------------------------------- |
+| `--sandbox`             | Run code execution in [sandbox mode](https://gradion-ai.github.io/freeact/guides/sandbox/index.md). |
+| `--sandbox-config PATH` | Path to sandbox configuration file.                                                                 |
+| `--session-id UUID`     | Resume a previous session by its UUID.                                                              |
+| `--skip-permissions`    | Run tools without prompting for approval.                                                           |
+| `--log-level LEVEL`     | Set logging level: `debug`, `info` (default), `warning`, `error`, `critical`.                       |
+
+## Examples
+
+Running code execution in [sandbox mode](https://gradion-ai.github.io/freeact/guides/sandbox/index.md):
+
+```
+freeact --sandbox
+```
+
+Running with a [custom sandbox configuration](https://gradion-ai.github.io/freeact/guides/sandbox/#custom-configuration):
+
+```
+freeact --sandbox --sandbox-config sandbox-config.json
+```
+
+Resuming a previous [session](https://gradion-ai.github.io/freeact/guides/sessions/index.md):
+
+```
+freeact --session-id 550e8400-e29b-41d4-a716-446655440000
+```
+
+If `enable_persistence` is `false` in `.freeact/config.toml`, passing `--session-id` exits with an error.
+
+## Interactive Mode
+
+The interactive mode provides a conversation interface with the agent in a terminal window.
+
+### User messages
+
+| Key                                                | Action                                                  |
+| -------------------------------------------------- | ------------------------------------------------------- |
+| `Enter`                                            | Send message                                            |
+| `Ctrl+J`                                           | Insert newline                                          |
+| `Option+Enter` (macOS) `Alt+Enter` (Linux/Windows) | Insert newline (`Ctrl+J` fallback)                      |
+| `Escape`                                           | Cancel the current agent turn, or clear input when idle |
+| `Ctrl+Q`                                           | Quit                                                    |
+
+### Clipboard
+
+Clipboard behavior depends on terminal key forwarding.
+
+- Paste into the prompt input: `Cmd+V` or `Ctrl+V`.
+- Copy selected text from Freeact widgets: `Cmd+C` may not work in some terminals. Use `Ctrl+C` instead.
+- Additional terminal fallbacks: `Ctrl+Shift+C` / `Ctrl+Insert` for copy, `Ctrl+Shift+V` / `Shift+Insert` for paste.
+
+### Expand and Collapse
+
+Use `Ctrl+O` to toggle all collapsible boxes between expanded and configured state.
+
+The shortcut is configured in the [`[terminal]` section](https://gradion-ai.github.io/freeact/reference/configuration/#terminal-ui) of `.freeact/config.toml` under `expand_all_toggle_key`.
+
+### File References
+
+Include file paths directly in the prompt. The model uses built-in [filesystem tools](https://gradion-ai.github.io/freeact/concepts/runtime/#internal-tools) to read them when needed.
+
+```
+screenshot.png What does this show?
+Transcribe this voice-note.wav
+images/ Describe these images
+```
+
+Type `@` in the prompt to open a file picker for easier path insertion. The `@` prefix is stripped before sending, so `@screenshot.png` and `screenshot.png` are equivalent.
+
+### Skill Invocation
+
+The agent automatically uses skills when a request matches a skill's description. The `/skill-name` syntax is a shortcut to invoke a specific skill explicitly:
+
+```
+/plan my project requirements
+/commit fix login bug
+```
+
+- Type `/` at the start of a prompt to open a skill picker.
+- Select a skill to insert its name, then type arguments after it.
+- Text after the skill name is passed as arguments to the skill.
+- Skill locations: `.agents/skills/` (project) and `.freeact/skills/` (bundled).
+
+### Cancellation
+
+Press `Escape` during an active agent turn to cancel it. This interrupts the current operation (LLM streaming, code execution, or approval wait), stops the turn, and re-enables the prompt input.
+
+### Approval Prompt
+
+Before executing code actions, shell commands, and tool calls, the agent requests approval with a `[Y/n/a/s]` prompt. See [Manage permissions](https://gradion-ai.github.io/freeact/guides/permissions/index.md) for prompt keys, pattern editing, and rule saving, and [Permission rules](https://gradion-ai.github.io/freeact/reference/permission-rules/index.md) for the persisted format and pattern syntax. Use [`--skip-permissions`](#options) to run with full action auto-approval.
+
+# Environment variables
+
+## API keys
+
+| Variable            | Used by                                                                                                                                                                                                                                                                                                                          |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GEMINI_API_KEY`    | The [default model](https://gradion-ai.github.io/freeact/guides/models/#google-default) `google-gla:gemini-3.5-flash`, the bundled `google` search server ([`search` preset](https://gradion-ai.github.io/freeact/guides/tool-servers/#enable-bundled-servers)), and the default [hybrid search](#hybrid-search) embedding model |
+| `ANTHROPIC_API_KEY` | [Anthropic models](https://gradion-ai.github.io/freeact/guides/models/#anthropic) (`anthropic:` prefix)                                                                                                                                                                                                                          |
+| `OPENAI_API_KEY`    | [OpenAI models](https://gradion-ai.github.io/freeact/guides/models/#openai) (`openai:` prefix)                                                                                                                                                                                                                                   |
+| `BRAVE_API_KEY`     | The bundled [`brave` search server](https://gradion-ai.github.io/freeact/guides/tool-servers/#enable-bundled-servers)                                                                                                                                                                                                            |
+
+Other providers read their API keys from [`provider_settings`](https://gradion-ai.github.io/freeact/guides/models/#provider-settings) via `${VAR}` references (for example `api_key = "${OPENROUTER_API_KEY}"`).
+
+## `.env` loading
+
+The CLI loads a `.env` file from the working directory before configuration resolution. SDK applications read from the process environment only.
+
+## Variable references
+
+`provider_settings`, `kernel_env`, and [server configurations](https://gradion-ai.github.io/freeact/guides/tool-servers/#server-formats) in `.freeact/config.toml` support environment variable references using `${VAR_NAME}` syntax. resolve() validates that all referenced variables are set; a missing variable fails resolution with an error naming the variable.
+
+## Kernel environment
+
+The [`kernel_env`](https://gradion-ai.github.io/freeact/reference/configuration/#agent-settings) setting passes environment variables to the IPython kernel. Values support `${VAR}` placeholders resolved against the host environment:
+
+.freeact/config.toml
+
+```
+[agent.kernel_env]
+MY_VAR = "${MY_VAR}"
+```
+
+## Hybrid search
+
+When `discovery = "hybrid"` is set under `[agent.tools]`, the hybrid search server reads additional configuration from environment variables. Default values are provided for all optional variables:
+
+| Variable                  | Default                           | Description                                           |
+| ------------------------- | --------------------------------- | ----------------------------------------------------- |
+| `GEMINI_API_KEY`          | *(required)*                      | API key for the default embedding model               |
+| `PYTOOLS_DIR`             | `.freeact/generated`              | Base directory containing `mcptools/` and `gentools/` |
+| `PYTOOLS_DB_PATH`         | `.freeact/search.db`              | Path to SQLite database for search index              |
+| `PYTOOLS_EMBEDDING_MODEL` | `google-gla:gemini-embedding-001` | Embedding model identifier                            |
+| `PYTOOLS_EMBEDDING_DIM`   | `3072`                            | Embedding vector dimensions                           |
+| `PYTOOLS_SYNC`            | `true`                            | Sync index with tool directories on startup           |
+| `PYTOOLS_WATCH`           | `true`                            | Watch tool directories for changes                    |
+| `PYTOOLS_BM25_WEIGHT`     | `1.0`                             | Weight for BM25 (keyword) results in hybrid fusion    |
+| `PYTOOLS_VEC_WEIGHT`      | `1.0`                             | Weight for vector (semantic) results in hybrid fusion |
+
+See [Configure tool discovery](https://gradion-ai.github.io/freeact/guides/tool-discovery/#set-up-hybrid-search) for setup steps and embedding provider options.
+
+# Permission rules
+
+Permission rules pre-approve code actions, shell commands, and tool calls; actions without a matching rule require [interactive approval](https://gradion-ai.github.io/freeact/guides/permissions/index.md). Rules are stored in `.freeact/permissions.toml` as typed rules with glob-style patterns. The file is machine-managed: freeact seeds it with [default rules](#default-rules) and appends rules saved from the [approval prompt](https://gradion-ai.github.io/freeact/guides/permissions/#save-permission-rules). It can also be edited by hand; comments do not survive the next machine write.
+
+.freeact/permissions.toml
+
+```
+ask = [
+    { tool_name = "bash", type = "ShellAction", command = "rm *" },
+]
+allow = [
+    { tool_name = "github_*", type = "GenericCall" },
+    { tool_name = "bash", type = "ShellAction", command = "git *" },
+    { tool_name = "filesystem_*", path = ".freeact/**", type = "FileRead" },
+    { tool_name = "filesystem_*", path = "src/**", type = "FileWrite" },
+]
+```
+
+## Rule types
+
+Each rule has a `type` field that determines which fields are matched:
 
 | Type          | Matched fields         |
 | ------------- | ---------------------- |
@@ -520,7 +1648,9 @@ Each entry has a `type` field that determines which fields are matched:
 | `FileWrite`   | `tool_name`, `path`    |
 | `FileEdit`    | `tool_name`, `path`    |
 
-### Tiers
+`tool_name` and `command` fields support `*` (any characters) and `?` (single character). Path fields (`path`) use [path-aware matching](#path-wildcards) where `*` matches within a single directory and `**` matches across directory boundaries.
+
+## Tiers
 
 Permissions are organized into two tiers:
 
@@ -529,15 +1659,15 @@ Permissions are organized into two tiers:
 | `allow` | Tool call executes without prompting |
 | `ask`   | User is always prompted for approval |
 
-Evaluation order is **ask then allow**: if an entry matches both tiers, the user is prompted. Each tier supports two persistence scopes: **always** (persisted to `permissions.json`) and **session** (in-memory, cleared when the session ends).
+Evaluation order is **ask then allow**: if a rule matches both tiers, the user is prompted. Each tier supports two persistence scopes: **always** (persisted to `permissions.toml`) and **session** (in-memory, cleared when the session ends).
 
-### Tool call patterns
+## Tool call patterns
 
-Tool call patterns match against MCP tool names (e.g. `github_search_repositories`, `filesystem_read_file`). Filesystem tools (`FileRead`, `FileWrite`, `FileEdit`) additionally match on path fields, enabling path-specific rules like allowing reads only from `src/**`.
+Tool call patterns match against MCP tool names (e.g. `github_search_repositories`, `filesystem_read_text_file`). Filesystem tools (`FileRead`, `FileWrite`, `FileEdit`) additionally match on path fields, enabling path-specific rules like allowing reads only from `src/**`.
 
-### Shell command patterns
+## Shell command patterns
 
-`ShellAction` entries match on `tool_name` (always `bash`) and `command`. The `command` field supports glob matching with `*` and `?`. Shell commands are intercepted during code execution with Python variables fully resolved, so patterns match against the actual command values.
+`ShellAction` rules match on `tool_name` (`bash` for `!` commands, `shell_magic` for `%%bash` scripts) and `command`. The `command` field supports glob matching with `*` and `?`. Shell commands are intercepted during code execution with Python variables fully resolved, so patterns match against the actual command values.
 
 | Pattern         | Matches                                               |
 | --------------- | ----------------------------------------------------- |
@@ -546,13 +1676,11 @@ Tool call patterns match against MCP tool names (e.g. `github_search_repositorie
 | `pip install *` | `pip install` with any package                        |
 | `rm *`          | Any `rm` command (use in `ask` tier to always prompt) |
 
-When saving a permission rule via the [approval prompt](https://gradion-ai.github.io/freeact/cli/#approval-prompt), the CLI pre-fills a suggested pattern. The heuristic uses `cmd subcmd *` for known multi-word tools (git, pip, docker, kubectl, npm, uv, cargo, etc.) and `cmd *` for others. The user can edit the pattern before saving.
-
 Composite shell commands joined with `&&`, `||`, `|`, or `;` are decomposed into individual sub-commands, each checked independently. If any sub-command is denied, the entire command is blocked.
 
-### Path wildcards
+## Path wildcards
 
-Path fields (`path`) in `FileRead`, `FileWrite`, and `FileEdit` entries use path-aware matching. Paths are normalized relative to the working directory before matching: absolute paths under the working directory become relative, paths outside stay absolute.
+Path fields (`path`) in `FileRead`, `FileWrite`, and `FileEdit` rules use path-aware matching. Paths are normalized relative to the working directory before matching: absolute paths under the working directory become relative, paths outside stay absolute.
 
 | Wildcard | Scope                               |
 | -------- | ----------------------------------- |
@@ -569,82 +1697,16 @@ The leading `/` determines whether a pattern targets paths inside or outside the
 
 `tool_name` and `command` fields use standard glob matching where `*` matches any characters and `?` matches a single character.
 
-### Default rules
+## Default rules
 
-On first run, `permissions.json` is seeded with a generous set of read-only allow rules (file reads inside the working directory, common shell inspection commands like `ls`, `cat`, `git status`, and read-only built-in tools) plus an ask rule that always prompts for `.env` reads. Inspect `.freeact/permissions.json` after the first run for the full list, and edit it to tighten or extend the defaults.
+On first run, `permissions.toml` is seeded with a generous set of read-only allow rules (file reads inside the working directory, common shell inspection commands like `ls`, `cat`, `git status`, and read-only built-in tools) plus an ask rule that always prompts for `.env` reads. Inspect `.freeact/permissions.toml` after the first run for the full list, and edit it to tighten or extend the defaults.
+# Concepts
 
-## Tool Directories
+# Code actions
 
-The agent discovers tools from two directories under `.freeact/generated/`:
+Freeact agents act by executing code rather than emitting one JSON tool call per LLM inference. A code action can contain any combination of Python code, shell commands, and programmatic MCP tool calls, generated in one LLM inference pass. This enables composition of tool calls, intermediate result processing, and control flow within a single action, reducing LLM roundtrips. For programmatic MCP tool calling ("code mode"[1](#fn:1)), freeact generates typed Python APIs from MCP server schemas; the agent inspects generated APIs prior to execution and composes them based on available type information.
 
-### `mcptools/`
-
-Generated Python APIs from `ptc_servers` schemas:
-
-```
-.freeact/generated/mcptools/
-└── <server-name>/
-    └── <tool>.py        # Generated tool module
-```
-
-### `gentools/`
-
-User-defined tools saved from successful code actions:
-
-```
-.freeact/generated/gentools/
-└── <category>/
-    └── <tool>/
-        ├── __init__.py
-        ├── api.py       # Public interface
-        └── impl.py      # Implementation
-```
-
-## Terminal UI
-
-The `terminal.json` file configures terminal UI collapse behavior and keybindings.
-
-```
-{
-  "collapse_thoughts_on_complete": true,
-  "collapse_exec_output_on_complete": true,
-  "collapse_approved_code_actions": false,
-  "collapse_approved_tool_calls": true,
-  "collapse_completed_subagent_tasks": true,
-  "collapse_tool_outputs": true,
-  "keep_rejected_actions_expanded": true,
-  "pin_pending_approval_action_expanded": true,
-  "expand_all_toggle_key": "ctrl+o"
-}
-```
-
-### Initialization
-
-The CLI creates `terminal.json` during `freeact`, `freeact run`, and `freeact init` when the file is missing.
-
-SDK integrations can load or initialize this file by calling `await freeact.terminal.config.Config.init()`.
-
-### Settings
-
-| Setting                                | Default  | Description                                                                                        |
-| -------------------------------------- | -------- | -------------------------------------------------------------------------------------------------- |
-| `collapse_thoughts_on_complete`        | `true`   | Collapse `Thinking` boxes after a completed `Thoughts` event.                                      |
-| `collapse_exec_output_on_complete`     | `true`   | Collapse `Execution Output` boxes after a completed `CodeExecutionOutput` event.                   |
-| `collapse_approved_code_actions`       | `false`  | Collapse approved code action previews after approval.                                             |
-| `collapse_approved_tool_calls`         | `true`   | Collapse approved tool call previews after approval.                                               |
-| `collapse_completed_subagent_tasks`    | `true`   | Collapse completed root-level `subagent_task` widgets after the parent task `Tool Output` arrives. |
-| `collapse_tool_outputs`                | `true`   | Render `Tool Output` boxes collapsed by default.                                                   |
-| `keep_rejected_actions_expanded`       | `true`   | Keep rejected action previews expanded after rejection.                                            |
-| `pin_pending_approval_action_expanded` | `true`   | Keep the current pending approval action expanded until a decision is made.                        |
-| `expand_all_toggle_key`                | `ctrl+o` | Toggle all collapsible boxes between expanded and configured state.                                |
-
-______________________________________________________________________
-
-1. [Code Mode: the better way to use MCP](https://blog.cloudflare.com/code-mode/) [↩](#fnref:1 "Jump back to footnote 1 in the text")
-
-# Code Execution
-
-Freeact executes Python code, shell commands, and programmatic MCP tool calls in an IPython kernel provided by [ipybox](https://github.com/gradion-ai/ipybox). A [unified execution interface](https://gradion-ai.github.io/ipybox/codeexec/) enables their combination within a single code action. Code actions, shell commands, and programmatic tool calls are subject to [action approval](#action-approval) before execution.
+Code actions execute in an IPython kernel provided by [ipybox](https://github.com/gradion-ai/ipybox). A [unified execution interface](https://gradion-ai.github.io/ipybox/codeexec/) enables their combination within a single code action. Code actions, shell commands, and programmatic tool calls are subject to [approval](https://gradion-ai.github.io/freeact/concepts/approvals/index.md) before execution.
 
 ## Python Code
 
@@ -684,13 +1746,9 @@ ls -la
 
 Shell state (working directory, variables) does not persist across `!` lines but persists within a `%%bash` block. Neither carries state to the next cell execution. Their results can be stored in variables though.
 
-`%%bash` approval
-
-Approval support for `%%bash` cell magic is not implemented yet (coming soon).
-
 ## Programmatic Tool Calls
 
-[Generated Python APIs](https://gradion-ai.github.io/freeact/sdk/#generation-api) for MCP server tools can be imported and called like regular packages:
+[Generated Python APIs](https://gradion-ai.github.io/freeact/guides/tool-servers/#add-servers-for-programmatic-tool-calling) for MCP server tools can be imported and called like regular packages:
 
 ```
 from mcptools.google.web_search import run, Params
@@ -729,390 +1787,93 @@ filename = "report.pdf"
 
 ## Action Approval
 
-Code actions, contained shell commands, and programmatic tool calls require approval before execution. Shell commands and programmatic tool calls are intercepted during code action execution for individual approval.
-
-Composite shell commands (using `&&`, `||`, `|`, `;`) are decomposed into individual sub-commands, each approved separately. Python variables in shell commands are resolved before the approval request, so the approval request shows actual values.
-
-See the Agent SDK for programmatic [approval](https://gradion-ai.github.io/freeact/sdk/#approval) control, [permission configuration](https://gradion-ai.github.io/freeact/configuration/#permissions) for action pre-approval, and the CLI tool for the interactive [approval prompt](https://gradion-ai.github.io/freeact/cli/#approval-prompt).
+Code actions, contained shell commands, and programmatic tool calls require approval before execution. Shell commands and programmatic tool calls are intercepted during code action execution for individual approval. [Approvals and permissions](https://gradion-ai.github.io/freeact/concepts/approvals/index.md) explains the approval model; [Manage permissions](https://gradion-ai.github.io/freeact/guides/permissions/index.md) covers pre-approval with permission rules.
 
 ## Working Directory
 
 The kernel starts in the agent's workspace directory. After each code action, the working directory is reset to this location. If code changes the directory via `os.chdir()` or `%cd`, the change is undone before the next execution and the kernel prints a `[ipybox] cwd reset to <path>` message.
 
-# Sandbox Mode
+______________________________________________________________________
 
-Freeact can restrict filesystem and network access for [code execution](https://gradion-ai.github.io/freeact/execution/index.md) and MCP servers using [ipybox sandbox](https://gradion-ai.github.io/ipybox/sandbox/) and Anthropic's [sandbox-runtime](https://github.com/anthropic-experimental/sandbox-runtime).
+1. [Code Mode: the better way to use MCP](https://blog.cloudflare.com/code-mode/) [↩](#fnref:1 "Jump back to footnote 1 in the text")
 
-Prerequisites
+# Approvals and permissions
 
-Check the installation instructions for [sandbox mode prerequisites](https://gradion-ai.github.io/freeact/installation/#sandbox-mode-prerequisites).
+Every code action, shell command, and tool call requires approval before execution, unless a permission rule pre-approves it. This page explains the approval model: what gets approved, who decides, and why permission matching works the way it does.
 
-## Code Execution
+## The approval model
 
-Scope
+A code action is approved as a whole before it runs. Shell commands and programmatic tool calls inside it are then intercepted during execution and approved individually. This two-level model means a single approved code action does not grant blanket permission to everything it does: each side effect surfaces as its own decision point.
 
-Sandbox restrictions apply equally to Python code and shell commands, as both [execute](https://gradion-ai.github.io/freeact/execution/index.md) in the same IPython kernel.
+Interception happens with full runtime information. Python variables in shell commands are resolved before the approval request, so the user approves the actual command values, not templates. Composite shell commands joined with `&&`, `||`, `|`, or `;` are decomposed into individual sub-commands, each approved separately, so a harmless prefix cannot smuggle in a destructive suffix. `%%bash` scripts are approved as a whole.
 
-### CLI Tool
+The `tool_call` type of an ApprovalRequest determines what is being approved:
 
-The `--sandbox` option enables sandboxed [code execution](https://gradion-ai.github.io/freeact/execution/index.md):
+| `tool_call` type              | Trigger                                                                                    |
+| ----------------------------- | ------------------------------------------------------------------------------------------ |
+| CodeAction                    | Code action containing Python code and shell commands to execute                           |
+| ShellAction                   | Shell command (`!cmd`) or shell script (`%%bash`) intercepted during code action execution |
+| GenericCall                   | Programmatic tool call (intercepted during code action execution) or JSON tool call        |
+| FileRead, FileWrite, FileEdit | Filesystem operation via built-in MCP server                                               |
 
-```
-freeact --sandbox
-```
+`GenericCall` covers both call styles; its `ptc` field is `True` for programmatic tool calls, so applications can match `GenericCall(ptc=True)` to treat them differently from JSON tool calls.
 
-A custom configuration file can override the [default restrictions](#default-restrictions):
+## Who decides
 
-```
-freeact --sandbox --sandbox-config sandbox-config.json
-```
+The agent itself is policy-free. It yields ApprovalRequest events from its [event stream](https://gradion-ai.github.io/freeact/concepts/runtime/#events) and suspends execution until the application calls `approve()`. Calling `approve(True)` executes the action; `approve(False)` rejects it and ends the current agent turn. A rejection is signaled structurally: the final CodeExecutionOutput has `approval_rejected=True`.
 
-### Agent SDK
+The embedding application decides how requests are resolved. The CLI prompts the user interactively. The [SDK tutorial](https://gradion-ai.github.io/freeact/getting-started/sdk-tutorial/index.md) auto-approves everything. Applications that want stored rules use PermissionManager, the same utility the CLI uses internally; the agent never reads `permissions.toml` itself. See [Manage permissions](https://gradion-ai.github.io/freeact/guides/permissions/index.md) for both the interactive and the programmatic workflow.
 
-The `sandbox` and `sandbox_config` parameters of the Agent constructor provide the same functionality:
+Two safeguards prevent approval requests from hanging forever: if the consumer abandons the stream while an approval is pending, the request is resolved as rejected, and with a configured `approval_timeout`, an unresolved request is rejected when the timeout expires.
 
-```
-from pathlib import Path
+Subagent actions go through the same mechanism. Events from subagents flow through the parent agent's stream, with `agent_id` identifying the source, so the application applies one approval policy to the whole agent tree.
 
-agent = Agent(
-    ...
-    sandbox=True,
-    sandbox_config=Path("sandbox-config.json"),
-)
-```
+## Why two tiers
 
-### Default Restrictions
+Permission rules are organized into `allow` and `ask` tiers, evaluated **ask then allow**: if a rule matches both tiers, the user is prompted. This order makes `ask` rules a safety net. A broad convenience rule like `allow git *` cannot silently cover a pattern the user wants to always confirm, such as `ask rm *`. Each tier supports an **always** scope (persisted to `permissions.toml`) and a **session** scope (in-memory, cleared when the session ends), separating durable policy from one-off trust.
 
-Without a custom configuration file, sandbox mode applies these defaults:
+## The path matching model
 
-- **Filesystem**: Read all files except `.env`, write to current directory and subdirectories
-- **Network**: Internet access blocked, local network access to tool execution server permitted
+Rules for filesystem operations match on paths, and the matching is designed around the working directory as the trust boundary. Paths are normalized before matching: absolute paths under the working directory become relative, paths outside stay absolute. A relative pattern like `src/**` can therefore only ever match files inside the workspace, regardless of how the agent spells the path. Granting access outside the workspace requires an explicit absolute pattern with a leading `/`. Within patterns, `*` stays inside a single directory while `**` crosses directory boundaries, so a rule scoped to one directory does not silently extend to its subtree. See [Permission rules](https://gradion-ai.github.io/freeact/reference/permission-rules/index.md) for the exact syntax.
 
-### Custom Configuration
+# Runtime model
 
-sandbox-config.json
+This page explains how a freeact agent runs: how configuration becomes a runtime, how events flow from `stream()`, what happens within a turn, and how subagents and cancellation fit in. For a hands-on introduction, see [First agent with the SDK](https://gradion-ai.github.io/freeact/getting-started/sdk-tutorial/index.md).
 
-```
-{
-  "allowPty": true,
-  "network": {
-    "allowedDomains": ["example.org"],
-    "deniedDomains": [],
-    "allowLocalBinding": true
-  },
-  "filesystem": {
-    "denyRead": ["sandbox-config.json"],
-    "allowWrite": [".", "~/Library/Jupyter/", "~/.ipython/"],
-    "denyWrite": ["sandbox-config.json"]
-  }
-}
-```
+## Configuration flow
 
-This macOS-specific example configuration allows additional network access to `example.org`. Filesystem settings permit writes to `~/Library/Jupyter/` and `~/.ipython/`, which is required for running a sandboxed IPython kernel. The sandbox configuration file itself is protected from reads and writes.
+Configuration flows one way: file, then schema, then resolution. config.load() reads `.freeact/config.toml` into a FreeactConfig (defaults when the file is missing); config.init() additionally initializes the `.freeact/` workspace. config.resolve() turns the parsed config into a ResolvedRuntime: it expands tool presets into server configs, substitutes `${VAR}` references, and prepares the model for pydantic-ai. The Agent is constructed from the resolved runtime.
 
-## MCP Servers
+There is no programmatic save: freeact writes `config.toml` only at `init` and never rewrites it. Edit the file to change configuration. See the [Configuration](https://gradion-ai.github.io/freeact/reference/configuration/index.md) reference for the file format and the `.freeact/` directory structure.
 
-MCP servers run as separate processes and are not affected by [code execution sandboxing](#code-execution). Local stdio servers can be sandboxed independently by wrapping the server command with the `srt` tool from sandbox-runtime. This applies to both [`mcp_servers`](https://gradion-ai.github.io/freeact/configuration/#mcp_servers) and [`ptc_servers`](https://gradion-ai.github.io/freeact/configuration/#ptc_servers) in the [configuration file](https://gradion-ai.github.io/freeact/configuration/#configuration-file).
+## Lifecycle
 
-### Fetch MCP Server
-
-This example shows a sandboxed [fetch MCP server](https://github.com/modelcontextprotocol/servers/tree/main/src/fetch). First, install it locally with:
+The agent manages MCP server connections and an IPython kernel via [ipybox](https://gradion-ai.github.io/ipybox/). On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calling connect. MCP servers configured for programmatic tool calling connect lazily on first tool call.
 
 ```
-uv add mcp-server-fetch
-uv add "httpx[socks]>=0.28.1"
-```
-
-Then add it to the `ptc_servers` section:
-
-.freeact/agent.json
-
-```
-{
-  "ptc_servers": {
-    "fetch": {
-      "command": "srt",
-      "args": [
-        "--settings", "sandbox-fetch-mcp.json",
-        "python", "-m", "mcp_server_fetch"
-      ]
-    }
-  }
-}
-```
-
-The sandbox configuration blocks `.env` reads and restricts the MCP server to fetch only from `example.com`. Access to the npm registry is required for the server's internal operations:
-
-sandbox-fetch-mcp.json
-
-```
-{
-  "filesystem": {
-    "denyRead": [".env"],
-    "allowWrite": [".", "~/.npm", "/tmp/**", "/private/tmp/**"],
-    "denyWrite": []
-  },
-  "network": {
-    "allowedDomains": ["registry.npmjs.org", "example.com"],
-    "deniedDomains": [],
-    "allowLocalBinding": true
-  }
-}
-```
-
-# Models
-
-Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/models/). The model is configured in [`.freeact/agent.json`](https://gradion-ai.github.io/freeact/configuration/#configuration-file) through three settings:
-
-| Setting             | Required | Description                                                                     |
-| ------------------- | -------- | ------------------------------------------------------------------------------- |
-| `model`             | yes      | Model identifier in `provider:model-name` format                                |
-| `model_settings`    | no       | Model behavior settings (for example thinking settings or `temperature`)        |
-| `provider_settings` | no       | Provider options (for example `api_key`, `base_url`, `app_url`, or `app_title`) |
-
-## Model Identifier
-
-The `model` field uses Pydantic AI's `provider:model-name` format. Common providers:
-
-| Provider            | Prefix           | Example                                  |
-| ------------------- | ---------------- | ---------------------------------------- |
-| Google (Gemini API) | `google-gla:`    | `google-gla:gemini-3.5-flash`            |
-| Google (Vertex AI)  | `google-vertex:` | `google-vertex:gemini-3.5-flash`         |
-| Anthropic           | `anthropic:`     | `anthropic:claude-sonnet-4-6`            |
-| OpenAI              | `openai:`        | `openai:gpt-5.2`                         |
-| OpenRouter          | `openrouter:`    | `openrouter:anthropic/claude-sonnet-4.6` |
-
-See Pydantic AI's [model documentation](https://ai.pydantic.dev/models/) for the full list of supported providers and model names.
-
-## Provider Examples
-
-### Google (default)
-
-The default configuration uses Google's Gemini API with dynamic thinking enabled:
-
-```
-{
-  "model": "google-gla:gemini-3.5-flash",
-  "model_settings": {
-    "google_thinking_config": {
-      "thinking_level": "medium",
-      "include_thoughts": true
-    }
-  }
-}
-```
-
-Set the `GEMINI_API_KEY` environment variable to authenticate.
-
-### Anthropic
-
-```
-{
-  "model": "anthropic:claude-sonnet-4-6",
-  "model_settings": {
-    "anthropic_thinking": {
-      "type": "adaptive"
-    }
-  }
-}
-```
-
-Set the `ANTHROPIC_API_KEY` environment variable to authenticate.
-
-### OpenAI
-
-```
-{
-  "model": "openai:gpt-5.2",
-  "model_settings": {
-    "openai_reasoning_effort": "medium"
-  }
-}
-```
-
-Set the `OPENAI_API_KEY` environment variable to authenticate.
-
-### OpenRouter
-
-For providers like OpenRouter, put provider-specific options in `provider_settings` (for example `api_key`, `app_url`, and `app_title`):
-
-```
-{
-  "model": "openrouter:anthropic/claude-sonnet-4.6",
-  "model_settings": {
-    "anthropic_thinking": {
-      "type": "adaptive"
-    }
-  },
-  "provider_settings": {
-    "api_key": "${OPENROUTER_API_KEY}",
-    "app_url": "https://my-app.example.com",
-    "app_title": "freeact"
-  }
-}
-```
-
-### OpenAI-Compatible Endpoints
-
-Any OpenAI-compatible API can be used by setting `base_url` in `provider_settings`:
-
-```
-{
-  "model": "openai:my-custom-model",
-  "model_settings": {
-    "temperature": 0.7
-  },
-  "provider_settings": {
-    "base_url": "https://my-api.example.com/v1",
-    "api_key": "${CUSTOM_API_KEY}"
-  }
-}
-```
-
-## Model Settings
-
-`model_settings` is passed directly to Pydantic AI's model request. Available settings depend on the provider.
-
-### Extended Thinking
-
-Freeact streams thinking content when the model supports it. Thinking is configured through provider-specific settings in `model_settings`.
-
-**Google (Gemini)**:
-
-```
-"model_settings": {
-  "google_thinking_config": {
-    "thinking_level": "medium",
-    "include_thoughts": true
-  }
-}
-```
-
-`thinking_level` accepts `"minimal"`, `"low"`, `"medium"`, or `"high"`. Set `include_thoughts` to `true` to stream thinking content.
-
-**Anthropic** (Opus 4.6, Sonnet 4.6):
-
-```
-"model_settings": {
-  "anthropic_thinking": {
-    "type": "adaptive"
-  },
-  "anthropic_effort": "high"
-}
-```
-
-Adaptive thinking lets the model decide when and how much to think. `anthropic_effort` accepts `"low"`, `"medium"`, `"high"`, or `"max"` (Opus only). The default is `"high"`.
-
-**OpenAI**:
-
-```
-"model_settings": {
-  "openai_reasoning_effort": "medium"
-}
-```
-
-`openai_reasoning_effort` accepts `"low"`, `"medium"`, or `"high"`.
-
-### Common Settings
-
-| Setting       | Description                       |
-| ------------- | --------------------------------- |
-| `temperature` | Controls randomness (e.g., `0.7`) |
-| `max_tokens`  | Maximum response tokens           |
-
-See Pydantic AI's [settings documentation](https://ai.pydantic.dev/api/settings/) for the full reference.
-
-## Provider Settings
-
-Use `provider_settings` for provider-specific options such as `api_key`, `base_url`, `app_url`, or `app_title`.
-
-# Agent SDK
-
-The Agent SDK provides four main APIs:
-
-- [Configuration API](#configuration-api) for initializing and loading configuration from `.freeact/`
-- [Generation API](#generation-api) for generating Python APIs for MCP server tools
-- [Agent API](#agent-api) for running the agentic code action loop
-- [Permissions API](#permissions-api) for managing approval decisions
-
-## Configuration API
-
-Use Config.init() to load persisted config from `.freeact/` when present, or create and save defaults on first run. Use save() and load() when explicit persistence control is needed:
-
-```
-from freeact.agent.config import Config
-
-config = await Config.init()
-```
-
-See the [Configuration](https://gradion-ai.github.io/freeact/configuration/index.md) reference for details on the `.freeact/` directory structure.
-
-## Generation API
-
-MCP servers [configured](https://gradion-ai.github.io/freeact/configuration/#ptc_servers) as `ptc_servers` in `agent.json` require Python API generation with generate_mcp_sources() before the agent can call their tools programmatically:
-
-```
-from freeact.tools.pytools.apigen import generate_mcp_sources
-
-# Generate Python APIs for MCP servers in ptc_servers
-for server_name, params in config.ptc_servers.items():
-    if not (config.generated_dir / "mcptools" / server_name).exists():
-        await generate_mcp_sources({server_name: params}, config.generated_dir)
-```
-
-Generated APIs are stored as `.freeact/generated/mcptools/<server_name>/<tool>.py` modules and persist across agent sessions. The `.freeact/generated/` directory is on the kernel's `PYTHONPATH`, so the agent can import them directly:
-
-```
-from mcptools.google.web_search import run, Params
-
-result = run(Params(query="python async tutorial"))
-```
-
-## Agent API
-
-The Agent class implements the agentic code action loop, handling code action generation, [code execution](https://gradion-ai.github.io/freeact/execution/index.md), tool calls, and the approval workflow. Each stream() call runs a single agent turn, with the agent managing conversation history across calls. Use `stream()` to iterate over [events](#events) and handle them with pattern matching:
-
-```
-from freeact.agent import (
-    Agent,
-    ApprovalRequest,
-    CodeAction,
-    CodeExecutionOutput,
-    Response,
-    ShellAction,
-    Thoughts,
-    ToolOutput,
-)
-
-async with Agent(config=config) as agent:
-    prompt = "Who is the F1 world champion 2025?"
-
+runtime = config.resolve(config.load())
+async with Agent(runtime) as agent:
     async for event in agent.stream(prompt):
-        match event:
-            case ApprovalRequest(tool_call=CodeAction(code=code)) as request:
-                print(f"Code action:\n{code}")
-                request.approve(True)
-            case ApprovalRequest(tool_call=ShellAction(command=cmd)) as request:
-                print(f"Shell command: {cmd}")
-                request.approve(True)
-            case ApprovalRequest(tool_call=tool_call) as request:
-                print(f"Tool: {tool_call.tool_name}")
-                request.approve(True)
-            case Thoughts(content=content):
-                print(f"Thinking: {content}")
-            case CodeExecutionOutput(text=text):
-                print(f"Code execution output: {text}")
-            case ToolOutput(content=content):
-                print(f"Tool call result: {content}")
-            case Response(content=content):
-                print(content)
+        ...
+# Connections closed, kernel stopped
 ```
 
-For processing output incrementally, match the `*Chunk` event variants listed below.
+Without using the async context manager:
 
-### Events
+```
+runtime = config.resolve(config.load())
+agent = Agent(runtime)
+await agent.start()
+try:
+    async for event in agent.stream(prompt):
+        ...
+finally:
+    await agent.stop()
+```
 
-The Agent.stream() method yields events as they occur:
+## Events
+
+Each stream() call runs a single agent turn, with the agent managing conversation history across calls. The stream yields events as they occur:
 
 | Event                    | Description                                       |
 | ------------------------ | ------------------------------------------------- |
@@ -1126,20 +1887,22 @@ The Agent.stream() method yields events as they occur:
 | ToolOutput               | JSON tool call or built-in operation output       |
 | Cancelled                | Agent turn was cancelled                          |
 
-All yielded events inherit from AgentEvent and carry `agent_id`.
+All yielded events inherit from AgentEvent and carry `agent_id`. Tool-related events additionally carry a `corr_id` correlating chunks, outputs, and approval requests of the same tool call; events produced by a subagent carry the parent task's correlation id in `parent_corr_id`.
 
-### Internal tools
+ApprovalRequest events suspend execution until the application resolves them; [Approvals and permissions](https://gradion-ai.github.io/freeact/concepts/approvals/index.md) explains this part of the model. A rejected code action or intercepted sub-command is signaled structurally: the final CodeExecutionOutput has `approval_rejected=True`.
+
+## Internal tools
 
 The agent uses a small set of internal tools for reading and writing files, executing code and commands, spawning subagents, and discovering tools:
 
-| Tool              | Implementation                                          | Description                                                                                                                                                                                  |
-| ----------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| read, write, edit | filesystem MCP server                                   | Reading, writing, and editing files via JSON tool calls (`filesystem_read_text_file`, `filesystem_read_media_file`, `filesystem_write_text_file`, `filesystem_edit_text_file`)               |
-| execute           | `ipybox_execute_ipython_cell`                           | Execution of Python code and shell commands (via `!` syntax), delegated to ipybox's `CodeExecutor`, with shell commands and programmatic MCP tools calls intercepted at runtime for approval |
-| subagent          | [`subagent_task`](#subagents)                           | Task delegation to child agents                                                                                                                                                              |
-| tool search       | `pytools` MCP server for basic search and hybrid search | Tool discovery via category browsing or hybrid search                                                                                                                                        |
+| Tool              | Implementation                                      | Description                                                                                                                                                                                 |
+| ----------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| read, write, edit | filesystem MCP server                               | Reading, writing, and editing files via JSON tool calls (`filesystem_read_text_file`, `filesystem_read_media_file`, `filesystem_write_text_file`, `filesystem_edit_text_file`)              |
+| execute           | `ipybox_execute_ipython_cell`                       | Execution of Python code and shell commands (via `!` syntax), delegated to ipybox's `CodeExecutor`, with shell commands and programmatic MCP tool calls intercepted at runtime for approval |
+| subagent          | [`subagent_task`](#subagents)                       | Task delegation to child agents                                                                                                                                                             |
+| tool discovery    | `pytools` MCP server for basic and hybrid discovery | Tool discovery via category browsing or hybrid search; enabled with the [`discovery` preset](https://gradion-ai.github.io/freeact/guides/tool-discovery/index.md)                           |
 
-### Turn limits
+## Turn limits
 
 Use `max_turns` to limit the number of tool-execution rounds before the stream stops:
 
@@ -1150,9 +1913,38 @@ async for event in agent.stream(prompt, max_turns=50):
 
 If `max_turns=None` (default), the loop continues until the model produces a final response.
 
-### Cancellation
+## Timeouts
 
-Call cancel() to stop a running agent turn. The active `stream()` stops at the next phase boundary and yields a Cancelled event. Running kernel executions, including those in subagents, are interrupted immediately. Partial responses and synthetic tool returns are preserved in message history, so the conversation remains consistent for subsequent turns.
+The agent supports two timeout settings in [`config.toml`](https://gradion-ai.github.io/freeact/reference/configuration/#agent-settings):
+
+- `execution_timeout`: Maximum time in seconds for each code execution. Approval wait time is excluded from this budget, so the timeout only counts actual execution time. Defaults to 300 seconds. Set to `0` to disable.
+- `approval_timeout`: Timeout in seconds for approval requests. An approval request that is not resolved within this time is rejected. Defaults to `0` (wait forever).
+
+```
+[agent]
+execution_timeout = 60.0
+approval_timeout = 30.0
+```
+
+## Subagents
+
+The built-in `subagent_task` tool delegates a subtask to a child agent with a fresh IPython kernel and fresh MCP server connections. The child inherits model, system prompt, and sandbox settings from the parent. Its events flow through the parent's stream using the same [approval](https://gradion-ai.github.io/freeact/concepts/approvals/index.md) mechanism, with `agent_id` identifying the source:
+
+```
+async for event in agent.stream(prompt):
+    match event:
+        case ApprovalRequest(agent_id=agent_id, tool_call=tool_call) as request:
+            print(f"[{agent_id}] Approve {tool_call}?")
+            request.approve(True)
+        case Response(content=content, agent_id=agent_id):
+            print(f"[{agent_id}] {content}")
+```
+
+The main agent's `agent_id` is `main`, subagent IDs use the form `sub-xxxx`. Each delegated task defaults to `max_turns=100`. The [`max_subagents`](https://gradion-ai.github.io/freeact/reference/configuration/#agent-settings) setting in `config.toml` limits concurrent subagents (default 5).
+
+## Cancellation
+
+Call cancel() to stop a running agent turn. The active `stream()` stops at the next phase boundary and yields a Cancelled event whose `phase` field is a Phase value identifying the interrupted phase. Running kernel executions, including those in subagents, are interrupted immediately. Partial responses and synthetic tool returns are preserved in message history, so the conversation remains consistent for subsequent turns.
 
 ```
 # From another coroutine or callback:
@@ -1168,357 +1960,21 @@ async for event in agent.stream(prompt):
             print(content)
 ```
 
-### Subagents
+## Sessions
 
-The built-in `subagent_task` tool delegates a subtask to a child agent with a fresh IPython kernel and fresh MCP server connections. The child inherits model, system prompt, and sandbox settings from the parent. Its events flow through the parent's stream using the same [approval](#approval) mechanism, with `agent_id` identifying the source:
-
-```
-async for event in agent.stream(prompt):
-    match event:
-        case ApprovalRequest(agent_id=agent_id, tool_call=tool_call) as request:
-            print(f"[{agent_id}] Approve {tool_call}?")
-            request.approve(True)
-        case Response(content=content, agent_id=agent_id):
-            print(f"[{agent_id}] {content}")
-```
-
-The main agent's `agent_id` is `main`, subagent IDs use the form `sub-xxxx`. Each delegated task defaults to `max_turns=100`. The [`max_subagents`](https://gradion-ai.github.io/freeact/configuration/#agent-settings) setting in `agent.json` limits concurrent subagents (default 5).
-
-### Approval
-
-The agent yields ApprovalRequest for code actions and each shell command and programmatic tool call within them. Each request carries a tool_call field identifying the pending action. Execution is suspended until `approve()` is called. Calling `approve(True)` executes the action; `approve(False)` rejects it and ends the current agent turn.
-
-```
-async for event in agent.stream(prompt):
-    match event:
-        case ApprovalRequest(tool_call=CodeAction(code=code)) as request:
-            print(f"Code action:\n{code}")
-            request.approve(True)
-        case ApprovalRequest(tool_call=ShellAction(command=cmd)) as request:
-            print(f"Shell command: {cmd}")
-            request.approve(True)
-        case ApprovalRequest(tool_call=GenericCall(tool_name=name, ptc=True)) as request:
-            print(f"Programmatic tool call: {name}")
-            request.approve(True)
-        case ApprovalRequest(tool_call=GenericCall(tool_name=name)) as request:
-            print(f"JSON tool call: {name}")
-            request.approve(True)
-        case Response(content=content):
-            print(content)
-```
-
-The `tool_call` type determines what is being approved:
-
-| `tool_call` type              | Trigger                                                                             |
-| ----------------------------- | ----------------------------------------------------------------------------------- |
-| CodeAction                    | Code action containing Python code and shell commands to execute                    |
-| ShellAction                   | Shell command (`!cmd`) intercepted during code action execution                     |
-| GenericCall                   | Programmatic tool call (intercepted during code action execution) or JSON tool call |
-| FileRead, FileWrite, FileEdit | Filesystem operation via built-in MCP server                                        |
-
-Shell commands and programmatic tool calls within code actions are intercepted during execution and yield separate `ApprovalRequest` events. Composite shell commands (using `&&`, `||`, `|`, `;`) are decomposed into individual sub-commands, each requiring separate approval. Python variables in shell commands are resolved before the approval request.
-
-### Lifecycle
-
-The agent manages MCP server connections and an IPython kernel via [ipybox](https://gradion-ai.github.io/ipybox/). On entering the async context manager, the IPython kernel starts and MCP servers configured for JSON tool calling connect. MCP servers configured for programmatic tool calling connect lazily on first tool call.
-
-```
-config = await Config.init()
-async with Agent(config=config) as agent:
-    async for event in agent.stream(prompt):
-        ...
-# Connections closed, kernel stopped
-```
-
-Without using the async context manager:
-
-```
-config = await Config.init()
-agent = Agent(config=config)
-await agent.start()
-try:
-    async for event in agent.stream(prompt):
-        ...
-finally:
-    await agent.stop()
-```
-
-### Timeouts
-
-The agent supports two timeout settings in [`agent.json`](https://gradion-ai.github.io/freeact/configuration/#agent-settings):
-
-- `execution_timeout`: Maximum time in seconds for each [code execution](https://gradion-ai.github.io/freeact/execution/index.md). Approval wait time is excluded from this budget, so the timeout only counts actual execution time. Defaults to 300 seconds. Set to `null` to disable.
-- `approval_timeout`: Timeout for approval requests during programmatic tool calls. If an approval request is not accepted or rejected within this time, the tool call fails. Defaults to `null` (no timeout).
-
-```
-{
-  "execution_timeout": 60,
-  "approval_timeout": 30
-}
-```
-
-### Persistence
-
-#### Sessions
-
-Config controls session persistence via `enable_persistence`.
-
-- Default: `true`. The agent persists history to `.freeact/sessions/<session-id>/<agent-id>.jsonl`.
-- `false`: The agent keeps history in memory only. Passing `session_id` to Agent raises `ValueError`.
-
-When persistence is enabled, construct an agent without `session_id` to create a new session ID internally. Read it from `agent.session_id`:
-
-```
-# No session_id: agent creates a new session ID internally.
-async with Agent(config=config) as agent:
-    print(f"Generated session ID: {agent.session_id}")
-    await handle_events(agent, "What is the capital of France?")
-    await handle_events(agent, "What about Germany?")
-```
-
-Construct an agent with an explicit `session_id` for create-or-resume behavior:
-
-```
-# Choose an explicit session ID.
-session_id = "countries-session"
-# Create-or-resume behavior: resume if present, otherwise start new.
-async with Agent(config=config, session_id=session_id) as agent:
-    await handle_events(agent, "What is the capital of Spain?")
-```
-
-If that `session_id` already exists, the persisted history is resumed. If it does not exist, a new session starts with that ID.
-
-To resume later, create another agent with the same `session_id`:
-
-```
-# Resume the same session ID later.
-async with Agent(config=config, session_id=session_id) as agent:
-    # Previous message history is restored automatically
-    await handle_events(agent, "And what country did we discuss in this session?")
-```
-
-Only the main agent's message history (`main.jsonl`) is loaded on resume. Subagent messages are persisted to separate files (`sub-xxxx.jsonl`) for auditing but are not rehydrated.
-
-The [CLI tool](https://gradion-ai.github.io/freeact/cli/index.md) accepts `--session-id` to resume a session from the command line when `enable_persistence` is `true`.
-
-#### Results
-
-Tool call results, code execution outputs, and subagent responses are checked against an inline size threshold before being added to the message history. When a result exceeds the threshold, the full content is saved to disk and replaced inline with a file reference notice that includes a preview. This prevents large outputs from bloating context.
-
-Controlled by two config options:
-
-- `tool_result_inline_max_bytes`: Maximum inline payload size in bytes.
-- `tool_result_preview_chars`: Number of preview characters from both the beginning and end of large text results included in the file reference notice.
-
-### Prompt tags
-
-Prompts passed to `stream()` may contain skill tags that the agent processes. Skill tags explicitly invoke a skill by name. The [CLI tool](https://gradion-ai.github.io/freeact/cli/#skill-invocation) generates these from `/skill-name` syntax.
-
-```
-<skill name="review">the auth module</skill>
-```
-
-Without an explicit tag, the agent can still autonomously select a skill when the request matches a skill's description. Skills are discovered from `.freeact/skills/` and `.agents/skills/` directories.
-
-## Permissions API
-
-The agent does not enforce permissions itself. It yields [`ApprovalRequest`](#approval) events and leaves the decision to the application. PermissionManager is an optional utility that applications can use to automate those decisions based on stored rules. The [CLI tool](https://gradion-ai.github.io/freeact/cli/#approval-prompt) uses it internally; SDK applications can use it the same way.
-
-The manager loads and saves rules from `.freeact/permissions.json`. Rules are glob-style [patterns](https://gradion-ai.github.io/freeact/configuration/#permissions) organized into two tiers (allow and ask) and two persistence scopes (always and session). See [Permissions](https://gradion-ai.github.io/freeact/configuration/#permissions) for the file format, pattern syntax, and matching semantics.
-
-The core API:
-
-- init() loads rules from `.freeact/permissions.json` if present, otherwise saves defaults.
-- is_allowed(tool_call) checks a concrete tool call (literal values, no wildcards) against stored rules.
-- allow_always(tool_call) adds a rule and persists it to `permissions.json`. The tool call fields may contain glob wildcards to match broadly (e.g., `command="git *"`).
-- allow_session(tool_call) adds an in-memory rule for the current session. Same wildcard support as `allow_always`.
-
-```
-import asyncio
-from freeact.permissions import PermissionManager
-from freeact.agent import ApprovalRequest, suggest_pattern
-
-loop = asyncio.get_running_loop()
-
-manager = PermissionManager()
-await loop.run_in_executor(None, manager.init)
-
-async for event in agent.stream(prompt):
-    match event:
-        case ApprovalRequest() as request:
-            if manager.is_allowed(request.tool_call):
-                request.approve(True)
-            else:
-                pattern = suggest_pattern(request.tool_call)
-                choice = input(f"Allow [{pattern}]? [Y/n/a/s]: ")
-                match choice:
-                    case "a":
-                        await loop.run_in_executor(
-                            None, 
-                            manager.allow_always, 
-                            request.tool_call,
-                        )
-                        request.approve(True)
-                    case "s":
-                        manager.allow_session(request.tool_call)
-                        request.approve(True)
-                    case "n":
-                        request.approve(False)
-                    case _:
-                        request.approve(True)
-```
-
-For shell commands, suggest_display(tool_call) returns the verbatim command (or a first-line summary for `%%bash` shell magic) and is suitable for displaying in the prompt instead of the permission pattern. It returns an empty string for non-shell tool calls, so applications can fall back to `suggest_pattern()` in that case.
-
-# CLI tool
-
-The `freeact` or `freeact run` command starts the [interactive mode](#interactive-mode):
-
-```
-freeact
-```
-
-A `.freeact/` [configuration](https://gradion-ai.github.io/freeact/configuration/index.md) directory is created automatically if it does not exist yet. The `init` subcommand initializes the configuration directory without starting the interactive mode:
-
-```
-freeact init
-```
-
-## Options
-
-| Option                  | Description                                                                                  |
-| ----------------------- | -------------------------------------------------------------------------------------------- |
-| `--sandbox`             | Run code execution in [sandbox mode](https://gradion-ai.github.io/freeact/sandbox/index.md). |
-| `--sandbox-config PATH` | Path to sandbox configuration file.                                                          |
-| `--session-id UUID`     | Resume a previous session by its UUID.                                                       |
-| `--skip-permissions`    | Run tools without prompting for approval.                                                    |
-| `--log-level LEVEL`     | Set logging level: `debug`, `info` (default), `warning`, `error`, `critical`.                |
-
-## Examples
-
-Running code execution in [sandbox mode](https://gradion-ai.github.io/freeact/sandbox/index.md):
-
-```
-freeact --sandbox
-```
-
-Running with a [custom sandbox configuration](https://gradion-ai.github.io/freeact/sandbox/#custom-configuration):
-
-```
-freeact --sandbox --sandbox-config sandbox-config.json
-```
-
-Resuming a previous [session](https://gradion-ai.github.io/freeact/sdk/#persistence):
-
-```
-freeact --session-id 550e8400-e29b-41d4-a716-446655440000
-```
-
-If `enable_persistence` is `false` in `.freeact/agent.json`, passing `--session-id` exits with an error.
-
-## Interactive Mode
-
-The interactive mode provides a conversation interface with the agent in a terminal window.
-
-### User messages
-
-| Key                                                | Action                                                  |
-| -------------------------------------------------- | ------------------------------------------------------- |
-| `Enter`                                            | Send message                                            |
-| `Ctrl+J`                                           | Insert newline                                          |
-| `Option+Enter` (macOS) `Alt+Enter` (Linux/Windows) | Insert newline (`Ctrl+J` fallback)                      |
-| `Escape`                                           | Cancel the current agent turn, or clear input when idle |
-| `Ctrl+Q`                                           | Quit                                                    |
-
-### Clipboard
-
-Clipboard behavior depends on terminal key forwarding.
-
-- Paste into the prompt input: `Cmd+V` or `Ctrl+V`.
-- Copy selected text from Freeact widgets: `Cmd+C` may not work in some terminals. Use `Ctrl+C` instead.
-- Additional terminal fallbacks: `Ctrl+Shift+C` / `Ctrl+Insert` for copy, `Ctrl+Shift+V` / `Shift+Insert` for paste.
-
-### Expand and Collapse
-
-Use `Ctrl+O` to toggle all collapsible boxes between expanded and configured state.
-
-The shortcut is configured in `.freeact/terminal.json` under `expand_all_toggle_key`.
-
-### File References
-
-Include file paths directly in the prompt. The model uses built-in [filesystem tools](https://gradion-ai.github.io/freeact/sdk/#internal-tools) to read them when needed.
-
-```
-screenshot.png What does this show?
-Transcribe this voice-note.wav
-images/ Describe these images
-```
-
-Type `@` in the prompt to open a file picker for easier path insertion. The `@` prefix is stripped before sending, so `@screenshot.png` and `screenshot.png` are equivalent.
-
-### Skill Invocation
-
-The agent automatically uses skills when a request matches a skill's description. The `/skill-name` syntax is a shortcut to invoke a specific skill explicitly:
-
-```
-/plan my project requirements
-/commit fix login bug
-```
-
-- Type `/` at the start of a prompt to open a skill picker.
-- Select a skill to insert its name, then type arguments after it.
-- Text after the skill name is passed as arguments to the skill.
-- Skill locations: `.agents/skills/` (project) and `.freeact/skills/` (bundled).
-
-### Cancellation
-
-Press `Escape` during an active agent turn to cancel it. This interrupts the current operation (LLM streaming, code execution, or approval wait), stops the turn, and re-enables the prompt input.
-
-### Approval Prompt
-
-Before executing code actions, shell commands, and tool calls, the agent requests approval. Shell commands and programmatic tool calls within code actions are intercepted during execution and approved individually. For shell commands the prompt displays the verbatim command being executed; for other action types it displays a suggested permission pattern that summarizes the action:
-
-```
-Approve? [Y/n/a/s] git add src/main.py
-```
-
-| Key           | Action                                        |
-| ------------- | --------------------------------------------- |
-| `y` / `Enter` | Approve this invocation only                  |
-| `n`           | Reject (ends the current agent turn)          |
-| `a`           | Edit pattern, then save as always-allow rule  |
-| `s`           | Edit pattern, then save as session-allow rule |
-
-Pressing `a` or `s` opens an editable input pre-filled with the suggested permission pattern (not the verbatim text shown above). Edit the pattern to broaden or narrow the rule (e.g. change `filesystem_read_file src/main.py` to `filesystem_* src/**`), then press `Enter` to save the rule and approve. While editing, approval hotkeys are disabled so you can type freely.
-
-Always-allow rules persist to `.freeact/permissions.json` across sessions. Session-allow rules are in-memory and cleared when the session ends. Future actions matching a saved rule are auto-approved without prompting.
-
-What the bar displays depends on the action type:
-
-| Action                                        | Bar shows                                                                                                    | Suggested pattern (when pressing `a`/`s`)  |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
-| Shell command (`!cmd` and split sub-commands) | Verbatim command, e.g. `git add src/main.py`                                                                 | `cmd subcmd *` heuristic, e.g. `git add *` |
-| Shell magic (`%%bash`)                        | First non-empty line + `(+N more lines)` summary; full script is shown in the Shell Script box above the bar | Full script with newlines escaped as `\n`  |
-| Code action                                   | Tool name, e.g. `ipybox_execute_ipython_cell`                                                                | Same                                       |
-| File read/write/edit                          | Tool name + path, e.g. `filesystem_write_text_file src/main.py`                                              | Same                                       |
-| Other tool calls                              | Tool name, e.g. `github_search_repositories`                                                                 | Same                                       |
-
-See [Permissions](https://gradion-ai.github.io/freeact/configuration/#permissions) for the persisted format and pattern syntax.
-
-Automatic approval
-
-Use the [`--skip-permissions`](#options) CLI option to run the agent with full action auto-approval.
+The agent persists message history incrementally to `.freeact/sessions/<session-id>/<agent-id>.jsonl` while it runs (unless `enable_persistence` is `false`). On resume, only the main agent's history (`main.jsonl`) is rehydrated; subagent histories (`sub-xxxx.jsonl`) are persisted for auditing only. Results exceeding an inline size threshold are stored as files in the session directory and referenced from the history. See [Persist and resume sessions](https://gradion-ai.github.io/freeact/guides/sessions/index.md) for creating, resuming, and configuring sessions.
 # API Reference
 
-## freeact.agent.Agent
+## freeact.Agent
 
 ```
 Agent(
-    config: Config,
+    runtime: ResolvedRuntime,
     agent_id: str | None = None,
     session_id: str | None = None,
     sandbox: bool = False,
     sandbox_config: Path | None = None,
+    cancel_token: CancelToken | None = None,
 )
 ```
 
@@ -1537,27 +1993,28 @@ Initialize the agent.
 
 Parameters:
 
-| Name             | Type     | Description                                                                                                    | Default                                                                                                                                                                                                                                                                         |
-| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `config`         | `Config` | Agent configuration containing model, system prompt, MCP servers, kernel env, timeouts, and subagent settings. | *required*                                                                                                                                                                                                                                                                      |
-| `agent_id`       | \`str    | None\`                                                                                                         | Identifier for this agent instance. Defaults to "main" when not provided.                                                                                                                                                                                                       |
-| `session_id`     | \`str    | None\`                                                                                                         | Optional session identifier for persistence. If None and persistence is enabled, a new session ID is generated. If provided and persistence is enabled, that session ID is used. Existing session history is resumed when present; otherwise a new session starts with that ID. |
-| `sandbox`        | `bool`   | Run the kernel in sandbox mode.                                                                                | `False`                                                                                                                                                                                                                                                                         |
-| `sandbox_config` | \`Path   | None\`                                                                                                         | Path to custom sandbox configuration.                                                                                                                                                                                                                                           |
+| Name             | Type              | Description                             | Default                                                                                                                                                                                                                                                                         |
+| ---------------- | ----------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `runtime`        | `ResolvedRuntime` | Resolved runtime produced by resolve(). | *required*                                                                                                                                                                                                                                                                      |
+| `agent_id`       | \`str             | None\`                                  | Identifier for this agent instance. Defaults to "main" when not provided.                                                                                                                                                                                                       |
+| `session_id`     | \`str             | None\`                                  | Optional session identifier for persistence. If None and persistence is enabled, a new session ID is generated. If provided and persistence is enabled, that session ID is used. Existing session history is resumed when present; otherwise a new session starts with that ID. |
+| `sandbox`        | `bool`            | Run the kernel in sandbox mode.         | `False`                                                                                                                                                                                                                                                                         |
+| `sandbox_config` | \`Path            | None\`                                  | Path to custom sandbox configuration.                                                                                                                                                                                                                                           |
+| `cancel_token`   | \`CancelToken     | None\`                                  | Shared cancellation token. Used internally to propagate parent cancellation to subagents; leave unset otherwise.                                                                                                                                                                |
 
 Raises:
 
-| Type         | Description                                                         |
-| ------------ | ------------------------------------------------------------------- |
-| `ValueError` | If session_id is provided while config.enable_persistence is False. |
+| Type         | Description                                                                   |
+| ------------ | ----------------------------------------------------------------------------- |
+| `ValueError` | If session_id is provided while persistence is disabled in the configuration. |
 
-### config
+### runtime
 
 ```
-config: Config
+runtime: ResolvedRuntime
 ```
 
-Agent configuration.
+Resolved runtime this agent was constructed with.
 
 ### session_id
 
@@ -1567,15 +2024,13 @@ session_id: str | None
 
 Session ID used by this agent, or `None` when persistence is disabled.
 
-### \_reject_ipybox_approval
+### tool_names
 
 ```
-_reject_ipybox_approval(item: ApprovalRequest) -> None
+tool_names: list[str]
 ```
 
-Reject an ipybox approval request, suppressing errors.
-
-Called during generator cleanup (GeneratorExit) to ensure the approval channel on the tool server is unblocked before the ApprovalClient disconnects.
+Names of all registered tools (ipybox tools and MCP server tools).
 
 ### cancel
 
@@ -1585,7 +2040,7 @@ cancel() -> None
 
 Cancel the current agent turn.
 
-Sets an internal cancellation flag and interrupts any running kernel execution. The active `stream()` call will stop at the next phase boundary and yield a Cancelled event.
+Sets the cancellation token and interrupts any running kernel execution. The active `stream()` call will stop at the next phase boundary and yield a Cancelled event.
 
 ### start
 
@@ -1633,7 +2088,7 @@ Returns:
 | --------------------------- | ------------------------ |
 | `AsyncIterator[AgentEvent]` | An async event iterator. |
 
-## freeact.agent.AgentEvent
+## freeact.AgentEvent
 
 ```
 AgentEvent(
@@ -1646,9 +2101,9 @@ AgentEvent(
 
 Base class for all agent stream events.
 
-Carries the `agent_id` of the agent that produced the event, allowing callers to distinguish events from a parent agent vs. its subagents.
+Carries the `agent_id` of the agent that produced the event, allowing callers to distinguish events from a parent agent vs. its subagents. Tool-related events carry a `corr_id`; events produced by a subagent additionally carry the parent task's correlation id in `parent_corr_id`.
 
-## freeact.agent.Response
+## freeact.Response
 
 ```
 Response(
@@ -1664,7 +2119,7 @@ Bases: `AgentEvent`
 
 Complete model response at a given step.
 
-## freeact.agent.ResponseChunk
+## freeact.ResponseChunk
 
 ```
 ResponseChunk(
@@ -1680,7 +2135,7 @@ Bases: `AgentEvent`
 
 Partial model response text (content streaming).
 
-## freeact.agent.Thoughts
+## freeact.Thoughts
 
 ```
 Thoughts(
@@ -1696,7 +2151,7 @@ Bases: `AgentEvent`
 
 Complete model thoughts at a given step.
 
-## freeact.agent.ThoughtsChunk
+## freeact.ThoughtsChunk
 
 ```
 ThoughtsChunk(
@@ -1712,13 +2167,14 @@ Bases: `AgentEvent`
 
 Partial model thinking text (content streaming).
 
-## freeact.agent.CodeExecutionOutput
+## freeact.CodeExecutionOutput
 
 ```
 CodeExecutionOutput(
     text: str | None,
     images: list[Path],
     truncated: bool = False,
+    approval_rejected: bool = False,
     *,
     agent_id: str = "",
     corr_id: str = "",
@@ -1730,7 +2186,15 @@ Bases: `AgentEvent`
 
 Complete code execution output.
 
-## freeact.agent.CodeExecutionOutputChunk
+### format
+
+```
+format() -> str
+```
+
+Format output with image markdown links.
+
+## freeact.CodeExecutionOutputChunk
 
 ```
 CodeExecutionOutputChunk(
@@ -1746,7 +2210,7 @@ Bases: `AgentEvent`
 
 Partial code execution output (content streaming).
 
-## freeact.agent.ApprovalRequest
+## freeact.ApprovalRequest
 
 ```
 ApprovalRequest(
@@ -1761,9 +2225,9 @@ ApprovalRequest(
 
 Bases: `AgentEvent`
 
-Pending code action or tool call awaiting user approval.
+Pending code action or tool call awaiting approval.
 
-Yielded by Agent.stream() before executing any code action, programmatic tool call, or JSON tool call. The stream is suspended until `approve()` is called.
+Yielded by Agent.stream() before executing any code action, shell command, programmatic tool call, JSON tool call, or subagent task. The affected execution is suspended until `approve()` is called.
 
 ### approve
 
@@ -1773,7 +2237,7 @@ approve(decision: bool) -> None
 
 Resolve this approval request.
 
-No-op if already resolved (e.g. by cancellation).
+No-op if already resolved (e.g. by cancellation or timeout).
 
 Parameters:
 
@@ -1789,7 +2253,7 @@ approved() -> bool
 
 Await until `approve()` is called and return the decision.
 
-## freeact.agent.ToolOutput
+## freeact.ToolOutput
 
 ```
 ToolOutput(
@@ -1805,7 +2269,7 @@ Bases: `AgentEvent`
 
 JSON tool call or built-in operation output.
 
-## freeact.agent.Cancelled
+## freeact.Cancelled
 
 ```
 Cancelled(
@@ -1813,9 +2277,7 @@ Cancelled(
     agent_id: str = "",
     corr_id: str = "",
     parent_corr_id: str = "",
-    phase: Literal[
-        "between_turns", "llm_streaming", "tool_execution"
-    ]
+    phase: Phase
 )
 ```
 
@@ -1823,7 +2285,21 @@ Bases: `AgentEvent`
 
 Agent execution was cancelled by the user.
 
-## freeact.agent.ToolCall
+## freeact.Phase
+
+Bases: `str`, `Enum`
+
+Phase boundary at which a turn can be cancelled.
+
+## freeact.CancelToken
+
+```
+CancelToken()
+```
+
+Cooperative cancellation signal shared across a turn's components.
+
+## freeact.ToolCall
 
 ```
 ToolCall(tool_name: str)
@@ -1862,16 +2338,6 @@ Returns:
 | ---------- | ------------------------ |
 | `ToolCall` | Typed ToolCall instance. |
 
-### matches_entry
-
-```
-matches_entry(
-    entry: dict[str, Any], working_dir: Path
-) -> bool
-```
-
-Check if a permission entry matches this tool call.
-
 ### to_display
 
 ```
@@ -1882,14 +2348,6 @@ Return display text for the approval bar.
 
 Empty string means "fall back to the suggested pattern". Subclasses override this to surface the verbatim action being approved (e.g. a shell command) instead of the permission pattern.
 
-### to_entry
-
-```
-to_entry() -> dict[str, Any]
-```
-
-Serialize this tool call's pattern-relevant fields to a dict entry.
-
 ### to_pattern
 
 ```
@@ -1898,7 +2356,7 @@ to_pattern() -> str
 
 Suggest a permission pattern string for this tool call.
 
-## freeact.agent.GenericCall
+## freeact.GenericCall
 
 ```
 GenericCall(
@@ -1912,7 +2370,7 @@ Bases: `ToolCall`
 
 Fallback for tool calls without specialized handling.
 
-## freeact.agent.ShellAction
+## freeact.ShellAction
 
 ```
 ShellAction(tool_name: str, command: str)
@@ -1922,7 +2380,7 @@ Bases: `ToolCall`
 
 Shell command extracted from a code cell.
 
-## freeact.agent.CodeAction
+## freeact.CodeAction
 
 ```
 CodeAction(tool_name: str, code: str)
@@ -1932,7 +2390,7 @@ Bases: `ToolCall`
 
 Code execution action.
 
-## freeact.agent.FileRead
+## freeact.FileRead
 
 ```
 FileRead(
@@ -1947,7 +2405,7 @@ Bases: `ToolCall`
 
 File read action.
 
-## freeact.agent.FileWrite
+## freeact.FileWrite
 
 ```
 FileWrite(tool_name: str, path: str, content: str)
@@ -1957,7 +2415,7 @@ Bases: `ToolCall`
 
 File write action.
 
-## freeact.agent.FileEdit
+## freeact.FileEdit
 
 ```
 FileEdit(
@@ -1969,78 +2427,444 @@ Bases: `ToolCall`
 
 File edit action.
 
-## freeact.config.PersistentConfig
+## freeact.suggest_pattern
 
-Bases: `BaseModel`
+```
+suggest_pattern(tool_call: ToolCall) -> str
+```
 
-Base class for JSON-persisted configuration models.
+Suggest a permission pattern string for a tool call.
 
-Subclasses set `_config_filename` to their JSON filename and override `model_post_init` / `_save_sync` for domain-specific logic.
+Parameters:
 
-Config:
+| Name        | Type       | Description                             | Default    |
+| ----------- | ---------- | --------------------------------------- | ---------- |
+| `tool_call` | `ToolCall` | The tool call to suggest a pattern for. | *required* |
 
-- `extra`: `forbid`
-- `validate_assignment`: `True`
-- `frozen`: `True`
+Returns:
 
-Fields:
+| Type  | Description                                   |
+| ----- | --------------------------------------------- |
+| `str` | Pattern string suitable for the approval bar. |
 
-- `working_dir` (`Path`)
+## freeact.suggest_display
+
+```
+suggest_display(tool_call: ToolCall) -> str
+```
+
+Suggest display text for the approval bar for a tool call.
+
+Parameters:
+
+| Name        | Type       | Description                                  | Default    |
+| ----------- | ---------- | -------------------------------------------- | ---------- |
+| `tool_call` | `ToolCall` | The tool call to render in the approval bar. | *required* |
+
+Returns:
+
+| Type  | Description                                                      |
+| ----- | ---------------------------------------------------------------- |
+| `str` | Display string for the approval bar, or an empty string when the |
+| `str` | bar should fall back to the suggested permission pattern.        |
+
+## freeact.parse_pattern
+
+```
+parse_pattern(pattern: str, template: ToolCall) -> ToolCall
+```
+
+Reconstruct a ToolCall from a user-edited pattern string and an original type.
+
+Parameters:
+
+| Name       | Type       | Description                                               | Default    |
+| ---------- | ---------- | --------------------------------------------------------- | ---------- |
+| `pattern`  | `str`      | User-edited pattern string from the approval bar.         | *required* |
+| `template` | `ToolCall` | Original ToolCall that determines the reconstructed type. | *required* |
+
+Returns:
+
+| Type       | Description                                            |
+| ---------- | ------------------------------------------------------ |
+| `ToolCall` | A ToolCall with pattern fields from the edited string. |
+
+## freeact.extract_tool_output_text
+
+```
+extract_tool_output_text(content: object) -> str
+```
+
+Extract readable text from heterogeneous tool result payloads.
+
+Parameters:
+
+| Name      | Type     | Description              | Default    |
+| --------- | -------- | ------------------------ | ---------- |
+| `content` | `object` | Raw tool result payload. | *required* |
+
+Returns:
+
+| Type  | Description                                     |
+| ----- | ----------------------------------------------- |
+| `str` | Displayable text representation of the payload. |
+
+## freeact.config.load
+
+### Workspace
+
+```
+Workspace(working_dir: Path)
+```
+
+Filesystem layout of a freeact workspace.
 
 ### init
 
 ```
-init(working_dir: Path | None = None) -> Self
+init(working_dir: Path | None = None) -> FreeactConfig
 ```
 
-Load config when present, otherwise save defaults.
+Initialize a workspace: write default config if missing, create runtime dirs.
+
+Writes the commented default `config.toml` when none exists (never overwrites), creates the runtime directories, and materializes bundled skills without overwriting user-modified ones.
+
+Parameters:
+
+| Name          | Type   | Description | Default                                            |
+| ------------- | ------ | ----------- | -------------------------------------------------- |
+| `working_dir` | \`Path | None\`      | Workspace root; defaults to the current directory. |
+
+Returns:
+
+| Type            | Description                                       |
+| --------------- | ------------------------------------------------- |
+| `FreeactConfig` | The effective configuration after initialization. |
 
 ### load
 
 ```
-load(working_dir: Path | None = None) -> Self
+load(working_dir: Path | None = None) -> FreeactConfig
 ```
 
-Load persisted config if present, otherwise return defaults.
+Load `.freeact/config.toml`, returning defaults when missing.
 
-### save
+Parameters:
+
+| Name          | Type   | Description | Default                                            |
+| ------------- | ------ | ----------- | -------------------------------------------------- |
+| `working_dir` | \`Path | None\`      | Workspace root; defaults to the current directory. |
+
+Returns:
+
+| Type            | Description                                         |
+| --------------- | --------------------------------------------------- |
+| `FreeactConfig` | Parsed configuration (pure data, nothing resolved). |
+
+### workspace
 
 ```
-save() -> None
+workspace(working_dir: Path | None = None) -> Workspace
 ```
 
-Persist config to the `.freeact/` directory.
+Create a Workspace for a working directory.
 
-## freeact.agent.config.Config
+Parameters:
 
-Bases: `PersistentConfig`
+| Name          | Type   | Description | Default                                            |
+| ------------- | ------ | ----------- | -------------------------------------------------- |
+| `working_dir` | \`Path | None\`      | Workspace root; defaults to the current directory. |
 
-Agent configuration.
+Returns:
+
+| Type        | Description                        |
+| ----------- | ---------------------------------- |
+| `Workspace` | Workspace with resolved root path. |
+
+## freeact.config.init
+
+```
+init(working_dir: Path | None = None) -> FreeactConfig
+```
+
+Initialize a workspace: write default config if missing, create runtime dirs.
+
+Writes the commented default `config.toml` when none exists (never overwrites), creates the runtime directories, and materializes bundled skills without overwriting user-modified ones.
+
+Parameters:
+
+| Name          | Type   | Description | Default                                            |
+| ------------- | ------ | ----------- | -------------------------------------------------- |
+| `working_dir` | \`Path | None\`      | Workspace root; defaults to the current directory. |
+
+Returns:
+
+| Type            | Description                                       |
+| --------------- | ------------------------------------------------- |
+| `FreeactConfig` | The effective configuration after initialization. |
+
+## freeact.config.resolve
+
+### ResolvedRuntime
+
+```
+ResolvedRuntime(
+    config: AgentSection,
+    workspace: Workspace,
+    model: str | Model,
+    mcp_servers: dict[str, dict[str, Any]],
+    ptc_servers: dict[str, dict[str, Any]],
+    kernel_env: dict[str, str],
+    enable_subagents: bool,
+    subagent_mode: bool = False,
+)
+```
+
+Everything the agent needs at runtime, resolved from config + environment.
+
+Produced by resolve(). Unlike FreeactConfig, values here are concrete: `${VAR}` references substituted, presets expanded into server configs, and the model ready for pydantic-ai.
+
+#### for_subagent
+
+```
+for_subagent() -> ResolvedRuntime
+```
+
+Derive the runtime for a subagent.
+
+Subagents cannot nest, and in hybrid discovery mode they neither sync nor watch the shared search index.
+
+### resolve
+
+```
+resolve(
+    config: FreeactConfig,
+    working_dir: Path | None = None,
+    env: Mapping[str, str] | None = None,
+) -> ResolvedRuntime
+```
+
+Resolve a parsed config against the environment into runtime values.
+
+Expands tool presets into server configs, substitutes `${VAR}` references (missing variables raise `ValueError` naming the variable), instantiates the model when provider settings are present, and computes the kernel environment.
+
+Parameters:
+
+| Name          | Type                | Description           | Default                                                      |
+| ------------- | ------------------- | --------------------- | ------------------------------------------------------------ |
+| `config`      | `FreeactConfig`     | Parsed configuration. | *required*                                                   |
+| `working_dir` | \`Path              | None\`                | Workspace root; defaults to the current directory.           |
+| `env`         | \`Mapping[str, str] | None\`                | Environment for ${VAR} substitution; defaults to os.environ. |
+
+Returns:
+
+| Type              | Description              |
+| ----------------- | ------------------------ |
+| `ResolvedRuntime` | Resolved runtime values. |
+
+## freeact.config.workspace
+
+```
+workspace(working_dir: Path | None = None) -> Workspace
+```
+
+Create a Workspace for a working directory.
+
+Parameters:
+
+| Name          | Type   | Description | Default                                            |
+| ------------- | ------ | ----------- | -------------------------------------------------- |
+| `working_dir` | \`Path | None\`      | Workspace root; defaults to the current directory. |
+
+Returns:
+
+| Type        | Description                        |
+| ----------- | ---------------------------------- |
+| `Workspace` | Workspace with resolved root path. |
+
+## freeact.config.FreeactConfig
+
+Bases: `BaseModel`
+
+Root configuration model mirroring `.freeact/config.toml`.
 
 Config:
 
-- `arbitrary_types_allowed`: `True`
+- `extra`: `forbid`
+- `frozen`: `True`
 
 Fields:
 
-- `working_dir` (`Path`)
-- `model` (`str | Model`)
+- `agent` (`AgentSection`)
+- `terminal` (`TerminalSection`)
+
+## freeact.config.AgentSection
+
+Bases: `BaseModel`
+
+Agent configuration (`[agent]`). Pure data; resolution is separate.
+
+Config:
+
+- `extra`: `forbid`
+- `frozen`: `True`
+
+Fields:
+
+- `model` (`str`)
 - `model_settings` (`dict[str, Any]`)
 - `provider_settings` (`dict[str, Any] | None`)
-- `tool_search` (`Literal['basic', 'hybrid']`)
-- `images_dir` (`Path | None`)
-- `execution_timeout` (`float | None`)
-- `approval_timeout` (`float | None`)
+- `tools` (`ToolPresets`)
+- `execution_timeout` (`float`)
+- `approval_timeout` (`float`)
 - `tool_result_inline_max_bytes` (`int`)
 - `tool_result_preview_chars` (`int`)
 - `enable_persistence` (`bool`)
 - `enable_subagents` (`bool`)
 - `max_subagents` (`int`)
+- `images_dir` (`Path | None`)
 - `kernel_env` (`dict[str, str]`)
 - `mcp_servers` (`dict[str, dict[str, Any]]`)
 - `ptc_servers` (`dict[str, dict[str, Any]]`)
 
-## freeact.agent.config.SkillMetadata
+### approval_timeout
+
+```
+approval_timeout: float = 0
+```
+
+Approval wait timeout in seconds; `0` waits forever.
+
+### execution_timeout
+
+```
+execution_timeout: float = 300
+```
+
+Code execution timeout in seconds; `0` disables the timeout.
+
+### mcp_servers
+
+```
+mcp_servers: dict[str, dict[str, Any]]
+```
+
+User-defined MCP servers for JSON tool calling.
+
+### ptc_servers
+
+```
+ptc_servers: dict[str, dict[str, Any]]
+```
+
+User-defined MCP servers for programmatic tool calling (code mode).
+
+## freeact.config.ToolPresets
+
+Bases: `BaseModel`
+
+One-line opt-ins for bundled tool servers (`[agent.tools]`).
+
+Minimal defaults: everything is off except the built-ins code actions require (code execution and filesystem, which are always on).
+
+Config:
+
+- `extra`: `forbid`
+- `frozen`: `True`
+
+Fields:
+
+- `search` (`bool`)
+- `fetch` (`bool`)
+- `discovery` (`Literal['basic', 'hybrid', 'off']`)
+
+### discovery
+
+```
+discovery: Literal['basic', 'hybrid', 'off'] = 'basic'
+```
+
+Tool discovery mode. `"hybrid"` needs the `freeact[search]` extra.
+
+Defaults to `"basic"`: without a discovery server the agent cannot enumerate its generated tool APIs and falls back to ad-hoc code.
+
+### fetch
+
+```
+fetch: bool = False
+```
+
+Web fetch (code mode).
+
+### search
+
+```
+search: bool = False
+```
+
+Google search via Gemini grounding (code mode). Needs `GEMINI_API_KEY`.
+
+## freeact.config.TerminalSection
+
+Bases: `BaseModel`
+
+Terminal UI configuration (`[terminal]`).
+
+Config:
+
+- `extra`: `forbid`
+- `frozen`: `True`
+
+Fields:
+
+- `collapse_thoughts_on_complete` (`bool`)
+- `collapse_exec_output_on_complete` (`bool`)
+- `collapse_approved_code_actions` (`bool`)
+- `collapse_approved_tool_calls` (`bool`)
+- `collapse_completed_subagent_tasks` (`bool`)
+- `collapse_tool_outputs` (`bool`)
+- `keep_rejected_actions_expanded` (`bool`)
+- `pin_pending_approval_action_expanded` (`bool`)
+- `expand_all_toggle_key` (`str`)
+
+## freeact.config.ResolvedRuntime
+
+```
+ResolvedRuntime(
+    config: AgentSection,
+    workspace: Workspace,
+    model: str | Model,
+    mcp_servers: dict[str, dict[str, Any]],
+    ptc_servers: dict[str, dict[str, Any]],
+    kernel_env: dict[str, str],
+    enable_subagents: bool,
+    subagent_mode: bool = False,
+)
+```
+
+Everything the agent needs at runtime, resolved from config + environment.
+
+Produced by resolve(). Unlike FreeactConfig, values here are concrete: `${VAR}` references substituted, presets expanded into server configs, and the model ready for pydantic-ai.
+
+### for_subagent
+
+```
+for_subagent() -> ResolvedRuntime
+```
+
+Derive the runtime for a subagent.
+
+Subagents cannot nest, and in hybrid discovery mode they neither sync nor watch the shared search index.
+
+## freeact.config.Workspace
+
+```
+Workspace(working_dir: Path)
+```
+
+Filesystem layout of a freeact workspace.
+
+## freeact.config.SkillMetadata
 
 Bases: `BaseModel`
 
@@ -2056,13 +2880,13 @@ Fields:
 - `description` (`str`)
 - `path` (`Path`)
 
-## freeact.agent.config.DEFAULT_MODEL_NAME
+## freeact.config.DEFAULT_MODEL_NAME
 
 ```
 DEFAULT_MODEL_NAME = 'google-gla:gemini-3.5-flash'
 ```
 
-## freeact.agent.config.DEFAULT_MODEL_SETTINGS
+## freeact.config.DEFAULT_MODEL_SETTINGS
 
 ```
 DEFAULT_MODEL_SETTINGS: dict[str, Any] = {
@@ -2073,22 +2897,31 @@ DEFAULT_MODEL_SETTINGS: dict[str, Any] = {
 }
 ```
 
-## freeact.agent.config.BASIC_SEARCH_MCP_SERVER_CONFIG
+## freeact.config.FILESYSTEM_MCP_SERVER_CONFIG
+
+```
+FILESYSTEM_MCP_SERVER_CONFIG: dict[str, Any] = {
+    "command": "python",
+    "args": ["-m", "freeact.tools.filesystem"],
+}
+```
+
+## freeact.config.BASIC_SEARCH_MCP_SERVER_CONFIG
 
 ```
 BASIC_SEARCH_MCP_SERVER_CONFIG: dict[str, Any] = {
     "command": "python",
-    "args": ["-m", "freeact.tools.pytools.search.basic"],
+    "args": ["-m", "freeact.tools.pytools.basic"],
     "env": {"PYTOOLS_DIR": "${PYTOOLS_DIR}"},
 }
 ```
 
-## freeact.agent.config.HYBRID_SEARCH_MCP_SERVER_CONFIG
+## freeact.config.HYBRID_SEARCH_MCP_SERVER_CONFIG
 
 ```
 HYBRID_SEARCH_MCP_SERVER_CONFIG: dict[str, Any] = {
     "command": "python",
-    "args": ["-m", "freeact.tools.pytools.search.hybrid"],
+    "args": ["-m", "freeact.tools.pytools.hybrid"],
     "env": {
         "GEMINI_API_KEY": "${GEMINI_API_KEY}",
         "PYTOOLS_DIR": "${PYTOOLS_DIR}",
@@ -2103,7 +2936,7 @@ HYBRID_SEARCH_MCP_SERVER_CONFIG: dict[str, Any] = {
 }
 ```
 
-## freeact.agent.config.GOOGLE_SEARCH_MCP_SERVER_CONFIG
+## freeact.config.GOOGLE_SEARCH_MCP_SERVER_CONFIG
 
 ```
 GOOGLE_SEARCH_MCP_SERVER_CONFIG: dict[str, Any] = {
@@ -2118,16 +2951,7 @@ GOOGLE_SEARCH_MCP_SERVER_CONFIG: dict[str, Any] = {
 }
 ```
 
-## freeact.agent.config.FILESYSTEM_MCP_SERVER_CONFIG
-
-```
-FILESYSTEM_MCP_SERVER_CONFIG: dict[str, Any] = {
-    "command": "python",
-    "args": ["-m", "freeact.tools.filesystem"],
-}
-```
-
-## freeact.agent.config.FETCH_MCP_SERVER_CONFIG
+## freeact.config.FETCH_MCP_SERVER_CONFIG
 
 ```
 FETCH_MCP_SERVER_CONFIG: dict[str, Any] = {
@@ -2167,7 +2991,7 @@ PermissionManager(
 
 Tool call permission gating with type-specific pattern rules.
 
-Rules are `ToolCall` instances whose fields may contain glob wildcards (`*`, `?`). Path fields (`path`, `paths`) use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries. Non-path fields (`tool_name`, `command`) use simple glob matching.
+Rules are typed patterns whose fields may contain glob wildcards (`*`, `?`). Path fields use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries. Non-path fields (`tool_name`, `command`) use simple glob matching.
 
 Use allow_always and allow_session to store pattern rules. Use is_allowed to check concrete (no wildcards) tool calls against stored rules.
 
@@ -2181,7 +3005,7 @@ allow_always(tool_call: ToolCall) -> None
 
 Add a pattern rule to the always-allow list and persist.
 
-The tool call's fields may contain glob wildcards. For example, `ShellAction(tool_name="bash", command="git *")` allows all git subcommands, and `FileRead(tool_name="filesystem_*", paths=("src/**",))` allows reading any file under `src/`.
+The tool call's fields may contain glob wildcards. For example, `ShellAction(tool_name="bash", command="git *")` allows all git subcommands, and `FileRead(tool_name="filesystem_*", path="src/**", offset=None, limit=None)` allows reading any file under `src/`.
 
 ### allow_session
 
@@ -2230,7 +3054,7 @@ Returns:
 load() -> None
 ```
 
-Load permissions from `.freeact/permissions.json`.
+Load permissions from `.freeact/permissions.toml`.
 
 ### save
 
@@ -2238,4 +3062,4 @@ Load permissions from `.freeact/permissions.json`.
 save() -> None
 ```
 
-Persist always-tier permissions to `.freeact/permissions.json`.
+Persist always-tier permissions to `.freeact/permissions.toml`.

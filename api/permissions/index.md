@@ -9,7 +9,7 @@ PermissionManager(
 
 Tool call permission gating with type-specific pattern rules.
 
-Rules are `ToolCall` instances whose fields may contain glob wildcards (`*`, `?`). Path fields (`path`, `paths`) use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries. Non-path fields (`tool_name`, `command`) use simple glob matching.
+Rules are typed patterns whose fields may contain glob wildcards (`*`, `?`). Path fields use path-aware matching where `*` matches within a single directory and `**` matches across directory boundaries. Non-path fields (`tool_name`, `command`) use simple glob matching.
 
 Use allow_always and allow_session to store pattern rules. Use is_allowed to check concrete (no wildcards) tool calls against stored rules.
 
@@ -23,7 +23,7 @@ allow_always(tool_call: ToolCall) -> None
 
 Add a pattern rule to the always-allow list and persist.
 
-The tool call's fields may contain glob wildcards. For example, `ShellAction(tool_name="bash", command="git *")` allows all git subcommands, and `FileRead(tool_name="filesystem_*", paths=("src/**",))` allows reading any file under `src/`.
+The tool call's fields may contain glob wildcards. For example, `ShellAction(tool_name="bash", command="git *")` allows all git subcommands, and `FileRead(tool_name="filesystem_*", path="src/**", offset=None, limit=None)` allows reading any file under `src/`.
 
 ### allow_session
 
@@ -72,7 +72,7 @@ Returns:
 load() -> None
 ```
 
-Load permissions from `.freeact/permissions.json`.
+Load permissions from `.freeact/permissions.toml`.
 
 ### save
 
@@ -80,4 +80,4 @@ Load permissions from `.freeact/permissions.json`.
 save() -> None
 ```
 
-Persist always-tier permissions to `.freeact/permissions.json`.
+Persist always-tier permissions to `.freeact/permissions.toml`.

@@ -1,12 +1,13 @@
-## freeact.agent.Agent
+## freeact.Agent
 
 ```
 Agent(
-    config: Config,
+    runtime: ResolvedRuntime,
     agent_id: str | None = None,
     session_id: str | None = None,
     sandbox: bool = False,
     sandbox_config: Path | None = None,
+    cancel_token: CancelToken | None = None,
 )
 ```
 
@@ -25,27 +26,28 @@ Initialize the agent.
 
 Parameters:
 
-| Name             | Type     | Description                                                                                                    | Default                                                                                                                                                                                                                                                                         |
-| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `config`         | `Config` | Agent configuration containing model, system prompt, MCP servers, kernel env, timeouts, and subagent settings. | *required*                                                                                                                                                                                                                                                                      |
-| `agent_id`       | \`str    | None\`                                                                                                         | Identifier for this agent instance. Defaults to "main" when not provided.                                                                                                                                                                                                       |
-| `session_id`     | \`str    | None\`                                                                                                         | Optional session identifier for persistence. If None and persistence is enabled, a new session ID is generated. If provided and persistence is enabled, that session ID is used. Existing session history is resumed when present; otherwise a new session starts with that ID. |
-| `sandbox`        | `bool`   | Run the kernel in sandbox mode.                                                                                | `False`                                                                                                                                                                                                                                                                         |
-| `sandbox_config` | \`Path   | None\`                                                                                                         | Path to custom sandbox configuration.                                                                                                                                                                                                                                           |
+| Name             | Type              | Description                             | Default                                                                                                                                                                                                                                                                         |
+| ---------------- | ----------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `runtime`        | `ResolvedRuntime` | Resolved runtime produced by resolve(). | *required*                                                                                                                                                                                                                                                                      |
+| `agent_id`       | \`str             | None\`                                  | Identifier for this agent instance. Defaults to "main" when not provided.                                                                                                                                                                                                       |
+| `session_id`     | \`str             | None\`                                  | Optional session identifier for persistence. If None and persistence is enabled, a new session ID is generated. If provided and persistence is enabled, that session ID is used. Existing session history is resumed when present; otherwise a new session starts with that ID. |
+| `sandbox`        | `bool`            | Run the kernel in sandbox mode.         | `False`                                                                                                                                                                                                                                                                         |
+| `sandbox_config` | \`Path            | None\`                                  | Path to custom sandbox configuration.                                                                                                                                                                                                                                           |
+| `cancel_token`   | \`CancelToken     | None\`                                  | Shared cancellation token. Used internally to propagate parent cancellation to subagents; leave unset otherwise.                                                                                                                                                                |
 
 Raises:
 
-| Type         | Description                                                         |
-| ------------ | ------------------------------------------------------------------- |
-| `ValueError` | If session_id is provided while config.enable_persistence is False. |
+| Type         | Description                                                                   |
+| ------------ | ----------------------------------------------------------------------------- |
+| `ValueError` | If session_id is provided while persistence is disabled in the configuration. |
 
-### config
+### runtime
 
 ```
-config: Config
+runtime: ResolvedRuntime
 ```
 
-Agent configuration.
+Resolved runtime this agent was constructed with.
 
 ### session_id
 
@@ -55,15 +57,13 @@ session_id: str | None
 
 Session ID used by this agent, or `None` when persistence is disabled.
 
-### \_reject_ipybox_approval
+### tool_names
 
 ```
-_reject_ipybox_approval(item: ApprovalRequest) -> None
+tool_names: list[str]
 ```
 
-Reject an ipybox approval request, suppressing errors.
-
-Called during generator cleanup (GeneratorExit) to ensure the approval channel on the tool server is unblocked before the ApprovalClient disconnects.
+Names of all registered tools (ipybox tools and MCP server tools).
 
 ### cancel
 
@@ -73,7 +73,7 @@ cancel() -> None
 
 Cancel the current agent turn.
 
-Sets an internal cancellation flag and interrupts any running kernel execution. The active `stream()` call will stop at the next phase boundary and yield a Cancelled event.
+Sets the cancellation token and interrupts any running kernel execution. The active `stream()` call will stop at the next phase boundary and yield a Cancelled event.
 
 ### start
 
@@ -121,7 +121,7 @@ Returns:
 | --------------------------- | ------------------------ |
 | `AsyncIterator[AgentEvent]` | An async event iterator. |
 
-## freeact.agent.AgentEvent
+## freeact.AgentEvent
 
 ```
 AgentEvent(
@@ -134,9 +134,9 @@ AgentEvent(
 
 Base class for all agent stream events.
 
-Carries the `agent_id` of the agent that produced the event, allowing callers to distinguish events from a parent agent vs. its subagents.
+Carries the `agent_id` of the agent that produced the event, allowing callers to distinguish events from a parent agent vs. its subagents. Tool-related events carry a `corr_id`; events produced by a subagent additionally carry the parent task's correlation id in `parent_corr_id`.
 
-## freeact.agent.Response
+## freeact.Response
 
 ```
 Response(
@@ -152,7 +152,7 @@ Bases: `AgentEvent`
 
 Complete model response at a given step.
 
-## freeact.agent.ResponseChunk
+## freeact.ResponseChunk
 
 ```
 ResponseChunk(
@@ -168,7 +168,7 @@ Bases: `AgentEvent`
 
 Partial model response text (content streaming).
 
-## freeact.agent.Thoughts
+## freeact.Thoughts
 
 ```
 Thoughts(
@@ -184,7 +184,7 @@ Bases: `AgentEvent`
 
 Complete model thoughts at a given step.
 
-## freeact.agent.ThoughtsChunk
+## freeact.ThoughtsChunk
 
 ```
 ThoughtsChunk(
@@ -200,13 +200,14 @@ Bases: `AgentEvent`
 
 Partial model thinking text (content streaming).
 
-## freeact.agent.CodeExecutionOutput
+## freeact.CodeExecutionOutput
 
 ```
 CodeExecutionOutput(
     text: str | None,
     images: list[Path],
     truncated: bool = False,
+    approval_rejected: bool = False,
     *,
     agent_id: str = "",
     corr_id: str = "",
@@ -218,7 +219,15 @@ Bases: `AgentEvent`
 
 Complete code execution output.
 
-## freeact.agent.CodeExecutionOutputChunk
+### format
+
+```
+format() -> str
+```
+
+Format output with image markdown links.
+
+## freeact.CodeExecutionOutputChunk
 
 ```
 CodeExecutionOutputChunk(
@@ -234,7 +243,7 @@ Bases: `AgentEvent`
 
 Partial code execution output (content streaming).
 
-## freeact.agent.ApprovalRequest
+## freeact.ApprovalRequest
 
 ```
 ApprovalRequest(
@@ -249,9 +258,9 @@ ApprovalRequest(
 
 Bases: `AgentEvent`
 
-Pending code action or tool call awaiting user approval.
+Pending code action or tool call awaiting approval.
 
-Yielded by Agent.stream() before executing any code action, programmatic tool call, or JSON tool call. The stream is suspended until `approve()` is called.
+Yielded by Agent.stream() before executing any code action, shell command, programmatic tool call, JSON tool call, or subagent task. The affected execution is suspended until `approve()` is called.
 
 ### approve
 
@@ -261,7 +270,7 @@ approve(decision: bool) -> None
 
 Resolve this approval request.
 
-No-op if already resolved (e.g. by cancellation).
+No-op if already resolved (e.g. by cancellation or timeout).
 
 Parameters:
 
@@ -277,7 +286,7 @@ approved() -> bool
 
 Await until `approve()` is called and return the decision.
 
-## freeact.agent.ToolOutput
+## freeact.ToolOutput
 
 ```
 ToolOutput(
@@ -293,7 +302,7 @@ Bases: `AgentEvent`
 
 JSON tool call or built-in operation output.
 
-## freeact.agent.Cancelled
+## freeact.Cancelled
 
 ```
 Cancelled(
@@ -301,9 +310,7 @@ Cancelled(
     agent_id: str = "",
     corr_id: str = "",
     parent_corr_id: str = "",
-    phase: Literal[
-        "between_turns", "llm_streaming", "tool_execution"
-    ]
+    phase: Phase
 )
 ```
 
@@ -311,7 +318,21 @@ Bases: `AgentEvent`
 
 Agent execution was cancelled by the user.
 
-## freeact.agent.ToolCall
+## freeact.Phase
+
+Bases: `str`, `Enum`
+
+Phase boundary at which a turn can be cancelled.
+
+## freeact.CancelToken
+
+```
+CancelToken()
+```
+
+Cooperative cancellation signal shared across a turn's components.
+
+## freeact.ToolCall
 
 ```
 ToolCall(tool_name: str)
@@ -350,16 +371,6 @@ Returns:
 | ---------- | ------------------------ |
 | `ToolCall` | Typed ToolCall instance. |
 
-### matches_entry
-
-```
-matches_entry(
-    entry: dict[str, Any], working_dir: Path
-) -> bool
-```
-
-Check if a permission entry matches this tool call.
-
 ### to_display
 
 ```
@@ -370,14 +381,6 @@ Return display text for the approval bar.
 
 Empty string means "fall back to the suggested pattern". Subclasses override this to surface the verbatim action being approved (e.g. a shell command) instead of the permission pattern.
 
-### to_entry
-
-```
-to_entry() -> dict[str, Any]
-```
-
-Serialize this tool call's pattern-relevant fields to a dict entry.
-
 ### to_pattern
 
 ```
@@ -386,7 +389,7 @@ to_pattern() -> str
 
 Suggest a permission pattern string for this tool call.
 
-## freeact.agent.GenericCall
+## freeact.GenericCall
 
 ```
 GenericCall(
@@ -400,7 +403,7 @@ Bases: `ToolCall`
 
 Fallback for tool calls without specialized handling.
 
-## freeact.agent.ShellAction
+## freeact.ShellAction
 
 ```
 ShellAction(tool_name: str, command: str)
@@ -410,7 +413,7 @@ Bases: `ToolCall`
 
 Shell command extracted from a code cell.
 
-## freeact.agent.CodeAction
+## freeact.CodeAction
 
 ```
 CodeAction(tool_name: str, code: str)
@@ -420,7 +423,7 @@ Bases: `ToolCall`
 
 Code execution action.
 
-## freeact.agent.FileRead
+## freeact.FileRead
 
 ```
 FileRead(
@@ -435,7 +438,7 @@ Bases: `ToolCall`
 
 File read action.
 
-## freeact.agent.FileWrite
+## freeact.FileWrite
 
 ```
 FileWrite(tool_name: str, path: str, content: str)
@@ -445,7 +448,7 @@ Bases: `ToolCall`
 
 File write action.
 
-## freeact.agent.FileEdit
+## freeact.FileEdit
 
 ```
 FileEdit(
@@ -456,3 +459,85 @@ FileEdit(
 Bases: `ToolCall`
 
 File edit action.
+
+## freeact.suggest_pattern
+
+```
+suggest_pattern(tool_call: ToolCall) -> str
+```
+
+Suggest a permission pattern string for a tool call.
+
+Parameters:
+
+| Name        | Type       | Description                             | Default    |
+| ----------- | ---------- | --------------------------------------- | ---------- |
+| `tool_call` | `ToolCall` | The tool call to suggest a pattern for. | *required* |
+
+Returns:
+
+| Type  | Description                                   |
+| ----- | --------------------------------------------- |
+| `str` | Pattern string suitable for the approval bar. |
+
+## freeact.suggest_display
+
+```
+suggest_display(tool_call: ToolCall) -> str
+```
+
+Suggest display text for the approval bar for a tool call.
+
+Parameters:
+
+| Name        | Type       | Description                                  | Default    |
+| ----------- | ---------- | -------------------------------------------- | ---------- |
+| `tool_call` | `ToolCall` | The tool call to render in the approval bar. | *required* |
+
+Returns:
+
+| Type  | Description                                                      |
+| ----- | ---------------------------------------------------------------- |
+| `str` | Display string for the approval bar, or an empty string when the |
+| `str` | bar should fall back to the suggested permission pattern.        |
+
+## freeact.parse_pattern
+
+```
+parse_pattern(pattern: str, template: ToolCall) -> ToolCall
+```
+
+Reconstruct a ToolCall from a user-edited pattern string and an original type.
+
+Parameters:
+
+| Name       | Type       | Description                                               | Default    |
+| ---------- | ---------- | --------------------------------------------------------- | ---------- |
+| `pattern`  | `str`      | User-edited pattern string from the approval bar.         | *required* |
+| `template` | `ToolCall` | Original ToolCall that determines the reconstructed type. | *required* |
+
+Returns:
+
+| Type       | Description                                            |
+| ---------- | ------------------------------------------------------ |
+| `ToolCall` | A ToolCall with pattern fields from the edited string. |
+
+## freeact.extract_tool_output_text
+
+```
+extract_tool_output_text(content: object) -> str
+```
+
+Extract readable text from heterogeneous tool result payloads.
+
+Parameters:
+
+| Name      | Type     | Description              | Default    |
+| --------- | -------- | ------------------------ | ---------- |
+| `content` | `object` | Raw tool result payload. | *required* |
+
+Returns:
+
+| Type  | Description                                     |
+| ----- | ----------------------------------------------- |
+| `str` | Displayable text representation of the payload. |
