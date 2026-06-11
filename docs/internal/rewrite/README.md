@@ -10,6 +10,12 @@ The living references are:
   why-invariants of the implemented system
 - The test suite -- the executable behavior contract
 
+Disposal plan: delete this directory after `wip-rewrite` is merged to `main` (deleting
+earlier would erase these files from history entirely under a squash merge). When
+deleting, move the three remaining test gaps from phase3-coverage.md "Known gaps"
+(subagent kernel-interrupt e2e, MCP exclude_tools behavioral test, sandbox smoke test)
+to GitHub issues.
+
 Contents:
 
 - [behavior-inventory.md](behavior-inventory.md) -- the functional contract extracted

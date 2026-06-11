@@ -27,7 +27,15 @@ uv pip install <extra-packages>
 
 **Important**: All package installations (`uv add`, `uv pip install`) must complete *before* launching freeact. Freeact's IPython kernel inherits the virtual environment at startup, so packages installed after launch will not be available in code actions. Verify with `uv run python -c "import <package>"` before proceeding.
 
-**With config init** (output-parser): create a directory, copy `.env`, then run `uvx freeact init` to generate `.freeact/agent.json`.
+**With config init** (output-parser): create a directory, copy `.env`, then run `uvx freeact init` to generate `.freeact/config.toml`.
+
+**Tool presets are off by default**: scenarios that search or fetch the web need them enabled in `.freeact/config.toml` before launch:
+
+```toml
+[agent.tools]
+search = true
+fetch = true
+```
 
 ## tmux + Textual Interaction
 
@@ -86,7 +94,7 @@ Each subagent should: set up the workspace, start the tmux session, launch freea
 
 ### 1. Quickstart
 
-- **Source**: `docs/quickstart.md`
+- **Source**: `docs/getting-started/quickstart.md`
 - **Screenshot**: `docs/screenshots/quickstart.png`
 - **Session**: `ex-quickstart`
 - **Setup**: minimal (copy `.env` only)
@@ -116,7 +124,7 @@ Each subagent should: set up the workspace, start the tmux session, launch freea
 
 ### 2. Agent Skills
 
-- **Source**: `docs/examples/agent-skills.md`
+- **Source**: `docs/guides/skills.md`
 - **Screenshot**: `docs/screenshots/agent-skills.png`
 - **Session**: `ex-agent-skills`
 - **Setup**: virtual environment with `reportlab`, plus PDF skill
@@ -161,7 +169,7 @@ cp -r /tmp/skills-repo/skills/pdf .agents/skills/
 
 ### 3. Data Analysis (Python Packages)
 
-- **Source**: `docs/examples/python-packages.md`
+- **Source**: `docs/guides/python-packages.md`
 - **Screenshot**: `docs/screenshots/python-packages.png`
 - **Session**: `ex-python-packages`
 - **Setup**: virtual environment with `scikit-learn matplotlib`
@@ -195,7 +203,7 @@ uv pip install scikit-learn matplotlib
 
 ### 4. Sandbox Mode
 
-- **Source**: `docs/examples/sandbox-mode.md`
+- **Source**: `docs/guides/sandbox.md`
 - **Screenshot**: `docs/screenshots/sandbox-mode.png`
 - **Session**: `ex-sandbox`
 - **Setup**: minimal, plus `sandbox-config.json`
@@ -237,7 +245,7 @@ Query 3 block:
 
 ### 5. Output Parser (Enhancing Tools)
 
-- **Source**: `docs/examples/output-parser.md`
+- **Source**: `docs/guides/enhancing-tools.md`
 - **Screenshot**: `docs/screenshots/output-parser.png`
 - **Session**: `ex-output-parser`
 - **Setup**: config init, then add GitHub MCP server to `ptc_servers`
@@ -246,17 +254,12 @@ Query 3 block:
 mkdir -p /tmp/freeact-ex-output-parser && cd /tmp/freeact-ex-output-parser
 cp /path/to/freeact/.env .
 uvx freeact init
-python3 -c "
-import json
-with open('.freeact/agent.json') as f:
-    config = json.load(f)
-config.setdefault('ptc_servers', {})['github'] = {
-    'url': 'https://api.githubcopilot.com/mcp/',
-    'headers': {'Authorization': 'Bearer \${GITHUB_API_KEY}'}
-}
-with open('.freeact/agent.json', 'w') as f:
-    json.dump(config, f, indent=2)
-"
+cat >> .freeact/config.toml <<'TOML'
+
+[agent.ptc_servers.github]
+url = "https://api.githubcopilot.com/mcp/"
+headers = { Authorization = "Bearer ${GITHUB_API_KEY}" }
+TOML
 ```
 
 - **Launch**: `uvx freeact --skip-permissions`
@@ -298,7 +301,7 @@ with open('.freeact/agent.json', 'w') as f:
 
 ### 6. Code Action Reuse (Saving Codeacts)
 
-- **Source**: `docs/examples/saving-codeacts.md`
+- **Source**: `docs/guides/saving-tools.md`
 - **Screenshots**: `docs/screenshots/saving-codeacts-1.png`, `docs/screenshots/saving-codeacts-2.png`
 - **Session**: `ex-saving-codeacts`
 - **Workspace**: `/tmp/freeact-ex-output-parser` (same as output-parser, must run after it completes)

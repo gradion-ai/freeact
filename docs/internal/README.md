@@ -19,6 +19,5 @@ explain.
 ## Historical archive (do not treat as current)
 
 - [rewrite/](rewrite/README.md) -- the 2026 greenfield rewrite: behavior inventory,
-  target design, coverage map. Its coverage map's "Known gaps" section is still a
-  valid TODO source.
-- [features/completed/](features/completed/) -- pre-rewrite feature specs.
+  target design, coverage map. Delete after merge to main (see its README); its
+  coverage map's "Known gaps" section is still a valid TODO source.
