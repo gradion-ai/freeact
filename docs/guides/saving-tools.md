@@ -1,4 +1,4 @@
-# Code Action Reuse
+# Save code actions as tools
 
 Any code action can be saved as a discoverable tool, enabling tool libraries to evolve as agents work. Composite code actions that chain multiple tools are a common example.
 
@@ -10,7 +10,7 @@ The following example shows how to [compose and save](#compose-and-save) a code 
 
 ## Compose and Save
 
-This example continues from the [enhancing tools](output-parser.md) example, where `search_repositories` was augmented with a `run_parsed()` function returning typed `Repository` objects. In the same workspace, start a new CLI tool session with:
+This example continues from the [enhancing tools](enhancing-tools.md) example, where `search_repositories` was augmented with a `run_parsed()` function returning typed `Repository` objects. In the same workspace, start a new CLI tool session with:
 
 ```bash
 uvx freeact

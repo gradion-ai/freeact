@@ -1,6 +1,6 @@
-# Models
+# Configure models
 
-Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/models/){target="_blank"}. The model is configured in the [`[agent]` section](configuration.md#configuration-file) of `.freeact/config.toml` through three settings:
+Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/models/){target="_blank"}. The model is configured in the [`[agent]` section](../reference/configuration.md#configuration-file) of `.freeact/config.toml` through three settings:
 
 | Setting | Required | Description |
 |---------|----------|-------------|
@@ -142,4 +142,4 @@ See Pydantic AI's [settings documentation](https://ai.pydantic.dev/api/settings/
 
 ## Provider Settings
 
-Use `provider_settings` for provider-specific options such as `api_key`, `base_url`, `app_url`, or `app_title`. Values support [`${VAR}` environment variable references](configuration.md#environment-variables).
+Use `provider_settings` for provider-specific options such as `api_key`, `base_url`, `app_url`, or `app_title`. Values support [`${VAR}` environment variable references](../reference/environment.md#variable-references).

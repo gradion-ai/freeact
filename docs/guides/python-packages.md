@@ -1,14 +1,14 @@
-# Data analysis
+# Use Python packages
 
 Freeact can use any Python package available in the execution environment. This example demonstrates using scikit-learn and matplotlib directly in code actions to fit a Gaussian Process Regressor to noisy sine wave data and visualize the results with uncertainty bounds.
 
-Create a [workspace with a virtual environment](../installation.md#option-2-with-virtual-environment) and install the required dependencies:
+Create a [workspace with a virtual environment](../getting-started/installation.md#option-2-with-virtual-environment) and install the required dependencies:
 
 ```bash
 uv pip install scikit-learn matplotlib
 ```
 
-Start the [CLI tool](../cli.md):
+Start the [CLI tool](../reference/cli.md):
 
 ```bash
 uv run freeact

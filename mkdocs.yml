@@ -67,16 +67,31 @@ plugins:
         Freeact runs locally on your computer and is available as a CLI tool and Python SDK.
       full_output: llms-full.txt
       sections:
-        Documentation:
+        Getting started:
           - index.md: Overview, usage, and capabilities
-          - installation.md: Setup and installation instructions
-          - quickstart.md: Getting started with code actions and MCP tools
-          - configuration.md: Configuration file format, tool presets, permissions, and skills
-          - execution.md: Code and shell command execution in IPython kernels
-          - sandbox.md: Sandbox mode for code execution and MCP servers
-          - models.md: Model configuration, provider settings, and custom providers
-          - sdk.md: Agent SDK for agent integration
-          - cli.md: CLI tool and interactive mode
+          - getting-started/installation.md: Setup and installation instructions
+          - getting-started/quickstart.md: Running a first task with the CLI tool
+          - getting-started/sdk-tutorial.md: Building a first agent with the Agent SDK
+        How-to guides:
+          - guides/models.md: Model configuration, provider settings, and custom providers
+          - guides/tool-servers.md: Bundled tool servers and custom MCP servers for JSON and programmatic tool calling
+          - guides/tool-discovery.md: Basic and hybrid tool discovery setup
+          - guides/permissions.md: Approval prompts, permission rules, and approval automation
+          - guides/sandbox.md: Sandbox mode for code execution and MCP servers
+          - guides/sessions.md: Session persistence and resumption
+          - guides/skills.md: Custom and bundled agent skills
+          - guides/saving-tools.md: Saving code actions as reusable tools
+          - guides/enhancing-tools.md: Enhancing generated tool APIs with output parsers
+          - guides/python-packages.md: Using Python packages in code actions
+        Reference:
+          - reference/configuration.md: Configuration file format, agent and terminal settings, and directory structure
+          - reference/cli.md: CLI commands, options, and interactive mode
+          - reference/environment.md: API keys, variable references, and hybrid search variables
+          - reference/permission-rules.md: Permission rule format, tiers, and pattern matching semantics
+        Concepts:
+          - concepts/code-actions.md: Code actions and unified execution of Python code, shell commands, and tool calls
+          - concepts/approvals.md: Approval model and permission tiers
+          - concepts/runtime.md: Event stream, turns, subagents, and cancellation
         API Reference:
           - api/agent.md: Agent class, events, and approval workflow
           - api/config.md: Configuration loading and resolution
@@ -101,28 +116,40 @@ markdown_extensions:
 extra_css:
   - stylesheets/extra.css
 
+hooks:
+  - scripts/mkdocs_redirects.py
+
 nav:
-  - Documentation:
-    - Overview: index.md
-    - Installation: installation.md
-    - Quickstart: quickstart.md
-    - Configuration: configuration.md
-    - Code Execution: execution.md
-    - Sandbox Mode: sandbox.md
-    - Models: models.md
-    - Agent SDK: sdk.md
-    - CLI Tool: cli.md
-    - Examples:
-      - Enhancing Tools: examples/output-parser.md
-      - Code Action Reuse: examples/saving-codeacts.md
-      - Custom Agent Skills: examples/agent-skills.md
-      - Sandbox Mode: examples/sandbox-mode.md
-      - Data Analysis: examples/python-packages.md
-    - LLM readable:
-      - llms.txt: llms.txt
-      - llms-full.txt: llms-full.txt
-  - API Reference:
-    - Agent: api/agent.md
-    - Config: api/config.md
-    - Generate: api/generate.md
-    - Permissions: api/permissions.md
+  - Overview: index.md
+  - Getting started:
+    - Installation: getting-started/installation.md
+    - CLI quickstart: getting-started/quickstart.md
+    - First agent with the SDK: getting-started/sdk-tutorial.md
+  - How-to guides:
+    - Configure models: guides/models.md
+    - Add custom tool servers: guides/tool-servers.md
+    - Enable tool discovery: guides/tool-discovery.md
+    - Manage permissions: guides/permissions.md
+    - Use sandbox mode: guides/sandbox.md
+    - Persist and resume sessions: guides/sessions.md
+    - Create agent skills: guides/skills.md
+    - Save code actions as tools: guides/saving-tools.md
+    - Enhance generated tools: guides/enhancing-tools.md
+    - Use Python packages: guides/python-packages.md
+  - Reference:
+    - Configuration: reference/configuration.md
+    - CLI: reference/cli.md
+    - Environment variables: reference/environment.md
+    - Permission rules: reference/permission-rules.md
+    - API:
+      - Agent: api/agent.md
+      - Config: api/config.md
+      - Generate: api/generate.md
+      - Permissions: api/permissions.md
+  - Concepts:
+    - Code actions: concepts/code-actions.md
+    - Approvals and permissions: concepts/approvals.md
+    - Runtime model: concepts/runtime.md
+  - LLM readable:
+    - llms.txt: llms.txt
+    - llms-full.txt: llms-full.txt

@@ -47,7 +47,7 @@ pip install freeact
 
 ## Hybrid Tool Discovery
 
-[Hybrid tool discovery](configuration.md#discovery) (`discovery = "hybrid"` in `.freeact/config.toml`) requires the `search` extra, which adds `sqlite-vec` and `watchfiles`:
+[Hybrid tool discovery](../guides/tool-discovery.md) (`discovery = "hybrid"` in `.freeact/config.toml`) requires the `search` extra, which adds `sqlite-vec` and `watchfiles`:
 
 ```bash
 uv add 'freeact[search]'
@@ -69,7 +69,7 @@ The core install covers everything else: SDK, CLI, bundled tool servers, and bas
 
 ## API Key
 
-Freeact uses `google-gla:gemini-3.5-flash` as the [default model](models.md). Set the API key in your environment:
+Freeact uses `google-gla:gemini-3.5-flash` as the [default model](../guides/models.md). Set the API key in your environment:
 
 ```bash
 export GEMINI_API_KEY="your-api-key"

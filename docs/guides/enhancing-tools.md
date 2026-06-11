@@ -1,6 +1,6 @@
-# Enhancing Tools
+# Enhance generated tools
 
-Many MCP servers lack output schemas. For example, all tools of the [GitHub MCP server](https://github.com/github/github-mcp-server) return a JSON string without defining an output schema. Without an output schema, the `run()` function of the [generated tool API](../quickstart.md#generating-mcp-tool-apis) returns a plain string instead of a structured `Result` type.
+Many MCP servers lack output schemas. For example, all tools of the [GitHub MCP server](https://github.com/github/github-mcp-server) return a JSON string without defining an output schema. Without an output schema, the `run()` function of the [generated tool API](tool-servers.md#add-servers-for-programmatic-tool-calling) returns a plain string instead of a structured `Result` type.
 
 Without knowing output structure beforehand, an agent cannot reliably write code that processes tool output inside a code action. It must retrieve raw results into context for inspection, then write processing logic in another inference round.
 
@@ -10,14 +10,14 @@ This tool enhancement persists across sessions and is an example of the agent ac
 
 ## Output Parser Generation
 
-Create a [workspace](../installation.md#option-1-minimal) and initialize the configuration directory:
+Create a [workspace](../getting-started/installation.md#option-1-minimal) and initialize the configuration directory:
 
 ```bash
 mkdir my-workspace && cd my-workspace
 uvx freeact init
 ```
 
-Add the [GitHub MCP server](https://github.com/github/github-mcp-server) to [`ptc_servers`](../configuration.md#ptc_servers) in `.freeact/config.toml`:
+Add the [GitHub MCP server](https://github.com/github/github-mcp-server) to [`ptc_servers`](tool-servers.md#add-servers-for-programmatic-tool-calling) in `.freeact/config.toml`:
 
 ```toml
 [agent.ptc_servers.github]
@@ -27,7 +27,7 @@ headers = { Authorization = "Bearer ${GITHUB_API_KEY}" }
 
 Set your GitHub personal access token (PAT) as the `GITHUB_API_KEY` environment variable or add it to `.env`. 
 
-Then start the [CLI tool](../cli.md) to automatically generate Python APIs to `.freeact/generated/mcptools/github/`:
+Then start the [CLI tool](../reference/cli.md) to automatically generate Python APIs to `.freeact/generated/mcptools/github/`:
 
 ```bash
 uvx freeact
@@ -48,4 +48,4 @@ the agent
 
 [![Output parser](../screenshots/output-parser.png)](../screenshots/output-parser.png){ target="_blank" rel="noopener" }
 
-The enhanced tool can now be [composed with other tools](saving-codeacts.md#compose-and-save) in a single code action, with full type information available for processing intermediate results.
+The enhanced tool can now be [composed with other tools](saving-tools.md#compose-and-save) in a single code action, with full type information available for processing intermediate results.
