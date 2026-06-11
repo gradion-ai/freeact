@@ -183,6 +183,28 @@ class TestResolve:
         assert runtime.mcp_servers["pytools"]["args"] == ["-m", "freeact.tools.pytools.basic"]
         assert runtime.ptc_servers == {}
 
+    def test_internal_servers_use_freeact_interpreter(self, tmp_path: Path) -> None:
+        # Bare "python" resolves via PATH and breaks non-activated venv
+        # launches (e2e finding, 2026-06-11); internal servers must run in
+        # freeact's own interpreter. User-defined servers stay untouched.
+        import sys
+
+        config = FreeactConfig.model_validate(
+            {
+                "agent": {
+                    "tools": {"search": True, "fetch": True},
+                    "mcp_servers": {"custom": {"command": "python", "args": ["-m", "demo"]}},
+                }
+            }
+        )
+        runtime = resolve(config, working_dir=tmp_path, env={"HOME": "/home/x", "GEMINI_API_KEY": "k"})
+
+        assert runtime.mcp_servers["filesystem"]["command"] == sys.executable
+        assert runtime.mcp_servers["pytools"]["command"] == sys.executable
+        assert runtime.ptc_servers["google"]["command"] == sys.executable
+        assert runtime.ptc_servers["fetch"]["command"] == sys.executable
+        assert runtime.mcp_servers["custom"]["command"] == "python"
+
     def test_discovery_off_disables_pytools_server(self, tmp_path: Path) -> None:
         config = FreeactConfig.model_validate({"agent": {"tools": {"discovery": "off"}}})
         runtime = resolve(config, working_dir=tmp_path, env={})

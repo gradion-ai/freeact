@@ -1,6 +1,7 @@
 import copy
 import importlib.util
 import os
+import sys
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Mapping
@@ -65,6 +66,14 @@ FETCH_MCP_SERVER_CONFIG: dict[str, Any] = {
 }
 
 _HYBRID_EXTRA_MODULES = ("sqlite_vec", "watchfiles")
+
+
+def _internal_server(config: dict[str, Any]) -> dict[str, Any]:
+    # Internal servers must run in freeact's own interpreter: resolving the
+    # bare "python" from PATH breaks launches from a non-activated venv.
+    server = copy.deepcopy(config)
+    server["command"] = sys.executable
+    return server
 
 
 @dataclass(frozen=True)
@@ -214,13 +223,13 @@ def _resolve_model(agent: AgentSection, resolution_env: Mapping[str, str]) -> st
 
 def _resolve_mcp_servers(agent: AgentSection, resolution_env: Mapping[str, str]) -> dict[str, dict[str, Any]]:
     internal: dict[str, dict[str, Any]] = {
-        "filesystem": copy.deepcopy(FILESYSTEM_MCP_SERVER_CONFIG),
+        "filesystem": _internal_server(FILESYSTEM_MCP_SERVER_CONFIG),
     }
     match agent.tools.discovery:
         case "basic":
-            internal["pytools"] = copy.deepcopy(BASIC_SEARCH_MCP_SERVER_CONFIG)
+            internal["pytools"] = _internal_server(BASIC_SEARCH_MCP_SERVER_CONFIG)
         case "hybrid":
-            internal["pytools"] = copy.deepcopy(HYBRID_SEARCH_MCP_SERVER_CONFIG)
+            internal["pytools"] = _internal_server(HYBRID_SEARCH_MCP_SERVER_CONFIG)
         case "off":
             pass
 
@@ -236,9 +245,9 @@ def _resolve_mcp_servers(agent: AgentSection, resolution_env: Mapping[str, str])
 def _validated_ptc_servers(agent: AgentSection, resolution_env: Mapping[str, str]) -> dict[str, dict[str, Any]]:
     servers: dict[str, dict[str, Any]] = {}
     if agent.tools.search:
-        servers["google"] = copy.deepcopy(GOOGLE_SEARCH_MCP_SERVER_CONFIG)
+        servers["google"] = _internal_server(GOOGLE_SEARCH_MCP_SERVER_CONFIG)
     if agent.tools.fetch:
-        servers["fetch"] = copy.deepcopy(FETCH_MCP_SERVER_CONFIG)
+        servers["fetch"] = _internal_server(FETCH_MCP_SERVER_CONFIG)
     servers.update(agent.ptc_servers)
 
     # Validate ${VAR} references resolve, but return the unsubstituted configs:
