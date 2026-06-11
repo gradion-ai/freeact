@@ -1,7 +1,9 @@
+import io
 import os
 from pathlib import Path
 
 import pytest
+from PIL import Image as PILImage
 
 from freeact.tools.filesystem import (
     DEFAULT_MAX_IMAGE_SIZE,
@@ -21,68 +23,43 @@ from freeact.tools.filesystem import (
 )
 
 
-class TestGuessMediaType:
-    def test_png(self) -> None:
-        assert _guess_media_type(Path("image.png")) == "image/png"
+@pytest.mark.parametrize(
+    ("filename", "expected"),
+    [
+        ("image.png", "image/png"),
+        ("photo.jpg", "image/jpeg"),
+        ("audio.mp3", "audio/mpeg"),
+        ("sound.wav", "audio/wav"),
+        ("doc.pdf", "application/pdf"),
+        ("file.xyz123", None),
+        ("script.py", None),
+        ("data.csv", None),
+        ("README.md", None),
+        ("page.html", None),
+        ("config.json", None),
+    ],
+)
+def test_guess_media_type(filename: str, expected: str | None) -> None:
+    assert _guess_media_type(Path(filename)) == expected
 
-    def test_jpeg(self) -> None:
-        assert _guess_media_type(Path("photo.jpg")) == "image/jpeg"
 
-    def test_mp3(self) -> None:
-        assert _guess_media_type(Path("audio.mp3")) == "audio/mpeg"
-
-    def test_wav_correction(self) -> None:
-        result = _guess_media_type(Path("sound.wav"))
-        assert result == "audio/wav"
-
-    def test_pdf(self) -> None:
-        assert _guess_media_type(Path("doc.pdf")) == "application/pdf"
-
-    def test_unsupported(self) -> None:
-        assert _guess_media_type(Path("data.xyz123")) is None
-
-    def test_unknown_extension(self) -> None:
-        assert _guess_media_type(Path("file.xyz123")) is None
-
-    def test_python_file(self) -> None:
-        assert _guess_media_type(Path("script.py")) is None
-
-    def test_csv_not_media(self) -> None:
-        assert _guess_media_type(Path("data.csv")) is None
-
-    def test_markdown_not_media(self) -> None:
-        assert _guess_media_type(Path("README.md")) is None
-
-    def test_html_not_media(self) -> None:
-        assert _guess_media_type(Path("page.html")) is None
-
-    def test_json_not_media(self) -> None:
-        assert _guess_media_type(Path("config.json")) is None
+def save_image(path: Path, size: int, color: str) -> None:
+    PILImage.new("RGB", (size, size), color=color).save(path)
 
 
 class TestLoadImage:
     def test_small_image_not_downscaled(self, tmp_path: Path) -> None:
-        from PIL import Image as PILImage
-
-        img = PILImage.new("RGB", (100, 100), color="red")
         path = tmp_path / "small.png"
-        img.save(path)
-
+        save_image(path, 100, "red")
         data = _load_image(path, "image/png", DEFAULT_MAX_IMAGE_SIZE)
         loaded = PILImage.open(path)
         assert loaded.width == 100
         assert len(data) > 0
 
     def test_large_image_downscaled(self, tmp_path: Path) -> None:
-        from PIL import Image as PILImage
-
-        img = PILImage.new("RGB", (2000, 2000), color="blue")
         path = tmp_path / "large.png"
-        img.save(path)
-
+        save_image(path, 2000, "blue")
         data = _load_image(path, "image/png", 512)
-        import io
-
         result = PILImage.open(io.BytesIO(data))
         assert result.width <= 512
         assert result.height <= 512
@@ -90,53 +67,47 @@ class TestLoadImage:
 
 class TestLoadMedia:
     def test_image_delegates_to_load_image(self, tmp_path: Path) -> None:
-        from PIL import Image as PILImage
-
-        img = PILImage.new("RGB", (50, 50), color="green")
         path = tmp_path / "test.png"
-        img.save(path)
-
+        save_image(path, 50, "green")
         data = _load_media(path, "image/png")
         assert len(data) > 0
 
     def test_non_image_reads_raw(self, tmp_path: Path) -> None:
         path = tmp_path / "audio.mp3"
         path.write_bytes(b"fake mp3 data")
-
         data = _load_media(path, "audio/mpeg")
         assert data == b"fake mp3 data"
 
 
 class TestResolvePath:
-    def test_relative_path(self) -> None:
-        result = resolve_path("src/main.py", "/home/user/project")
-        assert result == "/home/user/project/src/main.py"
-
-    def test_absolute_path(self) -> None:
-        result = resolve_path("/tmp/file.txt", "/home/user")
-        assert result == "/tmp/file.txt"
+    @pytest.mark.parametrize(
+        ("path", "base", "expected"),
+        [
+            ("src/main.py", "/home/user/project", "/home/user/project/src/main.py"),
+            ("/tmp/file.txt", "/home/user", "/tmp/file.txt"),
+            ("./src/../src/main.py", "/home/user/project", "/home/user/project/src/main.py"),
+        ],
+    )
+    def test_resolution(self, path: str, base: str, expected: str) -> None:
+        assert resolve_path(path, base) == expected
 
     def test_home_expansion(self) -> None:
         result = resolve_path("~/file.txt", "/home/user")
         assert os.path.expanduser("~") in result
 
-    def test_dot_normalization(self) -> None:
-        result = resolve_path("./src/../src/main.py", "/home/user/project")
-        assert result == "/home/user/project/src/main.py"
-
 
 class TestFuzzyMatching:
-    def test_normalize_smart_quotes(self) -> None:
-        assert normalize_for_fuzzy_match("\u201chello\u201d") == '"hello"'
-
-    def test_normalize_em_dash(self) -> None:
-        assert normalize_for_fuzzy_match("a\u2014b") == "a-b"
-
-    def test_normalize_nbsp(self) -> None:
-        assert normalize_for_fuzzy_match("a\u00a0b") == "a b"
-
-    def test_normalize_trailing_whitespace(self) -> None:
-        assert normalize_for_fuzzy_match("hello   \nworld  ") == "hello\nworld"
+    @pytest.mark.parametrize(
+        ("text", "expected"),
+        [
+            ("\u201chello\u201d", '"hello"'),
+            ("a\u2014b", "a-b"),
+            ("a\u00a0b", "a b"),
+            ("hello   \nworld  ", "hello\nworld"),
+        ],
+    )
+    def test_normalize(self, text: str, expected: str) -> None:
+        assert normalize_for_fuzzy_match(text) == expected
 
     def test_fuzzy_find_exact(self) -> None:
         result = fuzzy_find_text("hello world", "world")
@@ -150,38 +121,33 @@ class TestFuzzyMatching:
         assert result.used_fuzzy_match
 
     def test_fuzzy_find_not_found(self) -> None:
-        result = fuzzy_find_text("hello world", "goodbye")
-        assert not result.found
+        assert not fuzzy_find_text("hello world", "goodbye").found
 
-    def test_strip_bom_present(self) -> None:
-        bom, text = strip_bom("\ufeffhello")
-        assert bom == "\ufeff"
-        assert text == "hello"
-
-    def test_strip_bom_absent(self) -> None:
-        bom, text = strip_bom("hello")
-        assert bom == ""
-        assert text == "hello"
+    @pytest.mark.parametrize(
+        ("text", "expected_bom", "expected_text"),
+        [("\ufeffhello", "\ufeff", "hello"), ("hello", "", "hello")],
+    )
+    def test_strip_bom(self, text: str, expected_bom: str, expected_text: str) -> None:
+        assert strip_bom(text) == (expected_bom, expected_text)
 
 
 class TestLineEndings:
-    def test_detect_lf(self) -> None:
-        assert detect_line_ending("a\nb\n") == "\n"
-
-    def test_detect_crlf(self) -> None:
-        assert detect_line_ending("a\r\nb\r\n") == "\r\n"
-
-    def test_detect_no_newlines(self) -> None:
-        assert detect_line_ending("hello") == "\n"
+    @pytest.mark.parametrize(
+        ("text", "expected"),
+        [("a\nb\n", "\n"), ("a\r\nb\r\n", "\r\n"), ("hello", "\n")],
+    )
+    def test_detect(self, text: str, expected: str) -> None:
+        assert detect_line_ending(text) == expected
 
     def test_normalize_to_lf(self) -> None:
         assert normalize_to_lf("a\r\nb\r") == "a\nb\n"
 
-    def test_restore_crlf(self) -> None:
-        assert restore_line_endings("a\nb", "\r\n") == "a\r\nb"
-
-    def test_restore_lf_noop(self) -> None:
-        assert restore_line_endings("a\nb", "\n") == "a\nb"
+    @pytest.mark.parametrize(
+        ("ending", "expected"),
+        [("\r\n", "a\r\nb"), ("\n", "a\nb")],
+    )
+    def test_restore(self, ending: str, expected: str) -> None:
+        assert restore_line_endings("a\nb", ending) == expected
 
 
 class TestReadTextFile:

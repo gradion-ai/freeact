@@ -1,6 +1,5 @@
-import json
 from collections.abc import Callable
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from typing import Any
 
 from rich.segment import Segment
@@ -11,11 +10,14 @@ from textual._ansi_sequences import ANSI_SEQUENCES_KEYS
 from textual.binding import Binding
 from textual.containers import Vertical
 from textual.content import Content
+from textual.events import Key
 from textual.keys import Keys
 from textual.message import Message
 from textual.strip import Strip
 from textual.widget import Widget
-from textual.widgets import Collapsible, Markdown, RichLog, Static, TextArea
+from textual.widgets import Input, Markdown, RichLog, Static, TextArea
+
+from freeact.terminal.view import TrackedCollapsible
 
 # Register Alt+Enter (ESC + CR) to produce the same key event as Ctrl+J,
 # which PromptInput handles as newline insertion. Without this, the xterm
@@ -77,7 +79,7 @@ class PromptInput(TextArea):
             strip.cell_length + _GUTTER_WIDTH,
         )
 
-    async def _on_key(self, event: "textual.events.Key") -> None:  # type: ignore[name-defined]  # noqa: F821
+    async def _on_key(self, event: Key) -> None:
         if event.key == "escape":
             if self.text:
                 event.prevent_default()
@@ -171,8 +173,6 @@ class ApprovalBar(Static):
 
     def action_save_rule(self, scope: int) -> None:
         """Enter edit mode for the pattern before saving a rule."""
-        from textual.widgets import Input
-
         self._editing = True
         self._pending_decision = scope
         self.update("")
@@ -180,7 +180,7 @@ class ApprovalBar(Static):
         self.mount(input_widget)
         input_widget.focus()
 
-    def on_input_submitted(self, event: "textual.widgets.Input.Submitted") -> None:  # type: ignore[name-defined]  # noqa: F821
+    def on_input_submitted(self, event: Input.Submitted) -> None:
         """Save the edited pattern and approve."""
         self._pattern = event.value
         self._editing = False
@@ -238,7 +238,40 @@ def _syntax_to_content(syntax: Syntax) -> Content:
     return Content.from_rich_text(text)
 
 
-# --- Collapsible box factory functions ---
+def syntax_content(code: str, lexer: str) -> Static:
+    """Create a selectable, syntax-highlighted Static widget.
+
+    Args:
+        code: Source text to highlight.
+        lexer: Pygments lexer name (for example `"python"`, `"bash"`).
+
+    Returns:
+        Static widget rendering the highlighted text as selectable Content.
+    """
+    return Static(_syntax_to_content(Syntax(code, lexer, theme="monokai")))
+
+
+def diff_content(path: str, old_text: str, new_text: str) -> Static:
+    """Render a file edit as a unified diff preview.
+
+    Args:
+        path: Target file path for the edit action.
+        old_text: Text to find and replace.
+        new_text: Replacement text.
+
+    Returns:
+        Static widget rendering the diff as selectable highlighted Content.
+    """
+    diff_lines = [
+        f"--- a/{path}",
+        f"+++ b/{path}",
+        "@@ edit @@",
+    ]
+    for line in old_text.splitlines():
+        diff_lines.append(f"-{line}")
+    for line in new_text.splitlines():
+        diff_lines.append(f"+{line}")
+    return syntax_content("\n".join(diff_lines), "diff")
 
 
 def _titled(label: str, agent_id: str) -> str:
@@ -258,21 +291,57 @@ def _titled(label: str, agent_id: str) -> str:
     return " ".join(parts)
 
 
-def _wrap_with_trace_container(*children: Widget) -> tuple[Vertical, Vertical]:
-    """Wrap content widgets with an appended trace container for nested tool results.
+def create_box(
+    *children: Widget,
+    title: str,
+    agent_id: str = "",
+    collapsed: bool = False,
+    classes: str = "",
+) -> TrackedCollapsible:
+    """Create a titled collapsible box wrapping the given content widgets.
 
     Args:
-        *children: Widgets to display before the trace container.
+        *children: Content widgets to display inside the box.
+        title: Base title label (prefixed with `[agent-id]` when set).
+        agent_id: Agent identifier for the title prefix.
+        collapsed: Initial collapsed state.
+        classes: CSS classes for the box.
 
     Returns:
-        Tuple of the outer content Vertical and the trace container Vertical.
+        Collapsible widget with the given content.
+    """
+    return TrackedCollapsible(
+        *children,
+        title=_titled(title, agent_id),
+        collapsed=collapsed,
+        classes=classes,
+    )
+
+
+def create_action_box(
+    *children: Widget,
+    title: str,
+    agent_id: str = "",
+    classes: str = "",
+) -> tuple[TrackedCollapsible, Vertical]:
+    """Create a tool-call box with an appended trace container for nested results.
+
+    Args:
+        *children: Content widgets to display before the trace container.
+        title: Base title label (prefixed with `[agent-id]` when set).
+        agent_id: Agent identifier for the title prefix.
+        classes: CSS classes for the box.
+
+    Returns:
+        Tuple of the Collapsible widget and the nested trace container.
     """
     trace_container = Vertical(classes="tool-trace-container")
     content = Vertical(*children, trace_container, classes="tool-call-content")
-    return content, trace_container
+    box = create_box(content, title=title, agent_id=agent_id, collapsed=False, classes=classes)
+    return box, trace_container
 
 
-def create_user_input_box(content: str, agent_id: str = "") -> Collapsible:
+def create_user_input_box(content: str, agent_id: str = "") -> TrackedCollapsible:
     """Create an expanded collapsible box displaying the submitted user input.
 
     Args:
@@ -284,162 +353,30 @@ def create_user_input_box(content: str, agent_id: str = "") -> Collapsible:
     """
     # Use plain text here so Textual's selection API can extract content.
     text = Static(content, markup=False)
-    box = Collapsible(
-        text,
-        title=_titled("User Input", agent_id),
-        collapsed=False,
-        classes="user-input-box",
-    )
-    return box
+    return create_box(text, title="User Input", agent_id=agent_id, classes="user-input-box")
 
 
-def create_thoughts_box(agent_id: str = "") -> tuple[Collapsible, Markdown]:
-    """Create an expanded collapsible box for streaming thoughts.
+def create_markdown_box(
+    title: str,
+    agent_id: str = "",
+    classes: str = "",
+) -> tuple[TrackedCollapsible, Markdown]:
+    """Create an expanded collapsible box for streaming markdown content.
 
     Args:
+        title: Base title label (prefixed with `[agent-id]` when set).
         agent_id: Agent identifier for the title prefix.
+        classes: CSS classes for the box.
 
     Returns:
         Tuple of the Collapsible widget and the Markdown widget inside it.
     """
     md = Markdown()
-    box = Collapsible(md, title=_titled("Thinking", agent_id), collapsed=False, classes="thoughts-box")
+    box = create_box(md, title=title, agent_id=agent_id, classes=classes)
     return box, md
 
 
-def create_response_box(agent_id: str = "") -> tuple[Collapsible, Markdown]:
-    """Create an expanded collapsible box for streaming response.
-
-    Args:
-        agent_id: Agent identifier for the title prefix.
-
-    Returns:
-        Tuple of the Collapsible widget and the Markdown widget inside it.
-    """
-    md = Markdown()
-    box = Collapsible(md, title=_titled("Response", agent_id), collapsed=False, classes="response-box")
-    return box, md
-
-
-def create_code_action_box(code: str, agent_id: str = "") -> tuple[Collapsible, Vertical]:
-    """Create a collapsible box displaying a Python code action.
-
-    Args:
-        code: Python source code to display.
-        agent_id: Agent identifier for the title prefix.
-
-    Returns:
-        Tuple of the Collapsible widget and the nested trace container.
-    """
-    syntax = Syntax(code, "python", theme="monokai")
-    content, trace_container = _wrap_with_trace_container(Static(_syntax_to_content(syntax)))
-    box = Collapsible(
-        content,
-        title=_titled("Code Action", agent_id),
-        collapsed=False,
-        classes="code-action-box",
-    )
-    return box, trace_container
-
-
-def create_shell_command_box(command: str, agent_id: str = "") -> tuple[Collapsible, Vertical]:
-    """Create a collapsible box displaying a shell command.
-
-    Args:
-        command: Shell command string.
-        agent_id: Agent identifier for the title prefix.
-
-    Returns:
-        Tuple of the Collapsible widget and the nested trace container.
-    """
-    syntax = Syntax(command, "bash", theme="monokai")
-    content, trace_container = _wrap_with_trace_container(Static(_syntax_to_content(syntax)))
-    box = Collapsible(
-        content,
-        title=_titled("Shell Command", agent_id),
-        collapsed=False,
-        classes="tool-call-box",
-    )
-    return box, trace_container
-
-
-def create_shell_script_box(script: str, agent_id: str = "") -> tuple[Collapsible, Vertical]:
-    """Create a collapsible box displaying a shell script.
-
-    Args:
-        script: Multi-line shell script content.
-        agent_id: Agent identifier for the title prefix.
-
-    Returns:
-        Tuple of the Collapsible widget and the nested trace container.
-    """
-    syntax = Syntax(script, "bash", theme="monokai")
-    content, trace_container = _wrap_with_trace_container(Static(_syntax_to_content(syntax)))
-    box = Collapsible(
-        content,
-        title=_titled("Shell Script", agent_id),
-        collapsed=False,
-        classes="tool-call-box",
-    )
-    return box, trace_container
-
-
-def create_tool_call_box(
-    tool_name: str,
-    tool_args: dict[str, Any],
-    agent_id: str = "",
-    ptc: bool = False,
-) -> tuple[Collapsible, Vertical]:
-    """Create a collapsible box displaying a tool call with JSON arguments.
-
-    Args:
-        tool_name: Name of the tool being called.
-        tool_args: Tool arguments to display as JSON.
-        agent_id: Agent identifier for the title prefix.
-        ptc: Whether this call is a programmatic tool call.
-
-    Returns:
-        Tuple of the Collapsible widget and the nested trace container.
-    """
-    args_json = json.dumps(tool_args, indent=2)
-    syntax = Syntax(args_json, "json", theme="monokai")
-    title_prefix = "PTC" if ptc else "Tool Call"
-    content, trace_container = _wrap_with_trace_container(Static(_syntax_to_content(syntax)))
-    box = Collapsible(
-        content,
-        title=_titled(f"{title_prefix}: {tool_name}", agent_id),
-        collapsed=False,
-        classes="tool-call-box",
-    )
-    return box, trace_container
-
-
-def create_subagent_task_box(
-    tool_args: dict[str, Any],
-    agent_id: str = "",
-) -> tuple[Collapsible, Vertical]:
-    """Create a collapsible box for a `subagent_task` with nested child widgets.
-
-    Args:
-        tool_args: Tool arguments to display as JSON.
-        agent_id: Agent identifier for the title prefix.
-
-    Returns:
-        Tuple of the task Collapsible and the nested child-widget container.
-    """
-    args_json = json.dumps(tool_args, indent=2)
-    syntax = Syntax(args_json, "json", theme="monokai")
-    content, trace_container = _wrap_with_trace_container(Static(_syntax_to_content(syntax)))
-    box = Collapsible(
-        content,
-        title=_titled("Tool Call: subagent_task", agent_id),
-        collapsed=False,
-        classes="tool-call-box subagent-task-box",
-    )
-    return box, trace_container
-
-
-def create_exec_output_box(agent_id: str = "") -> tuple[Collapsible, RichLog]:
+def create_exec_output_box(agent_id: str = "") -> tuple[TrackedCollapsible, RichLog]:
     """Create a collapsible box for streaming execution output.
 
     Args:
@@ -449,7 +386,7 @@ def create_exec_output_box(agent_id: str = "") -> tuple[Collapsible, RichLog]:
         Tuple of the Collapsible widget and the RichLog widget inside it.
     """
     log = RichLog(wrap=True, markup=False)
-    box = Collapsible(log, title=_titled("Execution Output", agent_id), collapsed=False, classes="exec-output-box")
+    box = create_box(log, title="Execution Output", agent_id=agent_id, classes="exec-output-box")
     return box, log
 
 
@@ -477,28 +414,7 @@ async def finalize_exec_output(log: RichLog, text: str | None, images: list[Path
         log.write("Produced images:\n" + "\n".join(f"  {path}" for path in images))
 
 
-def create_tool_output_box(content: str, agent_id: str = "") -> Collapsible:
-    """Create a collapsed box for generic tool output text.
-
-    Args:
-        content: Tool output text to display.
-        agent_id: Agent identifier for the title prefix.
-
-    Returns:
-        Collapsible widget that displays truncated tool output.
-    """
-    display_content = content
-    syntax = Syntax(display_content, "text", theme="monokai")
-    box = Collapsible(
-        Static(_syntax_to_content(syntax)),
-        title=_titled("Tool Output", agent_id),
-        collapsed=True,
-        classes="tool-output-box",
-    )
-    return box
-
-
-def create_error_box(message: str, agent_id: str = "") -> Collapsible:
+def create_error_box(message: str, agent_id: str = "") -> TrackedCollapsible:
     """Create a collapsible box displaying an error message.
 
     Args:
@@ -508,105 +424,5 @@ def create_error_box(message: str, agent_id: str = "") -> Collapsible:
     Returns:
         Collapsible widget with error-styled text.
     """
-    box = Collapsible(
-        Static(message, classes="error-text"),
-        title=_titled("Error", agent_id),
-        collapsed=False,
-        classes="error-box",
-    )
-    return box
-
-
-def create_file_read_action_box(
-    path: str,
-    offset: int | None,
-    limit: int | None,
-    agent_id: str = "",
-) -> tuple[Collapsible, Vertical]:
-    """Create a collapsible box for a file read action.
-
-    Args:
-        path: Target file path.
-        offset: Optional 1-indexed line offset.
-        limit: Optional line count limit.
-        agent_id: Agent identifier for the title prefix.
-
-    Returns:
-        Tuple of the Collapsible widget and the nested trace container.
-    """
-    filename = PurePosixPath(path).name
-    parts: list[str] = [path]
-    if offset is not None:
-        parts.append(f"offset: {offset}")
-    if limit is not None:
-        parts.append(f"limit: {limit}")
-    content, trace_container = _wrap_with_trace_container(Static("\n".join(parts)))
-    box = Collapsible(
-        content,
-        title=_titled(f"Read Action: {filename}", agent_id),
-        collapsed=False,
-        classes="read-file-box",
-    )
-    return box, trace_container
-
-
-def create_file_write_action_box(path: str, content: str, agent_id: str = "") -> tuple[Collapsible, Vertical]:
-    """Create a box that previews a file write action.
-
-    Args:
-        path: Target file path.
-        content: Full file content to be written.
-        agent_id: Agent identifier for the title prefix.
-
-    Returns:
-        Tuple of the Collapsible widget and the nested trace container.
-    """
-    ext = path.rsplit(".", 1)[-1] if "." in path else "text"
-    syntax = Syntax(content, ext, theme="monokai")
-    content_widget, trace_container = _wrap_with_trace_container(Static(_syntax_to_content(syntax)))
-    box = Collapsible(
-        content_widget,
-        title=_titled(f"Write Action: {path}", agent_id),
-        collapsed=False,
-        classes="write-file-box",
-    )
-    return box, trace_container
-
-
-def create_file_edit_action_box(
-    path: str,
-    old_text: str,
-    new_text: str,
-    agent_id: str = "",
-) -> tuple[Collapsible, Vertical]:
-    """Create a box that renders a file edit as a unified diff preview.
-
-    Args:
-        path: Target file path for the edit action.
-        old_text: Text to find and replace.
-        new_text: Replacement text.
-        agent_id: Agent identifier for the title prefix.
-
-    Returns:
-        Tuple of the Collapsible widget and the nested trace container.
-    """
-    diff_lines = [
-        f"--- a/{path}",
-        f"+++ b/{path}",
-        "@@ edit @@",
-    ]
-    for line in old_text.splitlines():
-        diff_lines.append(f"-{line}")
-    for line in new_text.splitlines():
-        diff_lines.append(f"+{line}")
-
-    diff_text = "\n".join(diff_lines)
-    syntax = Syntax(diff_text, "diff", theme="monokai")
-    content, trace_container = _wrap_with_trace_container(Static(_syntax_to_content(syntax)))
-    box = Collapsible(
-        content,
-        title=_titled(f"Edit Action: {path}", agent_id),
-        collapsed=False,
-        classes="diff-box",
-    )
-    return box, trace_container
+    text = Static(message, classes="error-text")
+    return create_box(text, title="Error", agent_id=agent_id, classes="error-box")

@@ -1,12 +1,14 @@
+# Covers behavior-inventory.md sections: 20 (terminal UI: file picker and skill picker screens)
 from pathlib import Path
 
 import pytest
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.widgets import Label
+from textual.widgets import Label, OptionList
 
-from freeact.agent.config.skills import SkillMetadata
+from freeact.config import SkillMetadata
 from freeact.terminal.screens import FilePickerScreen, FilePickerTree, SkillPickerScreen
+from tests.unit.terminal.conftest import find_screen, make_skill
 
 
 def _binding_to_pair(binding: Binding | tuple[str, str, str]) -> tuple[str, str]:
@@ -31,6 +33,13 @@ def test_file_picker_tree_auto_expand_disabled() -> None:
     assert not FilePickerTree.auto_expand._default
 
 
+class DirectorySelectedEvent:
+    """Minimal event stub with a selected path."""
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+
+
 def test_file_picker_screen_dismisses_on_directory_selected(monkeypatch: pytest.MonkeyPatch) -> None:
     selected: Path | None = None
     screen = FilePickerScreen()
@@ -46,20 +55,6 @@ def test_file_picker_screen_dismisses_on_directory_selected(monkeypatch: pytest.
     screen.on_directory_tree_directory_selected(event)  # type: ignore[arg-type]
 
     assert selected == path
-
-
-class DirectorySelectedEvent:
-    """Minimal event stub with a selected path."""
-
-    def __init__(self, path: Path) -> None:
-        self.path = path
-
-
-# --- Helpers for Textual screen tests ---
-
-
-def _make_skill(name: str) -> SkillMetadata:
-    return SkillMetadata(name=name, description="A skill", path=Path(name) / "SKILL.md")
 
 
 class _SkillPickerApp(App[str | None]):
@@ -79,60 +74,42 @@ class _SkillPickerApp(App[str | None]):
         self._picker_result = result
 
 
-# --- Skill picker prefix matching tests ---
-
-
 @pytest.fixture
 def skill_picker_app() -> _SkillPickerApp:
-    skills = [_make_skill(n) for n in ["aab", "abc", "bcd"]]
+    skills = [make_skill(n) for n in ["aab", "abc", "bcd"]]
     return _SkillPickerApp(skills)
 
 
 @pytest.mark.asyncio
-async def test_skill_picker_char_highlights_first_match(skill_picker_app: _SkillPickerApp) -> None:
+@pytest.mark.parametrize(
+    ("keys", "expected_highlighted"),
+    [
+        (["a"], 0),
+        (["a", "b"], 1),
+        (["a", "b", "b"], 1),
+    ],
+    ids=["single_char_first_match", "two_char_prefix", "no_better_match_keeps_selection"],
+)
+async def test_skill_picker_prefix_highlights_match(
+    skill_picker_app: _SkillPickerApp, keys: list[str], expected_highlighted: int
+) -> None:
     async with skill_picker_app.run_test() as pilot:
         await pilot.pause(0.05)
-        await pilot.press("a")
+        await pilot.press(*keys)
         await pilot.pause(0.05)
 
-        option_list = skill_picker_app.screen.query_one("#skill-picker-list")
-        assert option_list.highlighted == 0
-
-
-@pytest.mark.asyncio
-async def test_skill_picker_two_char_prefix(skill_picker_app: _SkillPickerApp) -> None:
-    async with skill_picker_app.run_test() as pilot:
-        await pilot.pause(0.05)
-        await pilot.press("a")
-        await pilot.press("b")
-        await pilot.pause(0.05)
-
-        option_list = skill_picker_app.screen.query_one("#skill-picker-list")
-        assert option_list.highlighted == 1
-
-
-@pytest.mark.asyncio
-async def test_skill_picker_no_better_match_keeps_selection(skill_picker_app: _SkillPickerApp) -> None:
-    async with skill_picker_app.run_test() as pilot:
-        await pilot.pause(0.05)
-        await pilot.press("a")
-        await pilot.press("b")
-        await pilot.press("b")
-        await pilot.pause(0.05)
-
-        option_list = skill_picker_app.screen.query_one("#skill-picker-list")
-        assert option_list.highlighted == 1
+        option_list = skill_picker_app.screen.query_one("#skill-picker-list", OptionList)
+        assert option_list.highlighted == expected_highlighted
 
 
 @pytest.mark.asyncio
 async def test_skill_picker_backspace(skill_picker_app: _SkillPickerApp) -> None:
     async with skill_picker_app.run_test() as pilot:
         await pilot.pause(0.05)
-        await pilot.press("a")
-        await pilot.press("b")
+        await pilot.press("a", "b")
         await pilot.pause(0.05)
 
-        option_list = skill_picker_app.screen.query_one("#skill-picker-list")
+        option_list = skill_picker_app.screen.query_one("#skill-picker-list", OptionList)
         assert option_list.highlighted == 1
 
         await pilot.press("backspace")
@@ -154,9 +131,6 @@ async def test_skill_picker_enter_selects_highlighted(skill_picker_app: _SkillPi
         assert app._picker_result == "bcd"
 
 
-# --- File picker prefix matching tests ---
-
-
 class _FilePickerApp(App[Path | None]):
     """Minimal app that immediately pushes a FilePickerScreen."""
 
@@ -170,6 +144,10 @@ class _FilePickerApp(App[Path | None]):
         self._picker_result = result
 
 
+def _picker_tree(app: _FilePickerApp) -> FilePickerTree:
+    return find_screen(app, FilePickerScreen).query_one("#picker-tree", FilePickerTree)
+
+
 @pytest.mark.asyncio
 async def test_file_picker_char_navigates_to_matching_node(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     (tmp_path / "alpha.txt").touch()
@@ -181,9 +159,7 @@ async def test_file_picker_char_navigates_to_matching_node(tmp_path: Path, monke
 
     async with app.run_test() as pilot:
         await pilot.pause(0.5)
-
-        picker = next(s for s in app.screen_stack if isinstance(s, FilePickerScreen))
-        tree = picker.query_one("#picker-tree", FilePickerTree)
+        tree = _picker_tree(app)
 
         # Type "b" to match "beta.txt" among children of the expanded cwd node
         await pilot.press("b")
@@ -204,13 +180,10 @@ async def test_file_picker_expanded_dir_searches_children_not_ancestors(
     matches an ancestor name must NOT jump to that ancestor -- it should only
     search among children of the expanded cwd node.
     """
-    # The cwd node "sub" has children "aaa.txt" and "bbb.txt".
-    # Its parent (tmp_path) is also visible and named something like
-    # "test_file_picker_expanded_...0" but more importantly the ancestor
-    # chain always contains system dirs.  We create a child dir whose name
-    # starts with a letter that also appears as a system-level ancestor
-    # (e.g. "tmp" is an ancestor).  Typing "t" from the expanded cwd must
-    # NOT jump to /tmp -- it should match "target.txt" inside cwd.
+    # The cwd node "sub" has children "apple.txt" and "target.txt". The
+    # ancestor chain always contains system dirs (e.g. "tmp"). Typing "t"
+    # from the expanded cwd must NOT jump to /tmp -- it should match
+    # "target.txt" inside cwd.
     sub = tmp_path / "sub"
     sub.mkdir()
     (sub / "apple.txt").touch()
@@ -221,15 +194,12 @@ async def test_file_picker_expanded_dir_searches_children_not_ancestors(
 
     async with app.run_test() as pilot:
         await pilot.pause(0.5)
-
-        picker = next(s for s in app.screen_stack if isinstance(s, FilePickerScreen))
-        tree = picker.query_one("#picker-tree", FilePickerTree)
+        tree = _picker_tree(app)
 
         # Cursor starts on the expanded cwd ("sub")
         assert tree.cursor_node is not None
         assert "sub" in str(tree.cursor_node.label).lower()
 
-        # Type "t" -- should match "target.txt" (child), not /tmp (ancestor)
         await pilot.press("t")
         await pilot.pause(0.1)
 
@@ -250,9 +220,7 @@ async def test_file_picker_file_cursor_searches_siblings(tmp_path: Path, monkeyp
 
     async with app.run_test() as pilot:
         await pilot.pause(0.5)
-
-        picker = next(s for s in app.screen_stack if isinstance(s, FilePickerScreen))
-        tree = picker.query_one("#picker-tree", FilePickerTree)
+        tree = _picker_tree(app)
 
         # Move cursor down to first child (a file node)
         await pilot.press("down")
@@ -281,9 +249,7 @@ async def test_file_picker_arrow_keys_still_work(tmp_path: Path, monkeypatch: py
 
     async with app.run_test() as pilot:
         await pilot.pause(0.5)
-
-        picker = next(s for s in app.screen_stack if isinstance(s, FilePickerScreen))
-        tree = picker.query_one("#picker-tree", FilePickerTree)
+        tree = _picker_tree(app)
 
         initial_line = tree.cursor_line
         await pilot.press("down")

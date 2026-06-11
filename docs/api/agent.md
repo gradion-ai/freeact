@@ -1,43 +1,47 @@
-::: freeact.agent.Agent
-    options:
-      filters:
-        - "!^tool_names$"
-        - "!^_await_approval_or_cancel$"
+::: freeact.Agent
 
-::: freeact.agent.AgentEvent
+::: freeact.AgentEvent
 
-::: freeact.agent.Response
+::: freeact.Response
 
-::: freeact.agent.ResponseChunk
+::: freeact.ResponseChunk
 
-::: freeact.agent.Thoughts
+::: freeact.Thoughts
 
-::: freeact.agent.ThoughtsChunk
+::: freeact.ThoughtsChunk
 
-::: freeact.agent.CodeExecutionOutput
-    options:
-      filters:
-        - "!^format$"
-        - "!^approval_rejected$"
+::: freeact.CodeExecutionOutput
 
-::: freeact.agent.CodeExecutionOutputChunk
+::: freeact.CodeExecutionOutputChunk
 
-::: freeact.agent.ApprovalRequest
+::: freeact.ApprovalRequest
 
-::: freeact.agent.ToolOutput
+::: freeact.ToolOutput
 
-::: freeact.agent.Cancelled
+::: freeact.Cancelled
 
-::: freeact.agent.ToolCall
+::: freeact.Phase
 
-::: freeact.agent.GenericCall
+::: freeact.CancelToken
 
-::: freeact.agent.ShellAction
+::: freeact.ToolCall
 
-::: freeact.agent.CodeAction
+::: freeact.GenericCall
 
-::: freeact.agent.FileRead
+::: freeact.ShellAction
 
-::: freeact.agent.FileWrite
+::: freeact.CodeAction
 
-::: freeact.agent.FileEdit
+::: freeact.FileRead
+
+::: freeact.FileWrite
+
+::: freeact.FileEdit
+
+::: freeact.suggest_pattern
+
+::: freeact.suggest_display
+
+::: freeact.parse_pattern
+
+::: freeact.extract_tool_output_text

@@ -6,10 +6,10 @@ from pathlib import Path
 
 from dotenv import find_dotenv, load_dotenv
 
+from freeact import config
 from freeact.agent import Agent
-from freeact.agent.config import Config as AgentConfig
-from freeact.terminal import Config as TerminalConfig
-from freeact.terminal import TerminalInterface
+from freeact.permissions import PermissionManager
+from freeact.terminal import TerminalApp
 from freeact.tools.pytools.apigen import generate_mcp_sources
 
 logger = logging.getLogger("freeact")
@@ -86,12 +86,18 @@ def configure_logging(level: str) -> None:
     logger.addHandler(handler)
 
 
-async def create_config() -> tuple[AgentConfig, TerminalConfig]:
-    """Load config from `.freeact/` or create and save defaults on first run."""
+def initialize(working_dir: Path) -> config.FreeactConfig:
+    """Initialize the workspace configuration and permission storage.
 
-    agent_config = await AgentConfig.init()
-    terminal_config = await TerminalConfig.init(working_dir=agent_config.working_dir)
-    return agent_config, terminal_config
+    Args:
+        working_dir: Workspace root directory.
+
+    Returns:
+        The effective configuration after initialization.
+    """
+    cfg = config.init(working_dir)
+    PermissionManager(working_dir=working_dir, freeact_dir=working_dir / config.FREEACT_DIR_NAME).init()
+    return cfg
 
 
 async def run(namespace: argparse.Namespace) -> None:
@@ -102,25 +108,38 @@ async def run(namespace: argparse.Namespace) -> None:
     Args:
         namespace: Parsed CLI arguments.
     """
-    agent_config, terminal_config = await create_config()
-    if namespace.session_id is not None and not agent_config.enable_persistence:
-        raise SystemExit("--session-id requires enable_persistence=true in .freeact/agent.json")
+    working_dir = Path.cwd()
+    cfg = await asyncio.to_thread(initialize, working_dir)
+    if namespace.session_id is not None and not cfg.agent.enable_persistence:
+        raise SystemExit("--session-id requires enable_persistence=true in .freeact/config.toml")
+
+    runtime = config.resolve(cfg, working_dir)
+
+    if runtime.ptc_servers:
+        await generate_mcp_sources(runtime.ptc_servers, runtime.workspace.generated_dir)
+
+    permissions = PermissionManager(working_dir=working_dir, freeact_dir=runtime.workspace.freeact_dir)
+    await asyncio.to_thread(permissions.init)
+
     agent = Agent(
-        config=agent_config,
+        runtime,
+        session_id=str(namespace.session_id) if namespace.session_id is not None else None,
         sandbox=namespace.sandbox,
         sandbox_config=namespace.sandbox_config,
-        session_id=str(namespace.session_id) if namespace.session_id is not None else None,
     )
 
-    if agent_config.ptc_servers:
-        await generate_mcp_sources(agent_config.ptc_servers, agent_config.generated_dir)
-
-    terminal = TerminalInterface(
-        agent=agent,
-        config=terminal_config,
-        skip_permissions=namespace.skip_permissions,
-    )
-    await terminal.run()
+    async with agent:
+        app = TerminalApp(
+            agent_id=agent.agent_id,
+            stream=agent.stream,
+            cancel=agent.cancel,
+            skills_metadata=runtime.skills_metadata,
+            terminal_config=cfg.terminal,
+            permissions=permissions,
+            skip_permissions=namespace.skip_permissions,
+            working_dir=working_dir,
+        )
+        await app.run_async()
 
 
 def main() -> None:
@@ -135,7 +154,7 @@ def main() -> None:
     configure_logging(namespace.log_level)
 
     if namespace.command == "init":
-        asyncio.run(create_config())
+        initialize(Path.cwd())
         logger.info("Ensured .freeact/ configuration directory")
         return
 

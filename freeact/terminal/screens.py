@@ -2,12 +2,14 @@ from pathlib import Path
 from typing import Any
 
 from textual.app import ComposeResult
+from textual.containers import Vertical
+from textual.events import Key
 from textual.reactive import var
 from textual.screen import ModalScreen
 from textual.widgets import DirectoryTree, Label, OptionList
 from textual.widgets.option_list import Option
 
-from freeact.agent.config.skills import SkillMetadata
+from freeact.config import SkillMetadata
 
 
 def _find_prefix_match(items: list[str], prefix: str) -> tuple[int, str] | None:
@@ -121,8 +123,6 @@ class FilePickerScreen(ModalScreen[Path | None]):
         self._prefix = ""
 
     def compose(self) -> ComposeResult:
-        from textual.containers import Vertical
-
         with Vertical(id="picker-container"):
             yield Label(self._BASE_LABEL, id="picker-label")
             yield FilePickerTree(_filesystem_root(Path.cwd()), id="picker-tree")
@@ -132,7 +132,7 @@ class FilePickerScreen(ModalScreen[Path | None]):
         tree.focus()
         await self._focus_tree_path(tree, Path.cwd())
 
-    def _on_key(self, event: "textual.events.Key") -> None:  # type: ignore[name-defined]  # noqa: F821
+    def _on_key(self, event: Key) -> None:
         if event.key in ("up", "down", "left", "right"):
             self._prefix = ""
             self._update_label()
@@ -275,8 +275,6 @@ class SkillPickerScreen(ModalScreen[str | None]):
         self._prefix = ""
 
     def compose(self) -> ComposeResult:
-        from textual.containers import Vertical
-
         with Vertical(id="skill-picker-container"):
             yield Label(self._BASE_LABEL, id="skill-picker-label")
             option_list = OptionList(
@@ -288,7 +286,7 @@ class SkillPickerScreen(ModalScreen[str | None]):
     def on_mount(self) -> None:
         self.query_one("#skill-picker-list", OptionList).focus()
 
-    def _on_key(self, event: "textual.events.Key") -> None:  # type: ignore[name-defined]  # noqa: F821
+    def _on_key(self, event: Key) -> None:
         if event.is_printable and event.character:
             event.stop()
             event.prevent_default()

@@ -1,36 +1,20 @@
+# Covers behavior-inventory.md sections: 20 (terminal UI: picker prefix matching)
+import pytest
+
 from freeact.terminal.screens import _find_prefix_match as find_prefix_match
 
 
-def test_find_prefix_match_single_char() -> None:
-    items = ["aab", "abc", "bcd"]
-    result = find_prefix_match(items, "a")
-    assert result == (0, "a")
-
-
-def test_find_prefix_match_two_chars() -> None:
-    items = ["aab", "abc", "bcd"]
-    result = find_prefix_match(items, "ab")
-    assert result == (1, "ab")
-
-
-def test_find_prefix_match_fallback() -> None:
-    items = ["aab", "abc", "bcd"]
-    result = find_prefix_match(items, "abb")
-    assert result == (1, "ab")
-
-
-def test_find_prefix_match_no_match() -> None:
-    items = ["aab", "abc"]
-    result = find_prefix_match(items, "z")
-    assert result is None
-
-
-def test_find_prefix_match_case_insensitive() -> None:
-    items = ["Alpha", "beta"]
-    result = find_prefix_match(items, "a")
-    assert result == (0, "a")
-
-
-def test_find_prefix_match_empty_prefix() -> None:
-    result = find_prefix_match(["aab", "abc"], "")
-    assert result is None
+@pytest.mark.parametrize(
+    ("items", "prefix", "expected"),
+    [
+        (["aab", "abc", "bcd"], "a", (0, "a")),
+        (["aab", "abc", "bcd"], "ab", (1, "ab")),
+        (["aab", "abc", "bcd"], "abb", (1, "ab")),
+        (["aab", "abc"], "z", None),
+        (["Alpha", "beta"], "a", (0, "a")),
+        (["aab", "abc"], "", None),
+    ],
+    ids=["single_char", "two_chars", "fallback", "no_match", "case_insensitive", "empty_prefix"],
+)
+def test_find_prefix_match(items: list[str], prefix: str, expected: tuple[int, str] | None) -> None:
+    assert find_prefix_match(items, prefix) == expected

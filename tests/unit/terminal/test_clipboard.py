@@ -1,3 +1,4 @@
+# Covers behavior-inventory.md sections: 20 (terminal UI: clipboard backends)
 import subprocess
 
 from freeact.terminal.clipboard import ClipboardAdapter

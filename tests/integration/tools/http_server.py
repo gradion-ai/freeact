@@ -1,6 +1,6 @@
 import asyncio
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
 
 from starlette.applications import Starlette
 from starlette.requests import Request

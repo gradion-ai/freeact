@@ -19,9 +19,14 @@ dependencies = [
     "textual>=8.0.0",
     "ipybox>=0.9.1",
     "mcpygen>=0.1.4",
+    "trafilatura>=2.0.0",
+    "tomli-w>=1.2.0",
+]
+
+[project.optional-dependencies]
+search = [
     "sqlite-vec>=0.1.0",
     "watchfiles>=1.0.0",
-    "trafilatura>=2.0.0",
 ]
 
 [project.scripts]
@@ -43,6 +48,9 @@ docs = [
     "click<=8.2.1",
 ]
 dev = [
+    # hybrid-search extra deps, kept in the dev env so its tests run
+    "sqlite-vec>=0.1.0",
+    "watchfiles>=1.0.0",
     "invoke>=2.2,<3",
     "pre-commit>=4.3.0,<5",
     "pytest>=8.4.2,<9",

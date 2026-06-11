@@ -23,12 +23,12 @@ For programmatic MCP tool calling ("code mode"), freeact generates typed Python 
 Freeact supports tool discovery via agentic and semantic search, loading only task-relevant tool information into the context window. It can enforce application-level approval of code actions, shell commands, and programmatic tool calls, originating from both main agents and subagents. Freeact runs locally on your computer and is available as a CLI tool and Python SDK.
 
 > [!NOTE]
-> **Supported models**: Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/). See [Models](https://gradion-ai.github.io/freeact/models/) for provider configuration and examples.
+> **Supported models**: Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/). See [Configure models](https://gradion-ai.github.io/freeact/guides/models/) for provider configuration and examples.
 
 ## Documentation
 
 - 📚 [Documentation](https://gradion-ai.github.io/freeact/)
-- 🚀 [Quickstart](https://gradion-ai.github.io/freeact/quickstart/)
+- 🚀 [Quickstart](https://gradion-ai.github.io/freeact/getting-started/quickstart/)
 - 🤖 [llms.txt](https://gradion-ai.github.io/freeact/llms.txt)
 - 🤖 [llms-full.txt](https://gradion-ai.github.io/freeact/llms-full.txt)
 
@@ -51,8 +51,8 @@ Freeact supports tool discovery via agentic and semantic search, loading only ta
 
 | Component | Description |
 |---|---|
-| **[Agent SDK](https://gradion-ai.github.io/freeact/sdk/)** | Agent harness and Python API for building freeact applications. |
-| **[CLI tool](https://gradion-ai.github.io/freeact/cli/)** | Terminal interface for interactive conversations with a freeact agent. |
+| **[Agent SDK](https://gradion-ai.github.io/freeact/getting-started/sdk-tutorial/)** | Agent harness and Python API for building freeact applications. |
+| **[CLI tool](https://gradion-ai.github.io/freeact/getting-started/quickstart/)** | Terminal interface for interactive conversations with a freeact agent. |
 
 ---
 

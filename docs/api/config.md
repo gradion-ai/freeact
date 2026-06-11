@@ -1,19 +1,35 @@
-::: freeact.config.PersistentConfig
+::: freeact.config.load
 
-::: freeact.agent.config.Config
+::: freeact.config.init
 
-::: freeact.agent.config.SkillMetadata
+::: freeact.config.resolve
 
-::: freeact.agent.config.DEFAULT_MODEL_NAME
+::: freeact.config.workspace
 
-::: freeact.agent.config.DEFAULT_MODEL_SETTINGS
+::: freeact.config.FreeactConfig
 
-::: freeact.agent.config.BASIC_SEARCH_MCP_SERVER_CONFIG
+::: freeact.config.AgentSection
 
-::: freeact.agent.config.HYBRID_SEARCH_MCP_SERVER_CONFIG
+::: freeact.config.ToolPresets
 
-::: freeact.agent.config.GOOGLE_SEARCH_MCP_SERVER_CONFIG
+::: freeact.config.TerminalSection
 
-::: freeact.agent.config.FILESYSTEM_MCP_SERVER_CONFIG
+::: freeact.config.ResolvedRuntime
 
-::: freeact.agent.config.FETCH_MCP_SERVER_CONFIG
+::: freeact.config.Workspace
+
+::: freeact.config.SkillMetadata
+
+::: freeact.config.DEFAULT_MODEL_NAME
+
+::: freeact.config.DEFAULT_MODEL_SETTINGS
+
+::: freeact.config.FILESYSTEM_MCP_SERVER_CONFIG
+
+::: freeact.config.BASIC_SEARCH_MCP_SERVER_CONFIG
+
+::: freeact.config.HYBRID_SEARCH_MCP_SERVER_CONFIG
+
+::: freeact.config.GOOGLE_SEARCH_MCP_SERVER_CONFIG
+
+::: freeact.config.FETCH_MCP_SERVER_CONFIG

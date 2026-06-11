@@ -1,13 +1,18 @@
 # Repository Guidelines
 
+## Architecture in Four Sentences
+Freeact is an agent SDK plus a terminal UI joined only by an event stream: `Agent.stream()` yields typed `AgentEvent`s (including `ApprovalRequest`s the consumer must resolve), and the terminal renders them. The agent is policy-free; permission rules and approval decisions belong to the embedder (`cli.py` wires agent, permissions, and TUI together). Configuration flows one way: `.freeact/config.toml` -> `config.load()` -> `config.resolve()` -> `ResolvedRuntime` -> `Agent`. Code actions run in an ipybox kernel; bundled tools run as MCP subprocess servers under `freeact/tools/`.
+
 ## Project Structure & Module Organization
 - Documentation: `docs/`
 - Project description: `docs/index.md`
 - Source modules:
-  - `freeact/agent/`: core agent, config, session store, shell command extraction, media processing
-  - `freeact/tools/`: tool definitions, Python tool generation, tool search
-  - `freeact/terminal/`: terminal UI (app, widgets, screens, clipboard, completion)
-  - `freeact/permissions.py`: permission management
+  - `freeact/events.py`, `freeact/toolcalls.py`: SDK event and tool call types
+  - `freeact/config/`: TOML config (schema, load/init, resolve, prompts, skills)
+  - `freeact/agent/`: agent runtime (turn loop, approvals, executor, MCP, session, subagents)
+  - `freeact/tools/`: bundled MCP tool servers (filesystem, fetch, search, discovery)
+  - `freeact/terminal/`: terminal UI (app, dispatcher, view, approvals, widgets, screens, clipboard)
+  - `freeact/permissions.py`: permission rules and manager
   - `freeact/cli.py`: CLI entry point
 - Tests:
   - `tests/unit/`: unit tests
@@ -17,10 +22,9 @@
 - `docs/AGENTS.md`: documentation authoring
 - `tests/AGENTS.md`: testing conventions and utilities
 
-## Architecture Constraints
-- `docs/internal/architecture/README.md`: index of constraint files and runtime docs
-- Load only the constraint file relevant to your current task
-- Flag when a change may require updating or extending a constraint file
+## Invariants
+- `docs/internal/invariants.md`: non-obvious rules and why-invariants; read before changing core behavior
+- Flag when a change may require updating an invariant
 
 ## Coding Guidelines
 - All function parameters and return types must have type hints

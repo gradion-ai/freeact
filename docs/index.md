@@ -16,7 +16,7 @@ Freeact supports tool discovery via agentic and semantic search, loading only ta
 
 !!! note "Supported models"
 
-    Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/){target="_blank"}. See [Models](models.md) for provider configuration and examples.
+    Freeact supports any model compatible with [Pydantic AI](https://ai.pydantic.dev/){target="_blank"}. See [Configure models](guides/models.md) for provider configuration and examples.
 
 ## Capabilities
 
@@ -37,7 +37,9 @@ Freeact supports tool discovery via agentic and semantic search, loading only ta
 
 | Component | Description |
 |---|---|
-| **[Agent SDK](sdk.md)** | Agent harness and Python API for building freeact applications. |
-| **[CLI tool](cli.md)** | Terminal interface for interactive conversations with a freeact agent. |
+| **[Agent SDK](getting-started/sdk-tutorial.md)** | Agent harness and Python API for building freeact applications. |
+| **[CLI tool](getting-started/quickstart.md)** | Terminal interface for interactive conversations with a freeact agent. |
+
+Start with [Installation](getting-started/installation.md), then follow the [CLI quickstart](getting-started/quickstart.md) or build a [first agent with the SDK](getting-started/sdk-tutorial.md). How-to guides cover individual tasks, [Reference](reference/configuration.md) pages document configuration and the [CLI](reference/cli.md), and [Concepts](concepts/code-actions.md) explain how freeact works.
 
 [^1]: Freeact also supports MCP server integration via JSON tool calling but the recommended approach is programmatic tool calling.

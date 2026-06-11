@@ -1,226 +1,76 @@
+# Covers behavior-inventory.md sections: 1 (lifecycle), 2 (events), 3 (code execution),
+# 5 (approvals incl. abandonment INVARIANT), 6 (cancellation INVARIANTs), 8 (overflow flags)
 import asyncio
 import json
-import uuid
 from pathlib import Path
 from typing import Any
-from unittest.mock import MagicMock, patch
 
 import ipybox
 import pytest
+from pydantic_ai.messages import ModelMessage
 from pydantic_ai.models.function import DeltaToolCall
 
-from freeact.agent import Agent, ApprovalRequest, Cancelled, CodeExecutionOutput
-from freeact.agent.call import CodeAction, GenericCall
-from freeact.agent.config import Config
+from freeact import ApprovalRequest, Cancelled, CodeExecutionOutput, Phase
+from freeact.agent import Agent
+from freeact.agent.tooldefs import SUBAGENT_TOOL_DEFS_PATH, load_tool_definitions
+from freeact.toolcalls import CodeAction
 from tests.helpers import (
-    CodeExecFunction,
+    ApprovalRecorder,
+    FakeCodeExecutor,
     collect_stream,
     create_stream_function,
-    create_test_config,
+    create_test_runtime,
     get_tool_return_parts,
+    ipybox_ptc_approval,
+    ipybox_shell_approval,
     patched_agent,
 )
 
 
-class TestCodeExecutionOutput:
-    """Tests for CodeExecutionOutput dataclass methods."""
-
-    def test_approval_rejected_returns_false_when_text_is_none(self):
-        """approval_rejected() returns False when text is None."""
-        output = CodeExecutionOutput(text=None, images=[])
-        assert output.approval_rejected() is False
-
-    def test_approval_rejected_detects_rejection(self):
-        """approval_rejected() detects ApprovalRejectedError in output."""
-        output = CodeExecutionOutput(
-            text="ApprovalRejectedError: Approval request for my_tool rejected",
-            images=[],
-        )
-        assert output.approval_rejected() is True
-
-    def test_approval_rejected_returns_false_for_normal_output(self):
-        """approval_rejected() returns False for normal output."""
-        output = CodeExecutionOutput(text="Normal output", images=[])
-        assert output.approval_rejected() is False
-
-    def test_format_returns_full_content(self):
-        """format() returns full text when no images are present."""
-        output = CodeExecutionOutput(text="Short text", images=[])
-        assert output.format() == "Short text"
-
-    def test_format_keeps_long_output_untruncated(self):
-        """format() returns full long text output."""
-        long_text = "x" * 1000
-        output = CodeExecutionOutput(text=long_text, images=[])
-        result = output.format()
-        assert result == long_text
-
-    def test_format_includes_image_markdown(self):
-        """format() appends image markdown links."""
-        output = CodeExecutionOutput(
-            text="Output",
-            images=[Path("/tmp/img1.png"), Path("/tmp/img2.png")],
-        )
-        result = output.format()
-        assert "![Image](/tmp/img1.png)" in result
-        assert "![Image](/tmp/img2.png)" in result
-
-    def test_format_returns_empty_when_no_content(self):
-        """format() returns empty string when no text or images."""
-        output = CodeExecutionOutput(text=None, images=[])
-        assert output.format() == ""
-
-    def test_format_with_only_images(self):
-        """format() works with only images and no text."""
-        output = CodeExecutionOutput(
-            text=None,
-            images=[Path("/tmp/image.png")],
-        )
-        result = output.format()
-        assert result == "![Image](/tmp/image.png)"
-
-    def test_format_keeps_text_and_images_untruncated(self):
-        """format() returns full text plus image markdown links."""
-        output = CodeExecutionOutput(
-            text="x" * 100,
-            images=[Path("/tmp/image.png")],
-        )
-        result = output.format()
-        assert result == f"{'x' * 100}\n![Image](/tmp/image.png)"
+def build_agent(tmp_path: Path, **agent_kwargs: Any) -> Agent:
+    """Create an agent (kernel replaced by a fake) without starting it."""
+    runtime = create_test_runtime(tmp_path, **agent_kwargs.pop("section_overrides", {}))
+    agent = Agent(runtime, **agent_kwargs)
+    agent._executor._code_executor = FakeCodeExecutor()  # type: ignore[assignment]
+    return agent
 
 
-def create_code_exec_function(output_text: str) -> CodeExecFunction:
-    """Returns an execute function that yields a single output element."""
+def simple_output_script(output_text: str) -> Any:
+    async def script(code: str) -> Any:
+        yield ipybox.CodeExecutionResult(text=output_text, images=[])
 
-    async def execute(self, code: str):
-        yield CodeExecutionOutput(text=output_text, images=[])
-
-    return execute
-
-
-def create_code_exec_with_approval_function(
-    tool_name: str, tool_args: dict[str, Any], approved_result: str, rejected_result: str
-) -> CodeExecFunction:
-    """Returns an execute function that simulates a PTC approval flow."""
-
-    async def execute(self, code: str):
-        approval = ApprovalRequest(
-            tool_call=GenericCall(tool_name=tool_name, tool_args=tool_args, ptc=True),
-        )
-        yield approval
-        if await approval.approved():
-            yield CodeExecutionOutput(text=approved_result, images=[])
-        else:
-            yield CodeExecutionOutput(text=rejected_result, images=[])
-
-    return execute
-
-
-class _FakeMcpServer:
-    def __init__(self, *, tool_prefix: str, result: object) -> None:
-        self.tool_prefix = tool_prefix
-        self._result = result
-        self.calls: list[tuple[str, dict[str, object]]] = []
-
-    async def direct_call_tool(self, name: str, args: dict[str, object]) -> object:
-        self.calls.append((name, args))
-        return self._result
-
-
-class TestMcpToolCall:
-    @pytest.mark.asyncio
-    async def test_call_mcp_tool_returns_result_directly(self) -> None:
-        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
-            mock_executor.return_value = MagicMock()
-            agent = Agent(config=create_test_config())
-
-        server = _FakeMcpServer(
-            tool_prefix="filesystem",
-            result="file text",
-        )
-        agent._tool_mapping["filesystem_read_text_file"] = server  # type: ignore[assignment]
-
-        result = await agent._call_mcp_tool("filesystem_read_text_file", {"path": "README.md"})
-
-        assert result == "file text"
-        assert server.calls == [("read_text_file", {"path": "README.md"})]
-
-    @pytest.mark.asyncio
-    async def test_call_mcp_tool_returns_error_on_exception(self) -> None:
-        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
-            mock_executor.return_value = MagicMock()
-            agent = Agent(config=create_test_config())
-
-        server = _FakeMcpServer(tool_prefix="test", result="ok")
-        agent._tool_mapping["test_tool_2"] = server  # type: ignore[assignment]
-
-        # Make the server raise
-        async def raise_error(name: str, args: dict[str, object]) -> object:
-            raise RuntimeError("connection failed")
-
-        server.direct_call_tool = raise_error  # type: ignore[assignment]
-
-        result = await agent._call_mcp_tool("test_tool_2", {"s": "x"})
-        assert "MCP tool call failed" in str(result)
+    return script
 
 
 class TestSessionPersistenceConfig:
-    def test_agent_generates_session_id_when_missing(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        generated = uuid.uuid4()
-        monkeypatch.setattr("freeact.agent.core.uuid.uuid4", lambda: generated)
+    def test_agent_generates_session_id_when_missing(self, tmp_path: Path) -> None:
+        agent = build_agent(tmp_path)
+        assert agent.session_id is not None
 
-        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
-            mock_executor.return_value = MagicMock()
-            agent = Agent(config=create_test_config())
-
-        assert agent._session_id == str(generated)
-        assert agent.session_id == str(generated)
-
-    def test_agent_uses_provided_session_id(self) -> None:
-        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
-            mock_executor.return_value = MagicMock()
-            agent = Agent(config=create_test_config(), session_id="session-1")
-
+    def test_agent_uses_provided_session_id(self, tmp_path: Path) -> None:
+        agent = build_agent(tmp_path, session_id="session-1")
         assert agent.session_id == "session-1"
 
-    def test_agent_creates_internal_session_store_when_enabled(self) -> None:
-        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
-            mock_executor.return_value = MagicMock()
-            agent = Agent(config=create_test_config())
-
-        assert agent._session_id is not None
-        assert agent._session_store is not None
-
-    def test_agent_runs_without_session_store_when_disabled(self) -> None:
-        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
-            mock_executor.return_value = MagicMock()
-            agent = Agent(config=create_test_config(enable_persistence=False))
-
-        assert agent._session_id is None
+    def test_agent_runs_without_session_when_disabled(self, tmp_path: Path) -> None:
+        agent = build_agent(tmp_path, section_overrides={"enable_persistence": False})
         assert agent.session_id is None
-        assert agent._session_store is None
-        assert agent._result_materializer is None
 
-    def test_agent_rejects_session_id_when_persistence_disabled(self) -> None:
-        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
-            mock_executor.return_value = MagicMock()
-            with pytest.raises(ValueError, match="session_id requires config.enable_persistence=True"):
-                Agent(config=create_test_config(enable_persistence=False), session_id="session-1")
+    def test_agent_rejects_session_id_when_persistence_disabled(self, tmp_path: Path) -> None:
+        with pytest.raises(ValueError, match="session_id requires enable_persistence=True"):
+            build_agent(tmp_path, session_id="session-1", section_overrides={"enable_persistence": False})
 
 
 class TestIpyboxExecution:
-    """Tests for ipybox_execute_ipython_cell tool with mocked code executor."""
-
     @pytest.mark.asyncio
-    async def test_approval_accepted(self):
-        """Verify tool call is executed when approval request is accepted."""
-        test_code = "print('approved execution')"
+    async def test_approval_accepted(self, tmp_path: Path) -> None:
+        """Tool call is executed when approval request is accepted."""
         stream_function = create_stream_function(
             tool_name="ipybox_execute_ipython_cell",
-            tool_args={"code": test_code},
+            tool_args={"code": "print('approved execution')"},
         )
+        executor = FakeCodeExecutor(simple_output_script("approved execution"))
 
-        async with patched_agent(stream_function, create_code_exec_function("approved execution")) as agent:
+        async with patched_agent(stream_function, executor, tmp_dir=tmp_path) as agent:
             results = await collect_stream(agent, "test prompt")
 
             assert len(results.approvals) == 1
@@ -228,367 +78,294 @@ class TestIpyboxExecution:
             assert isinstance(results.approvals[0].tool_call, CodeAction)
             assert len(results.code_outputs) == 1
             assert results.code_outputs[0].text == "approved execution"
+            assert results.code_outputs[0].approval_rejected is False
 
     @pytest.mark.asyncio
-    async def test_approval_rejected(self):
-        """Verify tool call is not executed when approval request is rejected."""
-        rejected_code = "print('should not run')"
+    async def test_approval_rejected(self, tmp_path: Path) -> None:
+        """Tool call is not executed when approval request is rejected; turn ends."""
         stream_function = create_stream_function(
             tool_name="ipybox_execute_ipython_cell",
-            tool_args={"code": rejected_code},
+            tool_args={"code": "print('should not run')"},
         )
+        executor = FakeCodeExecutor(simple_output_script("should not be called"))
 
-        async with patched_agent(stream_function, create_code_exec_function("should not be called")) as agent:
+        async with patched_agent(stream_function, executor, tmp_dir=tmp_path) as agent:
             results = await collect_stream(agent, "test prompt", approve_function=lambda _: False)
 
-            # CodeExecutionResult is not yielded if code execution is rejected
             assert len(results.code_outputs) == 0
-            # Agent turn ends with rejection response
+            assert executor.stream_calls == []
             assert any(r.content == "Tool call rejected" for r in results.responses)
 
     @pytest.mark.asyncio
-    async def test_ptc_approval_accepted(self):
-        """Verify PTC is executed when approval request is accepted."""
-        test_code = "from test.tool_2 import Params, run; run(Params(s='ptc_approved'))"
+    async def test_ptc_approval_accepted(self, tmp_path: Path) -> None:
+        """PTC executes when its nested approval is accepted."""
         stream_function = create_stream_function(
             tool_name="ipybox_execute_ipython_cell",
-            tool_args={"code": test_code},
+            tool_args={"code": "from test.tool_2 import Params, run; run(Params(s='x'))"},
         )
-        code_exec_function = create_code_exec_with_approval_function(
-            tool_name="test_tool_2",
-            tool_args={"s": "ptc_approved"},
-            approved_result="You passed to tool 2: ptc_approved",
-            rejected_result="Tool call rejected",
-        )
+        recorder = ApprovalRecorder()
 
-        async with patched_agent(stream_function, code_exec_function) as agent:
+        async def script(code: str) -> Any:
+            approval = ipybox_ptc_approval("test", "tool_2", {"s": "x"}, recorder)
+            yield approval
+            if await approval.response():
+                yield ipybox.CodeExecutionResult(text="You passed to tool 2: x", images=[])
+            else:
+                yield ipybox.CodeExecutionResult(text="ApprovalRejectedError: rejected", images=[])
+
+        async with patched_agent(stream_function, FakeCodeExecutor(script), tmp_dir=tmp_path) as agent:
             results = await collect_stream(agent, "test prompt")
 
-            assert len(results.approvals) == 2
-            assert results.approvals[0].tool_call.tool_name == "ipybox_execute_ipython_cell"
-            assert results.approvals[1].tool_call.tool_name == "test_tool_2"
+            assert [a.tool_call.tool_name for a in results.approvals] == [
+                "ipybox_execute_ipython_cell",
+                "test_tool_2",
+            ]
+            assert results.approvals[1].tool_call.ptc is True  # type: ignore[attr-defined]
+            assert recorder.decisions == [True]
             assert len(results.code_outputs) == 1
-            assert results.code_outputs[0].text == "You passed to tool 2: ptc_approved"
+            assert results.code_outputs[0].text == "You passed to tool 2: x"
 
     @pytest.mark.asyncio
-    async def test_ptc_approval_rejected(self):
-        """Verify PTC is not executed when approval request is rejected."""
-        test_code = "from test.tool_2 import Params, run; run(Params(s='ptc_rejected'))"
+    async def test_ptc_approval_rejected(self, tmp_path: Path) -> None:
+        """PTC rejection surfaces the in-kernel error and ends the turn."""
         stream_function = create_stream_function(
             tool_name="ipybox_execute_ipython_cell",
-            tool_args={"code": test_code},
+            tool_args={"code": "from test.tool_2 import Params, run; run(Params(s='x'))"},
         )
-        # rejected_result must contain the class name checked by CodeExecutionOutput.approval_rejected()
-        code_exec_function = create_code_exec_with_approval_function(
-            tool_name="test_tool_2",
-            tool_args={"s": "ptc_rejected"},
-            approved_result="You passed to tool 2: ptc_rejected",
-            rejected_result="ApprovalRejectedError: Approval request for test_tool_2 rejected",
-        )
+        recorder = ApprovalRecorder()
 
-        # Approve code execution, reject PTC
+        async def script(code: str) -> Any:
+            approval = ipybox_ptc_approval("test", "tool_2", {"s": "x"}, recorder)
+            yield approval
+            if await approval.response():
+                yield ipybox.CodeExecutionResult(text="ok", images=[])
+            else:
+                yield ipybox.CodeExecutionResult(
+                    text="ApprovalRejectedError: Approval request for test_tool_2 rejected", images=[]
+                )
+
         def approve_function(req: ApprovalRequest) -> bool:
             return req.tool_call.tool_name == "ipybox_execute_ipython_cell"
 
-        async with patched_agent(stream_function, code_exec_function) as agent:
+        async with patched_agent(stream_function, FakeCodeExecutor(script), tmp_dir=tmp_path) as agent:
             results = await collect_stream(agent, "test prompt", approve_function=approve_function)
 
-            assert len(results.approvals) == 2
-            assert results.approvals[0].tool_call.tool_name == "ipybox_execute_ipython_cell"
-            assert results.approvals[1].tool_call.tool_name == "test_tool_2"
+            assert recorder.decisions == [False]
             assert len(results.code_outputs) == 1
+            assert results.code_outputs[0].approval_rejected is True
             assert results.code_outputs[0].text is not None
             assert "ApprovalRejectedError:" in results.code_outputs[0].text
-            # Agent turn ends with rejection response
             assert any(r.content == "Tool call rejected" for r in results.responses)
 
+    @pytest.mark.asyncio
+    async def test_shell_approvals_split_composite_command(self, tmp_path: Path) -> None:
+        """Composite shell commands yield one approval per sub-command."""
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": "!ls && pwd"},
+        )
+        recorder = ApprovalRecorder()
 
-class TestTimeoutParameters:
-    """Tests for execution_timeout and approval_timeout parameters."""
+        async def script(code: str) -> Any:
+            approval = ipybox_shell_approval("ls && pwd", recorder)
+            yield approval
+            await approval.response()
+            yield ipybox.CodeExecutionResult(text="done", images=[])
 
-    def test_default_execution_timeout(self):
-        """Default execution_timeout is 300 seconds."""
-        with patch("freeact.agent.core.ipybox.CodeExecutor"):
-            config = create_test_config()
-            agent = Agent(config=config)
-            assert agent._execution_timeout == 300
+        async with patched_agent(stream_function, FakeCodeExecutor(script), tmp_dir=tmp_path) as agent:
+            results = await collect_stream(agent, "test prompt")
 
-    def test_custom_execution_timeout(self):
-        """Custom execution_timeout is stored."""
-        with patch("freeact.agent.core.ipybox.CodeExecutor"):
-            config = create_test_config(execution_timeout=60)
-            agent = Agent(config=config)
-            assert agent._execution_timeout == 60
-
-    def test_none_execution_timeout(self):
-        """None execution_timeout disables timeout."""
-        with patch("freeact.agent.core.ipybox.CodeExecutor"):
-            config = create_test_config(execution_timeout=None)
-            agent = Agent(config=config)
-            assert agent._execution_timeout is None
-
-    def test_approval_timeout_passed_to_executor(self):
-        """approval_timeout is passed to CodeExecutor."""
-        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
-            mock_executor.return_value = MagicMock()
-            config = create_test_config(approval_timeout=30)
-            Agent(config=config)
-            mock_executor.assert_called_once()
-            call_kwargs = mock_executor.call_args.kwargs
-            assert call_kwargs["approval_timeout"] == 30
-
-    def test_default_approval_timeout_is_none(self):
-        """Default approval_timeout is None."""
-        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
-            mock_executor.return_value = MagicMock()
-            config = create_test_config()
-            Agent(config=config)
-            call_kwargs = mock_executor.call_args.kwargs
-            assert call_kwargs["approval_timeout"] is None
-
-
-class TestKernelEnvHome:
-    """Tests for default HOME environment variable in kernel_env."""
-
-    def test_default_home_env_var(self):
-        """HOME from os.environ is added to kernel_env by Config."""
-        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
-            mock_executor.return_value = MagicMock()
-            config = create_test_config()
-            Agent(config=config)
-            call_kwargs = mock_executor.call_args.kwargs
-            # HOME is auto-added by Config._load_kernel_env()
-            assert "HOME" in call_kwargs["kernel_env"]
-
-    def test_home_env_var_not_overridden(self):
-        """User-provided HOME in kernel_env is not overwritten."""
-        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
-            mock_executor.return_value = MagicMock()
-            config = create_test_config(kernel_env={"HOME": "/custom/home"})
-            Agent(config=config)
-            call_kwargs = mock_executor.call_args.kwargs
-            assert call_kwargs["kernel_env"]["HOME"] == "/custom/home"
-
-
-class TestSubagentConfigPropagation:
-    """Tests that subagents inherit parent runtime/safety configuration."""
+            shell_approvals = [a for a in results.approvals if a.tool_call.tool_name == "bash"]
+            assert [a.tool_call.command for a in shell_approvals] == ["ls", "pwd"]  # type: ignore[attr-defined]
+            assert recorder.decisions == [True]
 
     @pytest.mark.asyncio
-    async def test_execute_subagent_task_propagates_runtime_and_safety_settings(self):
-        """_execute_subagent_task forwards parent config to spawned subagents."""
-        captured: dict[str, Any] = {}
+    async def test_composite_partial_rejection_rejects_whole_command(self, tmp_path: Path) -> None:
+        """Rejecting any sub-command rejects the whole composite and ends the turn."""
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": "!ls && rm -rf /"},
+        )
+        recorder = ApprovalRecorder()
 
-        class FakeSubagent:
-            def __init__(self, config: Config, agent_id: str | None = None, **kwargs: Any):
-                captured["config"] = config
-                captured["agent_id"] = agent_id
-                captured.update(kwargs)
-                self.agent_id = agent_id or "main"
+        async def script(code: str) -> Any:
+            approval = ipybox_shell_approval("ls && rm -rf /", recorder)
+            yield approval
+            if await approval.response():
+                yield ipybox.CodeExecutionResult(text="done", images=[])
+            else:
+                yield ipybox.CodeExecutionResult(text="ApprovalRejectedError: shell rejected", images=[])
 
-            async def __aenter__(self):
-                return self
+        def approve_function(req: ApprovalRequest) -> bool:
+            return req.tool_call.tool_name != "bash" or req.tool_call.command == "ls"  # type: ignore[attr-defined]
 
-            async def __aexit__(self, *args: object) -> None:
-                return None
+        async with patched_agent(stream_function, FakeCodeExecutor(script), tmp_dir=tmp_path) as agent:
+            results = await collect_stream(agent, "test prompt", approve_function=approve_function)
 
-            async def stream(self, prompt: str, max_turns: int | None = None):
-                from freeact.agent.events import Response
-
-                yield Response(content="done", agent_id=self.agent_id)
-
-        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
-            mock_executor.return_value = MagicMock()
-            config = create_test_config(
-                kernel_env={"HOME": "/custom/home", "OTHER": "value"},
-                images_dir=Path("/tmp/images"),
-                approval_timeout=42,
-            )
-            agent = Agent(
-                config=config,
-                sandbox=True,
-                sandbox_config=Path("/tmp/sandbox.cfg"),
-                session_id="session-1",
-            )
-
-        with patch("freeact.agent.core.Agent", FakeSubagent):
-            events = [event async for event in agent._execute_subagent_task("subtask", max_turns=3, corr_id="call-1")]
-
-        assert len(events) >= 1
-        sub_config = captured["config"]
-        assert sub_config.kernel_env == {"HOME": "/custom/home", "OTHER": "value"}
-        assert sub_config.kernel_env is not config.kernel_env
-        assert captured["agent_id"].startswith("sub-")
-        assert sub_config.enable_subagents is False
-        assert captured["session_id"] == "session-1"
-        assert captured["sandbox"] is True
-        assert captured["sandbox_config"] == Path("/tmp/sandbox.cfg")
+            assert recorder.decisions == [False]
+            assert any(r.content == "Tool call rejected" for r in results.responses)
 
     @pytest.mark.asyncio
-    async def test_cancel_propagates_to_subagent_code_executor(self):
-        """Parent cancel triggers cancel on subagent's code executor."""
-        subagent_executor_cancelled = asyncio.Event()
+    async def test_execution_timeout_passed_to_kernel(self, tmp_path: Path) -> None:
+        """The configured execution timeout is enforced by the kernel stream."""
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": "print(1)"},
+        )
+        executor = FakeCodeExecutor()
 
-        class FakeSubagent:
-            def __init__(self, config: Config, agent_id: str | None = None, **kwargs: Any):
-                self.agent_id = agent_id or "main"
-                mock_exec = MagicMock()
-                mock_exec.cancel = lambda: subagent_executor_cancelled.set()
-                self._code_executor = mock_exec
+        async with patched_agent(stream_function, executor, tmp_dir=tmp_path, execution_timeout=60) as agent:
+            await collect_stream(agent, "test")
 
-            async def __aenter__(self) -> "FakeSubagent":
-                return self
-
-            async def __aexit__(self, *args: object) -> None:
-                return None
-
-            async def stream(self, prompt: str, max_turns: int | None = None):  # type: ignore[return]
-                from freeact.agent.events import Response
-
-                yield Response(content="working", agent_id=self.agent_id)
-                try:
-                    await asyncio.wait_for(subagent_executor_cancelled.wait(), timeout=5)
-                except asyncio.TimeoutError:
-                    pass
-                yield Response(content="done", agent_id=self.agent_id)
-
-        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
-            mock_executor.return_value = MagicMock()
-            agent = Agent(config=create_test_config())
-
-        async def set_cancel_later() -> None:
-            await asyncio.sleep(0.05)
-            agent._cancel_event.set()
-
-        with patch("freeact.agent.core.Agent", FakeSubagent):
-            cancel_task = asyncio.create_task(set_cancel_later())
-            # consume events to drive the subagent stream to completion
-            async for _ in agent._execute_subagent_task("subtask", max_turns=3, corr_id="call-1"):
-                pass
-            await cancel_task
-
-        assert subagent_executor_cancelled.is_set()
-
-
-class TestSubagentDefaults:
-    """Tests for subagent tool definition defaults."""
-
-    def test_default_max_turns(self):
-        """Default max_turns for subagent_task is 100."""
-        import json
-
-        from freeact.tools.utils import SUBAGENT_TOOL_DEFS_PATH
-
-        schema = json.loads(SUBAGENT_TOOL_DEFS_PATH.read_text())
-        max_turns_schema = schema[0]["parameters_json_schema"]["properties"]["max_turns"]
-        assert max_turns_schema["default"] == 100
-
-
-class TestIpyboxToolSchema:
-    """Tests for bundled ipybox tool definition schema."""
-
-    def test_execute_schema_has_no_max_output_chars(self):
-        """ipybox_execute_ipython_cell does not expose output truncation args."""
-        import json
-
-        from freeact.tools.utils import IPYBOX_TOOL_DEFS_PATH
-
-        schema = json.loads(IPYBOX_TOOL_DEFS_PATH.read_text())
-        execute_schema = next(item for item in schema if item["name"] == "ipybox_execute_ipython_cell")
-        properties = execute_schema["parameters_json_schema"]["properties"]
-        assert "max_output_chars" not in properties
-
-
-class TestCancellation:
-    """Tests for agent cancellation via cancel() / _cancel_event."""
+        assert executor.stream_calls[0]["timeout"] == 60
 
     @pytest.mark.asyncio
-    async def test_cancel_during_tool_execution(self):
-        """Cancel during code execution yields Cancelled(phase='tool_execution')."""
+    async def test_execution_timeout_disabled(self, tmp_path: Path) -> None:
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": "print(1)"},
+        )
+        executor = FakeCodeExecutor()
+
+        async with patched_agent(stream_function, executor, tmp_dir=tmp_path, execution_timeout=0) as agent:
+            await collect_stream(agent, "test")
+
+        assert executor.stream_calls[0]["timeout"] is None
+
+    @pytest.mark.asyncio
+    async def test_kernel_exception_yields_error_output(self, tmp_path: Path) -> None:
+        """Kernel exceptions become error text in the output event, not a crash."""
         stream_function = create_stream_function(
             tool_name="ipybox_execute_ipython_cell",
             tool_args={"code": "print(1)"},
         )
 
-        async def cancel_on_exec(self: Agent, code: str):  # type: ignore[override]
-            self._cancel_event.set()
-            yield CodeExecutionOutput(text="output", images=[])
+        async def script(code: str) -> Any:
+            raise RuntimeError("kernel blew up")
+            yield  # noqa: RUF027
 
-        async with patched_agent(stream_function, cancel_on_exec) as agent:
+        async with patched_agent(stream_function, FakeCodeExecutor(script), tmp_dir=tmp_path) as agent:
+            results = await collect_stream(agent, "test")
+
+            assert len(results.code_outputs) == 1
+            assert results.code_outputs[0].text == "kernel blew up"
+
+    @pytest.mark.asyncio
+    async def test_kernel_reset(self, tmp_path: Path) -> None:
+        stream_function = create_stream_function(tool_name="ipybox_reset", tool_args={})
+        executor = FakeCodeExecutor()
+
+        async with patched_agent(stream_function, executor, tmp_dir=tmp_path) as agent:
+            results = await collect_stream(agent, "reset please")
+
+        assert executor.reset_calls == 1
+        assert any("Kernel reset successfully" in str(t.content) for t in results.tool_outputs)
+
+    @pytest.mark.asyncio
+    async def test_kernel_reset_failure_returns_error(self, tmp_path: Path) -> None:
+        stream_function = create_stream_function(tool_name="ipybox_reset", tool_args={})
+        executor = FakeCodeExecutor()
+        executor.reset_error = RuntimeError("nope")
+
+        async with patched_agent(stream_function, executor, tmp_dir=tmp_path) as agent:
+            results = await collect_stream(agent, "reset please")
+
+        assert any("Kernel reset failed: nope" in str(t.content) for t in results.tool_outputs)
+
+    @pytest.mark.asyncio
+    async def test_unknown_tool_returns_error_without_approval(self, tmp_path: Path) -> None:
+        stream_function = create_stream_function(tool_name="nonexistent_tool", tool_args={})
+
+        async with patched_agent(stream_function, tmp_dir=tmp_path) as agent:
+            results = await collect_stream(agent, "test")
+
+            assert len(results.approvals) == 0
+            from pydantic_ai.messages import ModelRequest, ToolReturnPart
+
+            tool_returns = [
+                part
+                for message in agent._session.messages
+                if isinstance(message, ModelRequest)
+                for part in message.parts
+                if isinstance(part, ToolReturnPart)
+            ]
+            assert len(tool_returns) == 1
+            assert "Unknown tool name" in str(tool_returns[0].content)
+
+
+class TestCancellation:
+    @pytest.mark.asyncio
+    async def test_cancel_during_tool_execution(self, tmp_path: Path) -> None:
+        """Cancel during code execution yields Cancelled(phase=tool_execution)."""
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": "print(1)"},
+        )
+        agent_ref: list[Agent | None] = [None]
+
+        async def script(code: str) -> Any:
+            assert agent_ref[0] is not None
+            agent_ref[0]._cancel.set()
+            yield ipybox.CodeExecutionResult(text="output", images=[])
+
+        async with patched_agent(stream_function, FakeCodeExecutor(script), tmp_dir=tmp_path) as agent:
+            agent_ref[0] = agent
             results = await collect_stream(agent, "test")
 
         assert len(results.cancelled) == 1
-        assert results.cancelled[0].phase == "tool_execution"
+        assert results.cancelled[0].phase == Phase.TOOL_EXECUTION
         assert len(results.code_outputs) == 1
 
     @pytest.mark.asyncio
-    async def test_cancel_during_llm_streaming(self):
+    async def test_cancel_during_llm_streaming(self, tmp_path: Path) -> None:
         """Cancel during LLM streaming preserves partial response and yields Cancelled."""
         agent_ref: list[Agent | None] = [None]
 
         async def stream_function(messages: Any, info: Any) -> Any:
             yield "partial response"
             if agent_ref[0] is not None:
-                agent_ref[0]._cancel_event.set()
+                agent_ref[0]._cancel.set()
             yield " more text"
 
-        async with patched_agent(stream_function) as agent:
+        async with patched_agent(stream_function, tmp_dir=tmp_path) as agent:
             agent_ref[0] = agent
             results = await collect_stream(agent, "test")
 
         assert len(results.cancelled) == 1
-        assert results.cancelled[0].phase == "llm_streaming"
+        assert results.cancelled[0].phase == Phase.LLM_STREAMING
         assert len(results.responses) == 1
 
     @pytest.mark.asyncio
-    async def test_cancel_during_approval_wait(self):
-        """Cancel during approval wait produces interrupted tool return."""
+    async def test_cancel_during_approval_wait(self, tmp_path: Path) -> None:
+        """Cancel during approval wait produces an interrupted tool return."""
         stream_function = create_stream_function(
             tool_name="ipybox_execute_ipython_cell",
             tool_args={"code": "print(1)"},
         )
 
-        async with patched_agent(stream_function) as agent:
+        async with patched_agent(stream_function, tmp_dir=tmp_path) as agent:
             events: list[Any] = []
             async for event in agent.stream("test"):
                 events.append(event)
                 match event:
                     case ApprovalRequest():
-                        agent._cancel_event.set()
+                        agent._cancel.set()
 
         cancelled = [e for e in events if isinstance(e, Cancelled)]
         assert len(cancelled) == 1
-        assert cancelled[0].phase == "tool_execution"
+        assert cancelled[0].phase == Phase.TOOL_EXECUTION
 
-        tool_returns = get_tool_return_parts(agent._message_history)
+        tool_returns = get_tool_return_parts(agent._session.messages)
         assert len(tool_returns) == 1
         assert tool_returns[0].content == "Interrupted by user"
         assert tool_returns[0].metadata.get("interrupted") is True
 
-    def test_approve_after_future_resolved_is_noop(self):
-        """approve() after future already resolved is a no-op (no InvalidStateError).
-
-        When cancel races with terminal approval, both paths may try to
-        resolve the same ApprovalRequest._future. The second call must
-        not raise InvalidStateError.
-        """
-        approval = ApprovalRequest(
-            agent_id="main",
-            corr_id="test",
-            tool_call=CodeAction(tool_name="ipybox_execute_ipython_cell", code="print(1)"),
-        )
-        # Simulate _await_approval_or_cancel resolving the future first
-        approval._future.set_result(False)
-        assert approval._future.done()
-        # Simulate terminal calling approve() after cancel unblocks _handle_approval
-        approval.approve(False)  # no InvalidStateError
-        approval.approve(True)  # also safe with different value
-
     @pytest.mark.asyncio
-    async def test_cancel_produces_synthetic_returns_for_orphaned_calls(self):
-        """Cancel during LLM streaming with tool calls generates synthetic returns."""
+    async def test_cancel_produces_synthetic_returns_for_orphaned_calls(self, tmp_path: Path) -> None:
+        """INVARIANT: after cancellation every issued tool call has a return in history."""
         agent_ref: list[Agent | None] = [None]
 
-        async def stream_function(messages: Any, info: Any) -> Any:
+        async def stream_function(messages: list[ModelMessage], info: Any) -> Any:
             if not get_tool_return_parts(messages):
                 yield {
                     0: DeltaToolCall(
@@ -603,58 +380,61 @@ class TestCancellation:
                     ),
                 }
                 if agent_ref[0] is not None:
-                    agent_ref[0]._cancel_event.set()
+                    agent_ref[0]._cancel.set()
                 yield "done"
 
-        async with patched_agent(stream_function) as agent:
+        async with patched_agent(stream_function, tmp_dir=tmp_path) as agent:
             agent_ref[0] = agent
             results = await collect_stream(agent, "test")
 
         assert len(results.cancelled) == 1
-        assert results.cancelled[0].phase == "llm_streaming"
+        assert results.cancelled[0].phase == Phase.LLM_STREAMING
 
-        tool_returns = get_tool_return_parts(agent._message_history)
+        tool_returns = get_tool_return_parts(agent._session.messages)
         assert len(tool_returns) == 2
         for tr in tool_returns:
             assert tr.content == "Interrupted by user"
             assert tr.metadata.get("interrupted") is True
 
     @pytest.mark.asyncio
-    async def test_cancel_during_execution_with_empty_output(self):
+    async def test_cancel_during_execution_with_empty_output(self, tmp_path: Path) -> None:
         """Cancel during code execution with no output yields interrupted tool return."""
         stream_function = create_stream_function(
             tool_name="ipybox_execute_ipython_cell",
             tool_args={"code": "import time; time.sleep(30)"},
         )
+        agent_ref: list[Agent | None] = [None]
 
-        async def cancel_no_output(self: Agent, code: str):  # type: ignore[override]
-            self._cancel_event.set()
-            # ipybox cancel() causes stream() to return without yielding CodeExecutionResult,
-            # so _ipybox_execute_ipython_cell ends without yielding CodeExecutionOutput.
+        async def script(code: str) -> Any:
+            assert agent_ref[0] is not None
+            agent_ref[0]._cancel.set()
+            # ipybox cancel() causes stream() to return without yielding a result
             return
-            yield  # make this an async generator  # noqa: RUF028
+            yield
 
-        async with patched_agent(stream_function, cancel_no_output) as agent:
+        async with patched_agent(stream_function, FakeCodeExecutor(script), tmp_dir=tmp_path) as agent:
+            agent_ref[0] = agent
             results = await collect_stream(agent, "test")
 
         assert len(results.cancelled) == 1
-        assert results.cancelled[0].phase == "tool_execution"
+        assert results.cancelled[0].phase == Phase.TOOL_EXECUTION
         assert len(results.code_outputs) == 0
 
-        tool_returns = get_tool_return_parts(agent._message_history)
+        tool_returns = get_tool_return_parts(agent._session.messages)
         assert len(tool_returns) == 1
         assert tool_returns[0].content == "Interrupted by user"
         assert tool_returns[0].metadata.get("interrupted") is True
 
     @pytest.mark.asyncio
-    async def test_stream_without_cancel_unchanged(self):
+    async def test_stream_without_cancel_unchanged(self, tmp_path: Path) -> None:
         """Normal stream behavior is unchanged when cancel is never set."""
         stream_function = create_stream_function(
             tool_name="ipybox_execute_ipython_cell",
             tool_args={"code": "print(1)"},
         )
+        executor = FakeCodeExecutor(simple_output_script("output"))
 
-        async with patched_agent(stream_function, create_code_exec_function("output")) as agent:
+        async with patched_agent(stream_function, executor, tmp_dir=tmp_path) as agent:
             results = await collect_stream(agent, "test")
 
         assert len(results.cancelled) == 0
@@ -662,14 +442,22 @@ class TestCancellation:
         assert len(results.code_outputs) == 1
         assert len(results.responses) >= 1
 
+    @pytest.mark.asyncio
+    async def test_cancel_method_cancels_kernel(self, tmp_path: Path) -> None:
+        executor = FakeCodeExecutor()
+        runtime = create_test_runtime(tmp_path)
+        agent = Agent(runtime)
+        agent._executor._code_executor = executor  # type: ignore[assignment]
+
+        agent.cancel()
+
+        assert agent._cancel.is_set()
+        assert executor.cancelled is True
+
 
 class TestGeneratorExitRejectsIpyboxApproval:
-    """Tests that GeneratorExit during pending ipybox approvals rejects them.
-
-    When the agent generator is closed while a shell, shell_magic, or PTC
-    approval is pending, the ipybox ApprovalRequest must be rejected so the
-    tool server's approval channel is properly unblocked.
-    """
+    """INVARIANT: abandoning the stream while an in-kernel approval is pending
+    rejects the ipybox approval exactly once, unblocking the tool server."""
 
     @staticmethod
     def _make_ipybox_approval(
@@ -677,7 +465,6 @@ class TestGeneratorExitRejectsIpyboxApproval:
         tool_name: str,
         tool_args: dict[str, Any],
     ) -> tuple[ipybox.ApprovalRequest, asyncio.Event]:
-        """Create an ipybox ApprovalRequest with a mock respond that tracks rejection."""
         rejected = asyncio.Event()
 
         async def mock_respond(decision: bool) -> None:
@@ -692,43 +479,53 @@ class TestGeneratorExitRejectsIpyboxApproval:
         )
         return approval, rejected
 
-    @staticmethod
-    def _make_agent_with_mock_stream(
-        mock_stream: Any,
-    ) -> Agent:
-        """Create an agent with a mock code executor stream."""
-        with patch("freeact.agent.core.ipybox.CodeExecutor") as mock_executor:
-            mock_executor.return_value = MagicMock()
-            agent = Agent(config=create_test_config())
-
-        agent._code_executor = MagicMock()
-        agent._code_executor.stream = mock_stream
-        agent._code_executor_lock = asyncio.Lock()
-        return agent
-
     @pytest.mark.asyncio
-    async def test_shell_approval_rejected_on_generator_exit(self):
-        """GeneratorExit during shell approval rejects the ipybox ApprovalRequest."""
-        ipybox_approval, rejected = self._make_ipybox_approval(
-            "ipybox",
-            "shell",
-            {"cmd": "ls -la"},
-        )
+    @pytest.mark.parametrize(
+        ("server_name", "tool_name", "tool_args", "code", "expected_tool_name"),
+        [
+            ("ipybox", "shell", {"cmd": "ls -la"}, "!ls -la", "bash"),
+            (
+                "test_server",
+                "my_tool",
+                {"key": "value"},
+                "from test.my_tool import run; run()",
+                "test_server_my_tool",
+            ),
+            (
+                "ipybox",
+                "shell_magic",
+                {"cmd": "echo hello\necho world"},
+                "%%bash\necho hello\necho world",
+                "shell_magic",
+            ),
+        ],
+    )
+    async def test_pending_approval_rejected_on_generator_exit(
+        self,
+        server_name: str,
+        tool_name: str,
+        tool_args: dict[str, Any],
+        code: str,
+        expected_tool_name: str,
+        tmp_path: Path,
+    ) -> None:
+        ipybox_approval, rejected = self._make_ipybox_approval(server_name, tool_name, tool_args)
 
-        async def mock_stream(code: str, timeout: float | None = None, chunks: bool = False):
+        async def script(code: str) -> Any:
             yield ipybox_approval
-            # Simulate kernel blocked on request_sync waiting for approval
+            # Simulate kernel blocked waiting for the approval response
             await asyncio.Event().wait()
 
-        agent = self._make_agent_with_mock_stream(mock_stream)
+        agent = build_agent(tmp_path)
+        agent._executor._code_executor = FakeCodeExecutor(script)  # type: ignore[assignment]
 
-        gen = agent._ipybox_execute_ipython_cell("!ls -la")
+        gen = agent._executor._execute_code(code, "corr-1")
         event = await gen.__anext__()
         assert isinstance(event, ApprovalRequest)
-        assert event.tool_call.tool_name == "bash"
+        assert event.tool_call.tool_name == expected_tool_name
 
         # Close the generator without resolving the freeact approval
-        await gen.aclose()  # type: ignore[attr-defined]
+        await gen.aclose()
 
         # The ipybox ApprovalRequest must have been rejected
         assert rejected.is_set()
@@ -736,65 +533,7 @@ class TestGeneratorExitRejectsIpyboxApproval:
         assert ipybox_approval._decision.result() is False
 
     @pytest.mark.asyncio
-    async def test_ptc_approval_rejected_on_generator_exit(self):
-        """GeneratorExit during PTC approval rejects the ipybox ApprovalRequest."""
-        ipybox_approval, rejected = self._make_ipybox_approval(
-            "test_server",
-            "my_tool",
-            {"key": "value"},
-        )
-
-        async def mock_stream(code: str, timeout: float | None = None, chunks: bool = False):
-            yield ipybox_approval
-            # Simulate kernel blocked on request_sync waiting for approval
-            await asyncio.Event().wait()
-
-        agent = self._make_agent_with_mock_stream(mock_stream)
-
-        gen = agent._ipybox_execute_ipython_cell("from test.my_tool import run; run()")
-        event = await gen.__anext__()
-        assert isinstance(event, ApprovalRequest)
-        assert event.tool_call.tool_name == "test_server_my_tool"
-
-        # Close the generator without resolving the freeact approval
-        await gen.aclose()  # type: ignore[attr-defined]
-
-        # The ipybox ApprovalRequest must have been rejected
-        assert rejected.is_set()
-        assert ipybox_approval._decision.done()
-        assert ipybox_approval._decision.result() is False
-
-    @pytest.mark.asyncio
-    async def test_shell_magic_approval_rejected_on_generator_exit(self):
-        """GeneratorExit during shell_magic approval rejects the ipybox ApprovalRequest."""
-        ipybox_approval, rejected = self._make_ipybox_approval(
-            "ipybox",
-            "shell_magic",
-            {"cmd": "echo hello\necho world"},
-        )
-
-        async def mock_stream(code: str, timeout: float | None = None, chunks: bool = False):
-            yield ipybox_approval
-            # Simulate kernel blocked on request_sync waiting for approval
-            await asyncio.Event().wait()
-
-        agent = self._make_agent_with_mock_stream(mock_stream)
-
-        gen = agent._ipybox_execute_ipython_cell("%%bash\necho hello\necho world")
-        event = await gen.__anext__()
-        assert isinstance(event, ApprovalRequest)
-        assert event.tool_call.tool_name == "shell_magic"
-
-        # Close the generator without resolving the freeact approval
-        await gen.aclose()  # type: ignore[attr-defined]
-
-        # The ipybox ApprovalRequest must have been rejected
-        assert rejected.is_set()
-        assert ipybox_approval._decision.done()
-        assert ipybox_approval._decision.result() is False
-
-    @pytest.mark.asyncio
-    async def test_shell_approval_not_double_rejected(self):
+    async def test_shell_approval_not_double_rejected(self, tmp_path: Path) -> None:
         """Normal rejection path still works (no double reject)."""
         reject_count = 0
 
@@ -810,7 +549,7 @@ class TestGeneratorExitRejectsIpyboxApproval:
             respond=counting_respond,
         )
 
-        async def mock_stream(code: str, timeout: float | None = None, chunks: bool = False):
+        async def script(code: str) -> Any:
             yield ipybox_approval
             decision = await ipybox_approval.response()
             if decision:
@@ -818,9 +557,10 @@ class TestGeneratorExitRejectsIpyboxApproval:
             else:
                 yield ipybox.CodeExecutionResult(text="rejected", images=[])
 
-        agent = self._make_agent_with_mock_stream(mock_stream)
+        agent = build_agent(tmp_path)
+        agent._executor._code_executor = FakeCodeExecutor(script)  # type: ignore[assignment]
 
-        gen = agent._ipybox_execute_ipython_cell("!rm -rf /")
+        gen = agent._executor._execute_code("!rm -rf /", "corr-1")
         event = await gen.__anext__()
         assert isinstance(event, ApprovalRequest)
 
@@ -829,8 +569,48 @@ class TestGeneratorExitRejectsIpyboxApproval:
 
         # Consume remaining events
         events = [e async for e in gen]
-        assert len(events) == 1  # CodeExecutionOutput
+        assert len(events) == 1
         assert isinstance(events[0], CodeExecutionOutput)
+        assert events[0].approval_rejected is True
 
-        # reject() should have been called exactly once (not by GeneratorExit handler)
+        # reject() called exactly once (not again by GeneratorExit handler)
         assert reject_count == 1
+
+    @pytest.mark.asyncio
+    async def test_abandoned_stream_rejects_pending_approval_via_agent(self, tmp_path: Path) -> None:
+        """End-to-end: closing agent.stream() while a top-level approval is
+        pending resolves that approval as rejected (nothing hangs)."""
+        stream_function = create_stream_function(
+            tool_name="ipybox_execute_ipython_cell",
+            tool_args={"code": "print(1)"},
+        )
+
+        async with patched_agent(stream_function, tmp_dir=tmp_path) as agent:
+            stream = agent.stream("test")
+            pending: ApprovalRequest | None = None
+            async for event in stream:
+                match event:
+                    case ApprovalRequest() as req:
+                        pending = req
+                        break
+            assert pending is not None
+            await stream.aclose()
+
+            # The pending approval resolves as rejected once abandoned
+            assert await asyncio.wait_for(pending.approved(), timeout=2) is False
+
+
+class TestEvents:
+    def test_format_with_images(self) -> None:
+        out = CodeExecutionOutput(text="hello", images=[Path("/tmp/a.png")])
+        assert out.format() == "hello\n![Image](/tmp/a.png)"
+
+    def test_format_empty(self) -> None:
+        out = CodeExecutionOutput(text=None, images=[])
+        assert out.format() == ""
+
+    def test_subagent_task_default_max_turns_in_schema(self) -> None:
+        tool_defs = load_tool_definitions(SUBAGENT_TOOL_DEFS_PATH)
+        assert len(tool_defs) == 1
+        schema = tool_defs[0].parameters_json_schema
+        assert schema["properties"]["max_turns"]["default"] == 100
