@@ -37,7 +37,7 @@ Conventions: `@pytest.mark.asyncio` (not anyio); helpers import from `tests.help
 
 ## Pre-release e2e sweep
 
-Scenario checklist for a full regression sweep (last run 2026-06-11, 8/8 PASS;
+Scenario checklist for a full regression sweep (last run 2026-06-11, 10/10 PASS;
 findings: discovery-off default, PATH-resolved `python` for internal servers).
 Each scenario runs in its own scratch dir (`/tmp/freeact-e2e-<name>`) with its
 own tmux session so they can run in parallel; copy the workspace `.env` in.
