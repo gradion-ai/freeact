@@ -128,7 +128,7 @@ nav:
   - How-to guides:
     - Configure models: guides/models.md
     - Add custom tool servers: guides/tool-servers.md
-    - Enable tool discovery: guides/tool-discovery.md
+    - Configure tool discovery: guides/tool-discovery.md
     - Manage permissions: guides/permissions.md
     - Use sandbox mode: guides/sandbox.md
     - Persist and resume sessions: guides/sessions.md

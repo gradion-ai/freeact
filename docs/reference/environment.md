@@ -44,4 +44,4 @@ When `discovery = "hybrid"` is set under `[agent.tools]`, the hybrid search serv
 | `PYTOOLS_BM25_WEIGHT` | `1.0` | Weight for BM25 (keyword) results in hybrid fusion |
 | `PYTOOLS_VEC_WEIGHT` | `1.0` | Weight for vector (semantic) results in hybrid fusion |
 
-See [Enable tool discovery](../guides/tool-discovery.md#set-up-hybrid-search) for setup steps and embedding provider options.
+See [Configure tool discovery](../guides/tool-discovery.md#set-up-hybrid-search) for setup steps and embedding provider options.

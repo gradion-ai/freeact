@@ -1,6 +1,6 @@
 # Configuration
 
-Freeact reads configuration from a single file, `.freeact/config.toml`, with an [`[agent]`](#agent-settings) and a [`[terminal]`](#terminal-ui) section. The file is human-owned: `freeact init` writes it once with commented defaults, and freeact never rewrites it afterwards. Approval decisions are stored separately in the machine-managed [`.freeact/permissions.toml`](permission-rules.md). The agent's tool surface (presets, custom MCP servers, tool discovery) is documented in [Add custom tool servers](../guides/tool-servers.md) and [Enable tool discovery](../guides/tool-discovery.md).
+Freeact reads configuration from a single file, `.freeact/config.toml`, with an [`[agent]`](#agent-settings) and a [`[terminal]`](#terminal-ui) section. The file is human-owned: `freeact init` writes it once with commented defaults, and freeact never rewrites it afterwards. Approval decisions are stored separately in the machine-managed [`.freeact/permissions.toml`](permission-rules.md). The agent's tool surface (presets, custom MCP servers, tool discovery) is documented in [Add custom tool servers](../guides/tool-servers.md) and [Configure tool discovery](../guides/tool-discovery.md).
 
 ## Initialization
 
@@ -73,8 +73,8 @@ google_thinking_config = { thinking_level = "medium", include_thoughts = true }
 # api_key = "${MY_PROVIDER_KEY}"
 
 [agent.tools]
-# One-line opt-ins for bundled tool servers. Code execution and filesystem
-# tools are always available.
+# One-line opt-ins for bundled tool servers. Code execution, filesystem tools,
+# and basic tool discovery are always available by default.
 # search = true            # google search (code mode); needs GEMINI_API_KEY
 # fetch = true             # web fetch (code mode)
 # discovery = "basic"      # default; "hybrid" needs freeact[search]; "off" disables

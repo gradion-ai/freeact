@@ -4,7 +4,7 @@ Code execution and filesystem tools are always available to the agent. This guid
 
 ## Enable bundled servers
 
-The `[agent.tools]` section enables bundled tool servers with one line each. Defaults are minimal: everything is off, except code execution and filesystem tools, which are always available.
+The `[agent.tools]` section enables bundled tool servers with one line each. Defaults are minimal: the web tool servers are off, while code execution, filesystem tools, and [basic tool discovery](tool-discovery.md) are available out of the box.
 
 ```toml title=".freeact/config.toml"
 [agent.tools]
@@ -17,7 +17,7 @@ fetch = true             # web fetch (code mode)
 | `search` | `false` | Adds the bundled `google` server (web search via Gemini with Google Search grounding) to [`ptc_servers`](#add-servers-for-programmatic-tool-calling). Requires `GEMINI_API_KEY`. |
 | `fetch` | `false` | Adds the bundled `fetch` server (URL content retrieval via [trafilatura](https://trafilatura.readthedocs.io/){target="_blank"}) to [`ptc_servers`](#add-servers-for-programmatic-tool-calling). |
 
-The `[agent.tools]` section also accepts a `discovery` key for enabling tool discovery; see [Enable tool discovery](tool-discovery.md).
+The `[agent.tools]` section also accepts a `discovery` key for enabling tool discovery; see [Configure tool discovery](tool-discovery.md).
 
 Further bundled servers can be added manually to `ptc_servers`:
 
