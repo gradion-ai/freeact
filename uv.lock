@@ -1089,7 +1089,7 @@ requires-dist = [
     { name = "ipybox", specifier = ">=0.9.1" },
     { name = "mcpygen", specifier = ">=0.1.4" },
     { name = "pillow", specifier = ">=12.0.0" },
-    { name = "pydantic-ai", specifier = ">=1.99.0" },
+    { name = "pydantic-ai", specifier = ">=1.99.0,<2" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "rich", specifier = ">=14.2.0" },
