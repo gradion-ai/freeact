@@ -69,7 +69,7 @@ The core install covers everything else: SDK, CLI, bundled tool servers, and bas
 
 ## API Key
 
-Freeact uses `google-gla:gemini-3.5-flash` as the [default model](../guides/models.md). Set the API key in your environment:
+Freeact uses `google-gla:gemini-3.6-flash` as the [default model](../guides/models.md). Set the API key in your environment:
 
 ```bash
 export GEMINI_API_KEY="your-api-key"

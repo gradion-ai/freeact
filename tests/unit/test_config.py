@@ -19,7 +19,7 @@ class TestSchemaDefaults:
     def test_agent_defaults(self) -> None:
         config = FreeactConfig()
 
-        assert config.agent.model == "google-gla:gemini-3.5-flash"
+        assert config.agent.model == "google-gla:gemini-3.6-flash"
         assert config.agent.model_settings["google_thinking_config"]["thinking_level"] == "medium"
         assert config.agent.execution_timeout == 300
         assert config.agent.approval_timeout == 0
@@ -210,7 +210,7 @@ class TestResolve:
         runtime = resolve(config, working_dir=tmp_path, env={})
 
         assert set(runtime.mcp_servers.keys()) == {"filesystem"}
-        assert runtime.model == "google-gla:gemini-3.5-flash"
+        assert runtime.model == "google-gla:gemini-3.6-flash"
         assert runtime.enable_subagents is True
         assert runtime.subagent_mode is False
 

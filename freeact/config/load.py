@@ -14,7 +14,7 @@ DEFAULT_CONFIG_TOML = """\
 # this file, so comments and formatting are yours to keep.
 
 [agent]
-model = "google-gla:gemini-3.5-flash"
+model = "google-gla:gemini-3.6-flash"
 # execution_timeout = 300.0     # seconds; 0 disables the timeout
 # approval_timeout = 0.0        # seconds; 0 waits forever
 # enable_persistence = true

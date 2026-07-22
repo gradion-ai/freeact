@@ -4,7 +4,7 @@
 
 | Variable | Used by |
 |----------|---------|
-| `GEMINI_API_KEY` | The [default model](../guides/models.md#google-default) `google-gla:gemini-3.5-flash`, the bundled `google` search server ([`search` preset](../guides/tool-servers.md#enable-bundled-servers)), and the default [hybrid search](#hybrid-search) embedding model |
+| `GEMINI_API_KEY` | The [default model](../guides/models.md#google-default) `google-gla:gemini-3.6-flash`, the bundled `google` search server ([`search` preset](../guides/tool-servers.md#enable-bundled-servers)), and the default [hybrid search](#hybrid-search) embedding model |
 | `ANTHROPIC_API_KEY` | [Anthropic models](../guides/models.md#anthropic) (`anthropic:` prefix) |
 | `OPENAI_API_KEY` | [OpenAI models](../guides/models.md#openai) (`openai:` prefix) |
 | `BRAVE_API_KEY` | The bundled [`brave` search server](../guides/tool-servers.md#enable-bundled-servers) |
