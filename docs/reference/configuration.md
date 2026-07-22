@@ -51,7 +51,7 @@ Freeact stores configuration and runtime state in `.freeact/`. Project-level cus
 
 ```toml title=".freeact/config.toml"
 [agent]
-model = "google-gla:gemini-3.5-flash"
+model = "google-gla:gemini-3.6-flash"
 # execution_timeout = 300.0     # seconds; 0 disables the timeout
 # approval_timeout = 0.0        # seconds; 0 waits forever
 # enable_persistence = true
@@ -109,7 +109,7 @@ The `[agent]` section accepts these keys:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `model` | `google-gla:gemini-3.5-flash` | [Model identifier](../guides/models.md#model-identifier) in `provider:model-name` format |
+| `model` | `google-gla:gemini-3.6-flash` | [Model identifier](../guides/models.md#model-identifier) in `provider:model-name` format |
 | `model_settings` | [Google thinking config](../guides/models.md#google-default) | Provider-specific [model settings](../guides/models.md#model-settings) (e.g., thinking config, temperature) |
 | `provider_settings` | unset | Custom API credentials, endpoints, or other [provider-specific options](../guides/models.md#provider-settings) |
 | `tools` | `discovery = "basic"`, web tools off | Presets for [bundled tool servers](../guides/tool-servers.md#enable-bundled-servers) and [tool discovery](../guides/tool-discovery.md) |

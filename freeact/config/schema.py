@@ -4,7 +4,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-DEFAULT_MODEL_NAME = "google-gla:gemini-3.5-flash"
+DEFAULT_MODEL_NAME = "google-gla:gemini-3.6-flash"
 DEFAULT_MODEL_SETTINGS: dict[str, Any] = {
     "google_thinking_config": {
         "thinking_level": "medium",

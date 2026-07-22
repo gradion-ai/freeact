@@ -14,8 +14,8 @@ The `model` field uses Pydantic AI's `provider:model-name` format. Common provid
 
 | Provider | Prefix | Example |
 |----------|--------|---------|
-| Google (Gemini API) | `google-gla:` | `google-gla:gemini-3.5-flash` |
-| Google (Vertex AI) | `google-vertex:` | `google-vertex:gemini-3.5-flash` |
+| Google (Gemini API) | `google-gla:` | `google-gla:gemini-3.6-flash` |
+| Google (Vertex AI) | `google-vertex:` | `google-vertex:gemini-3.6-flash` |
 | Anthropic | `anthropic:` | `anthropic:claude-sonnet-4-6` |
 | OpenAI | `openai:` | `openai:gpt-5.2` |
 | OpenRouter | `openrouter:` | `openrouter:anthropic/claude-sonnet-4.6` |
@@ -30,7 +30,7 @@ The default configuration uses Google's Gemini API with medium thinking enabled:
 
 ```toml
 [agent]
-model = "google-gla:gemini-3.5-flash"
+model = "google-gla:gemini-3.6-flash"
 
 [agent.model_settings]
 google_thinking_config = { thinking_level = "medium", include_thoughts = true }
