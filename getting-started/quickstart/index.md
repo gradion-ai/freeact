@@ -16,7 +16,7 @@ See [Installation](https://gradion-ai.github.io/freeact/getting-started/installa
 
 Using a different model
 
-The current default model is `google-gla:gemini-3.5-flash`. Freeact supports any model compatible with Pydantic AI. To switch providers or configure model settings, see [Configure models](https://gradion-ai.github.io/freeact/guides/models/index.md).
+The current default model is `google-gla:gemini-3.6-flash`. Freeact supports any model compatible with Pydantic AI. To switch providers or configure model settings, see [Configure models](https://gradion-ai.github.io/freeact/guides/models/index.md).
 
 ## 2. Enable tools
 

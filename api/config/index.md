@@ -372,7 +372,7 @@ Fields:
 ## freeact.config.DEFAULT_MODEL_NAME
 
 ```
-DEFAULT_MODEL_NAME = 'google-gla:gemini-3.5-flash'
+DEFAULT_MODEL_NAME = 'google-gla:gemini-3.6-flash'
 ```
 
 ## freeact.config.DEFAULT_MODEL_SETTINGS

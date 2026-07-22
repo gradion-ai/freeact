@@ -2,126 +2,126 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://gradion-ai.github.io/freeact/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/AGENTS/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/CLAUDE/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/api/agent/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/api/config/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/api/generate/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/api/permissions/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/concepts/approvals/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/concepts/code-actions/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/concepts/runtime/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/getting-started/installation/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/getting-started/quickstart/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/getting-started/sdk-tutorial/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/guides/enhancing-tools/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/guides/models/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/guides/permissions/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/guides/python-packages/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/guides/sandbox/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/guides/saving-tools/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/guides/sessions/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/guides/skills/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/guides/tool-discovery/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/guides/tool-servers/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/internal/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/internal/invariants/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/internal/testing/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/internal/examples/rerun/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/reference/cli/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/reference/configuration/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/reference/environment/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://gradion-ai.github.io/freeact/reference/permission-rules/</loc>
-         <lastmod>2026-07-14</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
 </urlset>

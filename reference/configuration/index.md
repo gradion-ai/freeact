@@ -53,7 +53,7 @@ Freeact stores configuration and runtime state in `.freeact/`. Project-level cus
 
 ```
 [agent]
-model = "google-gla:gemini-3.5-flash"
+model = "google-gla:gemini-3.6-flash"
 # execution_timeout = 300.0     # seconds; 0 disables the timeout
 # approval_timeout = 0.0        # seconds; 0 waits forever
 # enable_persistence = true
@@ -111,7 +111,7 @@ The `[agent]` section accepts these keys:
 
 | Setting                        | Default                                                                                      | Description                                                                                                                                                                                                                     |
 | ------------------------------ | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `model`                        | `google-gla:gemini-3.5-flash`                                                                | [Model identifier](https://gradion-ai.github.io/freeact/guides/models/#model-identifier) in `provider:model-name` format                                                                                                        |
+| `model`                        | `google-gla:gemini-3.6-flash`                                                                | [Model identifier](https://gradion-ai.github.io/freeact/guides/models/#model-identifier) in `provider:model-name` format                                                                                                        |
 | `model_settings`               | [Google thinking config](https://gradion-ai.github.io/freeact/guides/models/#google-default) | Provider-specific [model settings](https://gradion-ai.github.io/freeact/guides/models/#model-settings) (e.g., thinking config, temperature)                                                                                     |
 | `provider_settings`            | unset                                                                                        | Custom API credentials, endpoints, or other [provider-specific options](https://gradion-ai.github.io/freeact/guides/models/#provider-settings)                                                                                  |
 | `tools`                        | `discovery = "basic"`, web tools off                                                         | Presets for [bundled tool servers](https://gradion-ai.github.io/freeact/guides/tool-servers/#enable-bundled-servers) and [tool discovery](https://gradion-ai.github.io/freeact/guides/tool-discovery/index.md)                  |

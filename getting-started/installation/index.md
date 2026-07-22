@@ -69,7 +69,7 @@ The core install covers everything else: SDK, CLI, bundled tool servers, and bas
 
 ## API Key
 
-Freeact uses `google-gla:gemini-3.5-flash` as the [default model](https://gradion-ai.github.io/freeact/guides/models/index.md). Set the API key in your environment:
+Freeact uses `google-gla:gemini-3.6-flash` as the [default model](https://gradion-ai.github.io/freeact/guides/models/index.md). Set the API key in your environment:
 
 ```
 export GEMINI_API_KEY="your-api-key"
